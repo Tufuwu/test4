@@ -1,52 +1,104 @@
-# This is a basic workflow to help you get started with Actions
-
-name: build
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the main branch
-on:
-  push:
-    branches: main
-  pull_request:
-    branches: main
-
+name: collective.solr CI
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+        plone-version: [5.2, 5.1, 4.3]
+        solr-version: [7.7.2, 8.2.0]
+        include:
+          - python-version: 3.9
+            plone-version: 4.3
+            solr-version: 7.7.2
+          - python-version: 3.9
+            plone-version: 4.3
+            solr-version: 8.2.0
+          - python-version: 3.9
+            plone-version: 5.1
+            solr-version: 7.7.2
+          - python-version: 3.9
+            plone-version: 5.1
+            solr-version: 8.2.0
+          - python-version: 3.9
+            plone-version: 5.2
+            solr-version: 7.7.2
+          - python-version: 3.9
+            plone-version: 5.2
+            solr-version: 8.2.0
+          - python-version: 3.9
+            plone-version: 5.2
+            solr-version: 7.7.2
+          - python-version: 3.9
+            plone-version: 5.2
+            solr-version: 8.2.0
+        exclude:
+          - python-version: 3.9
+            plone-version: 5.1
+            solr-version: 7.7.2
+          - python-version: 3.9
+            plone-version: 5.1
+            solr-version: 8.2.0
+          - python-version: 3.9
+            plone-version: 4.3
+            solr-version: 7.7.2
+          - python-version: 3.9
+            plone-version: 4.3
+            solr-version: 8.2.0
+
     steps:
+
+      # git checkout
       - uses: actions/checkout@v2
 
-      - name: Set up Python 3.
-        uses: actions/setup-python@v2
+      # python setup
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
         with:
-          python-version: '3.9'
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies.
-        run: |
-          pip install coverage
-          pip install codecov
-          pip install pycodestyle
-          pip install GPy
-          pip install GPyOpt
-          pip install pandas
-          pip install nose
-
-      - name: Install GADMA.
-        run: |
-          ./install
-          cat gadma/version.py
-
-      - name: Check code style.
-        run: pycodestyle gadma
-
-      - name: Run tests and codecov.
-        run: |
-          nosetests -vs tests --with-coverage --cover-package gadma     --cover-branches --cover-erase --cover-xml --cover-inclusive tests
-        
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+      # python cache
+      - uses: actions/cache@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
-          flags: unittests
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
+      # python install
+      - run: pip install virtualenv
+      - run: pip install wheel
+      - name: pip install
+        run: pip install -r requirements.txt
+
+      # run pocompile for translation tests
+      - run: pip install zest.pocompile
+      - run: pocompile src
+
+      # choose Plone version
+      - name: choose Plone version
+        run: sed -ie "s#plone-x.x.x.cfg#plone-${{ matrix.plone-version }}.x.cfg#" ci.cfg
+
+      # choose Solr version
+      - run: sed -ie "s#solr/.\..\..#solr/${{ matrix.solr-version }}#" base.cfg
+      - run: sed -ie "s#solr-.\..\..#solr-${{ matrix.solr-version }}#" base.cfg
+
+      # buildout
+      - name: buildout
+        run: buildout -t 10 -c ci.cfg
+        env:
+          CI: true
+
+      # black
+      - name: black
+        run: if [ "${{ matrix.plone-version }}" == "5.2" ] && [ ${{ matrix.python-version }} == '3.7' ]; then pip install black && black src/ --check; fi
+
+      # code analysis
+      - name: code analysis
+        run: bin/code-analysis
+
+      # test
+      - name: test
+        run: bin/test

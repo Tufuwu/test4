@@ -1,78 +1,88 @@
-#!/usr/bin/env python3
+from setuptools import setup
+from setuptools import find_packages
 
-############################################################################
-# Copyright (c) 2018 Noskova Ekaterina
-# All Rights Reserved
-# See the LICENSE file for details
-############################################################################
+version = "8.4.2.dev0"
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup, find_packages
-
-
-import os, sys
-
-
-NAME = 'gadma'
-
-VERSION = '2.0.0rc5'
-SUPPORTED_PYTHON_VERSIONS = ['3.6', '3.7']
-
-
-# Check python version
-if sys.version[0:3] not in SUPPORTED_PYTHON_VERSIONS:
-    sys.stderr.write("Python version " + sys.version[0:3] + " is not supported!\n" +
-          "Supported versions are " + ", ".join(SUPPORTED_PYTHON_VERSIONS) + "\n")
-    sys.stderr.flush()
-    sys.exit(1)
-
-
-# Create a simple version.py module; less trouble than hard-coding the version
-with open(os.path.join('gadma', 'version.py'), 'w') as f:
-    f.write('__version__ = %r\nversion = __version__\n' % VERSION)
-    f.write('\n# This is a new line that ends the file.\n')
-
-
-# Load up the description from README.rst
-with open('README.md') as f:
-    DESCRIPTION = f.read()
-
-requirements = ['numpy', 'scipy', 'matplotlib',
-                'Pillow', 'Cython', 'mpmath', 'nlopt', 'ruamel.yaml',
-                'dadi']
+long_description = "\n\n".join(
+    [open("README.rst").read(), open("CHANGES.rst").read()])
 
 setup(
-    name=NAME,
-    version=VERSION,
-    author='Ekaterina Noskova',
-    author_email='ekaterina.e.noskova@gmail.com',
-    url='https://github.com/ctlab/GADMA',
-    description='Genetic Algorithm for Demographic Inference',
-    long_description=DESCRIPTION,
-    long_description_content_type='text/markdown',
+    name="collective.solr",
+    version=version,
+    description="Solr integration for external indexing and searching.",
+    long_description=long_description,
     classifiers=[
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Natural Language :: English',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Topic :: Software Development',
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Web Environment",
+        "Framework :: Plone",
+        "Framework :: Plone :: 4.3",
+        "Framework :: Plone :: 5.0",
+        "Framework :: Plone :: 5.1",
+        "Framework :: Plone :: 5.2",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        "Intended Audience :: Other Audience",
+        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ],
-    packages=find_packages(exclude=['examples', 'tests']),
+    keywords="plone cmf zope indexing searching solr lucene",
+    author="Plone Community",
+    author_email="plone-developers@lists.sourceforge.net",
+    maintainer="Timo Stollenwerk",
+    maintainer_email="tisto@plone.org",
+    url="https://github.com/collective/collective.solr",
+    license="GPL version 2",
+    packages=find_packages("src"),
+    package_dir={"": "src"},
+    namespace_packages=["collective"],
     include_package_data=True,
-    package_data={
-        'gadma.cli': ['*.py',  'params_template', 'extra_params_template', 'test_settings']
+    platforms="Any",
+    zip_safe=False,
+    install_requires=[
+        "Acquisition",
+        "DateTime",
+        "Products.CMFCore",
+        "Products.CMFPlone >= 4.3.7",
+        "Products.GenericSetup",
+        "Products.ZCatalog",
+        # 'collective.indexing >= 2.1',
+        "collective.js.showmore",
+        "lxml",
+        "plone.app.content",
+        "plone.app.layout",
+        "plone.app.registry",
+        "plone.app.vocabularies",
+        "plone.api",
+        "plone.browserlayer",
+        "plone.indexer",
+        "plone.restapi",
+        "setuptools",
+        "transaction",
+        "zope.component",
+        "zope.i18nmessageid",
+        "zope.interface",
+        "zope.publisher",
+        "zope.schema",
+    ],
+    extras_require={
+        "test": ["plone.app.testing[robot]", "plone.app.robotframework[debug]"],
+        "test4": [
+            "Products.LinguaPlone >=3.1a1",
+            "plone.app.robotframework[debug]",
+            "plone.app.testing[robot]",
+        ],
     },
-    data_files=[["gadma", ["gadma/test.fs"]], ("", ["LICENSE"])],
-    install_requires=requirements,
-    entry_points={
-        'console_scripts': ['gadma = gadma.core:main',
-            'gadma-run_ls_on_boot_data = gadma.run_ls_on_boot_data:main',
-            'gadma-get_confidence_intervals = gadma.get_confidence_intervals:main']
-    },
+    entry_points="""
+      [z3c.autoinclude.plugin]
+      target=plone
+      [zopectl.command]
+      solr_activate=collective.solr.commands:solr_activate
+      solr_deactivate=collective.solr.commands:solr_deactivate
+      solr_clear_index=collective.solr.commands:solr_clear_index
+      solr_reindex=collective.solr.commands:solr_reindex
+    """,
 )
