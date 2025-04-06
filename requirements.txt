@@ -1,5 +1,10 @@
-numpy>=1.15.0
-pandas>=0.23.0,<1.1.0
-pvlib>=0.8.0
-scipy>=1.2.0
-statsmodels>=0.9.0
+PyYAML>=5.0
+uvloop>=0.12.0
+Cython==0.29.21
+pep8==1.7.1
+flake8==3.7.9
+twine
+Sphinx
+sphinx_rtd_theme
+sphinxcontrib-asyncio
+coverage
