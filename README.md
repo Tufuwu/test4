@@ -1,101 +1,83 @@
-# IsoCor - **Iso**tope **Cor**rection for mass spectrometry labeling experiments
+# python-pathfinding
 
-[![PyPI version](https://badge.fury.io/py/IsoCor.svg)](https://badge.fury.io/py/IsoCor)
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/isocor.svg)](https://pypi.python.org/pypi/isocor/)
-[![Build Status](https://travis-ci.com/MetaSys-LISBP/IsoCor.svg?branch=master)](https://travis-ci.com/MetaSys-LISBP/IsoCor)
-[![Documentation Status](https://readthedocs.org/projects/isocor/badge/?version=latest)](http://isocor.readthedocs.io/?badge=latest)
+Pathfinding algorithms for python 3.
 
-[![IsoCor graphical user interface](https://raw.githubusercontent.com/MetaSys-LISBP/IsoCor/master/doc/_static/isocor_GUI.png)](https://isocor.readthedocs.io/en/latest/)
+Currently there are 7 path-finders bundled in this library, namely:
 
+- A*
+- Dijkstra
+- Best-First
+- Bi-directional A*
+- Breadth First Search (BFS)
+- Iterative Deeping A\* (IDA*)
+- Minimum Spanning Tree (MSP)
 
-## What is IsoCor?
-**IsoCor is a scientific software dedicated to the correction of mass spectrometry (MS) data for naturally
-occuring isotopes**.
-IsoCor corrects raw MS data (mass fractions) for
-naturally-occurring isotopes of all elements and purity of the
-isotopic tracer.
-The output of IsoCor is the isotopologue distribution of the molecule
-(i.e. the relative fractions of molecular entities differing only in the number
-of isotopic substitutions of the tracer). IsoCor also calculates
-the mean enrichment (i.e. the mean isotopic content in the molecule) in metabolites.
+Dijkstra and A* take the weight of the fields on the map into account.
 
-It is one of the routine tools that we use at the [MetaSys team](http://www.lisbp.fr/en/research/molecular-physiology-and-metabolism/metasys.html) and [MetaToul platform](http://www.metatoul.fr) in isotopic studies of metabolic systems.
+![MIT License](https://img.shields.io/github/license/brean/python-pathfinding)
+![PyPI](https://img.shields.io/pypi/v/pathfinding)
 
-The code is open-source, and available under a GPLv3 license. Additional information can be found in [IsoCor publication](https://doi.org/10.1093/bioinformatics/btz209).
+*If you are still using python 2 take a look at the [python2-branch](https://github.com/brean/python-pathfinding/tree/python2).*
 
-Detailed documentation can be found online at Read the Docs ([https://isocor.readthedocs.io/](https://isocor.readthedocs.io/)).
-Check out the [Tutorials](https://isocor.readthedocs.io/en/latest/tutorials.html) to use the best correction option!
+## Installation
 
-## Key features
-* **correction of naturally occuring isotopes**, both for non-tracer and tracer elements,
-* **correction of tracer purity**,
-* shipped as a library with both a **graphical and command line interface**,
-* mass-spectrometer and resolution agnostic,
-* can be applied to singly- and multiply-charged ions
-* can be used with any tracer element (having two or more isotopes)
-* account for the contribution of derivatization steps (if any),
-* generate isotopic InChIs of the tracer isotopologues,
-* open-source, free and easy to install everywhere where Python 3 and pip run,
-* biologist-friendly.
+This library is provided by pypi, so you can just install the current stable version using pip:
 
-## Quick-start
-IsoCor requires Python 3.5 or higher and run on all plate-forms.
-Please check [the documentation](https://isocor.readthedocs.io/en/latest/quickstart.html) for complete
-installation and usage instructions.
-
-Use `pip` to **install IsoCor from PyPi**:
-
-```bash
-$ pip install isocor
+```python
+pip install pathfinding
 ```
 
-Then, start the graphical interface with:
+see [pathfinding on pypi](https://pypi.org/project/pathfinding/)
 
-```bash
-$ isocor
+## Usage examples
+For usage examples with detailed descriptions take a look at the [docs](docs/) folder, also take a look at the [test/](test/) folder for more examples, e.g. how to use pandas
+
+## Rerun the algorithm
+
+While running the pathfinding algorithm it might set values on the nodes. Depending on your path finding algorithm things like calculated distances or visited flags might be stored on them. So if you want to run the algorithm in a loop you need to clean the grid first (see `Grid.cleanup`). Please note that because cleanup looks at all nodes of the grid it might be an operation that can take a bit of time!
+
+## Implementation details
+
+All pathfinding algorithms in this library are inheriting the Finder class. It has some common functionality that can be overwritten by the implementation of a path finding algorithm.
+
+The normal process works like this:
+
+1. You call `find_path` on one of your finder implementations.
+1. `init_find` instantiates the `open_list` and resets all values and counters.
+1. The main loop starts on the `open_list`. This list gets filled with all nodes that will be processed next (e.g. all current neighbors that are walkable). For this you need to implement `check_neighbors` in your own finder implementation.
+1. For example in A*s implementation of `check_neighbors` you first want to get the next node closest from the current starting point from the open list. the `next_node` method in Finder does this by giving you the node with a minimum `f`-value from the open list, it closes it and removes it from the `open_list`.
+1. if this node is not the end node we go on and get its neighbors by calling `find_neighbors`. This just calls `grid.neighbors` for most algorithms.
+1. If none of the neighbors are the end node we want to process the neighbors to calculate their distances in `process_node`
+1. `process_node` calculates the cost `f` from the start to the current node using the `calc_cost` method and the cost after calculating `h` from `apply_heuristic`.
+1. finally `process_node` updates the open list so `find_path` can run `check_neighbors` on it in the next node in the next iteration of the main loop.
+
+flow:
+
+```pseudo
+  find_path
+    init_find  # (re)set global values and open list
+    check_neighbors  # for every node in open list
+      next_node  # closest node to start in open list
+      find_neighbors  # get neighbors
+      process_node  # calculate new cost for neighboring node
 ```
 
-IsoCor is also available directly from command-line and as a Python library.
+## Testing
+You can run the tests locally using pytest. Take a look at the `test`-folder
 
-## Bug and feature requests
-If you have an idea on how we could improve IsoCor please submit a new *issue*
-to [our GitHub issue tracker](https://github.com/MetaSys-LISBP/IsoCor/issues).
+## Contributing
 
+Please use the [issue tracker](https://github.com/brean/python-pathfinding/issues) to submit bug reports and feature requests. Please use merge requests as described [here](/CONTRIBUTING.md) to add/adapt functionality. 
 
-## Developers guide
-### Contributions
-Contributions are very welcome! :heart:
+## License
 
-Please work on your own fork,
-follow [PEP8](https://www.python.org/dev/peps/pep-0008/) style guide,
-and make sure you pass all the tests before a pull request.
+python-pathfinding is distributed under the [MIT license](https://opensource.org/licenses/MIT).
 
-### Local install with pip
-In development mode, do a `pip install -e /path/to/IsoCor` to install
-locally the development version.
+## Maintainer
 
-### Unit tests
-Isotope correction is a complex task and we use unit tests to make sure
-that critical features are not compromised during development.
+Andreas Bresser, self@andreasbresser.de
 
-You can run all tests by calling `pytest` in the shell at project's root directory.
+## Authors / Contributers
+Authors and contributers are [listed on github](https://github.com/brean/python-pathfinding/graphs/contributors).
 
-### Build the documentation locally
-Build the HTML documentation with:
-
-```bash
-$ cd doc
-$ make html
-```
-
-The PDF documentation can be built locally by replacing `html` by `latexpdf`
-in the command above. You will need a recent latex installation.
-
-## How to cite
-Millard P., Delépine B., Guionnet M., Heuillet M., Bellvert F. and Letisse F. IsoCor: isotope correction for high-resolution MS labeling experiments. Bioinformatics, 2019, [doi: 10.1093/bioinformatics/btz209](https://doi.org/10.1093/bioinformatics/btz209)
-
-## Authors
-Baudoin Delépine, Matthieu Guionnet, Pierre Millard
-
-## Contact
-:email: Pierre Millard, millard@insa-toulouse.fr
+Inspired by [Pathfinding.JS](https://github.com/qiao/PathFinding.js)
