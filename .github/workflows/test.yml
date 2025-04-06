@@ -1,69 +1,86 @@
-name: tests
+name: CI
 
 on:
-  pull_request:
-    branches:
-      - "14.0*"
   push:
-    branches:
-      - "14.0"
-      - "14.0-ocabot-*"
+    branches-ignore:
+      - "dependabot/**"
+  pull_request:
 
 jobs:
-  unreleased-deps:
-    runs-on: ubuntu-latest
-    name: Detect unreleased dependencies
-    steps:
-      - uses: actions/checkout@v2
-      - run: |
-          for reqfile in requirements.txt test-requirements.txt ; do
-              if [ -f ${reqfile} ] ; then
-                  result=0
-                  # reject non-comment lines that contain a / (i.e. URLs, relative paths)
-                  grep "^[^#].*/" ${reqfile} || result=$?
-                  if [ $result -eq 0 ] ; then
-                      echo "Unreleased dependencies found in ${reqfile}."
-                      exit 1
-                  fi
-              fi
-          done
-  test:
-    runs-on: ubuntu-latest
-    container: ${{ matrix.container }}
-    name: ${{ matrix.name }}
+  Windows:
+    name: 'Windows (${{ matrix.python }})'
+    timeout-minutes: 20
+    runs-on: 'windows-latest'
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - container: ghcr.io/oca/oca-ci/py3.6-odoo14.0:latest
-            makepot: "true"
-            name: test with Odoo
-          - container: ghcr.io/oca/oca-ci/py3.6-ocb14.0:latest
-            name: test with OCB
-    services:
-      postgres:
-        image: postgres:9.6
-        env:
-          POSTGRES_USER: odoo
-          POSTGRES_PASSWORD: odoo
-          POSTGRES_DB: odoo
-        ports:
-          - 5432:5432
+        # Add 3.9 when cryptography ships Python 3.9 Windows wheels
+        python: ["3.9"]
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
         with:
-          persist-credentials: false
-      - name: Install addons and dependencies
-        run: oca_install_addons
-      - name: Check licenses
-        run: manifestoo -d . check-licenses
-      - name: Check development status
-        run: manifestoo -d . check-dev-status --default-dev-status=Beta
-      - name: Initialize test db
-        run: oca_init_test_database
+          python-version: '${{ matrix.python }}'
       - name: Run tests
-        run: oca_run_tests
-      - uses: codecov/codecov-action@v1
-      - name: Update .pot files
-        run: oca_export_and_push_pot https://x-access-token:${{ secrets.GIT_PUSH_TOKEN }}@github.com/${{ github.repository }}
-        if: ${{ matrix.makepot == 'true' && github.event_name == 'push' && github.repository_owner == 'OCA' }}
+        run: ./ci.sh
+        shell: bash
+        env:
+          # Should match 'name:' up above
+          JOB_NAME: 'Windows (${{ matrix.python }})'
+
+  Ubuntu:
+    name: 'Ubuntu (${{ matrix.python }}${{ matrix.extra_name }})'
+    timeout-minutes: 10
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9"]
+        old_cryptography: ['']
+        extra_name: ['']
+        include:
+          - python: '3.9'
+            old_cryptography: 2.6.1
+            extra_name: ', cryptography 2.6.1'
+          - python: pypy2
+            old_cryptography: ''
+            extra_name: ', PyPy 2'
+          - python: pypy3
+            old_cryptography: ''
+            extra_name: ', PyPy 3'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python }}'
+      - name: Run tests
+        run: ./ci.sh
+        env:
+          OLD_CRYPTOGRAPHY: '${{ matrix.old_cryptography}}'
+          # Should match 'name:' up above
+          JOB_NAME: 'Ubuntu (${{ matrix.python }}${{ matrix.extra_name }})'
+
+  macOS:
+    name: 'macOS (${{ matrix.python }})'
+    timeout-minutes: 10
+    runs-on: 'macos-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python }}'
+      - name: Run tests
+        run: ./ci.sh
+        env:
+          # Should match 'name:' up above
+          JOB_NAME: 'macOS (${{ matrix.python }})'
