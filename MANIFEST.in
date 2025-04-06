@@ -1,5 +1,4 @@
-include MANIFEST.in
-include CHANGES.rst INSTALL.rst LICENSE.txt README.rst
-include logo/logo-220x200.png
-recursive-include lupa *.py *.pyx *.pxd *.pxi *.c
-recursive-include third-party *.c *.h
+include README.rst
+include LICENSE
+include tox.ini
+recursive-include tests *.py

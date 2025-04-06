@@ -1,38 +1,47 @@
-name: Continuous Integration
-
-on: [push, pull_request]
-
+name: tests
+on:
+  - push
+  - pull_request
 jobs:
-  build:
-
+  tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.9"]
-        lua-version: ["bundle", "lua5.2", "lua5.3", "luajit-5.1"]
-
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Check out recursively
-      run: git submodule update --init --recursive
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Set up Python packages
-      run: python -m pip install -U "pip<21" "setuptools<45" ; python -m pip install -U tox virtualenv
-
-    - name: Set up Lua ${{ matrix.lua-version }}
-      if: ${{ !contains(matrix.lua-version, 'bundle') }}
-      run: sudo apt-get install lib${{ matrix.lua-version }}-dev
-
-    - name: Run tests with tox
-      run: tox -e py # Runs the version of Python tox is currently using
-      continue-on-error: ${{ contains(matrix.python-version, 'pypy') }}
-      env:
-        SETUP_OPTIONS: ${{ !contains(matrix.lua-version, 'luajit') && (contains(matrix.lua-version, 'bundle') && '--use-bundle' || '--no-luajit') || '' }}
-        CFLAGS: ${{ contains(matrix.lua-version, 'bundle') && '-flto -g' || '-g' }}
-        LDFLAGS: ${{ contains(matrix.lua-version, 'bundle') && '-flto' || '' }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Python dependencies
+        run: |
+          pip install -r tests/config/requirements.txt
+          pip install -e .
+      - name: Set up Graylog
+        run: |
+          docker compose -f tests/config/docker-compose.yml up -d
+          sleep 60
+          ./tests/config/graylog-setup.sh
+      - name: Run tests
+        run: pytest -v --cov=pygelf
+      - uses: coverallsapp/github-action@v2
+        with:
+          flag-name: ${{ matrix.python-version }}
+          parallel: true
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python dependencies
+        run: pip install -r tests/config/requirements.txt
+      - name: Run pylint
+        run: pylint pygelf
+  coverage:
+    needs:
+      - tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: coverallsapp/github-action@v2
+        with:
+          parallel-finished: true
+          fail-on-error: false
