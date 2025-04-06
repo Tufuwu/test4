@@ -1,91 +1,94 @@
-name: tests
+name: build
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-
-permissions:
-  contents: read
+    branches: [ main ]
 
 jobs:
-  black:
-    name: black
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: "3.9"
-    - run: pip install -r requirements-dev.txt
-    - run: |
-        black --check $(git ls-files | grep 'py$')
-  isort:
-    name: isort
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: "3.9"
-    - run: pip install -r requirements-dev.txt
-    - run: isort --check-only --diff pyi.py
-  mypy:
-    name: mypy
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: "3.9"
-    - run: pip install -r requirements-dev.txt
-    - run: mypy pyi.py
-  flake8:
-    name: flake8
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: "3.9"
-    # flake8 not in requirements-dev.txt, because versions specified in setup.py are complicated
-    - run: pip install -e .
-    - run: |
-        flake8 $(git ls-files | grep 'py$')
-  tests:
-    name: pytest suite
-    timeout-minutes: 10
-    runs-on: ${{ matrix.os }}
+  build:
     strategy:
       matrix:
-        os: ['ubuntu-latest', 'macos-latest', 'windows-latest']
+        os: [ubuntu-latest]
         python-version: ["3.9"]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: conda-incubator/setup-miniconda@v2
       with:
+        activate-environment: test
+        channels: conda-forge
         python-version: ${{ matrix.python-version }}
-    - run: pip install -e .
-    - run: pip install -r requirements-dev.txt
-    - run: python3 -m pytest
-  check-typeshed:
-    name: typeshed_primer
-    timeout-minutes: 5
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/checkout@v2
+    - name: Install OS dependencies
+      run: |
+        # see https://github.com/matplotlib/matplotlib/blob/main/.github/workflows/tests.yml
+        sudo apt-get update -yy
+        sudo apt-get install -yy \
+          ccache \
+          cm-super \
+          dvipng \
+          ffmpeg \
+          fonts-noto-cjk \
+          gdb \
+          gir1.2-gtk-3.0 \
+          graphviz \
+          inkscape \
+          lcov \
+          libcairo2 \
+          libcairo2-dev \
+          libffi-dev \
+          libgeos-dev \
+          libgirepository1.0-dev \
+          libsdl2-2.0-0 \
+          libxkbcommon-x11-0 \
+          libxcb-icccm4 \
+          libxcb-image0 \
+          libxcb-keysyms1 \
+          libxcb-randr0 \
+          libxcb-render-util0 \
+          libxcb-xinerama0 \
+          lmodern \
+          fonts-freefont-otf \
+          texlive-pictures \
+          pkg-config \
+          qtbase5-dev \
+          texlive-fonts-recommended \
+          texlive-latex-base \
+          texlive-latex-extra \
+          texlive-latex-recommended \
+          texlive-luatex \
+          texlive-xetex \
+          ttf-wqy-zenhei \
+          libopengl0
+    - name: Install setup requirements
+      run: |
+        conda install -n test -q -y pip setuptools setuptools_scm
+    - name: Conda information
+      run: |
+        conda info --all
+        conda list -n test
+    - name: Install psrqpy
+      run: |
+        python -m pip install -e .[test,docs] -vv --no-build-isolation
+    - name: Run test suite
+      run: |
+        xvfb-run -a python -m pytest --cov-report=xml --cov=psrqpy
+    - name: Test building docs
+      if: ${{ matrix.python-version == '3.8' }} 
+      run: |
+        cd docs
+        mkdir source/_static
+        make html
+        cd ..
+    - name: Upload coverage to Codecov
+      if: ${{ matrix.python-version == '3.8' }} 
+      uses: codecov/codecov-action@v2
       with:
-        repository: python/typeshed
-        path: typeshed
-    - uses: actions/setup-python@v2
-      with:
-        python-version: "3.9"
-    - run: pip install -e .
-    - run: |
-        cd typeshed && flake8
+        fail_ci_if_error: true
+        verbose: true
+
