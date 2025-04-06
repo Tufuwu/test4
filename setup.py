@@ -1,98 +1,61 @@
-#!/usr/bin/env python3
-"""
-Setuptools for Fimfarchive.
-"""
-
-
-#
-# Fimfarchive, preserves stories from Fimfiction
-# Copyright (C) 2015  Joakim Soderlund
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-
+#!/usr/bin/env python
 
 import os
-from typing import Iterable, List, Tuple
+import sys
 
-from setuptools import setup
-
-from fimfarchive import __author__, __license__, __version__
+from setuptools import setup, find_packages
 
 
-PACKAGE = 'fimfarchive'
-GITHUB = 'https://github.com/JockeTF/fimfarchive'
+def which(program):
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
 
 
-def to_name(path: str) -> str:
-    """
-    Converts path to a package name.
-    """
-    return path.replace(os.path.sep, '.')
+if sys.version_info.major == 3 and sys.version_info.minor < 3:
+    print("Unfortunately, your python version is not supported!\n Please upgrade at least to python 3.3!")
+    sys.exit(1)
 
+if sys.platform == 'darwin' or sys.platform == 'win32':
+    print("Unfortunately, we do not support your platform %s" % sys.platform)
+    sys.exit(1)
 
-def iter_package_paths() -> Iterable[str]:
-    """
-    Yields all package paths to install.
-    """
-    for dirpath, dirnames, filenames in os.walk(PACKAGE):
-        if '__init__.py' in filenames:
-            yield dirpath
+if which('dexdump') is None:
+    print("Unable to find dexdump executable, please install it.")
+    print("On Debian-like OS, run sudo apt-get install dexdump")
+    sys.exit(1)
 
-
-def iter_package_names() -> Iterable[str]:
-    """
-    Yields all package names to install.
-    """
-    for dirpath in iter_package_paths():
-        yield to_name(dirpath)
-
-
-def iter_package_data() -> Iterable[Tuple[str, List[str]]]:
-    """
-    Yields all package data to install.
-    """
-    for dirpath in iter_package_paths():
-        filenames = [
-            filename for filename in os.listdir(dirpath)
-            if os.path.isfile(os.path.join(dirpath, filename))
-            and not filename.endswith('.py')
-        ]
-
-        if filenames:
-            yield to_name(dirpath), filenames
-
+install_requires = [
+    'androguard==3.3.5',
+    'cryptography==3.3.2',
+    'dhash==1.3',
+    'jellyfish==0.5.6',
+    'Pillow==6.2.2',
+    'requests==2.21.0',
+    'six==1.15.0',
+    'traitlets==4.3.2'
+]
 
 setup(
-    name="fimfarchive",
-    version=__version__,
-    license=__license__,
-    author=__author__,
-    author_email='fimfarchive@gmail.com',
-    url='http://www.fimfarchive.net/',
-    download_url=f'{GITHUB}/archive/{__version__}.tar.gz',
-    packages=list(iter_package_names()),
-    package_data=dict(iter_package_data()),
-    install_requires=(
-        'arrow',
-        'bbcode',
-        'blinker',
-        'importlib_resources',
-        'jinja2',
-        'jmespath',
-        'jsonapi-client',
-        'requests',
-        'tqdm',
-    ),
+    name='exodus_core',
+    version='1.3.3',
+    description='Core functionality of εxodus',
+    author='Exodus Privacy',
+    author_email='contact@exodus-privacy.eu.org',
+    url='https://github.com/Exodus-Privacy/exodus-core',
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "test*", "tests"]),
+    install_requires=install_requires,
+    include_package_data=True,
+    zip_safe=False,
 )
