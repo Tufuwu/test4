@@ -1,134 +1,113 @@
-```
-                                    __   _ __      _______ _________
-                                   / /  (_) /____ / __/ _ /_  __/ _ |
-                                  / /__/ / __/ -_)\ \/ __ |/ / / __ |
-                                 /____/_/\__/\__/___/_/ |_/_/ /_/ |_|
+# FeedCrawler
 
-                                  Copyright 2014-2020 / EnjoyDigital
-                                     Copyright 2014-2015 / HKU
+<img src="./feedcrawler/web/img/favicon.ico" data-canonical-src="./feedcrawler/web/img/favicon.ico" width="64" height="64" />
 
-                              A small footprint and configurable SATA core
-                                      powered by Migen & LiteX
-```
+FeedCrawler (ehemals RSScrawler) automatisiert bequem das Hinzufügen von Links für den JDownloader.
 
-[![](https://github.com/enjoy-digital/litesata/workflows/ci/badge.svg)](https://github.com/enjoy-digital/litesata/actions) ![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)
+[![PyPI version](https://badge.fury.io/py/feedcrawler.svg)](https://badge.fury.io/py/feedcrawler)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/feedcrawler)](https://github.com/rix1337/FeedCrawler/releases)
+[![Github Sponsorship](https://img.shields.io/badge/support-me-red.svg)](https://github.com/users/rix1337/sponsorship)
+[![Chat aufrufen unter https://gitter.im/FeedCrawler/community](https://badges.gitter.im/FeedCrawler/community.svg)](https://gitter.im/FeedCrawler/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GitHub license](https://img.shields.io/github/license/rix1337/FeedCrawler.svg)](https://github.com/rix1337/FeedCrawler/blob/master/LICENSE.md)
+[![GitHub issues](https://img.shields.io/github/issues/rix1337/FeedCrawler.svg)](https://github.com/rix1337/FeedCrawler/issues)
+[![GitHub stars](https://img.shields.io/github/stars/rix1337/FeedCrawler.svg)](https://github.com/rix1337/FeedCrawler/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/rix1337/FeedCrawler.svg)](https://github.com/rix1337/FeedCrawler/network)
 
+***
 
-[> Intro
---------
-LiteSATA provides a small footprint and configurable SATA core.
+## Docker
 
-LiteSATA is part of LiteX libraries whose aims are to lower entry level of
-complex FPGA cores by providing simple, elegant and efficient implementations
-of components used in today's SoC such as Ethernet, SATA, PCIe, SDRAM Controller...
+* Offizielles Repo im Docker Hub: [docker-feedcrawler](https://hub.docker.com/r/rix1337/docker-feedcrawler/)
+* Der Betrieb als Docker-Container empfiehlt sich als Standardinstallation - vor allem für NAS-Systeme, Homeserver und
+  sonstige Geräte die dauerhaft und möglichst wartungsfrei (headless) betrieben werden sollen. Beim (Neu-)Start des
+  Containers wird automatisch die neueste Version heruntergeladen. Wird ein neues Image im Docker Hub bereitgestellt,
+  sollte dennoch auf dieses aktualisiert werden!
+* Für UNRAID-Server kann das Image direkt über die Community Applications bezogen und der Container so eingerichtet
+  werden.
+* Ein [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) muss lokal verfügbar sein um Cloudflare-Blockaden zu
+  umgehen (optional)
 
-Using Migen to describe the HDL allows the core to be highly and easily configurable.
+## Windows
 
-LiteSATA can be used as LiteX library or can be integrated with your standard
-design flow by generating the verilog rtl that you will use as a standard core.
+* Jedem [Release](https://github.com/rix1337/FeedCrawler/releases) wird eine selbstständig unter Windows lauffähige
+  Version des Feedcrawlers beigefügt.
+* Hierfür müssen weder Python, noch die Zusatzpakete installiert werden.
+* Einfach die jeweilige Exe herunterladen und ausführen bzw. bei Updates die Exe ersetzen.
+* Ein [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) muss lokal verfügbar sein um Cloudflare-Blockaden zu
+  umgehen (optional)
 
-<p align="center"><img src="https://github.com/enjoy-digital/litesata/raw/master/doc/architecture.png" width="800"></p>
+## Manuelle Installation
 
-[> Features
------------
-PHY:
-  - Xilinx 7-Series (Kintex7, Artix7)
-  - Xilinx Ultrascale
-  - Xilinx Ultrascale+
-  - OOB, COMWAKE, COMINIT
-  - ALIGN inserter/remover and bytes alignment on K28.5
-  - 8B/10B encoding/decoding in transceiver
-  - Automatic TX/RX P/N polarity detection and swap.
-  - Errors detection and reporting
-  - 32 bits interface
-  - 1.5/3.0/6.0GBps supported speeds (respectively 37.5/75/150MHz system clk)
+### Voraussetzungen
 
-Core:
+* [Python 3.6](https://www.python.org/downloads/) oder neuer
+* [pip](https://pip.pypa.io/en/stable/installing/)
+* [JDownloader 2](http://www.jdownloader.org/jdownloader2) mit [My JDownloader-Konto](https://my.jdownloader.org)
+* [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) um Cloudflare-Blockaden zu umgehen (optional)
 
- - Link:
-    - CONT inserter/remover
-    - Scrambling/Descrambling of data
-    - CRC inserter/checker
-    - HOLD insertion/detection
-    - Errors detection and reporting
-  - Transport/Command:
-    - Easy to use user interfaces (Can be used with or without CPU)
-    - 48 bits sector addressing
-    - 3 supported commands: READ_DMA(_EXT), WRITE_DMA(_EXT), IDENTIFY_DEVICE
-    - Errors detection and reporting
+### Installation
 
-Frontend:
-  - Configurable crossbar (simply declare your crossbar and use crossbar.get_port() to add a new port!)
-  - Ports arbitration transparent to the user
-  - Synthetizable BIST
-  - Striping module to segment data on multiple HDDs and increase write/read speed and capacity. (RAID0 equivalent)
-  - Mirroring module for data redundancy and increase read speeds. (RAID1 equivalent)
+```pip install feedcrawler```
 
-[> FPGA Proven
---------------
-LiteSATA is already used in commercial and open-source designs:
-- High End 50Mpixels CMOS Camera using CFAST & SD cards.
-- Low latency database research.
+Hinweise zur manuellen Installation und Einrichtung finden sich im [Wiki](https://github.com/rix1337/FeedCrawler/wiki)!
 
-[> Possible improvements
-------------------------
-- add standardized interfaces (AXI, Avalon-ST)
-- add NCQ support
-- add AES hardware encryption
-- add on-the-flow compression/decompression
-- add support for Altera PHYs.
-- add support for Lattice PHYs.
-- add Zynq Linux drivers.
-- ... See below Support and consulting :)
+### Bekannte Fehler
 
-If you want to support these features, please contact us at florent [AT]
-enjoy-digital.fr.
+Kommt es nach einem Update oder Neustart des Containers zu einer `sqlite3.OperationalError: database is locked`
+-Fehlermeldungen, so muss der Container gestoppt, die `FeedCrawler.db` beliebig (bspw. zu `FeedCrawler-Temp.db`)
+umbenannt und direkt wieder zurück zu `FeedCrawler.db` umbenannt werden. Hintergrund ist, dass der FeedCrawler nicht
+während die Datenbank verwendet wird (bspw. bei aktiver Feedsuche) gestoppt werden sollte. Der Umbenennungs-Workaround
+stellt sicher, dass das Betriebssystem die Datei wieder freigibt (also den Lock loslässt).
 
-[> Getting started
-------------------
-1. Install Python 3.6+ and FPGA vendor's development tools.
-2. Install LiteX and the cores by following the LiteX's wiki [installation guide](https://github.com/enjoy-digital/litex/wiki/Installation).
-3. You can find examples of integration of the core with LiteX in LiteX-Boards and in the examples directory.
+Fehler im Installationsprozess per _pip_ deuten auf fehlende Compiler im System hin. Meist muss ein Zusatzpaket
+nachinstalliert werden (Beispielsweise die [VS C++ Build Tools](https://aka.ms/vs/16/release/vs_buildtools.exe) für
+Windows oder libffi per `apt-get install libffi-dev` für den Raspberry Pi).
 
-[> Tests
---------
-Unit tests are available in ./test/.
-To run all the unit tests:
-```sh
-$ ./setup.py test
-```
+### Update
 
-Tests can also be run individually:
-```sh
-$ python3 -m unittest test.test_name
-```
+```pip install -U feedcrawler```
 
-[> License
-----------
-LiteSATA is released under the very permissive two-clause BSD license. Under the
-terms of this license, you are authorized to use LiteSATA for closed-source
-proprietary designs.
-Even though we do not require you to do so, those things are awesome, so please
-do them if possible:
- - tell us that you are using LiteSATA
- - cite LiteSATA in publications related to research it has helped
- - send us feedback and suggestions for improvements
- - send us bug reports when something goes wrong
- - send us the modifications and improvements you have done to LiteSATA.
+### Starten
 
-[> Support and consulting
--------------------------
-We love open-source hardware and like sharing our designs with others.
+```feedcrawler``` in der Konsole (Python muss im System-PATH hinterlegt sein)
 
-LiteSATA is developed and maintained by EnjoyDigital.
+## Hostnamen festlegen
 
-If you would like to know more about LiteSATA or if you are already a happy
-user and would like to extend it for your needs, EnjoyDigital can provide standard
-commercial support as well as consulting services.
+FeedCrawler kann zum durchsuchen beliebiger Webseiten verwendet werden. Ausschließlich der Anwender entscheidet, welche
+Seiten durchsucht werden sollen. Diese Entscheidung trifft der Anwender selbstständig, indem er die _Feedcrawler.ini_ in
+der Kategorie _[Hostnames]_ manuell befüllt (_ab = xyz.com_). Eingetragen werden dort reine Hostnamen (ohne _https://_).
 
-So feel free to contact us, we'd love to work with you! (and eventually shorten
-the list of the possible improvements :)
+### Dabei gilt
 
-[> Contact
-----------
-E-mail: florent [AT] enjoy-digital.fr
+* Welcher Hostname aufgerufen wird entscheidet allein der Anwender.
+* Ist nicht mindestens ein Hostname gesetzt, wird der FeedCrawler nicht starten.
+* Passt die aufgerufene Seite hinter dem jeweiligen Hostnamen nicht zum Suchmuster des Feedcrawlers, kann es zu Fehlern
+  kommen.
+* Weder FeedCrawler noch der Autor benennen oder befürworten spezifische Hostnamen. Fragen hierzu werden ignoriert!
+
+## Sicherheitshinweis
+
+Der Webserver sollte nie ohne Absicherung im Internet freigegeben werden. Dazu lassen sich im Webinterface Nutzername
+und Passwort festlegen.
+
+Es empfiehlt sich, zusätzlich einen Reverse-Proxy mit HTTPs-Zertifikat,
+bspw. [kostenlos von letsencrypt](https://letsencrypt.org/), zu verwenden.
+
+## Startparameter
+
+| Parameter | Erläuterung |
+|---|---|
+| ```--log-level=<LOGLEVEL>``` | Legt fest, wie genau geloggt wird (`CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`, `NOTSET`) |
+| ```--config="<CFGPFAD>"``` | Legt den Ablageort für Einstellungen und Logs fest |
+| ```--port=<PORT>``` | Legt den Port des Webservers fest |
+| ```--jd-user=<NUTZERNAME>``` | Legt den Nutzernamen für My JDownloader fest |
+| ```--jd-pass=<PASSWORT>``` | Legt das Passwort für My JDownloader fest |
+| ```--jd-device=<GERÄTENAME>``` | Legt den Gerätenamen für My JDownloader fest (optional, wenn nur ein Gerät vorhanden ist) |
+| ``` --keep-cdc``` | Leere die CDC-Tabelle (Feed ab hier bereits gecrawlt) nicht vor dem ersten Suchlauf |
+
+## Credits
+
+* [mmarquezs](https://github.com/mmarquezs/)
+* [Gutz-Pilz](https://github.com/Gutz-Pilz/)
+* [zapp-brannigan](https://github.com/zapp-brannigan/)
+* [JetBrains PyCharm](https://www.jetbrains.com/?from=FeedCrawler)

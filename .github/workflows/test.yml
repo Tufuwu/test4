@@ -1,31 +1,20 @@
-name: ci
+name: Continuous Integration
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    name: Python ${{ matrix.python-version }}
     steps:
-      # Checkout Repository
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Install Tools
-      - name: Install Tools
-        run: |
-          sudo apt-get install wget build-essential python3
-          pip3 install setuptools
-
-      # Install (n)Migen / LiteX / Cores
-      - name: Install LiteX
-        run: |
-          wget https://raw.githubusercontent.com/enjoy-digital/litex/main/litex_setup.py
-          python3 litex_setup.py init install --user
-
-      # Install Project
-      - name: Install Project
-        run: python3 setup.py develop --user
-
-      # Test
-      - name: Run Tests
-        run: python3 setup.py test
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - run: pip install -r requirements.txt
+      - run: python FeedCrawler.py --port=9090 --config="/home/runner/work/_temp/_github_home" --test_run --log-level=DEBUG
