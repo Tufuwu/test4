@@ -1,2 +1,4 @@
-include README.rst LICENSE
-recursive-include tests *.py
+include LICENSE
+include *.rst
+include .flake8
+recursive-include tests *.pyi *.py
