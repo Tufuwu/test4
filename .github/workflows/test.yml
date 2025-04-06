@@ -1,33 +1,28 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python package
+name: Tests
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    paths-ignore:
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
 
 jobs:
-  build:
-
+  run_tests:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"]
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.9"
+        cache: "pip"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install astroid>=2.0 pylint~=2.5.3
-        pip install -e .
-    - name: Lint with pylint
+        pip install -r requirements.txt
+    - name: Ansible tests
       run: |
-        pylint --rcfile=.pylintrc infinisdk setup.py
+        cd ./tests/
+        python3 ./files/fake_api.py &
+        make
