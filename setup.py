@@ -1,53 +1,51 @@
-"""Setup file for mysensors package."""
-from pathlib import Path
-
+#!/usr/bin/env python
 from setuptools import setup, find_packages
+from os import path
 
-PROJECT_DIR = Path(__file__).parent.resolve()
-VERSION = (PROJECT_DIR / "mysensors" / "VERSION").read_text().strip()
+this_directory = path.abspath(path.dirname(__file__))
 
-README_FILE = PROJECT_DIR / "README.md"
-LONG_DESCR = README_FILE.read_text(encoding="utf-8")
+with open(path.join(this_directory, 'clifford', '_version.py'), encoding='utf-8') as f:
+    exec(f.read())
 
-REQUIRES = [
-    "click",
-    "crcmod>=1.7",
-    "getmac",
-    "IntelHex>=2.2.1",
-    "pyserial>=3.4",
-    "pyserial-asyncio>=0.4",
-    "voluptuous>=0.11.1",
-]
-EXTRAS = {"mqtt-client": ["paho-mqtt"]}
-
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
-    name="pymysensors",
-    version=VERSION,
-    description="Python API for talking to a MySensors gateway",
-    long_description=LONG_DESCR,
-    long_description_content_type="text/markdown",
-    url="https://github.com/theolind/pymysensors",
-    author="Theodor Lindquist",
-    author_email="theodor.lindquist@gmail.com",
-    license="MIT License",
-    install_requires=REQUIRES,
-    extras_require=EXTRAS,
-    packages=find_packages(exclude=["tests", "tests.*"]),
-    python_requires=">=3.5.3",
-    entry_points={"console_scripts": ["pymysensors = mysensors.cli:cli"]},
-    keywords=["sensor", "actuator", "IoT", "DYI"],
-    zip_safe=True,
-    classifiers=[
-        "Intended Audience :: Developers",
-        "Intended Audience :: End Users/Desktop",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Topic :: Home Automation",
+    name='clifford',
+    version=__version__,
+    license='bsd',
+    description='Numerical Geometric Algebra Module',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    author='Robert Kern',
+    maintainer='Alex Arsenovic',
+    maintainer_email='alexarsenovic@gmail.com',
+    url='http://clifford.readthedocs.io',
+    packages=find_packages(),
+    install_requires=[
+        'numpy >= 1.17',
+        'scipy',
+        'numba > 0.46',
+        'h5py',
+        'sparse',
     ],
+    package_dir={'clifford':'clifford'},
+
+    classifiers=[
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Mathematics',
+
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+    ],
+    project_urls={
+        "Bug Tracker": "https://github.com/pygae/clifford/issues",
+        "Source Code": "https://github.com/pygae/clifford",
+    },
+
+    python_requires='>=3.5',
 )

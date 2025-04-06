@@ -1,12 +1,12 @@
-#PyCharm
-.idea/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 
 # C extensions
 *.so
+
+# Pycharm config
+.idea
 
 # Distribution / packaging
 .Python
@@ -40,7 +40,6 @@ htmlcov/
 .tox/
 .coverage
 .cache
-.pytest_cache/
 nosetests.xml
 coverage.xml
 
@@ -57,8 +56,15 @@ docs/_build/
 # PyBuilder
 target/
 
-# pickle files (serialized python object)
-*.pickle
+/docs/generated
 
-# json files (persistence)
-*.json
+.mypy_cache
+.ipynb_checkpoints
+
+/docs/api/generated/*
+
+clifford/test/\.hypothesis/
+
+clifford/test/test\.ga
+
+clifford/test/test\.json
