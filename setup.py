@@ -1,130 +1,154 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+from setuptools import setup, find_packages, Extension
+from codecs import open
+from os import path
 
 """
-AUTHOR
-    - Antti Suni <antti.suni@helsinki.fi>
-    - Sébastien Le Maguer <lemagues@tcd.ie>
+Release instruction:
 
-DESCRIPTION
-    Setup script file
+Upate changelog and contributors list.
 
-LICENSE
-    See https://github.com/asuni/wavelet_prosody_toolkit/blob/master/LICENSE.txt
+Check that tests run correctly for 36 and 27 and doc compiles without warning
+(make clean first).
+
+change __version__ in setup.py to new version name.
+
+First upload to test pypi:
+    mktmpenv (Python version should not matter)
+    pip install numpy cython twine
+    python setup.py sdist
+    twine upload dist/blabla.tar.gz -r testpypi
+
+Check that install works on testpypi, then upload to pypi and check again.
+to install from testpypi:
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple scikit-surprise  # noqa
+Doesn't hurt to check that the tests pass after installing from testpypi.
+
+push new release tag on github (commit last changes first if needed):
+    git tag vX.Y.Z
+    git push --tags
+
+Check that RTD has updated 'stable' to the new release (may take a while).
+
+In the mean time, upload to conda:
+    - Compute SHA256 hash of the new .tar.gz archive (or check it up on PyPI)
+    - update recipe/meta.yaml on feedstock fork consequently (only version and
+      sha should be changed.  Maybe add some import tests).
+    - Push changes, Then open pull request on conda-forge feedstock and merge it
+      when all checks are OK. Access the conda-forge feedstock it by the link on
+      GitHub 'forked from blah blah'.
+    - Check on https://anaconda.org/conda-forge/scikit-surprise that new
+      version is available for all platforms.
+
+Then, maybe, celebrate.
 """
 
-# Needed imports
-from setuptools import setup, find_packages
+from setuptools import dist  # Install numpy right now
+dist.Distribution().fetch_build_eggs(['numpy>=1.11.2'])
 
+try:
+    import numpy as np
+except ImportError:
+    exit('Please install numpy>=1.11.2 first.')
 
-# Define meta-informations variable
-REQUIREMENTS = [
-    # Configuration
-    "pyyaml",
+try:
+    from Cython.Build import cythonize
+    from Cython.Distutils import build_ext
+except ImportError:
+    USE_CYTHON = False
+else:
+    USE_CYTHON = True
 
-    # Math
-    "pycwt", "matplotlib", "numpy", "scipy",
+__version__ = '1.1.1'
 
-    # Audio/speech
-    "soundfile", "tgt", "wavio",
+here = path.abspath(path.dirname(__file__))
 
-    # Parallel
-    "joblib",
+# Get the long description from README.md
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
-    # Rendering
-    "pyqt5"
+# get the dependencies and installs
+with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
+    all_reqs = f.read().split('\n')
+
+install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
+dependency_links = [x.strip().replace('git+', '')
+                    for x in all_reqs if x.startswith('git+')]
+
+cmdclass = {}
+
+ext = '.pyx' if USE_CYTHON else '.c'
+
+extensions = [
+    Extension(
+        'surprise.similarities',
+        ['surprise/similarities' + ext],
+        include_dirs=[np.get_include()]
+    ),
+    Extension(
+        'surprise.prediction_algorithms.matrix_factorization',
+        ['surprise/prediction_algorithms/matrix_factorization' + ext],
+        include_dirs=[np.get_include()]),
+    Extension('surprise.prediction_algorithms.optimize_baselines',
+              ['surprise/prediction_algorithms/optimize_baselines' + ext],
+              include_dirs=[np.get_include()]),
+    Extension('surprise.prediction_algorithms.slope_one',
+              ['surprise/prediction_algorithms/slope_one' + ext],
+              include_dirs=[np.get_include()]),
+    Extension('surprise.prediction_algorithms.co_clustering',
+              ['surprise/prediction_algorithms/co_clustering' + ext],
+              include_dirs=[np.get_include()]),
 ]
 
-EXTRA_REQUIREMENTS = {
-    'reaper': ["pyreaper"],
-    'docs': [
-        'sphinx >= 1.4',
-        'sphinx_rtd_theme',
-        "numpydoc"
-    ]
-}
+if USE_CYTHON:
+    ext_modules = cythonize(
+        extensions,
+        compiler_directives={
+            "language_level": 3,
+            "boundscheck": False,
+            "wraparound": False,
+            "initializedcheck": False,
+            "nonecheck": False,
+        },
+    )
+    cmdclass.update({'build_ext': build_ext})
+else:
+    ext_modules = extensions
 
-NAME = 'wavelet-prosody-toolkit'
-VERSION = '1.0b1'
-RELEASE = '1.0'
-AUTHOR = 'Antti Suni'
-DESCRIPTION = 'Prosody wavelet analysis toolkit'
-with open("README.rst", "r") as fh:
-    LONG_DESCRIPTION = fh.read()
-
-
-# If sphinx available, enable documentation building
-try:
-    from sphinx.setup_command import BuildDoc
-    cmdclass = {'build_sphinx': BuildDoc}
-    command_options = {
-        'build_sphinx': {
-            'project': ('setup.py', NAME),
-            'version': ('setup.py', VERSION),
-            'release': ('setup.py', RELEASE)
-        }
-    }
-except Exception:
-    cmdclass = {}
-    command_options = {}
-
-# The actual setup
 setup(
-    # Project info.
-    name=NAME,
-    version=RELEASE,
-    url="https://github.com/asuni/wavelet_prosody_toolkit",
+    name='scikit-surprise',
+    author='Nicolas Hug',
+    author_email='contact@nicolas-hug.com',
 
-    # Author info.
-    author=AUTHOR,
-    author_email='antti.suni@helsinki.fi',
+    description=('An easy-to-use library for recommender systems.'),
+    long_description=long_description,
+    long_description_content_type='text/markdown',
 
-    # Description part
-    description=DESCRIPTION,
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/x-rst",
+    version=__version__,
+    url='http://surpriselib.com',
 
-    # Install requirements
-    install_requires=REQUIREMENTS,
-    extras_require=EXTRA_REQUIREMENTS,
-
-    # Documentation generation
-    cmdclass=cmdclass,
-    command_options=command_options,
-
-    # Packaging
-    packages=find_packages(),  # FIXME: see later to exclude the test (which will be including later)
-    package_data={'': ['configs/default.yaml', 'configs/synthesis.yaml']},
-    include_package_data=True,
-
-    # Meta information to sort the project
+    license='GPLv3+',
     classifiers=[
-        'Development Status :: 4 - Beta',
-
-        # Audience
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
-
-        # Topics
-        'Topic :: Multimedia :: Sound/Audio :: Speech',
-        'Topic :: Scientific/Engineering :: Information Analysis',
-        'Topic :: Scientific/Engineering :: Visualization',
-
-        # Pick your license as you wish
-        'License :: OSI Approved :: MIT License',
-
-        # Python version (FIXME: fix the list of python version based on travis results)
-        'Programming Language :: Python :: 3',
+        'Topic :: Scientific/Engineering',
+        'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
+    keywords='recommender recommendation system',
 
-    # "Executable" to link
-    entry_points={
-        'console_scripts': [
-            'prosody_labeller = wavelet_prosody_toolkit.prosody_labeller:main',
-            'cwt_analysis_synthesis = wavelet_prosody_toolkit.cwt_analysis_synthesis:main',
-        ],
-        'gui_scripts': [
-            'wavelet_gui = wavelet_prosody_toolkit.wavelet_gui:main'
-        ]
-    }
+    packages=find_packages(exclude=['tests*']),
+    python_requires=">=3.7",
+    include_package_data=True,
+    ext_modules=ext_modules,
+    cmdclass=cmdclass,
+    install_requires=install_requires,
+    dependency_links=dependency_links,
+
+    entry_points={'console_scripts':
+                  ['surprise = surprise.__main__:main']},
 )
