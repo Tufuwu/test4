@@ -1,1 +1,4 @@
-include README.md LICENSE CODE_OF_CONDUCT.md CONTRIBUTING.md
+include LICENSE
+include tests/*.py
+include examples/*.py
+include readme.md

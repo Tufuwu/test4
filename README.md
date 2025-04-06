@@ -1,84 +1,91 @@
-# diff-match-patch
+[![Documentation Status](https://readthedocs.org/projects/curtsies/badge/?version=latest)](https://readthedocs.org/projects/curtsies/?badge=latest)
+![Curtsies Logo](http://ballingt.com/assets/curtsiestitle.png)
 
-Google's [Diff Match and Patch][DMP] library, packaged for modern Python.
-
-[![build status](https://travis-ci.org/diff-match-patch-python/diff-match-patch.svg?branch=master)](https://travis-ci.org/diff-match-patch-python/diff-match-patch)
-[![version](https://img.shields.io/pypi/v/diff-match-patch.svg)](https://pypi.org/project/diff-match-patch)
-[![license](https://img.shields.io/pypi/l/diff-match-patch.svg)](https://github.com/diff-match-patch-python/diff-match-patch/blob/master/LICENSE)
-
-## Install
-
-diff-match-patch is supported on Python 2.7 or Python 3.4 or newer.
-You can install it from PyPI:
-
-```shell
-python -m pip install diff-match-patch
-```
-
-## Usage
-
-Generating a patchset (analogous to unified diff) between two texts:
+Curtsies is a Python 3.6+ compatible library for interacting with the terminal.
+This is what using (nearly every feature of) curtsies looks like:
 
 ```python
-from diff_match_patch import diff_match_patch
+import random
+import sys
 
-dmp = diff_match_patch()
-patches = dmp.patch_make(text1, text2)
-diff = dmp.patch_toText(patches)
+from curtsies import FullscreenWindow, Input, FSArray
+from curtsies.fmtfuncs import red, bold, green, on_blue, yellow
+
+print(yellow('this prints normally, not to the alternate screen'))
+
+with FullscreenWindow() as window:
+    a = FSArray(window.height, window.width)
+    msg = red(on_blue(bold('Press escape to exit, space to clear.')))
+    a[0:1, 0:msg.width] = [msg]
+    window.render_to_terminal(a)
+    with Input() as input_generator:
+        for c in input_generator:
+            if c == '<ESC>':
+                break
+            elif c == '<SPACE>':
+                a = FSArray(window.height, window.width)
+            else:
+                s = repr(c)
+                row = random.choice(range(window.height))
+                column = random.choice(range(window.width-len(s)))
+                color = random.choice([red, green, on_blue, yellow])
+                a[row, column:column+len(s)] = [color(s)]
+            window.render_to_terminal(a)
 ```
 
-Applying a patchset to a text can then be done with:
+Paste it in a `something.py` file and try it out!
 
-```python
-from diff_match_patch import diff_match_patch
+Installation: `pip install curtsies`
 
-dmp = diff_match_patch()
-patches = dmp.patch_fromText(diff)
-new_text, _ = dmp.patch_apply(patches, text)
-```
+[Documentation](http://curtsies.readthedocs.org/en/latest/)
 
-## Original README
-The Diff Match and Patch libraries offer robust algorithms to perform the
-operations required for synchronizing plain text.
+Primer
+------
 
-1. Diff:
-   * Compare two blocks of plain text and efficiently return a list of differences.
-   * [Diff Demo](https://neil.fraser.name/software/diff_match_patch/demos/diff.html)
-2. Match:
-   * Given a search string, find its best fuzzy match in a block of plain text. Weighted for both accuracy and location.
-   * [Match Demo](https://neil.fraser.name/software/diff_match_patch/demos/match.html)
-3. Patch:
-   * Apply a list of patches onto plain text. Use best-effort to apply patch even when the underlying text doesn't match.
-   * [Patch Demo](https://neil.fraser.name/software/diff_match_patch/demos/patch.html)
+[FmtStr](http://curtsies.readthedocs.org/en/latest/FmtStr.html) objects are strings formatted with
+colors and styles displayable in a terminal with [ANSI escape sequences](http://en.wikipedia.org/wiki/ANSI_escape_code>`_).
 
-Originally built in 2006 to power Google Docs, this library is now available in C++, C#, Dart, Java, JavaScript, Lua, Objective C, and Python.
+![](https://i.imgur.com/bRLI134.png)
 
-### Reference
+[FSArray](http://curtsies.readthedocs.org/en/latest/FSArray.html) objects contain multiple such strings
+with each formatted string on its own row, and FSArray
+objects can be superimposed on each other
+to build complex grids of colored and styled characters through composition.
 
-* [API](https://github.com/google/diff-match-patch/wiki/API) - Common API across all languages.
-* [Line or Word Diffs](https://github.com/google/diff-match-patch/wiki/Line-or-Word-Diffs) - Less detailed diffs.
-* [Plain Text vs. Structured Content](https://github.com/google/diff-match-patch/wiki/Plain-Text-vs.-Structured-Content) - How to deal with data like XML.
-* [Unidiff](https://github.com/google/diff-match-patch/wiki/Unidiff) - The patch serialization format.
-* [Support](https://groups.google.com/forum/#!forum/diff-match-patch) - Newsgroup for developers.
+(the import statement shown below is outdated)
 
-### Languages
-Although each language port of Diff Match Patch uses the same API, there are some language-specific notes.
+![](http://i.imgur.com/rvTRPv1.png)
 
-* [C++](https://github.com/google/diff-match-patch/wiki/Language:-Cpp)
-* [C#](https://github.com/google/diff-match-patch/wiki/Language:-C%23)
-* [Dart](https://github.com/google/diff-match-patch/wiki/Language:-Dart)
-* [Java](https://github.com/google/diff-match-patch/wiki/Language:-Java)
-* [JavaScript](https://github.com/google/diff-match-patch/wiki/Language:-JavaScript)
-* [Lua](https://github.com/google/diff-match-patch/wiki/Language:-Lua)
-* [Objective-C](https://github.com/google/diff-match-patch/wiki/Language:-Objective-C)
-* [Python](https://github.com/google/diff-match-patch/wiki/Language:-Python)
+Such grids of characters can be rendered to the terminal in alternate screen mode
+(no history, like `Vim`, `top` etc.) by [FullscreenWindow](http://curtsies.readthedocs.org/en/latest/window.html#curtsies.window.FullscreenWindow) objects
+or normal history-preserving screen by [CursorAwareWindow](http://curtsies.readthedocs.org/en/latest/window.html#curtsies.window.CursorAwareWindow) objects.
+User keyboard input events like pressing the up arrow key are detected by an
+[Input](http://curtsies.readthedocs.org/en/latest/input.html) object.
 
-A standardized speed test tracks the [relative performance of diffs](https://docs.google.com/spreadsheets/d/1zpZccuBpjMZTvL1nGDMKJc7rWL_m_drF4XKOJvB27Kc/edit#gid=0) in each language.
+Examples
+--------
 
-### Algorithms
-This library implements [Myer's diff algorithm](https://neil.fraser.name/writing/diff/myers.pdf) which is generally considered to be the best general-purpose diff. A layer of [pre-diff speedups and post-diff cleanups](https://neil.fraser.name/writing/diff/) surround the diff algorithm, improving both performance and output quality.
+* [Tic-Tac-Toe](/examples/tictactoeexample.py)
 
-This library also implements a [Bitap matching algorithm](https://neil.fraser.name/writing/patch/bitap.ps) at the heart of a [flexible matching and patching strategy](https://neil.fraser.name/writing/patch/).
+![](http://i.imgur.com/AucB55B.png)
 
-[DMP]: https://github.com/google/diff-match-patch
-[API]: https://github.com/google/diff-match-patch/wiki/API
+* [Avoid the X's game](/examples/gameexample.py)
+
+![](http://i.imgur.com/nv1RQd3.png)
+
+* [Bpython-curtsies uses curtsies](http://ballingt.com/2013/12/21/bpython-curtsies.html)
+
+[![](http://i.imgur.com/r7rZiBS.png)](http://www.youtube.com/watch?v=lwbpC4IJlyA)
+
+* [More examples](/examples)
+
+About
+-----
+
+* [Curtsies Documentation](http://curtsies.readthedocs.org/en/latest/)
+* Curtsies was written to for [bpython-curtsies](http://ballingt.com/2013/12/21/bpython-curtsies.html)
+* `#bpython` on irc is a good place to talk about Curtsies, but feel free
+  to open an issue if you're having a problem!
+* Thanks to the many contributors!
+* If all you need are colored strings, consider one of these [other
+  libraries](http://curtsies.readthedocs.io/en/latest/FmtStr.html#fmtstr-rationale)!
