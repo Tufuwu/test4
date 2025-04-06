@@ -1,115 +1,249 @@
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Build Status](https://github.com/dlenski/what-vpn/workflows/test_and_release/badge.svg)](https://github.com/dlenski/what-vpn/actions?query=workflow%3Atest_and_release)
-[![PyPI](https://img.shields.io/pypi/v/what-vpn.svg)](https://pypi.python.org/pypi/what-vpn)
+Super Flore:
+=================
+Latin for "Super Bloom", this is an extended release manager for
+ROS.
 
-# what-vpn
+Supported Platforms:
+--------------------
+ * Gentoo
+ * OpenEmbedded
 
-Identifies servers running various SSL VPNs. (They should really be called
-"TLS-based" VPNs, but "SSL VPN" has become the de facto standard jargon.)
-Currently it can recognize…
+Installation:
+=============
 
-* Cisco AnyConnect and [OpenConnect (ocserv)](https://ocserv.gitlab.io/www)
-* Juniper Network Connect/Pulse
-* PAN GlobalProtect
-* Barracuda Networks
-* Check Point
-* Microsoft SSTP
-* [OpenVPN](https://openvpn.net/)
-* Fortinet
-* Array Networks
-* F5 BigIP
-* SonicWall NX
+Dependencies:
+--------------
+ * Python 3
+ * Docker
+ * Git
 
-## Install
+Instructions:
+-------------
+To automatically create a pull-request, you need to generate an [OAuth token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) for this application.
 
-Requires Python 3, `pip`, and [`requests`](https://docs.python-requests.org):
+After you have created the token, place it in the
+environment variable `SUPERFLORE_GITHUB_TOKEN`.
 
-```sh
-$ pip3 install https://github.com/dlenski/what-vpn/archive/master.zip
-...
-$ what-vpn
-usage: what-vpn [-h] [-k] [-t SEC] [-v | -c] server [server ...]
-what-vpn: error: the following arguments are required: server
-```
+If you're running it with `--dry-run` enabled, then `SUPERFLORE_GITHUB_TOKEN` isn't needed.
 
-## Examples
-
-```sh
-$ what-vpn vpn.colorado.edu vpn.northeastern.edu \
-    vpn.tnstate.edu vpn.smith.edu vpn.caltech.edu \
-    vpn.yale.edu vpn.drew.edu vpn.uca.edu vpn.simmons.edu \
-    vpn.nl.edu cpvpn.its.hawaii.edu ssl-vpn.***.com
-vpn.colorado.edu: AnyConnect/OpenConnect (Cisco)
-vpn.northeastern.edu: PAN GlobalProtect (portal)
-vpn.tnstate.edu: PAN GlobalProtect (portal+gateway)
-vpn.smith.edu: Juniper Network Connect
-vpn.caltech.edu: AnyConnect/OpenConnect (Cisco, ASA (9.1(6)6))
-vpn.yale.edu: AnyConnect/OpenConnect (Cisco, ASA (8.4(5)))
-vpn.uca.edu: Barracuda (2017)
-vpn.simmons.edu: Check Point (2015, 20%)
-vpn.nl.edu: Check Point
-cpvpn.its.hawaii.edu: Check Point
-vpn.***.com: Array Networks (40%)
-ssl-vpn.***.com: no match
-
-$ what-vpn -kv vpn.***.com
-
-Sniffing ***.***.com ...
-  Is it AnyConnect/OpenConnect? ocserv, 0.8.0-0.11.6
-  Is it Juniper Network Connect? no match
-  Is it PAN GlobalProtect? no match
-  Is it Barracuda? no match
-  Is it Check Point? no match
-  Is it SSTP? no match
-  Is it OpenVPN? no match
-  => AnyConnect/OpenConnect (ocserv, 0.8.0-0.11.6)
-```
-
-# Interesting results
-
-An interesting question for the open source community, including the indispensable
-[OpenConnect](https://www.infradead.org/openconnect) (which I also contribute to) is…
-
-> What are the most commonly-used SSL VPN protocols in the real world?
-
-In April 2019, I took a list of major universities and companies in the USA, and
-generated some guesses for the hostnames of their VPN endpoints
-(e.g. `{vpn,ssl-vpn,sslvpn}.*.{edu,com}`). I then used `what-vpn` to probe them all
-and looked at the subset of the results that matched to an identifiable SSL
-VPN protocol:
+Then install and run the application.
 
 ```
-  1  Check Point
-  1  Citrix (manually inspected, don't know how to reliably autodetect)
-  1  OpenVPN
-  5  Dell or SonicWall (manually inspected, didn't know how to reliably autodetect at the time
-  7  Fortinet
-  7  Barracuda
-  8  F5 (manually inspected, didn't know how to reliably autodetect at this time)
- 14  SSTP
- 53  PAN GlobalProtect (portal and/or gateway)
- 72  Juniper Network Connect (or Junos/Pulse, hard to distinguish)
-243  Cisco AnyConnect (including 1 ocserv)
+ $ sudo python3 ./setup.py install
 ```
 
-Assuming these results are roughly representative of “SSL VPN” deployments
-_in general_ (at least in the USA), they show that OpenConnect already supports
-the top 3 most commonly-encountered SSL VPN protocols, or about 80% of SSL VPNs.
-Additionally Microsoft SSTP is supported by the open-source
-[`sstp-client`](http://sstp-client.sourceforge.net),
-and of course OpenVPN is well-supported by open-source clients as well.
+Gentoo Usage:
+=============
 
-_(Excerpted from
-[this post on the OpenConnect mailing list](https://lists.infradead.org/pipermail/openconnect-devel/2019-April/005335.html))_
+### Generating Gentoo Ebuilds
+```
+$ superflore-gen-ebuilds -h
+usage: superflore-gen-ebuilds [-h] [--ros-distro ROS_DISTRO] [--all]
+                              [--dry-run] [--pr-only] [--no-branch]
+                              [--output-repository-path OUTPUT_REPOSITORY_PATH]
+                              [--only ONLY [ONLY ...]]
+                              [--pr-comment PR_COMMENT]
+                              [--upstream-repo UPSTREAM_REPO]
+                              [--upstream-branch UPSTREAM_BRANCH]
+                              [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
 
-## TODO
+Deploy ROS packages into Gentoo Linux
 
-* Identify non-SSL/TLS-based VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
-* Identify more SSL VPNs: Citrix, Dell… any others?
-  * Fix apparent false-negatives for some SonicWall servers
-* Identify specific versions or flavors of VPN servers?
-* Better confidence levels?
+optional arguments:
+  -h, --help            show this help message and exit
+  --ros-distro ROS_DISTRO
+                        regenerate packages for the specified distro
+  --all                 regenerate all packages in all distros
+  --dry-run             run without filing a PR to remote
+  --pr-only             ONLY file a PR to remote
+  --no-branch           Do not create a new branch automatically
+  --output-repository-path OUTPUT_REPOSITORY_PATH
+                        location of the Git repo
+  --only ONLY [ONLY ...]
+                        generate only the specified packages
+  --pr-comment PR_COMMENT
+                        comment to add to the PR
+  --upstream-repo UPSTREAM_REPO
+                        location of the upstream repository as in
+                        https://github.com/<owner>/<repository>
+  --upstream-branch UPSTREAM_BRANCH
+                        branch of the upstream repository
+  --skip-keys SKIP_KEYS [SKIP_KEYS ...]
+                        packages to skip during regeneration
+```
 
-## License
+### Testing Gentoo Ebuilds
+```
+$ superflore-check-ebuilds -h
+usage: superflore-check-ebuilds [-h]
+                                [--ros-distro ROS_DISTRO [ROS_DISTRO ...]]
+                                [--pkgs PKGS [PKGS ...]] [-f F] [-v]
+                                [--log-file LOG_FILE]
 
-GPLv3 or later
+Check if ROS packages are building for Gentoo Linux
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --ros-distro ROS_DISTRO [ROS_DISTRO ...]
+                        distro(s) to check
+  --pkgs PKGS [PKGS ...]
+                        packages to build
+  -f F                  build packages specified by the input file
+  -v, --verbose         show output from docker
+  --log-file LOG_FILE   location to store the log file
+```
+
+If a file is to be passed as input, it is expected to be in proper yaml format, such as the below.
+
+```
+indigo:
+  - catkin
+  - p2os_msgs
+kinetic:
+  - catkin
+lunar:
+  - catkin
+```
+
+Common Usage:
+--------------
+To update the gentoo ebuilds, run the following:
+
+```
+$ superflore-gen-ebuilds
+```
+
+This command will clone the `ros/ros-overlay` repo into
+a subfolder within `/tmp`. This can be thought of as an
+update mode. *Note: this mode will file a PR with ros/ros-overlay.*
+
+If you don't want to file a PR with ros/ros-overlay, you should add
+the `--dry-run` flag. You can later decide to file the PR after inspection
+by using the `--pr-only` flag.
+
+To regenerate only the specified packages, use the `--only [pkg1] [pkg2] ... [pkgn]` flag (**note:** you will need to also use the `--ros-distro [distro]` flag.
+
+*If you want to use an existing repo instead of cloning one,
+add `--output-repository-path [path]`.*
+
+Regenerating:
+--------------
+In the case that you wish to regenerate an entire rosdistro, you may do
+so by adding the `--ros-distro [distro name]` flag. *Note: this is very
+time consuming.*
+
+If you wish to regenerate _all_ installers for _all_ ros distros, you
+should pass the `--all` flag in place of the `--ros-distro` flag. *Note:
+this takes an _extremely_ long amount of time.*
+
+
+OpenEmbedded Usage:
+===================
+
+### Generating OpenEmbedded Recipes
+
+**NOTE:** The instructions
+[here](https://github.com/ros/meta-ros/wiki/Superflore-OE-Recipe-Generation-Scheme#usage)
+should be followed to generate the OpenEmbedded recipes for `meta-ros`.
+
+```
+$ superflore-gen-oe-recipes -h
+usage: superflore-gen-oe-recipes [-h] --ros-distro ROS_DISTRO --dry-run
+                                 [--pr-only] [--no-branch]
+                                 [--output-repository-path OUTPUT_REPOSITORY_PATH]
+                                 [--only ONLY [ONLY ...]]
+                                 [--pr-comment PR_COMMENT]
+                                 [--upstream-repo UPSTREAM_REPO]
+                                 [--upstream-branch UPSTREAM_BRANCH]
+                                 [--skip-keys SKIP_KEYS [SKIP_KEYS ...]]
+                                 [--tar-archive-dir TAR_ARCHIVE_DIR]
+
+Generate OpenEmbedded recipes for ROS packages
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --ros-distro ROS_DISTRO
+                        regenerate packages for the specified distro
+  --dry-run             run without filing a PR to remote
+  --pr-only             ONLY file a PR to remote
+  --no-branch           Do not create a new branch automatically
+  --output-repository-path OUTPUT_REPOSITORY_PATH
+                        location of the Git repo
+  --only ONLY [ONLY ...]
+                        generate only the specified packages
+  --pr-comment PR_COMMENT
+                        comment to add to the PR
+  --upstream-repo UPSTREAM_REPO
+                        location of the upstream repository as in
+                        https://github.com/<owner>/<repository>
+  --upstream-branch UPSTREAM_BRANCH
+                        branch of the upstream repository
+  --skip-keys SKIP_KEYS [SKIP_KEYS ...]
+                        packages to skip during regeneration
+  --tar-archive-dir TAR_ARCHIVE_DIR
+                        location to store archived packages
+```
+
+Common Usage:
+--------------
+To update the OpenEmbedded recipes for a ROS distro, run the following:
+
+```
+$ superflore-gen-oe-recipes --ros-distro ROS_DISTRO
+```
+
+This command will clone the `ros/meta-ros` repo into a subfolder under
+`/tmp/superflore`, generate the recipes and other files for the specified
+distro, commit them, and issue a pull request for `ros/meta-ros`. The
+`--ros-distro` flag must be supplied. ROS 1 distros prior to "melodic" are
+not supported.
+
+Generating bitbake recipes without specifying `--dry-run` is not
+supported. This is because it is almost inevitable that
+changes to the metadata under recipes-bbappend will be required.
+Only when these have been made and the images build and pass
+the sanity test should a pull request be created.
+You can issue the PR later by using the `--pr-only` flag.
+
+If you want to use an existing repo instead of cloning one, specify
+`--output-repository-path OUTPUT_REPOSITORY_PATH`.
+
+Note that the `--only` flag currently generates bogus files under `conf` and
+`files`.
+
+
+F.A.Q.:
+=========
+Here are some specific use cases for Superflore.
+
+Gentoo:
+--------
+
+**Q**: _I need to patch this package. What are the steps involved here?_
+
+**A**: It's relatively simple to generate a patch for a package. From a
+contributor standpoint, superflore does most of the heavy lifting for you.
+
+We'll assume you have already patched your source code, and your patch is
+named `fix-pkg.patch`. Also, we'll assume you're patching the package `foo`,
+and that you have a fork of ros/ros-overlay on its master branch within
+you home directory.
+
+```
+$ cd ${HOME}/ros-overlay/ros-[distro]/foo
+$ mkdir files
+$ cp /path/to/patch/fix-pkg.patch ./files
+$ git add files
+$ git commit -m "Add patch to fix package [foo] in [distro]."
+```
+
+Next, use Superflore to regenerate the package.
+
+```
+$ superflore-gen-ebuilds --only [foo] --ros-distro [distro] --output-repository-path ~/ros-overlay
+```
+
+After that command runs, a pull request will be filed on your behalf into
+the ROS overlay repository. **Note:** If you don't want a pull request to be
+filed, add the `--dry-run` flag to the above command, and, after you are ready
+to file the pr, run `superflore-gen-ebuilds --pr-only`.
