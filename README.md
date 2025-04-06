@@ -1,177 +1,143 @@
-># **NOTE: This is the beta version of phobos2.0.0. Please test and report all issues [here](https://github.com/dfki-ric/phobos/issues). Thanks for your contribution!**
+olefile
+=======
 
-[![latest-release](https://img.shields.io/github/tag/dfki-ric/phobos.svg?label=version&style=flat)](https://github.com/dfki-ric/phobos/releases)
-[![DOI](https://joss.theoj.org/papers/10.21105/joss.01326/status.svg)](https://doi.org/10.21105/joss.01326)
-[![license](https://img.shields.io/github/license/dfki-ric/phobos.svg?style=flat)](https://github.com/dfki-ric/phobos/blob/master/COPYING)
-[![made-with-sphinx-doc](https://img.shields.io/badge/Made%20with-Sphinx-1f425f.svg)](https://www.sphinx-doc.org/)
+[![Test](https://github.com/decalage2/olefile/actions/workflows/test.yml/badge.svg)](https://github.com/decalage2/olefile/actions)
+[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/decalage2/olefile?svg=true)](https://ci.appveyor.com/project/decalage2/olefile)
+[![codecov](https://codecov.io/gh/decalage2/olefile/branch/main/graph/badge.svg)](https://codecov.io/gh/decalage2/olefile)
+[![Documentation Status](http://readthedocs.org/projects/olefile/badge/?version=latest)](http://olefile.readthedocs.io/en/latest/?badge=latest)
+[![PyPI](https://img.shields.io/pypi/v/olefile.svg)](https://pypi.org/project/olefile/)
+[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/decalage2)
 
-![Phobos](https://github.com/dfki-ric/phobos/wiki/img/phobos_logo_small.png)
+[olefile](https://www.decalage.info/olefile) is a Python package to parse, read and write
+[Microsoft OLE2 files](http://en.wikipedia.org/wiki/Compound_File_Binary_Format)
+(also called Structured Storage, Compound File Binary Format or Compound Document File Format),
+such as Microsoft Office 97-2003 documents, vbaProject.bin in MS Office 2007+ files, Image Composer
+and FlashPix files, Outlook messages, StickyNotes, several Microscopy file formats, McAfee antivirus quarantine files,
+etc.
 
-Phobos is both a CLI tool and add-on for the open-source 3D modeling software
-[Blender v3.3LTS](https://www.blender.org/download/lts/3-3/) to support your robot model creation and editing.
 
-The Blender add-on enables the creation of WYSIWYG robot
-models for use in robot frameworks like [ROS](http://wiki.ros.org/) and
-[ROCK](https://github.com/rock-core) or in real-time simulations such as
-[MARS](https://github.com/rock-simulation/mars) or
-[Gazebo](http://gazebosim.org/). Phobos exports formats such as **URDF**,
-**SDF** or **SMURF** and common mesh formats (**Stereolithography** (.stl),
-**Wavefront** (.obj) or **Collada** (.dae)).
+**Quick links:** [Home page](https://www.decalage.info/olefile) -
+[Download/Install](http://olefile.readthedocs.io/en/latest/Install.html) -
+[Documentation](http://olefile.readthedocs.io/en/latest) -
+[Report Issues/Suggestions/Questions](https://github.com/decalage2/olefile/issues) -
+[Contact the author](https://www.decalage.info/contact) -
+[Repository](https://github.com/decalage2/olefile) -
+[Updates on Twitter](https://twitter.com/decalage2)
 
-Phobos was initiated and is currently developed at the [Robotics Innovation
-Center](http://robotik.dfki-bremen.de/en/startpage.html) of the [German
-Research Center for Artificial Intelligence (DFKI)](http://www.dfki.de) in
-Bremen, together with the [Robotics
-Group](http://www.informatik.uni-bremen.de/robotik/index_en.php) of the
-[University of Bremen](http://www.uni-bremen.de/en.html).
 
-Please contact [Henning Wiedemann](https://robotik.dfki-bremen.de/de/ueber-uns/mitarbeiter/hewi04.html)
-for any inquiries, or any questions and feedback not suited for the issues
-page.
+News
+----
 
-## Version 2.0.0
-With version 2.0.0 we did a refactoring of Phobos and its now possible to use phobos as a normal python package and command line tool (see below).
+Follow all updates and news on Twitter: <https://twitter.com/decalage2>
 
-When running the new Phobos on a model created with an older version of Phobos, make sure to have a backup.
-For most cases you should be able to update your model by simply exporting it to smurf and then importing it again from that smurf file.
-Due to the changes between Blender 2 to 3 it might be necessary to check whether your materials already use the Specular BSDF or Principled BSDF shaders, if not you'd have to update this manually.
+- **2018-09-09 v0.46**: OleFileIO can now be used as a context manager
+(with...as), to close the file automatically
+(see [doc](https://olefile.readthedocs.io/en/latest/Howto.html#open-an-ole-file-from-disk)).
+Improved handling of malformed files, fixed several bugs.
+- 2018-01-24 v0.45: olefile can now overwrite streams of any size, improved handling of malformed files,
+fixed several [bugs](https://github.com/decalage2/olefile/milestone/4?closed=1), end of support for Python 2.6 and 3.3.
+- 2017-01-06 v0.44: several bugfixes, removed support for Python 2.5 (olefile2),
+added support for incomplete streams and incorrect directory entries (to read malformed documents),
+added getclsid, improved [documentation](http://olefile.readthedocs.io/en/latest) with API reference.
+- 2017-01-04: moved the documentation to [ReadTheDocs](http://olefile.readthedocs.io/en/latest)
+- 2016-05-20: moved olefile repository to [GitHub](https://github.com/decalage2/olefile)
+- 2016-02-02 v0.43: fixed issues [#26](https://github.com/decalage2/olefile/issues/26)
+    and [#27](https://github.com/decalage2/olefile/issues/27),
+    better handling of malformed files, use python logging.
+- see [changelog](https://github.com/decalage2/olefile/blob/master/CHANGELOG.md) for more detailed information and
+the latest changes.
 
-If you encounter any problems with this new version please do not hesitate to open an issue [here](https://github.com/dfki-ric/phobos/issues).
+Download/Install
+----------------
 
-## Questions or Ideas you want to discuss?
-Please have a look at our [GitHub discussions](https://github.com/dfki-ric/phobos/discussions).
+If you have pip or setuptools installed (pip is included in Python 2.7.9+), you may simply run **pip install olefile**
+or **easy_install olefile** for the first installation.
 
-## Found a bug or want to request a feature?
-Please let us know by opening an issue [here](https://github.com/dfki-ric/phobos/issues).
+To update olefile, run **pip install -U olefile**.
 
-## Documentation
-- User documentation: [Phobos Wiki](https://github.com/dfki-ric/phobos/wiki)
-- Source documentation: [Phobos' Github Page](http://dfki-ric.github.io/phobos).
+Otherwise, see http://olefile.readthedocs.io/en/latest/Install.html
 
-## Citing
+Features
+--------
 
-Phobos has been published in the [Journal of Open Source Software](https://doi.org/10.21105/joss.01326).
-We ask users to cite the use of Phobos, as it allows us to keep the project alive.
+- Parse, read and write any OLE file such as Microsoft Office 97-2003 legacy document formats (Word .doc, Excel .xls,
+    PowerPoint .ppt, Visio .vsd, Project .mpp), Image Composer and FlashPix files, Outlook messages, StickyNotes,
+    Zeiss AxioVision ZVI files, Olympus FluoView OIB files, etc
+- List all the streams and storages contained in an OLE file
+- Open streams as files
+- Parse and read property streams, containing metadata of the file
+- Portable, pure Python module, no dependency
 
-When citing, please provide this information:
+olefile can be used as an independent package or with PIL/Pillow.
 
-  - Phobos version you were using (see the [wiki](https://github.com/dfki-ric/phobos/wiki/Installation#versions-and-branching) for information about versions)
-  - If you were using additional Phobos plugins or configurations.
-  - The general [Phobos paper](https://doi.org/10.21105/joss.01326).
+olefile is mostly meant for developers. If you are looking for tools to analyze OLE files or to extract data (especially
+for security purposes such as malware analysis and forensics), then please also check my
+[python-oletools](https://www.decalage.info/python/oletools), which are built upon olefile and provide a higher-level interface.
 
-If you are on the hunt for a BiBTeX entry, check out the [FAQ section](https://github.com/dfki-ric/phobos/wiki/FAQ#how-do-i-cite-phobos).
 
-## Installation
+Documentation
+-------------
 
-### Blender
->UPDATING: If you already have phobos installed and want to update.
-> You have to remove the old version of Phobos first and close Blender.
-> Then proceed with the installation steps explained below.
+Please see the [online documentation](http://olefile.readthedocs.io/en/latest) for more information.
 
->NOTE (WINDOWS): If you are using blender under Windows, make sure you have the latest version of [Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170) installed.  Otherwise Blender's python won't work properly.
 
-To install Phobos in blender download the phobos.zip of the release or zip the phobos subdirectory (e.g. `zip -r phobos.zip phobos`)
-Phobos has several python dependencies, those have to be installed in blender before you can use phobos.
-There are two ways of installing Phobos:
+## Real-life examples ##
 
-1. Recommended:
-  a. Directly install the phobos.zip in blender: `Blender->Edit->Preferences->Addons->Install` and activate it.
-  b. Restart Blender.
-  c. Activate Phobos Add-on again.
-2. (Offers inspection of the requirements before installing them) Before installing the phobos.zip you can run the script install_requirements.py with blender's python.
-  a. ```bash
-     ${BLENDER_EXECUTABLE} -b --python install_requirements.py
-     ```
-  b. Install the phobos.zip in blender: `Blender->Edit->Preferences->Addons->Install` and activate it.
+A real-life example: [using OleFileIO_PL for malware analysis and forensics](http://blog.gregback.net/2011/03/using-remnux-for-forensic-puzzle-6/).
 
-After installation the phobos main menu can be found on the right hand side of the 3D Viewport.
-If not already visible, one can find a very small arrow to open the Blender toolbar (purple circle showing it in the image).
+See also [this paper](https://computer-forensics.sans.org/community/papers/gcfa/grow-forensic-tools-taxonomy-python-libraries-helpful-forensic-analysis_6879) about python tools for forensics, which features olefile.
 
-![Small arrow to open the phobos toolbar widget.](https://github.com/dfki-ric/phobos/wiki/img/blender_phobos_menu_open.png)
 
-Phobos is currently tested and running with Blender v3.3 LTS.
+License
+-------
 
-### CLI
-Install the requirements by executing `install_requirements.py` with the python you want to install phobos to:
-```bash
-cd phobos
-python3 install_requirements.py
-```
+olefile (formerly OleFileIO_PL) is copyright (c) 2005-2023 Philippe Lagadec
+([https://www.decalage.info](https://www.decalage.info))
 
-Then just install it using pip:
-```bash
-cd phobos
-pip install .
-```
-or with autoproj:
-1) Add the package to your buildconf/package_set
-2) Install via `amake`
+All rights reserved.
 
-## Overview
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
-### Blender
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-![Model of the SpaceClimber robot in Blender, next to the Phobos toolbar
-displayed on the
-left.](https://github.com/dfki-ric/phobos/wiki/img/phobos_spaceclimber.png)
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-*Model of the
-[SpaceClimber](http://robotik.dfki-bremen.de/en/research/projects/spaceclimber-1.html)
-robot in Blender, next to the Phobos toolbar displayed on the left.*
 
-Phobos makes use of Blender's hierarchical object graph and its bone objects.
-These objects, normally used for animating 3D characters, allow to store 3D
-coordinate systems and apply constraints to their movements, for instance to
-restrict the movement of an object to a certain range on a specific axis. This
-allows to replicate the links and joints defined in a **URDF** model and together
-with the hierarchical tree of parent and child objects, the complete, branching
-kinematic chain of a robot can be represented. By attaching meshes or
-primitives to the bones, Phobos allows to add visual and collision objects to
-a model. Additional objects allow storing further information, e.g. centers of
-mass of each part of a robot, thus refining the physical representation. Sensor
-objects can be added to correctly place and orient devices such as laser
-scanners, cameras or contact sensors. Making use of Blender's custom object
-properties, any necessary information can be added to the model, from inertia
-tensors to opening angles of cameras.
+----------
 
-![Decomposition of the different elements from which Phobos models are composed
-in Blender.](https://github.com/dfki-ric/phobos/wiki/img/phobos_elements.png)
+olefile is based on source code from the OleFileIO module of the Python Imaging Library (PIL) published by Fredrik
+Lundh under the following license:
 
-*Decomposition of the different elements from which Phobos models are composed
-in Blender. These elements can be arranged in Blender on different layers, thus
-avoiding confusion or obstruction of view when editing very complex models.*
+The Python Imaging Library (PIL) is
 
-### CLI
+- Copyright (c) 1997-2009 by Secret Labs AB
+- Copyright (c) 1995-2009 by Fredrik Lundh
 
-You can either use CLI-phobos as a normal python package or use the scripts provided with it.
+By obtaining, using, and/or copying this software and/or its associated documentation, you agree that you have read,
+understood, and will comply with the following terms and conditions:
 
-For the latter do `phobos --help` to get a list of the currently available scripts.
-It will also tell you which dependencies are missing for some scripts.
+Permission to use, copy, modify, and distribute this software and its associated documentation for any purpose and
+without fee is hereby granted, provided that the above copyright notice appears in all copies, and that both that
+copyright notice and this permission notice appear in supporting documentation, and that the name of Secret Labs AB or
+the author not be used in advertising or publicity pertaining to distribution of the software without specific, written
+prior permission.
 
-## Features
-
-- WYSIWYG editor for robot models using Blender
-- CLI tools for fast and easy model handling and inspection
-- CI tool to run phobos headless in your CI-pipeline for atomated model processing and maintenance
-- Import and export of **URDF**, **SDF** **SMURF** and other
-  [formats](https://github.com/dfki-ric/phobos/wiki/Formats)
-- Easy definition of robot kinematics (links and joints)
-- Visualisation of different model components, even joint constraints
-- Numerous tools for fast editing:
-  - Batch editing of object properties
-  - Auto-generation of collision objects
-  - Auto-generation of inertia tensors from mass and shape
-  - Calculation of merged inertia for complex links
-  - Verbose logging
-- Saving and loading of model poses
-- Annotation of objects from motors/sensors to joints/links
-- Save/load different export configurations for the same model
-- Export with defined floating point precision
-- Model integrity checks
-- Tools for maintaining your own model database
-- Library containing Python examples for automatic model adaption
-- All the cool features Blender already provides (rendering, animation, etc.)
-
-## License
-
-Phobos is distributed under the [3-Clause BSD License](https://opensource.org/licenses/BSD-3-Clause).
+SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
+CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+SOFTWARE.
