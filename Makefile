@@ -1,24 +1,11 @@
-clear:
-	rm -rf dist/
-	rm -rf *.egg-info
+default:
+	false
 
-format:
-	black .
+.PHONY: lint flake8 luacheck
+lint: flake8 luacheck
 
-lint:
-	pre-commit run -a -v
+flake8:
+	python -m flake8 *.py lib/*.py
 
-test:
-	pip install .
-	pytest
-
-test-release: clear
-	python setup.py sdist bdist_wheel upload -r pypitest
-
-release: clear
-	git tag `python setup.py -q version`
-	git push origin `python setup.py -q version`
-	python setup.py sdist bdist_wheel upload -r pypi
-
-setup:
-	pip install -U -r requirements-dev.txt
+luacheck:
+	luacheck --config .luacheckrc .
