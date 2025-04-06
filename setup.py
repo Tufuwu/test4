@@ -1,39 +1,31 @@
-import os
-import re
 from setuptools import setup, find_packages
-
-
-def read(filename):
-    return open(os.path.join(os.path.dirname(__file__), filename)).read()
-
-
-def read_version():
-    with open('filestack/__init__.py') as f:
-        return re.search(r'__version__ = \'(.+)\'$', f.readline()).group(1)
-
+from checkQC import __version__
 
 setup(
-    name='filestack-python',
-    version=read_version(),
-    license='Apache 2.0',
-    description='Filestack Python SDK',
-    long_description='Visit: https://github.com/filestack/filestack-python',
-    url='https://github.com/filestack/filestack-python',
-    author='filestack.com',
-    author_email='support@filestack.com',
-    packages=find_packages(),
+    name='checkQC',
+    version=__version__,
+    description="A simple program to parse Illumina NGS data and check it for quality criteria.",
+    long_description="A simple program to parse Illumina NGS data and check it for quality criteria.",
+    keywords=['bioinformatics', 'ngs', 'quality control'],
+    author='Johan Dahlberg, SNP&SEQ Technology Platform, Uppsala University',
+    author_email='johan.dahlberg@medsci.uu.se',
+    url="https://www.github.com/Molmed/checkQC",
+    download_url='https://github.com/Molmed/checkQC/archive/{}.tar.gz'.format(__version__),
+    python_requires='>3.10, <3.11',
     install_requires=[
-        'requests==2.24.0',
-        'trafaret==2.0.2'
-    ],
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Topic :: Internet :: WWW/HTTP',
-    ],
+        "click",
+        "PyYAML>=6.0",
+        "interop>=1.2.4",
+        "xmltodict",
+        "tornado",
+        "sample_sheet"],
+    packages=find_packages(exclude=["tests*"]),
+    test_suite="tests",
+    package_data={'checkQC': ['default_config/config.yaml', 'default_config/logger.yaml']},
+    include_package_data=True,
+    license='GPLv3',
+    entry_points={
+        'console_scripts': ['checkqc = checkQC.app:start',
+                            'checkqc-ws = checkQC.web_app:start']
+    },
 )
