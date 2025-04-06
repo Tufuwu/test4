@@ -1,55 +1,54 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
 import os
-from setuptools import setup, find_packages
-from codecs import open
+import sys
 
-here = os.path.abspath(os.path.dirname(__file__))
+import dynamic_preferences
 
-with open(os.path.join(here, "src/fileseq/__version__.py")) as version_file:
-    exec(version_file.read())
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
-# Get the long description from the README file
-with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
-    
-descript = 'A Python library for parsing frame ranges and file sequences ' \
-           'commonly used in VFX and Animation applications.'
+version = dynamic_preferences.__version__
 
-setup(name='Fileseq',
-      version=__version__,
+if sys.argv[-1] == "publish":
+    os.system("python setup.py sdist upload")
+    print("You probably want to also tag the version now:")
+    print("  git tag -a %s -m 'version %s'" % (version, version))
+    print("  git push --tags")
+    sys.exit()
 
-      package_dir = {'': 'src'},
-      packages=find_packages('src'),
+readme = open("README.rst").read()
 
-      test_suite="test.run",
-
-      author='Matt Chambers',
-      author_email='yougotrooted@gmail.com',
-
-      maintainer='Justin Israel',
-      maintainer_email='justinisrael@gmail.com',
-
-      url='https://github.com/justinfx/fileseq',
-
-      description=descript,
-      long_description=long_description,
-      long_description_content_type="text/markdown",
-
-      license='MIT',
-
-      classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3',
-      ],
-
-      keywords='vfx visual effects file sequence frames image',
-
-      install_requires=['future'],
-      )
+setup(
+    name="django-dynamic-preferences",
+    version=version,
+    description="""Dynamic global and instance settings for your django project""",
+    long_description=readme,
+    author="Agate Blue",
+    author_email="me+github@agate.blue",
+    url="https://github.com/agateblue/django-dynamic-preferences",
+    packages=["dynamic_preferences"],
+    include_package_data=True,
+    install_requires=[
+        "django>=1.11",
+        "six",
+        "persisting_theory>=0.2.1",
+    ],
+    license="BSD",
+    zip_safe=False,
+    keywords="django-dynamic-preferences",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Framework :: Django",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+    ],
+)

@@ -1,7 +1,5 @@
-# python 2/3 support
-future
-
-# testing
-pytest
-pylint
-flake8
+six
+wheel==0.24.0
+persisting_theory==0.2.1
+# Additional requirements go here
+persisting_theory==0.2.1
