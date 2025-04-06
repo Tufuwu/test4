@@ -1,158 +1,170 @@
-About
-=====
+# Comment Parser
 
-This is a Japanese-English dictionary based on the
-[JMdict](http://www.edrdg.org/jmdict/j_jmdict.html) and [JMnedict](https://www.edrdg.org/enamdict/enamdict_doc.html) and [Tatoeba](https://tatoeba.org/) database for
-_e-Ink_ Kindle devices.
+[![Run Tests](https://github.com/jeanralphaviles/comment_parser/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/jeanralphaviles/comment_parser/actions/workflows/test.yml)
+[![PyPI status](https://img.shields.io/pypi/status/comment_parser.svg)](https://pypi.python.org/pypi/comment_parser/)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/comment_parser.svg)](https://pypi.python.org/pypi/comment_parser/)
+[![PyPI license](https://img.shields.io/pypi/l/comment_parser.svg)](https://pypi.python.org/pypi/comment_parser/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/comment_parser.svg)](https://pypi.python.org/pypi/comment_parser/)
 
-Features:
+Python module used to extract comments from source code files of various types.
 
-* lookup of inflected verbs.
-* lookup for Japanese names.
-* Example sentences
-* Pronunciation
-* the dictionaries can be downloaded as separate files or as one big dictionary
+## Installation
 
-<!--
-Screenshots were captured inside the Kindle device as explained in
-http://blog.blankbaby.com/2012/10/take-a-screenshot-on-a-kindle-paperwhite.html
-then processed with ImageMagick's
-`mogrify -colorspace gray -level 0%,111.11% -define PNG:compression-level=9`
-to look like E-Ink display.
--->
+### Prerequisites
 
-![Inflection lookup screenshot](screenshots/infl.png)
+* libmagic
 
-![Word lookup screenshot](screenshots/word.png)
+### Linux/Unix
 
-![Name lookup screenshot](screenshots/name.png)
-
-Supported Devices
-=================
-
-The dictionary has been tested on _Kindle Paperwhite_ and _Kindle Oasis_.  It _should_ also work
-well with other _e-ink_ Kindle devices
-
-The dictionary will *not* work well on _Kindle Fire_ or _Kindle Android App_,
-or any Android based Kindle, because the Kindle software on those platforms
-does not support inflection lookups.
-
-
-Download
-========
-
-You can download the latest version of the dictionary from
-[here](https://github.com/jrfonseca/jmdict-kindle/releases).
-
-
-Install
-=======
-
-_e-Ink_ Kindle
------------------
-
-There are in total 3 dictionaries:
-
-* `jmdict.mobi`: Contains only data from the JMedict database, with additional examples. It does not contain proper names.
-* `jmnedict.mobi`: Contains only Japanese proper names from the JMnedict databse.
-* `combined.mobi`: Contains the data from both of the above dictionaries
-
-To install any of the dictionaries (you can also install all three of them) into your device follow these steps:
-
-* for 1st-generation Kindle Paperwhite devices, ensure you have
-  [firmware version 5.3.9 or higher](http://www.amazon.com/gp/help/customer/display.html/ref=hp_left_cn?ie=UTF8&nodeId=201064850) as it includes improved homonym lookup for Japanese;
-* connect your Kindle device via USB;
-* copy the the `.mobi` file for the dictionary you want to use to the `documents/dictionaries` sub-folder;
-* eject the USB device;
-* on your device go to
-  _Home > Settings > Device Options > Language and Dictionaries > Dictionaries_
-  and set _JMdict Japanese-English Dictionary_ as the default dictionary for
-  Japanese.
-
-Kindle Android App
-------------------
-
-**NOTE: Unfortunately the Kindle Android App does not support dictionary inflections, yielding verbs lookup practically impossible. No known workaround.**
-
-* rename `jmdict.mobi` or any of the other two dictionaries as `B005FNK020_EBOK.prc`
-
-* connect your Android device via USB
-
-* copy `B005FNK020_EBOK.prc` into `Internal Storage/Android/data/com.amazon.kindle/files/` or `/sdcard/android/data/com.amazon.kindle/files`
-
-This will override the
-[default Japanese-Japanese dictionary](https://kindle.amazon.com/work/daijisen-x5927-x8f9e-japanese-edition-ebook/B005FNK020/B005FNK020).
-
-
-Building from source
-====================
-
-![Build](https://github.com/jrfonseca/jmdict-kindle/workflows/build/badge.svg?branch=master)
-
-Requirements:
-
-* Linux or Windows with Cygwin (might also work on macOS with a few changes)
-* Python version 3
-
-  * [Pycairo](http://www.cairographics.org/pycairo)
-  * [Pillow](http://pillow.readthedocs.io/en/latest/)
-  * [htmlmin](https://htmlmin.readthedocs.io/en/latest/index.html)
-
-Inside of the makefile you can change the max number of sentences per entry, compression, as well as which sentences to include:
-
-```makefile
-# The Kindle Publishing Guidelines recommend -c2 (huffdic compression),
-# but it is excruciatingly slow. That's why -c1 is selected by default.
-COMPRESSION ?= 1
-# Sets the max sentences per entry only for the jmdict.mobi.
-# It is ignored by combined.mobi due to size restrictions.
-# If there are too many sentences for the combined dictionary,
-# it will not build (exceeds 650MB size limit). The amount is limited to 3 in this makefile
-SENTENCES ?= 5
-# This flag determines wheter only good and verified sentences are used in the
-# dictionary. Set it to TRUE if you only want those sentences.
-# It is only used by jmdict.mobi
-# It is ignored bei combined.mobi. there it is always true
-# this is due to size constraints.
-ONLY_CHECKED_SENTENCES ?= FALSE
-# If true adds pronunciations indication
-PRONUNCIATIONS ?= TRUE
+```shell
+sudo pip3 install comment_parser
 ```
 
-Build with make to create all 3 dictionaries:
+### OSX and Windows
+
+Additionally, complete the special installation requirements for
+[python-magic](https://github.com/ahupp/python-magic).
+
+## Usage
+
+To use, simply run:
+
+```python
+>>> from comment_parser import comment_parser
+>>> # Returns a list of comment_parser.parsers.common.Comments
+>>> comment_parser.extract_comments('/path/to/source_file')
+>>> # Or
+>>> comment_parser.extract_comments_from_str('...')
 ```
-make
+
+### extract_comments signatures
+
+```python
+def extract_comments(filename, mime=None):
+    """Extracts and returns the comments from the given source file.
+
+    Args:
+        filename: String name of the file to extract comments from.
+        mime: Optional MIME type for file (str). Note some MIME types accepted
+            don't comply with RFC2045. If not given, an attempt to deduce the
+            MIME type will occur.
+    Returns:
+        Python list of parsers.common.Comment in the order that they appear in
+            the source file.
+    Raises:
+        UnsupportedError: If filename is of an unsupported MIME type.
+    """
+    pass
+
+
+def extract_comments_from_str(code, mime=None):
+    """Extracts and returns comments from the given source string.
+
+    Args:
+        code: String containing code to extract comments from.
+        mime: Optional MIME type for code (str). Note some MIME types accepted
+            don't comply with RFC2045. If not given, an attempt to deduce the
+            MIME type will occur.
+    Returns:
+        Python list of parsers.common.Comment in the order that they appear in
+            the source code.
+    Raises:
+        UnsupportedError: If code is of an unsupported MIME type.
+    """
+    pass
 ```
-or use any of the following commands to create a specific one:
+
+### Comments Interface
+
+```python
+class Comment(object):
+    """Represents comments found in source files."""
+    def text(self):
+        """Returns the comment's text.
+        Returns:
+            String
+        """
+        pass
+
+    def line_number(self):
+        """Returns the line number the comment was found on.
+        Returns:
+            Int
+        """
+        pass
+
+    def is_multiline(self):
+        """Returns whether this comment was a multiline comment.
+        Returns:
+            True if comment was a multiline comment, False if not.
+        """
+       pass
+
+    def __str__(self):
+        pass
+
+    def __eq__(self, other):
+        pass
 ```
-make jmdict.mobi
-make jmnedict.mobi
-make combined.mobi
+
+## Development
+
+### Install Dependencies
+
+```shell
+pip install -r requirements.txt -r requirements-dev.txt
 ```
 
-To do
-=====
+### Running locally
 
-* Leverage more of the JMdict data:
+Start python in the base of repository.
 
-  * cross references
-* Add Furigana to example sentences
-* Create better covers
+```python
+from comment_parser import comment_parser
+comment_parser.extract_comments('foo.c', mime='text/x-c')
+```
 
+### Running tests
 
-Credits
-=======
+```shell
+python -m pytest
+```
 
-* Jim Breen and the [JMdict/EDICT project](http://www.edrdg.org/jmdict/j_jmdict.html) as well as the [ENAMDICT/JMnedict](https://www.edrdg.org/enamdict/enamdict_doc.html)
-* The [Tatoeba](https://tatoeba.org/) project
-* John Mettraux for his [EDICT2 Japanese-English Kindle dictionary](https://github.com/jmettraux/edict2-kindle)
-* Choplair-network for their [Nihongo conjugator](http://www.choplair.org/?Nihongo%20conjugator)
-* javdejong for the [pronunciation](https://github.com/javdejong/nhk-pronunciation)
+### Running pylint
 
+```shell
+pylint comment_parser
+```
 
-Alternatives
-============
+### Running formatter
 
-* [John Mettraux's EDICT2 Japanese-English Kindle dictionary](https://github.com/jmettraux/edict2-kindle)
+```shell
+yapf -rip .
+```
 
-* [Amazon Kindle Store](http://www.amazon.com/s/url=search-alias%3Ddigital-text&field-keywords=japanese+english+dictionary)
+### Deploying to PyPi
+
+```shell
+python setup.py sdist
+twine upload dist/*
+```
+
+## Supported Programming Languages
+
+| Language    | Mime String              |
+|------------ |------------------------- |
+| C           | text/x-c                 |
+| C++/C#      | text/x-c++               |
+| Go          | text/x-go                |
+| HTML        | text/html                |
+| Java        | text/x-java-source       |
+| Javascript  | application/javascript   |
+| Python      | text/x-python            |
+| Python      | text/x-script.python     |
+| Ruby        | text/x-ruby              |
+| Shell       | text/x-shellscript       |
+| XML         | text/xml                 |
+
+And more to come!
+
+*Check comment_parser.py for corresponding MIME types.*
