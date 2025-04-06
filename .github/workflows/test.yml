@@ -1,44 +1,64 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: tests
+name: Build documentation and deploy to Pages
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
-  test:
-
+  # Build job
+  build:
+    # At a minimum this job should upload artifacts using actions/upload-pages-artifact
+    # Specify runner + deployment step
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9"]
-
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: "pip" # caching pip dependencies
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Build documentation
+        run: |
+          cd ./documentation/src/
+          ./boxes2rst generators.inc
+          make html #linkcheck
+          cp index.html ../build/
+          cd ../build/ && ls && ls html/
+          cp -r ../../static .
+          rm -rf doctrees
+          touch .nojekyll    
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./documentation/build/
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+  # Deploy job
+  deploy:
+    # Add a dependency to the build job
+    needs: build
 
-    - name: Test with nose2
-      run: |
-        coverage run -m nose2 tests
-        coverage lcov -o cover/coverage.lcov
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
 
-    - name: Coveralls
-      uses: coverallsapp/github-action@main
-      with:
-        path-to-lcov: cover/coverage.lcov
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
