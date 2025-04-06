@@ -1,34 +1,64 @@
-name: Tests
+name: Test
 
-on: [push]
+on:
+  pull_request:
+  push:
+    branches: [main]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     strategy:
-      max-parallel: 4
       matrix:
+        os: [ubuntu-latest]
         python-version: ["3.9"]
-
+        coverage: [false]
+        include:
+          # Modify existing configurations:
+          - os: ubuntu-latest
+            python-version: '3.9'
+            coverage: false
+            tz: 'XXX-05:30'  # UTC+05:30
+          # Add new configurations:
+          - os: ubuntu-latest
+            python-version: '3.9'
+            coverage: true
+          - os: macos-latest
+            python-version: '3.9'
+            coverage: false
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Lint with flake8
-      run: |
-        pip install flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings
-        flake8 . --count --exit-zero --max-complexity=10 --statistics
-    - name: Lint with pylint
-      run: |
-        pip install pylint
-        pylint --disable=R0205 gitchart.py
+
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          pip install --upgrade pip setuptools
+          pip install -e .[all]
+          pip install pytest-xdist
+
+      - name: Style test
+        run: flake8 metomi/isodatetime
+
+      - name: Run tests
+        env:
+          TZ: ${{ matrix.tz }}
+        run: |
+          PYTEST_ARGS=('-n' '2')
+          if ${{ matrix.coverage }}; then
+            PYTEST_ARGS+=('--cov=metomi/isodatetime')
+          fi
+
+          pytest "${PYTEST_ARGS[@]}"
+
+      - name: Upload coverage report
+        if: matrix.coverage
+        run: |
+          coverage xml --ignore-errors
+          bash <(curl -s https://codecov.io/bash)

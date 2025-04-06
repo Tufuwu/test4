@@ -1,5 +1,22 @@
-*.pyc
-*.pyo
+*.py[co]
+*.swp
+.pytest_cache/
+
+# coverage
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# distutils files
 build/
-dist/
-gitchart.egg-info/
+dist
+MANIFEST
+isodatetime.egg-info/
+metomi_isodatetime.egg-info/
+.eggs
+node_modules/
+
+# editor files
+.vscode/
+.idea/
