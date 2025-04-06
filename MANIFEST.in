@@ -1,2 +1,0 @@
-include LICENSE
-recursive-include h5netcdf/tests *.py

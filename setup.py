@@ -1,40 +1,33 @@
-import os
-import sys
+from setuptools import setup
 
-from setuptools import find_packages, setup
-
-if sys.version_info[:2] < (3, 6):
-    raise RuntimeError("Python version >= 3.6 required.")
-
-CLASSIFIERS = [
-    "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
-    "Intended Audience :: Science/Research",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Topic :: Scientific/Engineering",
-]
-
+with open('README.md') as readme_file:
+    readme = readme_file.read()
 
 setup(
-    name="h5netcdf",
-    description="netCDF4 via h5py",
-    long_description=(
-        open("README.rst").read() if os.path.exists("README.rst") else ""
-    ),
-    version="0.8.1",
-    license="BSD",
-    classifiers=CLASSIFIERS,
-    author="Stephan Hoyer",
-    author_email="shoyer@gmail.com",
-    url="https://github.com/h5netcdf/h5netcdf",
-    python_requires=">=3.6",
-    install_requires=["h5py"],
-    tests_require=["netCDF4", "pytest"],
-    packages=find_packages(),
+    name='ptf',
+    version='0.9.1',
+    description='PTF is a Python based dataplane test framework.',
+    long_description=readme,
+    author='Antonin Bas',
+    author_email='antonin@barefootnetworks.com',
+    url='https://github.com/p4lang/ptf',
+    packages=[
+        'ptf', 'ptf.platforms',
+    ],
+    package_dir={'': 'src'},
+    scripts=[
+        'ptf',
+        'ptf_nn/ptf_nn_agent.py'
+    ],
+    zip_safe=False,
+    license='Apache License',
+    keywords='ptf',
+    classifiers=[
+        'Development Status :: 2 - Pre-Alpha',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache License',
+        'Natural Language :: English',
+        "Programming Language :: Python :: 2",
+        'Programming Language :: Python :: 2.7',
+    ]
 )
