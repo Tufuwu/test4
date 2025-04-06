@@ -23,6 +23,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.pyc
 MANIFEST
 
 # PyInstaller
@@ -102,18 +103,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Pycharm project settings
 .idea/
-
-/try_and_error/*
-
-/src/try_and_error/
-
-/data/
-/data/*
-docs/source/reference/generated/*
-docs/source/api/*
-.DS_Store
-
-scratch/*
-wandb/*
-mlruns

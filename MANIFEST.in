@@ -1,17 +1,12 @@
-graft src
-graft tests
+include AUTHORS.rst
+include CHANGELOG.rst
+include CODE_OF_CONDUCT.rst
+include CONTRIBUTING.rst
+include LICENSE.txt
+include README.rst
 
-prune docs/source/api
-prune notebooks
+recursive-include docs *
+prune docs/_build
 
-recursive-include docs/source *.py
-recursive-include docs/source *.rst
-recursive-include docs/source *.png
-
-include docs/Makefile
-include config/config.ini
-
-global-exclude *.py[cod] __pycache__ *.so *.dylib .DS_Store *.gpickle
-
-exclude .appveyor.yml .bumpversion.cfg .coveragerc .flake8 .travis.yml .readthedocs.yml tox.ini .pre-commit-config.yaml
-include LICENSE *.md *.rst
+recursive-include src/vivarium *.py *.yaml
+recursive-include tests *.py *txt *.yaml

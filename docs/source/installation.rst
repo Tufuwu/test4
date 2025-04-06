@@ -1,84 +1,67 @@
-Installation
-============
-Linux and Mac Users
--------------------
-The latest stable version of PyKEEN can be downloaded and installed from
-`PyPI <https://pypi.org/project/pykeen>`_ with:
+===================
+Installing Vivarium
+===================
 
-.. code-block:: bash
+.. contents::
+   :depth: 1
+   :local:
+   :backlinks: none
 
-    $ pip install pykeen
+.. highlight:: console
 
-The latest version of PyKEEN can be installed directly from the
-source on `GitHub <https://github.com/pykeen/pykeen>`_ with:
+Overview
+--------
 
-.. code-block:: bash
+Vivarium is written in `Python`__ and supports Python 3.6+.
 
-    $ pip install git+https://github.com/pykeen/pykeen.git
+__ http://docs.python-guide.org/en/latest/
 
-Windows Users
--------------
-We've added experimental support for Windows as of `!95 <https://github.com/pykeen/pykeen/pull/95>`_.
-However, be warned, it's much less straightforward to install PyTorch and therefore PyKEEN on Windows.
+.. _install-pypi:
 
-First, to install PyTorch, you must install `Anaconda <https://www.anaconda.com/>`_ and follow
-the instructions on the PyTorch website. For example, if you're using CUDA version 10.2, use
-the following command:
+Installation from PyPI
+----------------------
 
-.. code-block:: bash
+Vivarium packages are published on the `Python Package Index
+<https://pypi.org/project/vivarium/>`_. The preferred tool for installing
+packages from *PyPI* is :command:`pip`.  This tool is provided with all modern
+versions of Python
 
-    $ conda install pytorch torchvision cudatoolkit=10.2 -c pytorch
+On Linux or MacOS, you should open your terminal and run the following command.
 
-Then, assuming your `python` and `pip` command are linked to the same place where conda is installing,
-you can proceed with the normal installation (or the installation from GitHub as shown above):
+::
 
-.. code-block:: bash
+   $ pip install -U vivarium
 
-    $ pip install pytorch
+On Windows, you should open *Command Prompt* and run the same command.
 
-If you're having trouble with ``pip`` or ``sqlite``, you might also have to use
-``conda install pip setuptools wheel sqlite``. See our
-`AppVeyor configuration <https://github.com/pykeen/pykeen/blob/master/.appveyor.yml>`_
-on GitHub for inspiration.
+.. code-block:: doscon
 
-If you know better ways to install on Windows or would like to share some references,
-we'd really appreciate it.
+   C:\> pip install -U vivarium
 
-Development
------------
-Alternatively, the latest code can be installed in development mode
-with:
+After installation, type :command:`simulate test`.  This will run a test
+simulation packaged with the framework and validate that everything is
+installed correctly.
 
-.. code-block:: bash
+Installation from source
+------------------------
 
-    $ git clone https://github.com/pykeen/pykeeen.git pykeen
-    $ cd pykeen
-    $ pip install -e .
+You can install Vivarium directly from a clone of the `Git repository`__.
+You can clone the repository locally and install from the local clone::
 
-If you're interested in making contributions, please see our
-`contributing guide <https://github.com/pykeen/pykeen/blob/master/CONTRIBUTING.md>`_.
+    $ git clone https://github.com/ihmeuw/vivarium.git
+    $ cd vivarium
+    $ pip install .
 
-To automatically ensure compliance to our style guide, please install pre-commit
-hooks using the following code block from in the same directory.
+You can also install directly from the git repository with pip::
 
-.. code-block:: bash
+    $ pip install git+https://github.com/ihmeuw/vivarium.git
 
-    $ pip install pre-commit
-    $ pre-commit install
+Additionally, you can download a snapshot of the Git repository in either
+`tar.gz`__ or `zip`__ format.  Once downloaded and extracted, these can be
+installed with :command:`pip` as above.
 
-Extras
-------
-PyKEEN has several extras for installation that are defined in the ``[options.extras_require]`` section
-of the ``setup.cfg``. They can be included with installation using the bracket notation like in
-``pip install pykeen[docs]`` or ``pip install -e .[docs]``. Several can be listed, comma-delimited like in
-``pip install pykeen[docs,plotting]``.
+.. highlight:: default
 
-==============  =======================================================
-Name            Description
-==============  =======================================================
-``plotting``    Plotting with ``seaborn`` and generation of word clouds
-``mlflow``      Tracking of results with ``mlflow``
-``wandb``       Tracking of results with ``wandb``
-``docs``        Building of the documentation
-``templating``  Building of templated documentation, like the README
-==============  =======================================================
+__ https://github.com/ihmeuw/vivarium
+__ https://github.com/ihmeuw/vivarium/archive/develop.tar.gz
+__ https://github.com/ihmeuw/vivarium/archive/develop.zip
