@@ -7,12 +7,12 @@ clean:
 install:
 	$(MAKE) uninstall
 	rm -rf build .flatpak-builder/build
-	flatpak-builder --install --install-deps-from=flathub build io.otsaloma.gaupol.yml
+	flatpak-builder --install --install-deps-from=flathub build io.otsaloma.nfoview.yml
 
 run:
-	flatpak run io.otsaloma.gaupol
+	flatpak run io.otsaloma.nfoview
 
 uninstall:
-	flatpak uninstall -y io.otsaloma.gaupol/x86_64/master || true
+	flatpak uninstall -y io.otsaloma.nfoview/x86_64/master || true
 
 .PHONY: clean install run uninstall

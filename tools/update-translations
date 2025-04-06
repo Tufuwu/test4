@@ -1,11 +1,11 @@
 #!/bin/sh
 
 cd "$(dirname "$0")/.." || exit 1
-truncate -s0 po/gaupol.pot
+truncate -s0 po/nfoview.pot
 
 # Python code
 xgettext \
-    --output=po/gaupol.pot \
+    --output=po/nfoview.pot \
     --join-existing \
     --from-code=UTF-8 \
     --language=Python \
@@ -13,64 +13,39 @@ xgettext \
     --keyword=d_:2 \
     --keyword=n_:1,2 \
     --add-comments=TRANSLATORS: \
-    $(find . -name "*.py" -not -path "*/test/*")
+    nfoview/*.py
 
 # GtkBuilder XML files
 xgettext \
-    --output=po/gaupol.pot \
+    --output=po/nfoview.pot \
     --join-existing \
     --from-code=UTF-8 \
-    $(find data -name "*.ui")
-
-# Extension metadata files
-xgettext \
-    --output=po/gaupol.pot \
-    --join-existing \
-    --from-code=UTF-8 \
-    --language=Desktop \
-    --keyword= \
-    --keyword=Name \
-    --keyword=Description \
-    --add-comments=TRANSLATORS: \
-    data/extensions/*/*.extension.in
-
-# Pattern files
-xgettext \
-    --output=po/gaupol.pot \
-    --join-existing \
-    --from-code=UTF-8 \
-    --language=Desktop \
-    --keyword= \
-    --keyword=Name \
-    --keyword=Description \
-    --add-comments=TRANSLATORS: \
-    data/patterns/*.in
+    data/*.ui
 
 # AppData XML file
 xgettext \
-    --output=po/gaupol.pot \
+    --output=po/nfoview.pot \
     --join-existing \
     --from-code=UTF-8 \
-    data/io.otsaloma.gaupol.appdata.xml.in
+    data/io.otsaloma.nfoview.appdata.xml.in
 
 # Desktop file
 xgettext \
-    --output=po/gaupol.pot \
+    --output=po/nfoview.pot \
     --join-existing \
     --from-code=UTF-8 \
     --language=Desktop \
     --keyword= \
-    --keyword=GenericName \
+    --keyword=Name \
     --keyword=Comment \
     --keyword=Keywords \
     --add-comments=TRANSLATORS: \
-    data/io.otsaloma.gaupol.desktop.in
+    data/io.otsaloma.nfoview.desktop.in
 
 # Remove AppData entries that shouldn't be translated.
 msggrep \
     --invert-match \
     --msgid \
-    --regexp="^Gaupol$" \
     --regexp="^Osmo Salomaa$" \
     --output-file=po/tmp.pot \
-    po/gaupol.pot && mv -f po/tmp.pot po/gaupol.pot
+    po/nfoview.pot && mv -f po/tmp.pot po/nfoview.pot

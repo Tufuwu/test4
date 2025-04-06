@@ -21,13 +21,13 @@ setup_kwargs.update({
     "options": {"build_exe": {
         "compressed": False,
         "include_files": include_files,
-        "includes": ["aeidon", "cairo", "gaupol", "gi"],
-        "packages": ["aeidon", "cairo", "gaupol", "gi"],
+        "includes": ["cairo", "nfoview", "gi"],
+        "packages": ["cairo", "nfoview", "gi"],
     }},
     "executables": [cx_Freeze.Executable(
-        script="bin/gaupol",
+        script="bin/nfoview",
         base="WIN32GUI",
-        icon="data/icons/io.otsaloma.gaupol.ico",
+        icon="data/icons/io.otsaloma.nfoview.ico",
     )],
 })
 
