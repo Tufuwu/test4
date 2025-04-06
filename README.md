@@ -1,22 +1,12 @@
-# Overview
+Radio Beam: Tools for Beam IO and Manipulation
+==============================================
 
-[![Build Status](https://travis-ci.org/duosecurity/duo_openvpn.svg?branch=master)](https://travis-ci.org/duosecurity/duo_openvpn)
-[![Issues](https://img.shields.io/github/issues/duosecurity/duo_openvpn)](https://github.com/duosecurity/duo_openvpn/issues)
-[![Forks](https://img.shields.io/github/forks/duosecurity/duo_openvpn)](https://github.com/duosecurity/duo_openvpn/network/members)
-[![Stars](https://img.shields.io/github/stars/duosecurity/duo_openvpn)](https://github.com/duosecurity/duo_openvpn/stargazers)
-[![License](https://img.shields.io/badge/License-View%20License-orange)](https://github.com/duosecurity/duo_openvpn/blob/master/LICENSE)
+Radio Beam is a simple toolkit for reading beam information from FITS headers
+and manipulating beams.  Some example applications include:
 
-**duo_openvpn** - Duo two-factor authentication for OpenVPN
+ * Convolution and deconvolution
+ * Unit conversion (Jy to/from K)
 
-# Usage
+[Basic Documentation](https://github.com/radio-astro-tools/radio_beam/blob/master/docs/index.rst) is available.
 
-OpenVPN integration instructions: <http://www.duosecurity.com/docs/openvpn>
-
-# Support
-
-Report any bugs, feature requests, etc. to us directly:
-support@duosecurity.com
-
-Have fun!
-
-<http://www.duosecurity.com>
+[![Build Status](https://travis-ci.org/radio-astro-tools/radio_beam.svg?branch=master)](https://travis-ci.org/radio-astro-tools/radio_beam)
