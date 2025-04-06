@@ -1,18 +1,11 @@
-include README.rst
-include changelog.rst
+include README.md
 include LICENSE
-include COPYING
-include AUTHORS
-recursive-include src *.py *.h *.c
-include docs/*.txt
-include docs/*.xml
-include docs/Makefile
-include docs/make.bat
-recursive-include docs/source *
-recursive-include tests *.py
-#global-exclude .DS_Store
-#global-exclude Thumbs.db
-#global-exclude Desktop.ini
-#global-exclude *.swp
-#global-exclude *~
-#global-exclude *.bak
+# sdist includes test/test*.py by default, but esptool.py tests
+# are so far only intended to run from the git repo itself
+prune test
+prune flasher_stub
+prune .github
+exclude .git*
+exclude MANIFEST*
+
+

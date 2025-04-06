@@ -1,109 +1,55 @@
-# Because this library provides extension modules for macOS, but not for other
-# platforms, we want to provide built distributions for each macOS platform, but we
-# explicitly DON'T want to provide a cross-platform pure-Python wheel to fall back on.
-#
-# This is because in the event that a new Python version is released or a new
-# macOS platform is released, macOS users won't be able to install the built
-# distributions we've provided and should fall back to the source distribution,
-# but pip's behavior is to prefer a pure-Python wheel first, which will be
-# missing the extension modules.
-#
-# However, to provide built distributions for Linux and Windows (which don't
-# have extension modules) we can just build a pure-Python wheel on that
-# platform and override the platform name manually via wheel's --plat-name
-# feature, to provide a platform-specific wheel for all platforms.
+name: Test esptool
 
-name: Build & Publish
-
-on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'The branch, tag or SHA to release from'
-        required: true
-        default: 'main'
+on: [push, pull_request]
 
 jobs:
-  macos-built-distributions:
-    name: Build macOS wheels
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.branch }}
-      - name: Install Python
-        uses: actions/setup-python@v2
-      - name: Install build dependencies
-        run: python -m pip install cibuildwheel
-      - name: Build wheels
-        run: python -m cibuildwheel
-        env:
-          CIBW_SKIP: "cp27-* cp35-* pp27-*"  # skip 2.7 and 3.5 wheels
-      - uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: ./wheelhouse/*.whl
-
-  pure-built-distributions:
-    name: Build pure wheels
+  test_esptool:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.branch }}
-      - name: Install Python
-        uses: actions/setup-python@v2
-      - name: Install build dependencies
-        run: python -m pip install -U setuptools wheel
-      - name: Build wheels
-        run: |
-          for platform in 'manylinux2014_x86_64' 'manylinux2014_i686' 'manylinux2014_aarch64' 'manylinux2014_armv7l' 'manylinux2014_ppc64' 'manylinux2014_ppc64le' 'manylinux2014_s390x' 'win32' 'win_amd64' 'win_ia64'
-          do
-            python setup.py bdist_wheel --plat-name $platform
-          done
-      - uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: ./dist/*.whl
 
-  source-distribution:
-    name: Build source distribution
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.branch }}
-      - name: Install Python
-        uses: actions/setup-python@v2
-      - name: Build source distribution
-        run: python setup.py sdist
-      - name: Store the source distribution
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist
-          retention-days: 4
+    strategy:
+      matrix:
+        python-version: ["3.9"]
 
-  publish:
-    needs:
-      - macos-built-distributions
-      - pure-built-distributions
-      - source-distribution
-    runs-on: ubuntu-latest
     steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v2
-        with:
-          name: python-package-distributions
-          path: dist/
-      - name: What will we publish?
-        run: ls dist
-      - name: Publish
-        uses: pypa/gh-action-pypi-publish@main
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          skip_existing: true
+    - name: Checkout ref commit
+      uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Test python components (fast)
+      run: |
+        python setup.py build
+        pip install -e .[dev]
+        python test/test_imagegen.py
+        python test/test_espsecure.py
+        python test/test_merge_bin.py
+        python test/test_modules.py
+
+    - name: Lint with flake8
+      run: python -m flake8
+
+    - name: Check the installed versions can run
+      run: |
+        esptool.py --help
+        espefuse.py --help
+        espsecure.py --help
+
+    - name: Build stub (Python 3.7 only)
+      if: matrix.python-version == 3.7
+      run: |
+        export TOOLCHAIN_DIR=$HOME/toolchain
+
+        export ESP8266_BINDIR=$TOOLCHAIN_DIR/xtensa-lx106-elf/bin
+        export ESP32_BINDIR=$TOOLCHAIN_DIR/xtensa-esp32-elf/bin
+        export ESP32S2_BINDIR=$TOOLCHAIN_DIR/xtensa-esp32s2-elf/bin
+        export ESP32S3_BINDIR=$TOOLCHAIN_DIR/xtensa-esp32s3-elf/bin
+        export ESP32C3_BINDIR=$TOOLCHAIN_DIR/riscv32-esp-elf/bin
+
+        export PATH=$PATH:$ESP8266_BINDIR:$ESP32_BINDIR:$ESP32S2_BINDIR:$ESP32S3_BINDIR:$ESP32C3_BINDIR
+
+        ./test/ci/setup_ci_build_env.sh
+        make -C flasher_stub V=1
+        cd flasher_stub && python ./compare_stubs.py
