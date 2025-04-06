@@ -1,69 +1,83 @@
-#/usr/bin/env python
+# This code is part of Qiskit
+#
+# (C) Copyright IBM 2017.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
+# Copyright 2019-2020 Honeywell, Intl. (www.honeywell.com)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import setuptools
 import os
-import sys
-from setuptools import setup, find_packages
 
-# if you are not using vagrant, just delete os.link directly,
-# The hard link only saves a little disk space, so you should not care
-if os.environ.get('USER', '') == 'vagrant':
-    del os.link
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
+requirements = [
+    'nest-asyncio>=1.2.0',
+    'qiskit-terra>=0.10',
+    'requests>=2.19',
+    'websockets>=7'
+]
 
-ROOT_DIR = os.path.dirname(__file__)
-SOURCE_DIR = os.path.join(ROOT_DIR)
+version_path = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), 'qiskit', 'providers', 'honeywell',
+    'VERSION.txt'))
 
-if sys.version_info < (3, 6):
-    raise RuntimeError(
-        "opencage requires Python 3.7 or newer"
-        "Use older opencage 1.x for Python 2.7 or 3.6"
-    )
+with open(version_path, 'r') as fd:
+    version_str = fd.read().rstrip()
 
-# try for testing
-try:
-    with open(os.path.join(SOURCE_DIR, 'README.md'), encoding="utf-8") as f:
-        LONG_DESCRIPTION = f.read()
-except FileNotFoundError:
-    LONG_DESCRIPTION = ""
-
-setup(
-    name="opencage",
-    version="2.2.0",
-    description="Wrapper module for the OpenCage Geocoder API",
-    long_description=LONG_DESCRIPTION,
+setuptools.setup(
+    name="qiskit-honeywell-provider",
+    version=version_str,
+    author="Honeywell",
+    author_email="dominic.lucchetti@honeywell.com",
+    license="Apache 2.0",
+    description="Qiskit provider for accessing the quantum devices at Honeywell",
+    long_description=long_description,
     long_description_content_type='text/markdown',
-    author="OpenCage GmbH",
-    author_email="info@opencagedata.com",
-    url="https://github.com/OpenCageData/python-opencage-geocoder/",
-    download_url="https://github.com/OpenCageData/python-opencage-geocoder/tarball/2.1.0",
-    license="BSD",
-    packages=find_packages(),
+    url="https://github.com/qiskit-community/qiskit-honeywell-provider",
+    packages=setuptools.find_namespace_packages(include=['qiskit.*']),
+    install_requires=requirements,
+    python_requires=">=3.5",
     include_package_data=True,
-    zip_safe=False,
-    keywords=['geocoding', 'geocoder'],
+    keywords="qiskit quantum",
+    project_urls={
+        "Bug Tracker": "https://github.com/qiskit-community/qiskit-honeywell-provider/issues",
+        "Documentation": "https://qiskit.org/documentation/",
+        "Source Code": "https://github.com/qiskit-community/qiskit-honeywell-provider"
+    },
     classifiers=[
-        'Environment :: Web Environment',
-        "Development Status :: 5 - Production/Stable",
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
+        "License :: OSI Approved :: Apache Software License",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Operating System :: OS Independent",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: MacOS",
+        "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3 :: Only",
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Topic :: Scientific/Engineering :: GIS',
-        'Topic :: Utilities'
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Scientific/Engineering"
     ],
-    install_requires=[
-        'Requests>=2.26.0',
-        'backoff>=1.10.0'
-    ],
-    test_suite='pytest',
-    tests_require=[
-        'httpretty>=0.9.6',
-        'pylint==2.15.9',
-        'pytest>=6.0'
-    ],
+    zip_safe=False,
 )

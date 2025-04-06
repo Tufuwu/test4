@@ -1,136 +1,103 @@
-# OpenCage Geocoding Module for Python
+# Qiskit Honeywell Provider
 
-A Python module to access the [OpenCage Geocoding API](https://opencagedata.com/).
+[![License](https://img.shields.io/github/license/qiskit-community/qiskit-honeywell-provider.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/com/qiskit-community/qiskit-honeywell-provider/master.svg?style=popout-square)](https://travis-ci.com/qiskit-community/qiskit-honeywell-provider)[![](https://img.shields.io/github/release/qiskit-community/qiskit-honeywell-provider.svg?style=popout-square)](https://github.com/qiskit-community/qiskit-honeywell-provider/releases)[![](https://img.shields.io/pypi/dm/qiskit-honeywell-provider.svg?style=popout-square)](https://pypi.org/project/qiskit-honeywell-provider/)
 
-## Build Status / Code Quality / etc
+**Qiskit** is an open-source framework for working with noisy quantum computers at the level of pulses, circuits, and algorithms.
 
-[![PyPI version](https://badge.fury.io/py/opencage.svg)](https://badge.fury.io/py/opencage)
-[![Downloads](https://pepy.tech/badge/opencage/month)](https://pepy.tech/project/opencage)
-[![Versions](https://img.shields.io/pypi/pyversions/opencage)](https://pypi.org/project/opencage/)
-![GitHub contributors](https://img.shields.io/github/contributors/opencagedata/python-opencage-geocoder)
-[![Build Status](https://github.com/OpenCageData/python-opencage-geocoder/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/OpenCageData/python-opencage-geocoder/actions/workflows/build.yml)
-![Mastodon Follow](https://img.shields.io/mastodon/follow/109287663468501769?domain=https%3A%2F%2Fen.osm.town%2F&style=social)
+This project contains a provider that allows access to Honeywell quantum
+devices.
 
-## Tutorial
+## Installation
 
-You can find a [comprehensive tutorial for using this module on the OpenCage site](https://opencagedata.com/tutorials/geocode-in-python).
-
-## Usage
-
-Supports Python 3.7 or newer. Use the older opencage 1.x releases if you need Python 2.7 support.
-
-Install the module:
+You can install the provider using pip:
 
 ```bash
-pip install opencage
+pip3 install qiskit-honeywell-provider
 ```
 
-Load the module:
+`pip` will handle installing all the python dependencies automatically and you
+will always install the latest version.
 
-```python
-from opencage.geocoder import OpenCageGeocode
+## Setting up the Honeywell Provider
+
+Once the package is installed, you can access the provider from Qiskit via the following import:
+
+```python3
+from qiskit.providers.honeywell import Honeywell
 ```
 
-Create an instance of the geocoder module, passing a valid OpenCage Data Geocoder API key
-as a parameter to the geocoder modules's constructor:
+You will need credentials for the Honeywell Quantum Service. Credentials are
+tied to an e-mail address that can be stored on disk with:
 
-```python
-key = 'your-api-key-here'
-geocoder = OpenCageGeocode(key)
+```python3
+Honeywell.save_account('username@company.com')
 ```
 
-Pass a string containing the query or address to be geocoded to the modules' `geocode` method:
+After the initial saving of your account information, you will be prompted to enter
+your password which will be used to acquire a token that will enable continuous
+interaction until it expires.  Your password will **not** be saved to disk and will
+be required infrequently to update the credentials stored on disk or when a new
+machine must be authenticated.
 
-```python
-query = '82 Clerkenwell Road, London'
-results = geocoder.geocode(query)
+The credentials will then be loaded automatically on calls that return Backends,
+or can be manually loaded with:
+
+```python3
+Honeywell.load_account()
 ```
 
-You can add [additional parameters](https://opencagedata.com/api#forward-opt):
+This will load the most recently saved credentials from disk so that they can be provided
+for each interaction with Honeywell's devices.
 
-```python
-results = geocoder.geocode('London', no_annotations=1, language='es')
+Storing a new account will **not** invalidate your other stored credentials.  You may have an arbitrary
+number of credentials saved.  To delete credentials you can use:
+
+```python3
+Honeywell.delete_credentials()
 ```
 
-For example you can use the proximity parameter to provide the geocoder with a hint:
+Which will delete the current accounts credentials from the credential store.  Please keep in mind
+this only deletes the current accounts credentials, and not all credentials stored.
 
-```python
-results = geocoder.geocode('London', proximity='42.828576, -81.406643')
-print(results[0]['formatted'])
-# u'London, ON N6A 3M8, Canada'
+With credentials loaded you can access the backends from the provider:
+
+```python3
+backends = Honeywell.backends()
+backend = Honeywell.get_backend(device)
 ```
 
-### Reverse geocoding
+You can then use that backend like you would use any other qiskit backend. For
+example, running a bell state circuit:
 
-Turn a lat/long into an address with the `reverse_geocode` method:
-
-```python
-result = geocoder.reverse_geocode(51.51024, -0.10303)
+```python3
+from qiskit import *
+qc = QuantumCircuit(2, 2)
+qc.h(0)
+qc.cx(0, 1)
+qc.measure([0,1], [0,1])
+result = execute(qc, backend).result()
+print(result.get_counts(qc))
 ```
 
-### Sessions
+## Using a proxy
 
-You can reuse your HTTP connection for multiple requests by
-using a `with` block. This can help performance when making
-a lot of requests:
+To configure a proxy include it in the save account configuration:
 
-```python
-queries = ['82 Clerkenwell Road, London', ...]
-with OpenCageGeocode(key) as geocoder:
-    # Queries reuse the same HTTP connection
-    results = [geocoder.geocode(query) for query in queries]
+```python3
+Honeywell.save_account('username@company.com', proxies = {'urls': {'http': 'http://user:password@myproxy:8080', 'https': 'http://user:password@myproxy:8080'}})
 ```
 
-### Asyncronous requests
+To remove the proxy you can save with an empty dictionary:
 
-You can run requests in parallel with the `geocode_async` and `reverse_geocode_async`
-method which have the same parameters and response as their synronous counterparts.
-You will need at least Python 3.7 and the `asyncio` and `aiohttp` packages installed.
-
-```python
-async with OpenCageGeocode(key) as geocoder:
-    results = await geocoder.geocode_async(address)
+```python3
+Honeywell.save_account('username@company.com', proxies = {})
 ```
 
-For a more complete example and links to futher tutorials on asyncronous IO see
-`batch.py` in the `examples` directory.
+The 'urls' field must be a dictionary that maps a protocol type or url to a specific proxy.  Additional information/details can be found [here](https://requests.readthedocs.io/en/master/user/advanced/#proxies).
 
-### Non-SSL API use
+## License
 
-If you have trouble accesing the OpenCage API with https, e.g. issues with OpenSSL
-libraries in your enviroment, then you can set the 'http' protocol instead. Please
-understand that the connection to the OpenCage API will no longer be encrypted.
+[Apache License 2.0].
 
-```python
-geocoder = OpenCageGeocode('your-api-key', 'http')
-```
+[Apache License 2.0]: https://github.com/qiskit-community/qiskit-honeywell-provider/blob/master/LICENSE.txt
 
-### Command-line batch geocoding
-
-See `examples/batch.py` for an example to geocode a CSV file.
-
-<img src="batch-progress.gif"/>
-
-### Exceptions
-
-If anything goes wrong, then an exception will be raised:
-
-- `InvalidInputError` for non-unicode query strings
-- `NotAuthorizedError` if API key is missing, invalid syntax or disabled
-- `ForbiddenError` API key is blocked or suspended
-- `RateLimitExceededError` if you go past your rate limit
-- `UnknownError` if there's some problem with the API (bad results, 500 status code, etc)
-
-## Copyright & License
-
-This software is copyright OpenCage GmbH.
-Please see `LICENSE.txt`
-
-### Who is OpenCage GmbH?
-
-<a href="https://opencagedata.com"><img src="opencage_logo_300_150.png"/></a>
-
-We run a worldwide [geocoding API](https://opencagedata.com/api) and [geosearch](https://opencagedata.com/geosearch) service based on open data.
-Learn more [about us](https://opencagedata.com/about).
-
-We also run [Geomob](https://thegeomob.com), a series of regular meetups for location based service creators, where we do our best to highlight geoinnovation. If you like geo stuff, you will probably enjoy [the Geomob podcast](https://thegeomob.com/podcast/).
