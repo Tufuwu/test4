@@ -1,72 +1,40 @@
-name: CI
+name: Test
 
-on: [push, pull_request]
-
-env:
-  POETRY_VERSION: 1.1.6
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
-  flake8:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-
-      - name: Install poetry
-        uses: snok/install-poetry@v1.1.4
-        with:
-          version: ${{ env.POETRY_VERSION }}
-          virtualenvs-create: false
-
-      # Skip cache because we have few deps
-      - name: Install flake8
-        run: poetry install --no-root -v -E flake8
-
-      - name: Run flake8
-        run: poetry run flake8 -v .
-
-  tests:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.9"]
-    name: pytest (Python ${{ matrix.python-version }})
-    steps:
-      - uses: actions/checkout@v2
 
-      - name: Setup Python
+    steps:
+      - name: Install libgnutls28-dev
+        run: |
+          sudo apt update -q
+          sudo apt install -q -y libgnutls28-dev libcurl4-gnutls-dev
+      
+      - uses: actions/checkout@v2.4.0
+
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install poetry
-        uses: snok/install-poetry@v1.1.4
-        with:
-          version: ${{ env.POETRY_VERSION }}
-          virtualenvs-create: true
-
-      - name: Cache poetry virtualenv
-        uses: actions/cache@v4
-        id: cache
-        with:
-          path: ~/.cache/pypoetry/virtualenvs
-          key: poetry-tests-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install test dependencies
-        run: poetry install -v -E test
-        if: steps.cache.outputs.cache-hit != 'true'
-
-      - name: Run tests
-        run: poetry run py.test --cov st_package_reviewer --cov tests --cov-report term-missing
-
-      - name: Coveralls
-        continue-on-error: true
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      - name: Install project dependencies
         run: |
-          pip install coveralls
-          coveralls
+          pip install --upgrade pip
+          pip install codecov tox tox-gh-actions
+
+      - name: Run tests with tox
+        run: tox
+
+      - name: Run coverage
+        run: codecov

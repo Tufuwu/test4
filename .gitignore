@@ -1,16 +1,17 @@
-# tox/cache
-.tox/
-.cache/
-**/__pycache__/
-
-# coverage
-htmlcov/
-.coverage
-
-# setuptools
+*.pyc
+.tox
+.cache
+.pytest_cache/
 build/
 dist/
+*.egg/
+.coverage
+coverage.xml
+htmlcov/
 *.egg-info/
+pytestdebug.log
+pip-wheel-metadata/
+.python-version
 
-*.pyc
-*.sublime-workspace
+fixtures/
+/docs/_build
