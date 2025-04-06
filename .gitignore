@@ -1,12 +1,6 @@
 __pycache__
-*.py[co]
-/build
-/dist
-/MANIFEST
-/duecredit/version.py
-/venv*
-/.tox
-.duecredit.p
-.coverage
-*.egg-info
+*.pyc
+*egg-info
+build
+dist
 .idea
