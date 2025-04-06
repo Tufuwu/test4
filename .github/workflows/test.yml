@@ -1,103 +1,38 @@
-name: Test
+name: Tests
+
 on:
   push:
   pull_request:
-  schedule: [{cron: '2 3 * * 6'}]  # M H d m w (Sat 3:02)
+  schedule:
+    - cron: '0 0 * * 0' # weekly
+
 jobs:
-  check:
-    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
+  build:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with: {fetch-depth: 0}
-    - uses: actions/setup-python@v5
-      with: {python-version: '3.x'}
-    - name: dependencies
-      run: pip install -U tox .
-    - run: tox -e check
-  test:
-    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
-    name: py${{ matrix.python }}-${{ matrix.os }}
+
+    name: Python ${{ matrix.python-version }} / ${{ matrix.django-version }}
     strategy:
       matrix:
-        os: [ubuntu]
-        python: ["3.9"]
-        include:
-        - os: macos
-          python: 3.9
-        - os: windows
-          python: 3.9
-    runs-on: ${{ matrix.os }}-latest
-    defaults:
-      run:
-        shell: bash
+        python-version: ["3.9"]
     steps:
-    - uses: actions/checkout@v4
-      with: {fetch-depth: 0}
-    - uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python }}
-    - name: install
-      run: |
-        pip install -U tox tox-gh-actions
-        mkdir -p "$HOME/bin"
-        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
-        chmod +x "$HOME/bin/codacy"
-        echo "$HOME/bin" >> $GITHUB_PATH
-    - name: tox
-      run: tox -e py${PYVER/./}
-      env:
-        PYVER: ${{ matrix.python }}
-        PLATFORM: ${{ matrix.os }}
-        COVERALLS_FLAG_NAME: py${{ matrix.python }}-${{ matrix.os }}
-        COVERALLS_PARALLEL: true
-        COVERALLS_SERVICE_NAME: github
-        # coveralls needs explicit token
-        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-  finish:
-    name: pytest cov
-    continue-on-error: ${{ github.event_name != 'push' }}
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/setup-python@v5
-      with: {python-version: '3.x'}
-    - name: Coveralls Finished
-      run: |
-        pip install -U coveralls
-        coveralls --finish || :
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Codacy Finished
-      run: |
-        curl -sfL https://coverage.codacy.com/get.sh > codacy
-        bash codacy final || :
-      env:
-        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-  deploy:
-    needs: [check, test]
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions: {contents: write, id-token: write, packages: write}
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GH_TOKEN || github.token }}
-    - uses: actions/setup-python@v5
-      with: {python-version: '3.x'}
-    - id: dist
-      uses: casperdcl/deploy-pypi@trusted-pub
-      with:
-        build: true
-        upload: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
-    - if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-      name: Release
-      run: |
-        changelog=$(git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD)
-        tag="${GITHUB_REF#refs/tags/}"
-        gh release create --title "py-make $tag stable" --draft --notes "$changelog" "$tag" dist/${{ steps.dist.outputs.whl }}
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - uses: actions/checkout@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}
+      - name: Install dependencies
+        run: |
+          python -m pip install tox tox-gh-actions
+      - name: Run tests
+        run: |
+          python -m tox
