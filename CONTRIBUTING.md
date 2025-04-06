@@ -1,149 +1,190 @@
-Contributing
-============
+# CONTRIBUTING GUIDELINES
 
-Feedback and pull-requests
---------------------------
+Here are some guidelines for people who want to contribute their code
+to this software.
 
-For feature requests, bug reports, vulnerability reports, and feedback, please
-provide them as GitHub issues.
+## Make separate commits for logically separate changes.
 
-To submit a patch please create a pull request from your topic branch.
-You should create a separate branch for each single topic (bug fix or
-new feature). Please follow commit message guideline from
-[git-scm book](http://git-scm.com/book/ch5-2.html). Try to break several
-logical changes or bug fixes in several commits.
+## Run the pre-commit checks before committing
 
-We also ask you to sign our [Contributor Licence Agreement](https://github.com/AdaCore/contributing-howto).
+* `make check`
 
-Code conventions
-----------------
+## Write tests
 
-### pre-commit checks
+When adding new features or fixing defects, extend the unit tests to
+cover the new behavior.  See the `tests/` directory for examples.
+Find an appropriate test suite and extend it whenever possible.
 
-Before contributing a change please activate pre-commit checks locally:
+## Be picky about whitespace
 
-```bash
+This project is very picky about code style.
+The style here is the standard Python PEP-8 style:
 
-$ pip3 install pre-commit
-$ pre-commit install
-```
+http://www.python.org/dev/peps/pep-0008/
 
-Note that the pre-commit check configuration can be found in ``.pre-commit-config.yaml``. Before any change to that file please run:
+* Use the `make format` command to format the source code using `black`.
 
-```bash
-$ pre-commit run --all-files
-```
+* Follow the same style as the existing code.
 
-The pre-commit checks will format the code with Black, run flake8 and mypy.
+* Use 4-space indents.
 
-### Flake8, mypy, and Black
+* Use `variable_names_with_underscores`, AKA "snake case" naming.
+  No camelCase.  The only exception is when overriding Qt functions.
 
-All code should follow [PEP8](https://www.python.org/dev/peps/pep-0008/),
-[PEP257](https://www.python.org/dev/peps/pep-0257/). The code is automatically
-formatted with Black at commit time.
+* Do not introduce trailing whitespace.  The "Diff" viewer displays
+  trailing whitespace in red, or you can use "git diff --check".
 
-All changes should contain type hinting and running mypy should be clean of
-errors.
+* If you use SublimeText, configure `newline_at_eof_on_save` to true.
 
-You should also document your method's parameters and their return values
-in *reStructuredText* format:
+https://robots.thoughtbot.com/no-newline-at-end-of-file
 
-```python
-"""Doc string for function
+## Describe your changes well.
 
-:param myparam1: description for param1
-:param myparam2: description for param1
-:return: description for returned object
-"""
-```
-The code is automatically formatted with Black.
+The first line of the commit message should be a short description (50
+characters is the soft limit, see DISCUSSION in git-commit(1)), and
+should skip the full stop.  It is also conventional in most cases to
+prefix the first line with "area: " where the area is a filename or
+identifier for the general area of the code being modified, e.g.
 
-### logger
+* push: allow pushing to multiple remotes
 
-All logging done by `e3` must be done via a logger returned by the function
-`e3.log.getLogger`. Very verbose logging can be achieved by adding calls to
-`e3.log.debug()`. This will be activated when an application using
-`e3.main.Main` is run with: `-v -v`.
+* grep: allow passing in command-line arguments
 
-### Main
+If in doubt which identifier to use, run "git log --no-merges" on the
+files you are modifying to see the current conventions.
 
-All entry points must instanciate `e3.main.Main` to parse their options.
+The body should provide a meaningful commit message, which:
 
-### Exceptions
+* explains the problem the change tries to solve, iow, what is wrong
+  with the current code without the change.
 
-Exceptions raised by `e3` should derived from `e3.error.E3Error`.
+* justifies the way the change solves the problem, iow, why the
+  result with the change is better.
 
-### hasattr()
+* alternate solutions considered but discarded, if any.
 
-Don't use hasattr() - this swallows exceptions and makes debugging much
-harder. Use getattr() instead.
+Describe your changes in imperative mood, e.g. "make xyzzy do frotz"
+instead of "[This patch] makes xyzzy do frotz" or "[I] changed xyzzy
+to do frotz", as if you are giving orders to the codebase to change
+its behaviour.  Try to make sure your explanation can be understood
+without external resources. Instead of giving a URL to a mailing list
+archive, summarize the relevant points of the discussion.
 
+If you like, you can put extra tags at the end:
 
-The `e3` namespace
-------------------
+* "Reported-by:" is used to credit someone who found the bug that
+  the patch attempts to fix.
 
-The `e3` framework provides a namespace package. It allows creating
-separated packages living under the `e3` namespace.
+* "Acked-by:" says that the person who is more familiar with the area
+  the patch attempts to modify liked the patch.
 
-Such a package must:
+* "Reviewed-by:", unlike the other tags, can only be offered by the
+  reviewer and means that she is completely satisfied that the patch
+  is ready for application.  It is usually offered only after a
+  detailed review.
 
-   * define an `e3/__init__.py` file containing **only**:
+* "Tested-by:" is used to indicate that the person applied the patch
+  and found it to have the desired effect.
 
-     ```python
-     __import__('pkg_resources').declare_namespace(__name__)
-     ```
+You can also create your own tag or use one that's in common usage
+such as "Thanks-to:", "Based-on-patch-by:", or "Helped-by:".
 
-   * set to `e3` the value of the *namespace package* argument
-     of the setup() function of its ``setup.py`` (see [setup.py](setup.py)).
+## Sign your work
 
-See [setuptools namespace-packages doc][1] for more info.
+To improve tracking of who did what, we've borrowed the
+"sign-off" procedure from the Linux kernel project on patches
+that are being emailed around.  Although core Git is a lot
+smaller project it is a good discipline to follow it.
 
-[1]: http://pythonhosted.org/setuptools/setuptools.html#namespace-packages
+The sign-off is a simple line at the end of the explanation for
+the patch, which certifies that you wrote it or otherwise have
+the right to pass it on as an open-source patch.  The rules are
+pretty simple: if you can certify the below:
 
-Plugin system
--------------
+Developer's Certificate of Origin 1.1
 
-`e3` uses a plugin system based on
-[stevedore](https://github.com/openstack/stevedore) built on top of setuptools
-entry points. `e3-core` is meant to be as small as possible and extented with
-plugins.
+By making a contribution to this project, I certify that:
 
-To add a new feature based on plugins, first define a base class with
-[abc (Abstract Base Classes)](https://docs.python.org/2/library/abc.html) that
-will implement the plugin interface. Other packages can then create plugin by
-deriving the base class (the interface) and referencing the entry point in its
-``setup.py``. `e3-core` can then use the plugin via `stevedore`. See the
-[plugin system documentation](https://github.com/AdaCore/e3-core/wiki/Plugins).
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
 
-Documentation
--------------
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
 
-All public API methods must be documented.
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
 
-`e3-core` documentation is available in the [e3-core GitHub wiki](https://github.com/AdaCore/e3-core/wiki).
+(d) I understand and agree that this project and the contribution
+are public and that a record of the contribution (including all
+personal information I submit with it, including my sign-off) is
+maintained indefinitely and may be redistributed consistent with
+this project or the open source license(s) involved.
 
-Testing
--------
+then you just add a line saying
 
-All features or bug fixes must be tested. Make sure that pre-commit checks are activated before any pull-requests.
+Signed-off-by: Random J Developer <random@developer.example.org>
 
-Requires: [tox](https://pypi.python.org/pypi/tox)
-If not already installed, install it via:
+This line can be automatically added by Git if you run the git-commit
+command with the -s option, or using the `Ctrl+i` hotkey in git-cola's
+commit message editor.
 
-```bash
-pip install tox
-```
+Notice that you can place your own Signed-off-by: line when
+forwarding somebody else's patch with the above rules for
+D-C-O.  Indeed you are encouraged to do so.  Do not forget to
+place an in-body "From: " line at the beginning to properly attribute
+the change to its true author (see (2) above).
 
-In order to run the public testsuite of `e3-core`, do:
+Also notice that a real name is used in the Signed-off-by: line. Please
+don't hide your real name.
 
-```bash
-tox
-```
+## Reporting Bugs
 
-Coverage
---------
+Please read [How to Report Bugs Effectively](http://www.chiark.greenend.org.uk/~sgtatham/bugs.html)
+for some general tips on bug reporting.
 
-The code needs to be covered as much as possible. We're aiming for 100%
-coverage. If something cannot be tested on a platform add `no cover`
-instruction in the code. This should be done for all platform specific code or for
-defensive code that should never be executed. See the file `tests/coverage_<platform>.rc` for patterns to use in order to exclude some line from the coverage report.
+## Internationalization and Localization
+
+git-cola is translated to several languages.  When strings are presented to
+the user they must use the `N_('<string>')` function so that `<string>` is
+translated into a localized string.
+
+The translation message files are the `*.po` files in the `po/` directory.
+Adding a new translation entails creating a new language-specific `.po` file
+and building the translation files using "make".  The `share/locale/`
+directory tree is generated by "make" from the `po/*` source files.
+
+When new (untranslated) strings are added to the project, the `git-cola.pot`
+base template and the language-specific message files need to be updated with
+the new strings.
+
+To regenerate `git-cola.pot` and update `.po` files with new strings run:
+
+    make pot
+
+This will update `.po` files with untranslated strings which translators can
+use to translate `git-cola`.
+
+Untranslated strings are denoted by an empty "" string.
+
+The `.mo` files have to be regenerated after each change by running:
+
+    make mo
+
+Alternate translations can be tested by setting `$LANG` when running, e.g.
+
+    env LANG=zh_TW ./bin/git-cola
+
+The [Gettext Language Code](https://www.gnu.org/software/gettext/manual/gettext.html#Language-Codes)
+corresponds to the `.po` filename.  Country-specific suffixes use the
+[Gettext country code](https://www.gnu.org/software/gettext/manual/gettext.html#Country-Codes).
+
+We happily welcome pull requests with improvements to `git-cola`'s translations.
+
+## Fork the repo on Github and create a pull request.
