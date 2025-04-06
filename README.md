@@ -1,14 +1,12 @@
-# Client software for the EBRAINS Neuromorphic Computing Platform, developed by the Human Brain Project
 
+Ampoule - a process pool for Twisted, based on AMP
+==================================================
 
-For documentation, see https://electronicvisions.github.io/hbp-sp9-guidebook/
+Ampoule is a process pool written on top of
+[Twisted](https://twistedmatrix.com/). Its name comes from the use of
+[AMP](https://amp-protocol.net/) as the default communication protocol between
+the pool and all its children.
 
-For more information about EBRAINS, see https://ebrains.eu/
-For more information about the Human Brain Project, see https://www.humanbrainproject.eu/
-
-
-[![Build Status](https://travis-ci.org/HumanBrainProject/hbp-neuromorphic-client.svg?branch=master)](https://travis-ci.org/HumanBrainProject/hbp-neuromorphic-client)
-
-This software was developed in the Human Brain Project,
-funded from the European Union’s Horizon 2020 Framework Programme for Research and Innovation
-under Specific Grant Agreements No. 720270, No. 785907 and No. 945539 (Human Brain Project SGA1, SGA2 and SGA3).
+It provides an API very close to that of the built-in Twisted `ThreadPool`. As
+an helper function it also provides a `deferToAMPProcess` function that creates
+the `ProcessPool` and submits jobs to it.

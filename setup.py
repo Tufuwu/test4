@@ -1,47 +1,49 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- test-case-name: ampoule -*-
+
+# Copyright (c) 2008 Valentino Volonghi.
+# See LICENSE for details.
+
+"""
+Distutils/Setuptools installer for AMPoule.
+"""
 
 from setuptools import setup
 
-requirements = [
-    'requests',
-    'click',
-    'pyyaml'
-]
+install_requires = ["Twisted[tls]>=17"]
 
-test_requirements = [
-    # TODO: put package test requirements here
-]
-
-long_description = open("README.md").read()
+description = """A process pool built on Twisted and AMP."""
+long_description = open('README.md').read()
 
 setup(
-    name="hbp_neuromorphic_platform",
-    version='0.10.1',
-    packages=['nmpi'],
-    package_dir={'nmpi': 'nmpi'},
-    entry_points={
-        'console_scripts': [
-            'nmpi=nmpi.cli:cli'
-        ]
-    },
-    install_requires=requirements,
-    author="Andrew P. Davison and Domenico Guarino",
-    author_email="andrew.davison@cnrs.fr",
-    description="Client software for the EBRAINS Neuromorphic Computing Platform",
-    long_description=long_description,
-    license="License :: OSI Approved :: Apache Software License",
-    url='http://www.humanbrainproject.eu',
-    classifiers=[
+    name = "ampoule",
+    author = "Valentino Volonghi",
+    author_email = "dialtone@gmail.com",
+    maintainer = "Glyph Lefkowitz",
+    maintainer_email = "glyph@twistedmatrix.com",
+    description = description,
+    description_content_type='text/markdown',
+    long_description = long_description,
+    long_description_content_type='text/markdown',
+    license = "MIT License",
+    install_requires=install_requires + ['incremental'],
+    url="https://github.com/glyph/ampoule",
+    classifiers = [
         'Development Status :: 4 - Beta',
-        'Intended Audience :: Science/Research',
-        'License :: Other/Proprietary License',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.8',
-        'Topic :: Scientific/Engineering']
+        'Programming Language :: Python :: 3.6',
+        'Topic :: System',
+    ],
+    packages=["ampoule", "ampoule.test"],
+    package_data={'twisted': ['plugins/ampoule_plugin.py']},
+    use_incremental=True,
+    setup_requires=['incremental'],
+    include_package_data = True,
+    zip_safe=False
 )

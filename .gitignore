@@ -1,7 +1,4 @@
-.idea
-cover
-.coverage
-hbp_neuromorphic_platform.egg-info
-dist
+*.egg-info
+/build
 *.pyc
-test/test_env.sh
+.tox
