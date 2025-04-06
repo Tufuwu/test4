@@ -1,61 +1,52 @@
-import io
-import setuptools
-from distutils.command.sdist import sdist as _sdist
-import subprocess
-import time
+# Copyright 2016-2018 Dirk Thomas
+# Licensed under the Apache License, Version 2.0
 
-VERSION='1.13.0'
-RELEASE='0'
+import os
 
-class sdist(_sdist):
-    """Custom sdist command, to prep pycdlib.spec file for inclusion."""
+from setuptools import setup
 
-    def run(self):
-        global VERSION
-        global RELEASE
+cmdclass = {}
+try:
+    from stdeb.command.sdist_dsc import sdist_dsc
+except ImportError:
+    pass
+else:
+    class CustomSdistDebCommand(sdist_dsc):
+        """Weird approach to apply the Debian patches during packaging."""
 
-        # If development release, include date+githash in %{release}
-        if RELEASE.startswith('0'):
-            # Create a development release string for later use
-            git_head = subprocess.Popen("git log -1 --pretty=format:%h",
-                                        shell=True,
-                                        stdout=subprocess.PIPE).communicate()[0].strip()
-            date = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-            git_release = "%sgit%s" % (date, git_head.decode('utf-8'))
-            RELEASE += '.' + git_release
+        def run(self):  # noqa: D102
+            from stdeb.command import sdist_dsc
+            build_dsc = sdist_dsc.build_dsc
 
-        # Expand macros in pycdlib.spec.in and create pycdlib.spec
-        with open('python-pycdlib.spec.in', 'r') as spec_in:
-            with open('python-pycdlib.spec', 'w') as spec_out:
-                for line in spec_in:
-                    if "@VERSION@" in line:
-                        line = line.replace("@VERSION@", VERSION)
-                    elif "@RELEASE@" in line:
-                        line = line.replace("@RELEASE@", RELEASE)
-                    spec_out.write(line)
+            def custom_build_dsc(*args, **kwargs):
+                nonlocal build_dsc
+                debinfo = self.get_debinfo()
+                repackaged_dirname = \
+                    debinfo.source + '-' + debinfo.upstream_version
+                dst_directory = os.path.join(
+                    self.dist_dir, repackaged_dirname, 'debian', 'patches')
+                os.makedirs(dst_directory, exist_ok=True)
+                # read patch
+                with open('debian/patches/setup.cfg.patch', 'r') as h:
+                    lines = h.read().splitlines()
+                print(
+                    "writing customized patch '%s'" %
+                    os.path.join(dst_directory, 'setup.cfg.patch'))
+                # write patch with modified path
+                with open(
+                    os.path.join(dst_directory, 'setup.cfg.patch'), 'w'
+                ) as h:
+                    for line in lines:
+                        if line.startswith('--- ') or line.startswith('+++ '):
+                            line = \
+                                line[0:4] + repackaged_dirname + '/' + line[4:]
+                        h.write(line + '\n')
+                with open(os.path.join(dst_directory, 'series'), 'w') as h:
+                    h.write('setup.cfg.patch\n')
+                return build_dsc(*args, **kwargs)
 
-        # Run parent constructor
-        _sdist.run(self)
+            sdist_dsc.build_dsc = custom_build_dsc
+            super().run()
+    cmdclass['sdist_dsc'] = CustomSdistDebCommand
 
-setuptools.setup(name='pycdlib',
-                 version=VERSION,
-                 description='Pure python ISO manipulation library',
-                 long_description=io.open('README.md', encoding='UTF-8').read(),
-                 url='http://github.com/clalancette/pycdlib',
-                 author='Chris Lalancette',
-                 author_email='clalancette@gmail.com',
-                 license='LGPLv2',
-                 classifiers=['Development Status :: 5 - Production/Stable',
-                              'Intended Audience :: Developers',
-                              'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
-                              'Natural Language :: English',
-                              'Programming Language :: Python :: 2.7',
-                              'Programming Language :: Python :: 3.4',
-                 ],
-                 keywords='iso9660 iso ecma119 rockridge joliet eltorito udf',
-                 packages=['pycdlib'],
-                 package_data={'': ['examples/*.py']},
-                 cmdclass={'sdist': sdist},
-                 data_files=[('share/man/man1', ['man/pycdlib-explorer.1', 'man/pycdlib-extract-files.1', 'man/pycdlib-genisoimage.1'])],
-                 scripts=['tools/pycdlib-explorer', 'tools/pycdlib-extract-files', 'tools/pycdlib-genisoimage'],
-)
+setup(cmdclass=cmdclass)
