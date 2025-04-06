@@ -1,58 +1,46 @@
-name: hypothesis-jsonschema CI
+name: build
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.9
-    - name: Install dependencies
-      run: python -m pip install --upgrade pip setuptools tox
-    - name: Run checks
-      run: |
-        python -m tox --recreate -e check
-        git diff --exit-code
-
-  test:
-    runs-on: ubuntu-latest
+  build-with-pip:
+    name: ${{ matrix.os }}/py${{ matrix.python-version }}/pip
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      MPLBACKEND: agg
     strategy:
-      matrix:
-        python-version: ["3.9"]
       fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9"]
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: python -m pip install --upgrade pip setuptools tox
-    - name: Run tests
-      run: python -m tox --recreate -e test
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Display versions
+        run: python -V; pip -V
+      - name: Install depedencies and package
+        shell: bash
+        run: pip install -U -e .'[doc, tests]'
+      - name: Run tests
+        run: pytest --cov=orix --pyargs orix
+      - name: Generate line coverage
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: coverage report --show-missing
+      - name: Upload coverage to Coveralls
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: true
 
-  release:
+  coveralls-finish:
+    needs: build-with-pip
     runs-on: ubuntu-latest
-    needs: [check, test]
-    if: github.repository == 'Zac-HD/hypothesmith' &&  github.ref == 'refs/heads/main'
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
+    - name: Coveralls finished
+      uses: AndreMiras/coveralls-python-action@develop
       with:
-        python-version: 3.9
-    - name: Install tools
-      run: python -m pip install --upgrade pip setuptools wheel twine
-    - name: Upload new release
-      env:
-        TWINE_USERNAME: '__token__'
-        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-      run: python setup.py sdist bdist_wheel && twine upload --skip-existing dist/*
+        parallel-finished: true
