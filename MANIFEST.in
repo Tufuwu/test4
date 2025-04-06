@@ -1,3 +1,2 @@
-include ez_setup.py
-include *.rst
-include *.txt
+include README.md
+recursive-include django_inlinecss *.py
