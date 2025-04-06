@@ -1,74 +1,55 @@
-name: Continuous integration checks
+name: Test
 
-on:
-  push:
-  schedule:
-    - cron: '0 7 * * 0' # weekly
+on: [push, pull_request]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: Python ${{ matrix.python-version }} / ${{ matrix.django-version }}
     strategy:
+      fail-fast: false
+      max-parallel: 5
       matrix:
         python-version: ["3.9"]
-        django-version:
-          - "2.2"
-          - "3.0"
-          - "3.1"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements/tests.txt django=="${{ matrix.django-version }}.*"
-          pip freeze
-      - name: Run tests
-        run: |
-          pytest
 
-  quality:
-    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.8
+
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
-        python-version: '3.9'
+        python-version: ${{ matrix.python-version }}
+
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        echo "::set-output name=dir::$(pip cache dir)"
+    - name: Cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key:
+          ${{ matrix.python-version }}-v1-${{ hashFiles('**/setup.py') }}-${{ hashFiles('**/tox.ini') }}
+        restore-keys: |
+          ${{ matrix.python-version }}-v1-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements/tests.txt
-        pip install -r requirements/quality.txt
-        pip freeze
-    - name: Run quality checks
+        python -m pip install --upgrade tox tox-gh-actions
+    - name: Tox tests
       run: |
-        make quality
+        tox -v
+    - name: Coveralls
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel: true
+        flag-name: Unit Test
 
-  docs:
+  coveralls_finish:
+    needs: test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+    - name: Coveralls Finished
+      uses: AndreMiras/coveralls-python-action@develop
       with:
-        python-version: '3.9'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements/tests.txt
-        pip install -r requirements/docs.txt
-        pip freeze
-    - name: Run quality checks
-      run: |
-        make docs
+        parallel-finished: true
 

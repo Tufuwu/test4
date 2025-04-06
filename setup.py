@@ -1,49 +1,43 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
+import picklefield
 
-def clean_history(history):
-    # PyPI does not allow the `raw` directive. We'll laboriously
-    # replace it. Hang tight, it's going to be ugly.
-    history = history.replace('|backward-incompatible|', '**backward incompatible:** ')
-    lines = []
-    for line in history.split('\n'):
-        if line.startswith('.. role:: raw-html'):
-            break
-        lines.append(line)
-    return '\n'.join(lines)
-
-
-readme = open('README.rst').read()
-changelog = clean_history(open('HISTORY.rst').read())
+with open('README.rst') as file_:
+    long_description = file_.read()
 
 setup(
-    name='django-cid',
-    version='2.2.dev0',
-    description="""Correlation IDs in Django for debugging requests""",
-    long_description=readme + '\n\n' + changelog,
-    author='Snowball One',
-    author_email='opensource+django-cid@polyconseil.fr',
-    maintainer="Polyconseil",
-    maintainer_email="opensource+django-cid@polyconseil.fr",
-    url='https://github.com/Polyconseil/django-cid',
-    packages=find_packages(exclude=('sandbox*', 'tests*')),
-    include_package_data=True,
-    install_requires=[
-        'django>=2.2',
-    ],
-    license="BSD",
-    zip_safe=False,
-    keywords='django logging correlation id debugging',
+    name='django-picklefield',
+    version=picklefield.__version__,
+    description='Pickled object field for Django',
+    long_description=long_description,
+    author='Simon Charette',
+    author_email='charette.s+django-picklefiel@gmail.com',
+    url='http://github.com/gintas/django-picklefield',
+    license='MIT',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
+        'Environment :: Web Environment',
         'Framework :: Django',
+        'Framework :: Django :: 2.2',
+        'Framework :: Django :: 3.0',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Natural Language :: English',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
+        'Topic :: Software Development :: Libraries :: Application Frameworks',
+        'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    keywords=['django pickle model field'],
+    packages=find_packages(exclude=['tests', 'tests.*']),
+    python_requires='>=3',
+    install_requires=['Django>=2.2'],
+    extras_require={
+        'tests': ['tox'],
+    },
 )
