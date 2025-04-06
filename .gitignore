@@ -1,5 +1,8 @@
-.settings/
-*.pyo
 *.pyc
-.project
-.pydevproject
+*.DS_Store
+som-ast*
+som-bc*
+pypy
+.settings
+.idea
+src/attic

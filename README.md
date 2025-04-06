@@ -1,78 +1,76 @@
-# Library Updater
-![Kodi Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fweberjr.com%2Fkodi-shield%2Fversion%2Frobweber%2Fxbmclibraryautoupdate%2Fmatrix%2Ftrue%2Ftrue) ![Total Downloads](https://img.shields.io/endpoint?url=https%3A%2F%2Fweberjr.com%2Fkodi-shield%2Fdownloads%2Fmatrix%2Fservice.libraryautoupdate%2F1.2.4) [![Build Status](https://img.shields.io/github/actions/workflow/status/robweber/xbmclibraryautoupdate/addon-checker.yml)](https://github.com/robweber/xbmclibraryautoupdate/actions/workflows/addon-checker.yml) [![License](https://img.shields.io/github/license/robweber/xbmclibraryautoupdate)](https://github.com/robweber/xbmclibraryautoupdate/blob/master/LICENSE.txt) [![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/)
+PySOM - The Simple Object Machine Smalltalk
+===========================================
 
-The Library Updater will update your music and/or video libraries according to times specified by you. Please note that this is just a fancy timer that calls out to the normal Kodi Library Scanning functions. All of the processes associated with scanning are all handed off to Kodi.
+Introduction
+------------
 
-_Thanks to pkscuot for several small tweaks to this addon!_
+SOM is a minimal Smalltalk dialect used to teach VM construction at the [Hasso
+Plattner Institute][SOM]. It was originally built at the University of Århus
+(Denmark) where it was used for teaching and as the foundation for [Resilient
+Smalltalk][RS].
 
-## Settings
+In addition to RPySOM, other implementations exist for Java (SOM, TruffleSOM),
+C (CSOM), C++ (SOM++), Python (PySOM), and Squeak/Pharo Smalltalk (AweSOM).
 
-Be aware that settings are visible based on the [Kodi Settings Level](https://kodi.wiki/view/Settings) set. Levels higher than Standard (Advanced or Expert) are designated next to that setting.
+A simple Hello World looks like:
 
-### General Settings:
-
-* Startup Delay - if an update should run on startup (dependent on the time the last update has ran) this will delay it from running for a few minutes to allow other XBMC process to function.
-* Show Notifications - shows notifications when the updater will run again
-* Run During Playback - should the addon run a scheduled scan when you are playing media (yes/no)
-* Only run when idle - restricts the scanning process to when the screensaver is active
-* Check if sources exist before scan - checks if the sources are online before starting the scan process. For single source scans it will check only that source. ![Settings Level Advanced](https://img.shields.io/badge/-advanced-blue)
-* Disable Manual Run Prompt - disables the dialog box when selecting Manual Run and just goes right to the library update ![Settings Level Advanced](https://img.shields.io/badge/-advanced-blue)
-
-### Video Settings:
-
-Enabling this will turn on scanning for the Video Library. This is the same as calling "Update Library" from within the Video menus of Kodi. There are a few options you can tweak regarding how often you want the scanner to run. Read the section on Timer Options for more information.
-
-__Custom Paths__ ![Settings Level Expert](https://img.shields.io/badge/-expert-blue)
-
-Custom paths are a special advanced feature for the Video library. It allows you to specify different schedules for individual paths in your library. This editor is limited to the Cron style syntax for scheduling. The path you select must already be in the video database and have content selected. The path must also match your source path exactly.
-
-### Music Settings
-
-Enabled this will turn on scanning for the Music Library. This is the same as calling "Update Library" from within the Music menus of Kodi. The options here are identical to the Video Settings above. Read the section on Timer Options for more information.
-
-### Timer Options:
-
-For both Video and Music library scanning there are two types of timers to choose from.
-
-__Standard Timer__
-
-Specify an interval to run the library update process. It will be launched every X hours within the interval unless on of the conditions specified by you as been met (don't run during media playback, etc) in which case it will be run at the next earliest convenience.
-
-__Advanced Timer__ ![Settings Level Advanced](https://img.shields.io/badge/-advanced-blue)
-
-Specify a cron expression to use as an interval for the update process. By default the expression will run at the top of every hour. More advanced expressions can be configured such as:
-
+```Smalltalk
+Hello = (
+  run = (
+    'Hello World!' println.
+  )
+)
 ```
 
-    .--------------- minute (0 - 59)
-    |   .------------ hour (0 - 23)
-    |   |   .--------- day of month (1 - 31)
-    |   |   |   .------ month (1 - 12) or Jan, Feb ... Dec
-    |   |   |   |  .---- day of week (0 - 6) or Sun(0 or 7)
-    V   V   V   V  V
-    *   *   *   *  *
-```
+This repository contains a Python-base implementation of SOM, including
+SOM's standard library and a number of examples. Please see the [main project
+page][SOMst] for links to other VM implementations.
 
-Example:
-1. 0 */5 ** 1-5 - runs update every five hours Monday - Friday
-2. 0,15,30,45 0,15-18 * * * - runs update every quarter hour during midnight hour and 3pm-6pm
+The implementation use either an abstract-syntax-tree or a 
+bytecode-based interpreter. One can chose between them with the `SOM_INTERP` environment variable.
+
+ - AST-based interpreter: `SOM_INTERP=AST`
+ - bytecode-based interpreter: `SOM_INTERP=BC`
+
+To checkout the code:
+
+    git clone https://github.com/SOM-st/PySOM.git
+
+PySOM's tests can be executed with:
+
+    $ ./som.sh -cp Smalltalk TestSuite/TestHarness.som
+   
+A simple Hello World program is executed with:
+
+    $ ./som.sh -cp Smalltalk Examples/Hello/Hello.som
+
+To compile PySOM, a recent PyPy is recommended and the RPython source
+code is required. The source distribution of PyPy 7.3 can be used like this:
+
+    wget https://downloads.python.org/pypy/pypy2.7-v7.3.1-src.tar.bz2
+    tar xvf pypy2.7-v7.3.1-src.tar.bz2
+    export PYPY_DIR=`pwd`/pypy2.7-v7.3.1-src/
+
+Information on previous authors are included in the AUTHORS file. This code is
+distributed under the MIT License. Please see the LICENSE file for details.
 
 
-Read up on cron (http://en.wikipedia.org/wiki/Cron) for more information on how to create these expressions
+History
+-------
 
-### Cleaning the Library:
+In 2013, the implementations of PySOM, RPySOM, and RTruffleSOM where split
+over multiple repositories. Since end of 2020, they are reunited here and PySOM
+can be used with Python 2.7, Python 3.8, as well as compiled with RPython.
+Thus, https://github.com/SOM-st/PySOM is again the only and the canonical
+repository.
 
-Cleaning the Music/Video Libraries is not enabled by default. If you choose to do this you can select from a few options to try and reduce the likelyhood that a DB clean wile hose your database.
 
-* Library to Clean - You can clean your video library, music library, or both.
-* Prompt User Before Cleaning - you must confirm that you want to clean the library before it will happen. Really only useful for "After Update" as a condition. ![Settings Level Advanced](https://img.shields.io/badge/-advanced-blue)
-* Frequency - There are several frequency options.
-  * "After Update" will run a clean immediately following a scan on the selected library.
-  * The Day/Week/Month options will schedule a clean task to happen. Cleaning the Video Library is hardcoded for midnight and the music library at 2am. Weekly updates occur on Sunday and Monthly updates occur on the first of each month - these values are hardcoded.
-  * You can also choose to enter a custom cron timer for video and music library cleaning. These work the same as any of the other cron timers for the other schedules.
+Build Status
+------------
 
-## Contributing
+Thanks to Travis CI, all commits of this repository are tested.
+The current build status is: [![Build Status](https://travis-ci.com/SOM-st/PySOM.png?branch=master)](https://travis-ci.com/SOM-st/PySOM)
 
-If you're having issues with this addon there are two main places to look. The first is the addon thread on [the Kodi Forums](https://forum.kodi.tv/showthread.php?tid=119520). This is where you can ask general questions regarding functionality. If you're having a legitimate issue, such as an error message, you can [create an Issue](https://github.com/robweber/xbmclibraryautoupdate/issues) for it in this repository.
-
-Pull Requests are welcome if you want to dig around in the code to fix issues or add functionality. Please submit them using [the usual workflow](https://guides.github.com/introduction/flow/index.html). Additionally you can help keep languages files up to date by visiting [the Weblate page](https://kodi.weblate.cloud/projects/kodi-add-ons-services/service-xbmclibraryautoupdate/) for this addon and updating untranslated strings. Changes to Weblate will automatically create PRs to this repository. This is a great way to contribute if you're not a coder!
+ [SOM]: http://www.hpi.uni-potsdam.de/hirschfeld/projects/som/
+ [SOMst]: https://travis-ci.org/SOM-st/
+ [RS]:  http://dx.doi.org/10.1016/j.cl.2005.02.003
