@@ -1,49 +1,92 @@
-name: CI
+name: ci
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
+    tags:
+      - '**'
+  pull_request: {}
 
 jobs:
   test:
-
-    runs-on: ubuntu-latest
+    name: test py${{ matrix.python-version }} on ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu, macos, windows]
         python-version: ["3.9"]
 
+    runs-on: ${{ matrix.os }}-latest
+
+    env:
+      PYTHON: ${{ matrix.python-version }}
+      OS: ${{ matrix.os }}
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - uses: actions/checkout@v2
+
+    - name: set up python
+      uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install base dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install -r requirements-dev.txt
-        pip install -e .
-    - name: Test with pytest
-      run: |
-        py.test --cov-config=.coveragerc --cov=pydispatch tests pydispatch doc README.md
-    - name: Upload to Coveralls
-      run: coveralls --service=github
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        COVERALLS_FLAG_NAME: run-${{ matrix.python-version }}
-        COVERALLS_PARALLEL: true
 
-  coveralls:
-    name: Indicate completion to coveralls.io
-    needs: test
+    - run: pip install -r tests/requirements.txt
+    - run: pip install .
+    - run: pip freeze
+
+    - run: make test
+    - run: coverage xml
+
+    - uses: codecov/codecov-action@v1.0.13
+      with:
+        file: ./coverage.xml
+        env_vars: PYTHON,OS
+
+  lint:
     runs-on: ubuntu-latest
-    container: python:3-slim
+
     steps:
-    - name: Finished
-      run: |
-        pip3 install --upgrade coveralls
-        coveralls --finish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.9'
+
+    - run: pip install -r tests/requirements-linting.txt
+
+    - run: make lint
+    - run: make mypy
+
+  deploy:
+    needs:
+      - test
+      - lint
+    if: "success() && startsWith(github.ref, 'refs/tags/')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set up python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.9'
+
+      - name: install
+        run: |
+          pip install -U pip setuptools twine wheel
+          pip install .
+
+      - name: check tag
+        run: PACKAGE=watchgod python <(curl -Ls https://git.io/JvQsH)
+
+      - run: python setup.py sdist bdist_wheel
+
+      - run: twine check dist/*
+
+      - name: upload to pypi
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.pypi_token }}
