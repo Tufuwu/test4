@@ -1,87 +1,99 @@
-i3-quickterm
-=============
+# Vault
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/python:i3-quickterm.svg)](https://repology.org/project/python:i3-quickterm/versions)
+[![Pypi](https://img.shields.io/pypi/v/pyvault.svg)](https://pypi.org/project/pyvault)
+[![Build Status](https://github.com/gabfl/vault/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/gabfl/vault/actions)
+[![codecov](https://codecov.io/gh/gabfl/vault/branch/main/graph/badge.svg)](https://codecov.io/gh/gabfl/vault)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-green.svg)](https://raw.githubusercontent.com/gabfl/vault/main/LICENSE)
 
-A small drop-down terminal for [i3wm](https://i3wm.org/) and [sway](https://swaywm.org/)
+Vault is a simple Python password manager. It allows you to securely save secrets with a simple CLI interface.
 
-Features
---------
+## Features
 
-* use your favourite terminal emulator
-* can select a shell with [dmenu](http://tools.suckless.org/dmenu/) /
-  [rofi](https://github.com/DaveDavenport/rofi)
-* adapt to screen width
-* multi-monitor aware
+ - Secrets are stored in an encrypted SQLite database with [SQLCipher](https://www.zetetic.net/sqlcipher/)
+ - Within the database, each password and notes are encrypted with a unique salt using AES-256 encryption with [pycryptodome](http://legrandin.github.io/pycryptodome/)
+ - Master key is hashed with a unique salt
+ - Possibility to create an unlimited number of vaults
+ - Clipboard cleared automatically
+ - Automatic vault locking after inactivity
+ - Password suggestions with [password-generator-py](https://github.com/gabfl/password-generator-py)
+ - Import / Export in Json
 
-Usage
------
+## Basic usage
 
-When launched, it will minimize the quickterm on the current screen if there is
-one.  Otherwise, it will either prompt the user for the shell to open or use the
-one supplied in argument.
+![Demo](https://github.com/gabfl/vault/blob/main/img/demo.gif?raw=true)
 
-If the requested shell is already opened on another screen, it will be moved on
-the current screen.
+## Installation and setup
 
-It is recommended to map it to an i3 binding:
+### Install sqlcipher
 
-```
-# with prompt
-bindsym $mod+p exec i3-quickterm
-# always pop standard shell, without the menu
-bindsym $mod+b exec i3-quickterm shell
-```
+Vault 2.x requires `sqlcipher` to be installed on your machine.
 
-Configuration
--------------
+On MacOS, you can install it with [brew](https://brew.sh/):
+```bash
+brew install sqlcipher
 
-The configuration is read from `~/.config/i3/i3-quickterm.json`.
+# Install sqlcipher3
+pip3 install sqlcipher3==0.4.5
 
-* `menu`: the dmenu-compatible application used to select the shell
-* `term`: the terminal emulator of choice
-* `history`: a file to save the last-used shells order, last-used ordering
-  is disabled if set to null
-* `ratio`: the percentage of the screen height to use
-* `pos`: where to pop the terminal (`top` or `bottom`)
-* `shells`: registered shells (`{ name: command }`)
-
-`term` can be either:
-- a format string, like this one: `urxvt -t {title} -e {expanded}` with
-  the correct arguments format of your terminal. Some terminals, like
-  xfce4-terminal need the command argument to be passed as a string. In
-  this case, replace `{expanded}` by `{string}`
-- a terminal name from the hardcoded list, which should work out of the box.
-  Right now, the only reference for the list is the source code
-  (search for `TERMS =`).
-  If you'd like to add another terminal (or correct an error), please open
-  a pull request.
-
-`menu`, `term`, `history` and `shell` can contain placeholders for environment
-variables: `{$var}`.
-
-Unspecified keys are inherited from the defaults:
-
-```
-{
-    "menu": "rofi -dmenu -p 'quickterm: ' -no-custom -auto-select",
-    "term": "urxvt",
-    "history": "{$HOME}/.cache/i3/i3-quickterm.order",
-    "ratio": 0.25,
-    "pos": "top",
-    "shells": {
-        "haskell": "ghci",
-        "js": "node",
-        "python": "ipython3 --no-banner",
-        "shell": "{$SHELL}"
-    }
-}
+# If you are getting an error "Failed to build sqlcipher3", you would need to fix the build flags:
+SQLCIPHER_PATH="$(brew --cellar sqlcipher)/$(brew list --versions sqlcipher | tr ' ' '\n' | tail -1)"
+C_INCLUDE_PATH=$SQLCIPHER_PATH/include LIBRARY_PATH=$SQLCIPHER_PATH/lib pip3 install sqlcipher3==0.4.5
 ```
 
-Requirements
-------------
+On Ubuntu/Debian, you can install it with apt-get:
+```bash
+sudo apt-get update
+sudo apt-get install --yes gcc python3-dev libsqlcipher-dev
+```
 
-* python >= 3.4
-* i3 >= v3.11 or sway >= 1.2
-* [i3ipc-python](https://i3ipc-python.readthedocs.io/en/latest/) >= v2.0.1
-* dmenu or rofi (optional)
+### Using PyPI
+
+```bash
+pip3 install pyvault
+
+# Run setup
+vault
+```
+
+### Cloning the project
+
+```bash
+# Clone project
+git clone https://github.com/gabfl/vault && cd vault
+
+# Installation
+python3 setup.py install
+
+# Run setup
+vault
+```
+
+## Advanced settings:
+
+```
+usage: vault [-h] [-t [CLIPBOARD_TTL]] [-p [HIDE_SECRET_TTL]]
+             [-a [AUTO_LOCK_TTL]] [-v VAULT_LOCATION] [-c CONFIG_LOCATION]
+             [-k] [-i IMPORT_ITEMS] [-x EXPORT] [-f [{json}]] [-e]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t [CLIPBOARD_TTL], --clipboard_TTL [CLIPBOARD_TTL]
+                        Set clipboard TTL (in seconds, default: 15)
+  -p [HIDE_SECRET_TTL], --hide_secret_TTL [HIDE_SECRET_TTL]
+                        Set delay before hiding a printed password (in
+                        seconds, default: 15)
+  -a [AUTO_LOCK_TTL], --auto_lock_TTL [AUTO_LOCK_TTL]
+                        Set auto lock TTL (in seconds, default: 900)
+  -v VAULT_LOCATION, --vault_location VAULT_LOCATION
+                        Set vault path
+  -c CONFIG_LOCATION, --config_location CONFIG_LOCATION
+                        Set config path
+  -k, --change_key      Change master key
+  -i IMPORT_ITEMS, --import_items IMPORT_ITEMS
+                        File to import credentials from
+  -x EXPORT, --export EXPORT
+                        File to export credentials to
+  -f [{json}], --file_format [{json}]
+                        Import/export file format (default: 'json')
+  -e, --erase_vault     Erase the vault and config file
+```
