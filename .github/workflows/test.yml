@@ -1,29 +1,54 @@
-name: build
+name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '**'  # run on all branches
+  pull_request:
+    branches:
+      - '**'  # run on all branches
+  # allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
-
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         python-version: ["3.9"]
-    runs-on: ${{ matrix.os }}
-
     steps:
     - uses: actions/checkout@v2
-    - name: Install dependencies
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Cache pip packages
+      uses: actions/cache@v4
       env:
-        KEY_MODELLER: ${{ secrets.KEY_MODELLER }}
+        cache-name: cache-pypi-modules
+      with:
+        # pip cache files are stored in '~/.cache/pip' on Linux
+        path: ~/.cache/pip
+        # look to see if there is a cache hit for the corresponding
+        # requirements file
+        key: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('requirements/install.pip', 'requirements/develop.pip', 'requirements/test.pip', 'requirements/doc.pip') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+    - name: Install dependencies
       run: |
-        tools/install_deps.sh ~/deps ${{ matrix.python-version }}
-    - name: Test
+        python -m pip install --upgrade pip
+        pip install -r requirements/install.pip
+        pip install -r requirements/develop.pip
+        pip install -r requirements/test.pip
+        pip install -r requirements/doc.pip
+    - name: Lint with flake8
       run: |
-        export PATH=~/deps/bin:$PATH
-        eval "$(conda shell.bash hook)"
-        conda activate python${{ matrix.python-version }}
-        make
-        py.test --cov=. --cov-branch --cov-report=xml -v .
-    - uses: codecov/codecov-action@v1
+        flake8 htheatpump tests samples setup.py
+    - name: Test with pytest
+      run: |
+        pytest htheatpump tests samples
+    - name: Build the doc
+      working-directory: ./docs
+      run: |
+        sphinx-build -b html . _build
