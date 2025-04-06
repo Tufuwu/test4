@@ -1,75 +1,37 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from setuptools import find_packages
-from setuptools import setup
 
-import ricecooker
-
-
-readme = open('README.md').read()
-
-with open('docs/history.rst') as history_file:
-    history = history_file.read()
-
-requirements = [
-    "pytest>=3.0.2",
-    "requests>=2.11.1",
-    "le_utils>=0.1.26",
-    "validators",                             # TODO: check if this is necessary
-    "requests_file",
-    "beautifulsoup4>=4.6.3,<4.9.0",   # pinned to match versions in le-pycaption
-    "pressurecooker>=0.0.30",
-    "selenium==3.0.1",
-    "youtube-dl>=2020.6.16.1",
-    "html5lib",
-    "cachecontrol==0.12.0",
-    "lockfile==0.12.2",                       # TODO: check if this is necessary
-    "css-html-js-minify==2.2.2",
-    "mock==2.0.0",
-    "pypdf2>=1.26.0",
-    "dictdiffer>=0.8.0",
-    "Pillow==5.4.1",
-    "colorlog>=4.1.0,<4.2",
-    "PyYAML>=5.3.1",
-    "Jinja2>=2.10"
-]
-
-test_requirements = [
-    # TODO: put package test requirements here
-]
+from setuptools import find_packages, setup
 
 setup(
-    name='ricecooker',
-    version=ricecooker.__version__,
-    description="API for adding content to the Kolibri content curation server",
-    long_description=readme + '\n\n' + history,
-    long_description_content_type='text/markdown',
-    author="Learning Equality",
-    author_email='dev@learningequality.org',
-    url='https://github.com/learningequality/ricecooker',
+    name='wagtail-review',
+    version='0.2',
+    description="Review workflow for Wagtail",
+    author='Matthew Westcott',
+    author_email='matthew.westcott@torchbox.com',
+    url='https://github.com/wagtail/wagtail-review',
     packages=find_packages(),
-    package_dir={'ricecooker':'ricecooker'},
-    entry_points = {
-        'console_scripts': [
-            'corrections = ricecooker.utils.corrections:correctionsmain',
-            'jiro = ricecooker.cli:main'
-        ],
-    },
     include_package_data=True,
-    install_requires=requirements,
-    license="MIT license",
-    zip_safe=False,
-    keywords='ricecooker',
+    install_requires=[
+        'pyjwt>1.7,<2.0',
+    ],
+    extras_require={
+        "testing": ["factory-boy==2.12.0",],
+    },
+    license='BSD',
+    long_description="An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication",
     classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Environment :: Web Environment',
         'Intended Audience :: Developers',
-        'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Natural Language :: English',
-        'Topic :: Education',
+        'Framework :: Django',
+        'Framework :: Wagtail',
+        'Framework :: Wagtail :: 2',
     ],
-    test_suite='tests',
-    tests_require=test_requirements
 )

@@ -1,58 +1,67 @@
-ricecooker
-==========
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/ricecooker.svg)](https://pypi.python.org/pypi/ricecooker/)
-[![build](https://github.com/learningequality/ricecooker/actions/workflows/pythontest.yml/badge.svg?branch=master)](https://github.com/learningequality/ricecooker/actions)
-[![docs](https://readthedocs.org/projects/ricecooker/badge/?version=latest&style=flat)](https://ricecooker.readthedocs.io/) 
+# wagtail-review
 
+An extension for Wagtail allowing pages to be submitted for review (including to non-Wagtail users) prior to publication.
 
-The `ricecooker` library is a framework for automating the conversion of educational content into
-Kolibri content channels and uploading them to [Kolibri Studio](https://studio.learningequality.org/), 
-which is the central content server for [Kolibri](http://learningequality.org/kolibri/).
+![Screencast demo](https://tom.s3.amazonaws.com/wagtail-review.gif)
 
+## Requirements
 
-## [📚 Ricecooker docs](https://ricecooker.readthedocs.io/)
+Django 2.2 or higher
+Wagtail 2.5 or higher
 
-Visit the documentation site at [📚 ricecooker.readthedocs.io](https://ricecooker.readthedocs.io/)
-for the full details about [installation](https://ricecooker.readthedocs.io/en/latest/installation.html),
-[getting started](https://ricecooker.readthedocs.io/en/latest/tutorial/gettingstarted.html),
-[API reference](https://ricecooker.readthedocs.io/en/latest/index_api_reference.html),
-and [code examples](https://ricecooker.readthedocs.io/en/latest/examples/index.html).
+## Installation
 
+Install the package from PyPI:
 
+    pip install wagtail-review
 
-## Overview of Kolibri content
+Add to your project's `INSTALLED_APPS`:
 
-`ricecooker` is used to take openly licensed educational content available on the
-web and convert it into an offline-friendly package that can be imported into Kolibri.
+    'wagtail_review',
 
-The basic process of getting new content into Kolibri is as follows:
+Add to your project's URL config:
 
- - **UPLOAD** your content to Kolibri Studio either manually through the Kolibri Studio
-   web interface or programmatically using a `ricecooker`-based content integration script.
- - **PUBLISH** the channel on Kolibri Studio to make it accessible for use in Kolibri.
- - **IMPORT** the the channel into Kolibri using the channel token displayed in
-   Kolibri Studio after the PUBLISH step is done.
+    from wagtail_review import urls as wagtailreview_urls
 
-The diagram below illustrates how content flows within the Kolibri ecosystem
-and highlights the part which is covered by the `ricecooker` framework (bottom left).
+    # Somewhere above the include(wagtail_urls) line:
+        url(r'^review/', include(wagtailreview_urls)),
 
-![Overview of steps for integrating external content sources for use in the Kolibri Learning Platform](docs/figures/content_pipeline_diagram_with_highlight.png)  
-*External content sources (left) are first uploaded to [Kolibri Studio](https://studio.learningequality.org/) (middle), so they can be used in the [Kolibri Learning Platform](http://learningequality.org/kolibri/) (right).*
+Add a `{% wagtailreview %}` tag to your project's base template(s), towards the bottom of the document `<body>`:
 
+    {% load wagtailreview_tags %}
 
+    {% wagtailreview %}
 
+Then in your project's page templates add a `data-contentpath-field` attribute in each tag that surrounds a text field that you would like to allow comments on.
 
-##### Further reading
-The [Ricecooker docs](https://ricecooker.readthedocs.io/) website is the best
-place to learn about writing automated content integration scripts.
+    {% block content %}
 
-Here are some links to other documents and guides you can read to learn about
-the other parts of the Kolibri content platform:
-  
-  - The [Kolibri Content Integration Guide](https://learningequality.org/r/integration-guide)
-    is a comprehensive guide to the decisions, processes, and tools for integrating
-    external content sources for use in the Kolibri Learning Platform.
-  - Read the [Kolibri Studio docs](http://kolibri-studio.readthedocs.io/en/latest/)
-    to learn more about the Kolibri Studio features
-  - Read the [Kolibri docs](http://kolibri.readthedocs.io/en/latest/) to learn
-    how to install Kolibri on your machine (useful for testing channels)
+        <h1 data-contentpath-field="title">{{ page.title }}</h1>
+
+        <p data-contentpath-field="intro">{{ page.intro }}</p>
+
+        <div data-contentpath-field="body">{{ page.body }}</p>
+
+    {% endblock %}
+
+## Custom notification emails
+
+To customise the notification email sent to reviewers, override the templates `wagtail_review/email/request_review_subject.txt` (for the subject line) and `wagtail_review/email/request_review.txt` (for the email content). This needs to be done in an app which appears above `wagtail_review` in the `INSTALLED_APPS` list.
+
+The following context variables are available within the templates:
+
+ * `email`: the reviewer's email address
+ * `user`: the reviewer's user object (`None` if the reviewer was specified as an email address only, rather than a user account)
+ * `review_request`: The review request object (probably only useful when a custom review model is in use - see below)
+ * `page`: Page object corresponding to the page revision to be reviewed
+ * `submitter`: user object of the Wagtail user submitting the page for review
+ * `review_url`: Personalised URL (including domain) for this reviewer intended to be kept private, allowing them to respond to the review
+
+To customise the notification email sent to the review submitter when a reviewer responds,
+override the templates `wagtail_review/email/response_received_subject.txt` (for the subject line) and `wagtail_review/email/response_received.txt` (for the email content). The following context variables are available:
+
+ * `submitter`: The user object of the Wagtail user who submitted the page for review
+ * `reviewer`: Reviewer object for the person responding to the review
+ * `review`: The review object (probably only useful when a custom review model is in use - see below)
+ * `page`: Page object corresponding to the page revision being reviewed
+ * `response`: Object representing the reviewer's response, including fields 'result' (equal to 'approve' or 'comment') and 'comment'
