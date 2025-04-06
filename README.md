@@ -1,201 +1,93 @@
-# batchspawner for Jupyterhub
+# Interop Test Runner
 
-[![Build Status](https://img.shields.io/travis/com/jupyterhub/batchspawner?logo=travis)](https://travis-ci.com/jupyterhub/batchspawner)
+The Interop Test Runner aims to automatically generate an interop matrix by running multiple **test cases** using different QUIC implementations.
 
-This is a custom spawner for [Jupyterhub](https://jupyterhub.readthedocs.io/) that is designed for installations on clusters using batch scheduling software.
+## Requirements
 
-This began as a generalization of [mkgilbert's batchspawner](https://github.com/mkgilbert/slurmspawner) which in turn was inspired by [Andrea Zonca's blog post](http://zonca.github.io/2015/04/jupyterhub-hpc.html 'Run jupyterhub on a Supercomputer') where he explains his implementation for a spawner that uses SSH and Torque. His github repo is found [here](http://www.github.com/zonca/remotespawner 'RemoteSpawner').
+The Interop Runner is written in Python 3. You'll need to install the
+following softwares to run the interop test:
 
-This package formerly included WrapSpawner and ProfilesSpawner, which provide mechanisms for runtime configuration of spawners.  These have been split out and moved to the [`wrapspawner`](https://github.com/jupyterhub/wrapspawner) package.
+- Python3 modules. Run the following command:
 
-## Installation
-1. from root directory of this repo (where setup.py is), run `pip install -e .`
+```bash
+pip3 install -r requirements.txt
+```
 
-   If you don't actually need an editable version, you can simply run
-      `pip install batchspawner`
+- [Docker](https://docs.docker.com/engine/install/) and [docker-compose](https://docs.docker.com/compose/install/other/#install-compose-standalone). Note that the Interop Runner doesn't support [docker compose v2](https://docs.docker.com/compose/install/) yet.
 
-2. add lines in jupyterhub_config.py for the spawner you intend to use, e.g.
+- [Development version of Wireshark](https://www.wireshark.org/download.html) (version 3.4.2 or newer).
 
-   ```python
-      c = get_config()
-      c.JupyterHub.spawner_class = 'batchspawner.TorqueSpawner'
-      import batchspawner    # Even though not used, needed to register batchspawner interface
-   ```
-3. Depending on the spawner, additional configuration will likely be needed.
+## Running the Interop Runner
 
-## Batch Spawners
+Run the interop tests:
+```bash
+python3 run.py
+```
 
-For information on the specific spawners, see [SPAWNERS.md](SPAWNERS.md).
+## IPv6 support
 
-### Overview
+To enable IPv6 support for the simulator on Linux, the `ip6table_filter` kernel module needs to be loaded on the host. If it isn't loaded on your machine, you'll need to run `sudo modprobe ip6table_filter`.
 
-This file contains an abstraction layer for batch job queueing systems (`BatchSpawnerBase`), and implements
-Jupyterhub spawners for Torque, Moab, SLURM, SGE, HTCondor, LSF, and eventually others.
-Common attributes of batch submission / resource manager environments will include notions of:
-  * queue names, resource manager addresses
-  * resource limits including runtime, number of processes, memory
-  * singleuser child process running on (usually remote) host not known until runtime
-  * job submission and monitoring via resource manager utilities
-  * remote execution via submission of templated scripts
-  * job names instead of PIDs
+## Building a QUIC endpoint
 
-`BatchSpawnerBase` provides several general mechanisms:
-  * configurable traits `req_foo` that are exposed as `{foo}` in job template scripts.  Templates (submit scripts in particular) may also use the full power of [jinja2](http://jinja.pocoo.org/).  Templates are automatically detected if a `{{` or `{%` is present, otherwise str.format() used.
-  * configurable command templates for submitting/querying/cancelling jobs
-  * a generic concept of job-ID and ID-based job state tracking
-  * overrideable hooks for subclasses to plug in logic at numerous points
+To include your QUIC implementation in the Interop Runner, create a Docker image following the instructions for [setting up an endpoint in the quic-network-simulator](https://github.com/marten-seemann/quic-network-simulator), publish it on [Docker Hub](https://hub.docker.com) and add it to [implementations.json](implementations.json). Once your implementation is ready to interop, please send us a PR with this addition. Read on for more instructions on what to do within the Docker image.
 
-### Example
+Typically, a test case will require a server to serve files from a directory, and a client to download files. Different test cases will specify the behavior to be tested. For example, the Retry test case expects the server to use a Retry before accepting the connection from the client. All configuration information from the test framework to your implementation is fed into the Docker image using environment variables. The test case is passed into your Docker container using the `TESTCASE` environment variable. If your implementation doesn't support a test case, it MUST exit with status code 127. This will allow us to add new test cases in the future, and correctly report test failures und successes, even if some implementations have not yet implented support for this new test case.
 
-Every effort has been made to accommodate highly diverse systems through configuration
-only. This example consists of the (lightly edited) configuration used by the author
-to run Jupyter notebooks on an academic supercomputer cluster.
+The Interop Runner mounts the directory `/www` into your server Docker container. This directory will contain one or more randomly generated files. Your server implementation is expected to run on port 443 and serve files from this directory.
+Equivalently, the Interop Runner mounts `/downloads` into your client Docker container. The directory is initially empty, and your client implementation is expected to store downloaded files into this directory. The URLs of the files to download are passed to the client using the environment variable `REQUESTS`, which contains one or more URLs, separated by a space.
 
-   ```python
-   # Select the Torque backend and increase the timeout since batch jobs may take time to start
-   import batchspawner
-   c.JupyterHub.spawner_class = 'batchspawner.TorqueSpawner'
-   c.Spawner.http_timeout = 120
+After the transfer is completed, the client container is expected to exit with exit status 0. If an error occurred during the transfer, the client is expected to exit with exit status 1.
+After completion of the test case, the Interop Runner will verify that the client downloaded the files it was expected to transfer, and that the file contents match. Additionally, for certain test cases, the Interop Runner will use the pcap of the transfer to verify that the implementations fulfilled the requirements of the test (for example, for the Retry test case, the pcap should show that a Retry packet was sent, and that the client used the Token provided in that packet).
 
-   #------------------------------------------------------------------------------
-   # BatchSpawnerBase configuration
-   #    These are simply setting parameters used in the job script template below
-   #------------------------------------------------------------------------------
-   c.BatchSpawnerBase.req_nprocs = '2'
-   c.BatchSpawnerBase.req_queue = 'mesabi'
-   c.BatchSpawnerBase.req_host = 'mesabi.xyz.edu'
-   c.BatchSpawnerBase.req_runtime = '12:00:00'
-   c.BatchSpawnerBase.req_memory = '4gb'
-   #------------------------------------------------------------------------------
-   # TorqueSpawner configuration
-   #    The script below is nearly identical to the default template, but we needed
-   #    to add a line for our local environment. For most sites the default templates
-   #    should be a good starting point.
-   #------------------------------------------------------------------------------
-   c.TorqueSpawner.batch_script = '''#!/bin/sh
-   #PBS -q {queue}@{host}
-   #PBS -l walltime={runtime}
-   #PBS -l nodes=1:ppn={nprocs}
-   #PBS -l mem={memory}
-   #PBS -N jupyterhub-singleuser
-   #PBS -v {keepvars}
-   module load python3
-   {cmd}
-   '''
-   # For our site we need to munge the execution hostname returned by qstat
-   c.TorqueSpawner.state_exechost_exp = r'int-\1.mesabi.xyz.edu'
-   ```
+The Interop Runner generates a key and a certificate chain and mounts it into `/certs`. The server needs to load its private key from `priv.key`, and the certificate chain from `cert.pem`.
 
-### Security
+### Examples
 
-Unless otherwise stated for a specific spawner, assume that spawners
-*do* evaluate shell environment for users and thus the [security
-requirements of JupyterHub security for untrusted
-users](https://jupyterhub.readthedocs.io/en/stable/reference/websecurity.html)
-are not fulfilled because some (most?) spawners *do* start a user
-shell which will execute arbitrary user environment configuration
-(``.profile``, ``.bashrc`` and the like) unless users do not have
-access to their own cluster user account.  This is something which we
-are working on.
+If you're not familiar with Docker, it might be helpful to have a look at the Dockerfiles and scripts that other implementations use:
 
+* quic-go: [Dockerfile](https://github.com/lucas-clemente/quic-go/blob/master/interop/Dockerfile), [run_endpoint.sh](https://github.com/lucas-clemente/quic-go/blob/master/interop/run_endpoint.sh) and [CI config](https://github.com/lucas-clemente/quic-go/blob/master/.github/workflows/build-interop-docker.yml)
+* quicly: [Dockerfile](https://github.com/h2o/quicly/blob/master/misc/quic-interop-runner/Dockerfile) and [run_endpoint.sh](https://github.com/h2o/quicly/blob/master/misc/quic-interop-runner/run_endpoint.sh) and [run_endpoint.sh](https://github.com/cloudflare/quiche/blob/master/tools/qns/run_endpoint.sh)
+* quant: [Dockerfile](https://github.com/NTAP/quant/blob/master/Dockerfile.interop) and [run_endpoint.sh](https://github.com/NTAP/quant/blob/master/test/interop.sh), built on [DockerHub](https://hub.docker.com/r/ntap/quant)
+* quiche: [Dockerfile](https://github.com/cloudflare/quiche/blob/master/Dockerfile)
+* neqo: [Dockerfile](https://github.com/mozilla/neqo/blob/main/neqo-qns/Dockerfile) and [run_endpoint.sh](https://github.com/mozilla/neqo/blob/main/neqo-qns/run_endpoint.sh)
+* msquic: [Dockerfile](https://github.com/microsoft/msquic/blob/master/Dockerfile), [run_endpoint.sh](https://github.com/microsoft/msquic/blob/master/scripts/run_endpoint.sh) and [CI config](https://github.com/microsoft/msquic/blob/master/.azure/azure-pipelines.docker.yml)
 
-## Provide different configurations of BatchSpawner
+Implementers: Please feel free to add links to your implementation here!
 
-### Overview
+## Logs
 
-`ProfilesSpawner`, available as part of the [`wrapspawner`](https://github.com/jupyterhub/wrapspawner)
-package, allows the Jupyterhub administrator to define a set of different spawning configurations,
-both different spawners and different configurations of the same spawner.
-The user is then presented a dropdown menu for choosing the most suitable configuration for their needs.
+To facilitate debugging, the Interop Runner saves the log files to the logs directory. This directory is overwritten every time the Interop Runner is executed.
 
-This method provides an easy and safe way to provide different configurations of `BatchSpawner` to the
-users, see an example below.
+The log files are saved to a directory named `#server_#client/#testcase`. `output.txt` contains the console output of the interop test runner (which might contain information why a test case failed). The server and client logs are saved in the `server` and `client` directory, respectively. The `sim` directory contains pcaps recorded by the simulator.
 
-### Example
+If implementations wish to export the TLS secrets, they are encouraged to do so in the format in the [NSS Key Log format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format). The interop runner sets the SSLKEYLOGFILE environment variable to a file in the logs directory. In the future, the interop runner might use those files to decode the traces.
 
-The following is based on the author's configuration (at the same site as the example above)
-showing how to give users access to multiple job configurations on the batch scheduled
-clusters, as well as an option to run a local notebook directly on the jupyterhub server.
+Implementations that implement [qlog](https://github.com/quiclog/internet-drafts) should export the log files to the directory specified by the `QLOGDIR` environment variable.
 
-   ```python
-   # Same initial setup as the previous example
-   import batchspawner
-   c.JupyterHub.spawner_class = 'wrapspawner.ProfilesSpawner'
-   c.Spawner.http_timeout = 120
-   #------------------------------------------------------------------------------
-   # BatchSpawnerBase configuration
-   #   Providing default values that we may omit in the profiles
-   #------------------------------------------------------------------------------
-   c.BatchSpawnerBase.req_host = 'mesabi.xyz.edu'
-   c.BatchSpawnerBase.req_runtime = '12:00:00'
-   c.TorqueSpawner.state_exechost_exp = r'in-\1.mesabi.xyz.edu'
-   #------------------------------------------------------------------------------
-   # ProfilesSpawner configuration
-   #------------------------------------------------------------------------------
-   # List of profiles to offer for selection. Signature is:
-   #   List(Tuple( Unicode, Unicode, Type(Spawner), Dict ))
-   # corresponding to profile display name, unique key, Spawner class,
-   # dictionary of spawner config options.
-   #
-   # The first three values will be exposed in the input_template as {display},
-   # {key}, and {type}
-   #
-   c.ProfilesSpawner.profiles = [
-      ( "Local server", 'local', 'jupyterhub.spawner.LocalProcessSpawner', {'ip':'0.0.0.0'} ),
-      ('Mesabi - 2 cores, 4 GB, 8 hours', 'mesabi2c4g12h', 'batchspawner.TorqueSpawner',
-         dict(req_nprocs='2', req_queue='mesabi', req_runtime='8:00:00', req_memory='4gb')),
-      ('Mesabi - 12 cores, 128 GB, 4 hours', 'mesabi128gb', 'batchspawner.TorqueSpawner',
-         dict(req_nprocs='12', req_queue='ram256g', req_runtime='4:00:00', req_memory='125gb')),
-      ('Mesabi - 2 cores, 4 GB, 24 hours', 'mesabi2c4gb24h', 'batchspawner.TorqueSpawner',
-         dict(req_nprocs='2', req_queue='mesabi', req_runtime='24:00:00', req_memory='4gb')),
-      ('Interactive Cluster - 2 cores, 4 GB, 8 hours', 'lab', 'batchspawner.TorqueSpawner',
-         dict(req_nprocs='2', req_host='labhost.xyz.edu', req_queue='lab',
-             req_runtime='8:00:00', req_memory='4gb', state_exechost_exp='')),
-      ]
-   c.ProfilesSpawner.ip = '0.0.0.0'
-   ```
+## Test cases
 
+The Interop Runner implements the following test cases. Unless noted otherwise, test cases use HTTP/0.9 for file transfers. More test cases will be added in the future, to test more protocol features. The name in parentheses is the value of the `TESTCASE` environment variable passed into your Docker container.
 
-## Debugging batchspawner
+* **Version Negotiation** (`versionnegotiation`): Tests that a server sends a Version Negotiation packet in response to an unknown QUIC version number. The client should start a connection using an unsupported version number (it can use a reserved version number to do so), and should abort the connection attempt when receiving the Version Negotiation packet.
+Currently disabled due to #20.
 
-Sometimes it can be hard to debug batchspawner, but it's not really
-once you know how the pieces interact.  Check the following places for
-error messages:
+* **Handshake** (`handshake`): Tests the successful completion of the handshake. The client is expected to establish a single QUIC connection to the server and download one or multiple small files. Servers should not send a Retry packet in this test case.
 
-* Check the JupyterHub logs for errors.
+* **Transfer** (`transfer`): Tests both flow control and stream multiplexing. The client should use small initial flow control windows for both stream- and connection-level flow control, such that the during the transfer of files on the order of 1 MB the flow control window needs to be increased. The client is exepcted to establish a single QUIC connection, and use multiple streams to concurrently download the files.
 
-* Check the JupyterHub logs for the batch script that got submitted
-  and the command used to submit it.  Are these correct?  (Note that
-  there are submission environment variables too, which aren't
-  displayed.)
+* **ChaCha20** (`chacha20`): In this test, client and server are expected to offer **only** ChaCha20 as a ciphersuite. The client then downloads the files.
 
-* At this point, it's a matter of checking the batch system.  Is the
-  job ever scheduled?  Does it run?  Does it succeed?  Check the batch
-  system status and output of the job.  The most comon failure
-  patterns are a) job never starting due to bad scheduler options, b)
-  job waiting in the queue beyond the `start_timeout`, causing
-  JupyterHub to kill the job.
+* **KeyUpdate** (`keyupdate`, only for the client): The client is expected to make sure that a key update happens early in the connection (during the first MB transferred). It doesn't matter which peer actually initiated the update.
 
-* At this point the job starts.  Does it fail immediately, or before
-  Jupyter starts?  Check the scheduler output files (stdout/stderr of
-  the job), wherever it is stored.  To debug the job script, you can
-  add debugging into the batch script, such as an `env` or `set
-  -x`.
+* **Retry** (`retry`): Tests that the server can generate a Retry, and that the client can act upon it (i.e. use the Token provided in the Retry packet in the Initial packet).
 
-* At this point Jupyter itself starts - check its error messages.  Is
-  it starting with the right options?  Can it communicate with the
-  hub?  At this point there usually isn't anything
-  batchspawner-specific, with the one exception below.  The error log
-  would be in the batch script output (same file as above).  There may
-  also be clues in the JupyterHub logfile.
+* **Resumption** (`resumption`): Tests QUIC session resumption (without 0-RTT). The client is expected to establish a connection and download the first file. The server is expected to provide the client with a session ticket that allows it to resume the connection. After downloading the first file, the client has to close the connection, establish a resumed connection using the session ticket, and use this connection to download the remaining file(s).
 
-Common problems:
+* **0-RTT** (`zerortt`): Tests QUIC 0-RTT. The client is expected to establish a connection and download the first file. The server is expected to provide the client with a session ticket that allows it establish a 0-RTT connection on the next connection attempt. After downloading the first file, the client has to close the connection, establish and request the remaining file(s) in 0-RTT.
 
-* Did you `import batchspawner` in the `jupyterhub_config.py` file?
-  This is needed in order to activate the batchspawer API in
-  JupyterHub.
+* **HTTP3** (`http3`): Tests a simple HTTP/3 connection. The client is expected to download multiple files using HTTP/3. Files should be requested and transfered in parallel.
 
+* **Handshake Loss** (`multiconnect`): Tests resilience of the handshake to high loss. The client is expected to establish multiple connections, sequential or in parallel, and use each connection to download a single file.
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md).
+* **V2** (`v2`): In this test, client starts connecting server in QUIC v1 with `version_information` transport parameter that includes QUIC v2 (`0x6b3343cf`) in `other_versions` field.  Server should select QUIC v2 in compatible version negotiation.  Client is expected to download one small file in QUIC v2.
