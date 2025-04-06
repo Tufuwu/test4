@@ -1,99 +1,103 @@
-name: OWS build and push
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-    types: [synchronize, opened, reopened, ready_for_review]
-  release:
-    types: [created]
-
-env:
-  ORG: opendatacube
-  IMAGE: ows
+name: wee-slack
+on: [push, pull_request]
 
 jobs:
-  build-and-push:
+  lint:
+    if: >
+      github.event_name == 'push' || (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name != github.repository
+      )
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        python_version: [2.7, 3.7, 3.8, 3.9]
     steps:
     - uses: actions/checkout@v2
-    - name: Login to DockerHub
-      run: |
-        echo "${{ secrets.DockerPassword }}" | docker login -u "${{ secrets.DockerUser }}" --password-stdin
 
-    # We build the stage 1 image, then run test on it
-    # These tests require extra files we don't want in
-    # the production image
-    # We build the stage 1 image, then run test on it
-    # These tests require extra files we don't want in
-    # the production image
-    - name: Build dev OWS image (stage 1)
-      run: |
-        docker build \
-          --target env_builder \
-          --tag    ${ORG}/${IMAGE}:_builder \
-          .
-
-    - name: Test and lint dev OWS image (stage 1)
-      run: |
-        docker run ${ORG}/${IMAGE}:_builder /bin/sh -c "./check-code.sh"
-
-
-    # Build prod image and tag as latest, connect to pre-indexed database
-    - name: Build and run prod OWS images (stage 2)
-      run: docker-compose -f docker-compose.yaml -f docker-compose.db.yaml -f docker-compose.prod.yaml up --build --force-recreate -d
-
-    - name: Sleep for 10 seconds
-      uses: jakejarvis/wait-action@main
+    - name: Set up Python (${{ matrix.python_version }})
+      uses: actions/setup-python@v2
       with:
-        time: '10s'
+        python-version: ${{ matrix.python_version }}
 
-    # Run some tests on the images
-    # These tests require a working database
-    - name: Test ping
+    - uses: actions/cache@v4
+      env:
+        cache-name: lint-pip
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{ runner.os }}-${{ matrix.python_version }}-${{ env.cache-name }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.python_version }}-${{ env.cache-name }}-
+
+    - name: Install Pipenv
       run: |
-        curl --show-error --fail \
-        --connect-timeout 5 \
-        --max-time 10 \
-        --retry 5 \
-        --retry-delay 0 \
-        --retry-max-time 40 \
-        "localhost:8000/ping" \
-        > /dev/null
+        pip install --upgrade pipenv
 
-    - name: Test WMS GetCapabilities
+    - uses: actions/cache@v4
+      env:
+        cache-name: lint-pipenv
+      with:
+        path: "$GITHUB_WORKSPACE/.venv"
+        key: ${{ runner.os }}-${{ matrix.python_version }}-${{ env.cache-name }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.python_version }}-${{ env.cache-name }}-
+
+    - name: Install dependencies
       run: |
-        curl --silent --show-error --fail \
-        "localhost:8000/?service=WMS&version=1.3.0&request=GetCapabilities" \
-        > /dev/null
+        pipenv install --dev --skip-lock
 
-    - name: Test WMTS GetCapabilities
+    - name: Lint with Flake8
       run: |
-        curl --silent --show-error --fail \
-        "localhost:8000/?service=WMS&version=1.0.0&request=GetCapabilities" \
-        > /dev/null
+        # stop the build if there are Python syntax errors or undefined names
+        pipenv run flake8 .
 
-    - name: Test WCS GetCapabilities
+        # exit-zero treats all errors as warnings.
+        pipenv run flake8 . --exit-zero --select=C,E,F,W
+
+  test:
+    if: >
+      github.event_name == 'push' || (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name != github.repository
+      )
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: [2.7, 3.7, 3.8, 3.9]
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python (${{ matrix.python_version }})
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python_version }}
+
+    - uses: actions/cache@v4
+      env:
+        cache-name: test-pip
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{ runner.os }}-${{ matrix.python_version }}-${{ env.cache-name }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.python_version }}-${{ env.cache-name }}-
+
+    - name: Install Pipenv
       run: |
-        curl --silent --show-error --fail \
-        "localhost:8000/?service=WCS&version=1.0.0&request=GetCapabilities" \
-        > /dev/null
+        pip install --upgrade pipenv
 
-    - name: Test datacube-ows-update
-      run: docker-compose exec -T ows datacube-ows-update
+    - uses: actions/cache@v4
+      env:
+        cache-name: test-pipenv
+      with:
+        path: "$GITHUB_WORKSPACE/.venv"
+        key: ${{ runner.os }}-${{ matrix.python_version }}-${{ env.cache-name }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.python_version }}-${{ env.cache-name }}-
 
-    # Tag image if this is a tagged build
-    # if not use a pseudo tag based on current tag,
-    # number of commits since last tag and git hash
-    - name: Push to DockerHub (main branch only)
-      if: github.ref == 'refs/heads/main'
+    - name: Install dependencies
       run: |
-        # figure out extra tag
-        git fetch --prune --unshallow 2> /dev/null || true
-        tag=$(git describe --tags)
-        # tag and push images
-        docker tag ${ORG}/${IMAGE}:latest ${ORG}/${IMAGE}:${tag}
-        docker push ${ORG}/${IMAGE}:latest
-        docker push ${ORG}/${IMAGE}:${tag}
+        pipenv install --dev --skip-lock
+
+    - name: python/test
+      run: |
+        pipenv run pytest
