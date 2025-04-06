@@ -1,69 +1,144 @@
-README for pympler
-==================
+ParmEd
+======
 
-Pympler is a development tool to measure, monitor and analyze the memory
-behavior of Python objects in a running Python application.
+Cross-program parameter and topology file editor and molecular mechanical
+simulator engine.
 
-By pympling a Python application, detailed insight in the size and the lifetime
-of Python objects can be obtained.  Undesirable or unexpected runtime behavior
-like memory bloat and other "pymples" can easily be identified.
+Badges
+======
 
-Pympler integrates three previously separate projects into a single,
-comprehensive profiling tool. Asizeof provides basic size information for one
-or several Python objects, muppy is used for on-line monitoring of a Python
-application and the class tracker provides off-line analysis of the lifetime of
-selected Python objects. A web profiling frontend exposes process statistics,
-garbage visualisation and class tracker statistics.
+![(Build/Test Status)](https://github.com/ParmEd/ParmEd/workflows/Tests/badge.svg)
 
-Pympler is written entirely in Python, with no dependencies to external
-libraries. It has been tested with Python 3.5, 3.6, 3.7, 3.8, 3.9, 3.10 on
-Linux, Windows and MacOS X.
+Description
+===========
 
+ParmEd is a package designed to facilitate creating and easily manipulating
+molecular systems that are fully described by a common classical force field.
+Supported force fields include Amber, CHARMM, AMOEBA, and several others that
+share a similar functional form (e.g., GROMOS).
 
-Installation from PyPI
-----------------------
+ParmEd is capable of reading and writing to a wide array of different file
+formats, like the Amber topology and coordinate files, CHARMM PSF, parameter,
+topology, and coordinate files, Tinker parameter, topology, and coordinate
+files, and many others. The expressive central data structure (the ``Structure``
+class) makes it easy to quickly and safely manipulate a chemical system, its
+underlying topology, and force field parameters describing its potential energy
+function.
 
-To install the latest version of Pympler from the Python package index run:
+There are two parts of ParmEd---a documented API that you can incorporate into
+your own Python scripts and programs, and a GUI/CLI pair of programs that
+provide a means to quickly perform various modifications to chemical systems for
+rapid prototyping.
 
-    pip install Pympler
+The API also provides bindings to the [OpenMM](https://simtk.org/home/openmm)
+library, permitting you to carry out full molecular dynamics investigations
+using ParmEd on high-performant hardware, like AMD and NVidia GPUs.
 
+Installing ParmEd
+=================
 
-Installation from source
-------------------------
+To install ParmEd, either clone this git repository or download [the latest
+release](https://github.com/ParmEd/ParmEd/releases) and unpack the resulting
+tarball. This should create a new ParmEd source code directory. Change to that
+directory and build ParmEd with the command
 
-Before installing Pympler, try it with your Python version:
+```
+python setup.py install
+```
 
-    python setup.py try
+Note, if you are using the system Python, you may need to either run the above
+command as root (e.g., by using ``sudo``) or add the ``--user`` flag to install
+it to your home directory. I would suggest the latter choice.
 
-If any errors are reported, check whether your Python version is supported.
-Pympler is written entirely in Python, with no dependencies other than standard
-Python modules and libraries. Pympler works with Python 3.5, 3.6, 3.7, 3.8, 3.9
-and 3.10.
+AMBER user can overwrite installed version by
 
-For a system-wide installation from source run:
+```
+python setup.py install --prefix=$AMBERHOME
+```
 
-    pip install .
+Testing ParmEd
+========
 
-Test the installed Pympler package:
+In order to automatically run the ParmEd tests, execute the following:
 
-    python setup.py test
+```
+cd test
+nosetests .
+```
 
+Examples
+========
 
-Usage
------
+```bash
+import parmed as pmd
 
-The usage of pympler is described in the documentation.  It is
-available either in this distribution at *doc/index.html* or
-you can [read it online](https://pympler.readthedocs.io/en/latest/).
+# convert GROMACS topology to AMBER format
+gmx_top = pmd.load_file('pmaawaterFE20mer2.top', xyz='pmaawaterFE20mer2.gro')
+gmx_top.save('pmaa.top', format='amber')
+gmx_top.save('pmaa.crd', format='rst7')
 
+# convert AMBER topology to GROMACS, CHARMM formats
+amber = pmd.load_file('prmtop', 'inpcrd')
+# Save a GROMACS topology and GRO file
+amber.save('gromacs.top')
+amber.save('gromacs.gro')
 
-Contributing
-------------
+# Save a CHARMM PSF and crd file
+amber.save('charmm.psf')
+amber.save('charmm.crd')
 
-You can post wishes, bug reports or patches at our
-[issue tracker](https://github.com/pympler/pympler/issues) or
-write an email to *pympler-dev@googlegroups.com*.
+# convert mol2 to pdb file
+mol2_parm = pmd.load_file('my.mol2')
+mol2_parm.save('my.pdb')
 
-[![Latest Version](https://img.shields.io/pypi/v/pympler.svg)](https://pypi.org/project/Pympler/)
-[![License](https://img.shields.io/pypi/l/pympler.svg)](https://pypi.org/project/Pympler/)
-[![Coverage Status](https://coveralls.io/repos/pympler/pympler/badge.svg?branch=master)](https://coveralls.io/r/pympler/pympler?branch=master)
+# and many more
+```
+
+Documentation
+=============
+
+Want to learn more?  Visit the ParmEd documentation page at
+https://parmed.github.io/ParmEd for examples, descriptions, and API
+documentation.
+
+Authors and Contributors
+========================
+
+The following people have contributed directly to the coding and validation
+efforts in ParmEd (in alphabetical order).  And a special thanks to all of you
+who helped improve this project either by providing feedback, bug reports, or
+other general comments!
+
+* Jason Swails (principal developer) | jason.swails@gmail.com
+
+* Carlos Hernandez
+* David L. Mobley
+* Hai Nguyen
+* Lee-Ping Wang
+* Pawel Janowski
+
+License
+=======
+
+```
+                    LESSER GPL LICENSE INFO
+
+Copyright (C) 2010 - 2014 Jason Swails
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.
+
+The `fortranformat` package is released under the MIT license, Copyright (C)
+Brendan Arnold. See `fortranformat/__init__.py` for more information.
+```

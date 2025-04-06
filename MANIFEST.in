@@ -1,14 +1,5 @@
-include LICENSE
-include NOTICE
-include README.md
-
-include pympler/templates/*.html
-include pympler/templates/*.tpl
-include pympler/templates/*.css
-include pympler/templates/*.js
-
-include pympler/static/*.js
-
-recursive-include doc *
-prune doc/source
-prune doc/build
+graft examples
+graft src
+graft parmed
+include versioneer.py
+include parmed/_version.py

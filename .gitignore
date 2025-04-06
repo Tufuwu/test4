@@ -1,6 +1,7 @@
 *.pyc
+*.pyo
+.*.sw[op]
+*~
+build
+a.out
 .coverage
-*.egg-info
-MANIFEST
-dist
-tags
