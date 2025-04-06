@@ -1,22 +1,18 @@
+*.swp
 *.pyc
-*.sqlite
-*.bat
-.idea/
-\current*
-.coverage
-.DS_Store
+*.pyo
 
-# for experimentation
-scratch.py
-lineups.sh
-data/df.csv
-data/fd.csv
-experimental/
+*.rpy
+*.rpyc
+!un.rpyc
+*.txt
 
-.spyproject
-.vscode
-start_container.bat
+/renpy
+/build
+/dist
+/tests
+/*.egg-info
 
-dist/
-draftfast.egg-info/
+/bintray.json
 
+unrpyc.sublime-*

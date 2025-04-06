@@ -1,343 +1,181 @@
-## Introduction &middot; [![Build Status](https://travis-ci.org/BenBrostoff/draftfast.svg?branch=master)](https://travis-ci.org/BenBrostoff/draftfast) &middot; [![](https://draftfast.herokuapp.com/badge.svg)](https://draftfast.herokuapp.com/)
+# Unrpyc, the Ren'py script decompiler.
 
-![](marketing/MAIN_WORKFLOW.png)
-![](marketing/USE_CASES.png)
+Unrpyc is a tool to decompile Ren'Py (http://www.renpy.org/) compiled .rpyc
+script files. It will not extract files from .rpa archives. For that, use
+[rpatool](https://github.com/Shizmob/rpatool) or
+[UnRPA](https://github.com/Lattyware/unrpa).
 
-An incredibly powerful tool that automates and optimizes lineup building, allowing you to enter thousands of lineups in any DraftKings or FanDuel contest in the time it takes you to grab a coffee.
 
-## Installation
+## Status
 
-Requires Python 3.11+.
+master:[![Build Status](https://github.com/CensoredUsername/unrpyc/actions/workflows/python-app.yaml/badge.svg?branch=master)](https://github.com/CensoredUsername/unrpyc/actions/workflows/python-app.yaml)
 
-```bash
-pip install draftfast
-```
+dev:[![Build Status](https://github.com/CensoredUsername/unrpyc/actions/workflows/python-app.yaml/badge.svg?branch=dev)](https://github.com/CensoredUsername/unrpyc/actions/workflows/python-app.yaml)
 
 ## Usage
 
-Example usage ([you can experiment with these examples in repl.it](https://repl.it/@BenBrostoff/AllWarlikeDemoware)):
+This tool can either be ran as a command line tool, as a library, or injected into the game itself. It requires Python 2.7 to be installed to be used as a command line tool.
 
-```python
-from draftfast import rules
-from draftfast.optimize import run
-from draftfast.orm import Player
-from draftfast.csv_parse import salary_download
+### Command line tool usage
 
-# Create players for a classic DraftKings game
-player_pool = [
-    Player(name='A1', cost=5500, proj=55, pos='PG'),
-    Player(name='A2', cost=5500, proj=55, pos='PG'),
-    Player(name='A3', cost=5500, proj=55, pos='SG'),
-    Player(name='A4', cost=5500, proj=55, pos='SG'),
-    Player(name='A5', cost=5500, proj=55, pos='SF'),
-    Player(name='A6', cost=5500, proj=55, pos='SF'),
-    Player(name='A7', cost=5500, proj=55, pos='PF'),
-    Player(name='A8', cost=5500, proj=55, pos='PF'),
-    Player(name='A9', cost=5500, proj=55, pos='C'),
-    Player(name='A10', cost=5500, proj=55, pos='C'),
-]
-
-roster = run(
-    rule_set=rules.DK_NBA_RULE_SET,
-    player_pool=player_pool,
-    verbose=True,
-)
-
-# Or, alternatively, generate players from a CSV
-players = salary_download.generate_players_from_csvs(
-  salary_file_location='./salaries.csv',
-  game=rules.DRAFT_KINGS,
-)
-
-roster = run(
-  rule_set=rules.DK_NBA_RULE_SET,
-  player_pool=players,
-  verbose=True,
-)
+Depending on your system setup, you should use one of the following commands to run the tool:
+```
+python unrpyc.py [options] script1 script2 ...
+python2 unrpyc.py [options] script1 script2 ...
+py -2 unrpyc.py [options] script1 script2 ...
+./unrpyc.py [options] script1 script2 ...
 ```
 
-You can see more examples in the [`examples` directory](https://github.com/BenBrostoff/draftfast/tree/master/examples).
-
-## Game Rules
-
-Optimizing for a particular game is as easy as setting the `RuleSet` (see the example above). Game rules in the library are in the table below:
-
-| League       | Site           | Reference  |
-| ------------- |:-------------:| :-----:|
-| NFL | DraftKings | `DK_NFL_RULE_SET` |
-| NFL | FanDuel | `FD_NFL_RULE_SET` |
-| NBA | DraftKings | `DK_NBA_RULE_SET` |
-| NBA | FanDuel | `FD_NBA_RULE_SET` |
-| MLB | DraftKings | `DK_MLB_RULE_SET` |
-| MLB | FanDuel | `FD_MLB_RULE_SET` |
-| WNBA | DraftKings | `DK_WNBA_RULE_SET` |
-| WNBA | FanDuel | `FD_WNBA_RULE_SET` |
-| PGA | FanDuel | `FD_PGA_RULE_SET` |
-| PGA | DraftKings | `DK_PGA_RULE_SET` |
-| PGA_CAPTAIN | DraftKings | `DK_PGA_CAPTAIN_RULE_SET` |
-| NASCAR | FanDuel | `FD_NASCAR_RULE_SET` |
-| NASCAR | DraftKings | `DK_NASCAR_RULE_SET` |
-| SOCCER | DraftKings | `DK_SOCCER_RULE_SET` |
-| EuroLeague | DraftKings | `DK_EURO_LEAGUE_RULE_SET` |
-| NHL | DraftKings | `DK_NHL_RULE_SET` |
-| NBA Pickem | DraftKings | `DK_NBA_PICKEM_RULE_SET` |
-| NFL Showdown | DraftKings | `DK_NFL_SHOWDOWN_RULE_SET` |
-| NBA Showdown | DraftKings | `DK_NBA_SHOWDOWN_RULE_SET` |
-| MLB Showdown | DraftKings | `DK_MLB_SHOWDOWN_RULE_SET` |
-| XFL | DraftKings | `DK_XFL_CLASSIC_RULE_SET` |
-| Tennis | DraftKings | `DK_TEN_CLASSIC_RULE_SET` |
-| CS:GO | DraftKings | `DK_CSGO_SHOWDOWN` |
-| F1 | DraftKings | `DK_F1_SHOWDOWN` |
-| NFL MVP | FanDuel | `FD_NFL_MVP_RULE_SET` |
-| MLB MVP | FanDuel | `FD_MLB_MVP_RULE_SET` |
-| NBA MVP | FanDuel | `FD_NBA_MVP_RULE_SET` |
-
-Note that you can also tune `draftfast` for any game of your choice even if it's not implemented in the library (PRs welcome!). Using the `RuleSet` class, you can generate your own game rules that specific number of players, salary, etc. Example:
-
-```python
-from draftfast import rules
-
-golf_rules = rules.RuleSet(
-    site=rules.DRAFT_KINGS,
-    league='PGA',
-    roster_size='6',
-    position_limits=[['G', 6, 6]],
-    salary_max=50_000,
-)
+Options:
 ```
+$ py -2 unrpyc.py --help
+usage: unrpyc.py [-h] [-c] [-d] [-p {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}]
+                 [-t TRANSLATION_FILE] [-T WRITE_TRANSLATION_FILE]
+                 [-l LANGUAGE] [--sl1-as-python] [--comparable] [--no-pyexpr]
+                 [--tag-outside-block] [--init-offset] [--try-harder]
+                 file [file ...]
 
-## Settings
+Decompile .rpyc/.rpymc files
 
-Usage example:
+positional arguments:
+  file                  The filenames to decompile. All .rpyc files in any
+                        directories passed or their subdirectories will also
+                        be decompiled.
 
-```python
-class Showdown(Roster):
-    POSITION_ORDER = {
-        'M': 0,
-        'F': 1,
-        'D': 2,
-        'GK': 3,
-    }
-
-
-showdown_limits = [
-    ['M', 0, 6],
-    ['F', 0, 6],
-    ['D', 0, 6],
-    ['GK', 0, 6],
-]
-
-soccer_rules = rules.RuleSet(
-    site=rules.DRAFT_KINGS,
-    league='SOCCER_SHOWDOWN',
-    roster_size=6,
-    position_limits=showdown_limits,
-    salary_max=50_000,
-    general_position_limits=[],
-)
-player_pool = salary_download.generate_players_from_csvs(
-    salary_file_location=salary_file,
-    game=rules.DRAFT_KINGS,
-)
-roster = run(
-    rule_set=soccer_rules,
-    player_pool=player_pool,
-    verbose=True,
-    roster_gen=Showdown,
-)
-```
-
-`PlayerPoolSettings`
-
-- `min_proj`
-- `max_proj`
-- `min_salary`
-- `max_salary`
-- `min_avg`
-- `max_avg`
-
-`OptimizerSettings`
-
-- `stacks` - A list of `Stack` objects. Example:
-
-```python
-roster = run(
-    rule_set=rules.DK_NHL_RULE_SET,
-    player_pool=player_pool,
-    verbose=True,
-    optimizer_settings=OptimizerSettings(
-        stacks=[
-            Stack(team='PHI', count=3),
-            Stack(team='FLA', count=3),
-            Stack(team='NSH', count=2),
-        ]
-    ),
-)
-```
-
-`Stack` can also be tuned to support different combinations of positions. For NFL,
-to only specify a QB-WRs based stack of five:
-
-```python
-Stack(
-    team='NE',
-    count=5,
-    stack_lock_pos=['QB'],
-    stack_eligible_pos=['WR'],
-)
-```
-
-- `custom_rules` - Define rules that set if / then conditions for lineups.
-
-
-For example, if two WRs from the same team are in a naturally optimized lineup, then the QB must also be in the lineup. You can find some good examples of rules in `draftfast/test/test_custom_rules.py`.
-
-```python
-from draftfast.optimize import run
-from draftfast.settings import OptimizerSettings, CustomRule
-
-# If two WRs on one team, play the QB from same team
-settings = OptimizerSettings(
-    custom_rules=[
-        CustomRule(
-            group_a=lambda p: p.pos == 'WR' and p.team == 'Patriots',
-            group_b=lambda p: p.pos == 'QB' and p.team == 'Patriots',
-            comparison=lambda sum, a, b: sum(a) + 1 <= sum(b)
-        )
-    ]
-)
-roster = run(
-    rule_set=rules.DK_NFL_RULE_SET,
-    player_pool=nfl_pool,
-    verbose=True,
-    optimizer_settings=settings,
-)
-```
-
-Another common use case is given one player is in a lineup, always play another player:
-
-```python
-from draftfast.optimize import run
-from draftfast.settings import OptimizerSettings, CustomRule
-
-# If Player A, always play Player B and vice versa
-settings = OptimizerSettings(
-    custom_rules=[
-        CustomRule(
-            group_a=lambda p: p.name == 'Tom Brady',
-            group_b=lambda p: p.name == 'Rob Gronkowski',
-            comparison=lambda sum, a, b: sum(a) == sum(b)
-        )
-    ]
-)
-roster = run(
-    rule_set=rules.DK_NFL_RULE_SET,
-    player_pool=nfl_pool,
-    verbose=True,
-    optimizer_settings=settings,
-)
-```
-
-Custom rules also don't have to make a comparison between two groups. You can say "never play these two players in the same lineup" by using the `CustomRule#comparison` property.
-
-```python
-# Never play these two players together
-settings = OptimizerSettings(
-    custom_rules=[
-        CustomRule(
-            group_a=lambda p: p,
-            group_b=lambda p: p.name == 'Devon Booker' or p.name == 'Chris Paul',
-            comparison=lambda sum, a, b: sum(b) <= 1
-        )
-    ]
-)
-roster = run(
-    rule_set=rules.DK_NBA_RULE_SET,
-    player_pool=nba_pool,
-    verbose=True,
-    optimizer_settings=settings,
-)
-```
-
-Importantly, as of this writing, passing closures into `CustomRule`s does not work (ex. `lambda p: p.team == team`),
-so dynamically generating rules is not possible. PRs welcome for a fix here, I believe this is a limitation of `ortools`.
-
-`LineupConstraints`
-
-- `locked` - list of players to lock
-- `banned` - list of players to ban
-- `groups` - list of player groups constraints. See below
-
-```python
-roster = run(
-    rule_set=rules.DK_NFL_RULE_SET,
-    player_pool=player_pool,
-    verbose=True,
-    constraints=LineupConstraints(
-        locked=['Rob Gronkowski'],
-        banned=['Mark Ingram', 'Doug Martin'],
-        groups=[
-            [('Todd Gurley', 'Melvin Gordon', 'Christian McCaffrey'), (2, 3)],
-            [('Chris Carson', 'Mike Davis'), 1],
-        ]
-    )
-)
-```
-
-- `no_offense_against_defense` - Do not allow offensive players to be matched up against defensive players in the optimized lineup. Currently only implemented for soccer, NHL, and NFL -- PRs welcome!
-
-## CSV Upload
-
-```python
-from draftfast.csv_parse import uploaders
-
-uploader = uploaders.DraftKingsNBAUploader(
-    pid_file='./pid_file.csv',
-)
-uploader.write_rosters(rosters)
+optional arguments:
+  -h, --help            show this help message and exit
+  -c, --clobber         overwrites existing output files
+  -d, --dump            instead of decompiling, pretty print the ast to a file
+  -p, --processes
+                        use the specified number or processes to
+                        decompile.Defaults to the amount of hw threads
+                        available minus one, disabled when muliprocessing is
+                        unavailable.
+  -t TRANSLATION_FILE, --translation-file TRANSLATION_FILE
+                        use the specified file to translate during
+                        decompilation
+  -T WRITE_TRANSLATION_FILE, --write-translation-file WRITE_TRANSLATION_FILE
+                        store translations in the specified file instead of
+                        decompiling
+  -l LANGUAGE, --language LANGUAGE
+                        if writing a translation file, the language of the
+                        translations to write
+  --sl1-as-python       Only dumping and for decompiling screen language 1
+                        screens. Convert SL1 Python AST to Python code instead
+                        of dumping it or converting it to screenlang.
+  --comparable          Only for dumping, remove several false differences
+                        when comparing dumps. This suppresses attributes that
+                        are different even when the code is identical, such as
+                        file modification times.
+  --no-pyexpr           Only for dumping, disable special handling of PyExpr
+                        objects, instead printing them as strings. This is
+                        useful when comparing dumps from different versions of
+                        Ren'Py. It should only be used if necessary, since it
+                        will cause loss of information such as line numbers.
+  --tag-outside-block   Always put SL2 'tag's on the same line as 'screen'
+                        rather than inside the block. This will break
+                        compiling with Ren'Py 7.3 and above, but is needed to
+                        get correct line numbers from some files compiled with
+                        older Ren'Py versions.
+  --init-offset         Attempt to guess when init offset statements were used
+                        and insert them. This is always safe to enable if the
+                        game's Ren'Py version supports init offset statements,
+                        and the generated code is exactly equivalent, only
+                        less cluttered.
+  --try-harder          Tries some workarounds against common obfuscation
+                        methods. This is a lot slower.
 
 ```
 
-## Support and Consulting
+You can give several .rpyc files on the command line. Each script will be
+decompiled to a corresponding .rpy on the same directory. Additionally, you can
+pass directories. All .rpyc files in these directories or their subdirectories
+will be decompiled. By default, the program will not overwrite existing files,
+use -c to do that.
 
-DFS optimization is only one part of a sustainable strategy. Long-term DFS winners have the best:
+This script will try to disassemble all AST nodes. In the case it encounters an
+unknown node type, which may be caused by an update to Ren'Py somewhere in the
+future, a warning will be printed and a placeholder inserted in the script when
+it finds a node it doesn't know how to handle. If you encounter this, please
+open an issue to alert us of the problem.
 
-- Player projections
-- Bankroll management
-- Diversification in contests played
-- Diversification across lineups (see `draftfast.exposure`)
-- Research process
-- 1 hour before gametime lineup changes
-- ...and so much more
+For the script to run correctly it is required for the unrpyc.py file to be in
+the same directory as the modules directory.
 
-DraftFast provides support and consulting services that can help with all of these. [Let's get in touch today](mailto:ben.brostoff@gmail.com).
+### Game injection
 
-# Contributing
+The tool can be injected directly into a running game by placing either the
+`un.rpyc` file or the `bytecode.rpyb` file from the most recent release into
+the `game` directory inside a Ren'py game. When the game is then ran the tool
+will automatically extract and decompile all game script files into the `game`
+directory. The tool writes logs to the file `unrpyc.log.txt`.
 
-Run tests or set of tests:
+### Library usage
 
-```sh
-# All tests
-nose2
+You can import the module from python and call
+unrpyc.decompile_rpyc(filename, ...) directly.
 
-# Single file
-nose2 draftfast.test.test_soccer
+## Notes on support
 
-# Single test
-nosetests draftfast.test.test_soccer.test_soccer_dk_no_opp_d
-```
+The Ren'py engine has changed a lot through the years. While this tool tries to
+support all available Ren'py versions since the creation of this tool, we do not
+actively test it against every engine release. Furthermore the engine does
+not have perfect backwards compatibility itself, so issues can occur if you try
+to run decompiled files with different engine releases. Most attention is given
+to recent engine versions so if you encounter an issues with older games, please
+report it.
 
-Run linting
+Supported:
+* renpy version 6 and 7 (current)
+* Windows, OSX and Linux
 
-```
-flake8 draftfast
-```
+## Issue reports
 
-# Credits
+As Ren'py is being continuously developed itself it often occurs that this tool might
+break on newer engine releases. This is most likely due to us not being
+aware of these features existing in the first place. To get this fixed
+you can make an issue report to this repository. However, we work on this tool
+in our free time and therefore we strongly request performing the following steps when
+making an issue report.
 
-Special thanks to [swanson](https://github.com/swanson/), who authored [this repo](https://github.com/swanson/degenerate), which was the inspiration for this one.
+### Before making an issue report:
 
-Current project maintainers:
+If you are making an issue report because decompilation errors out, please do the following.
+If there's simply an error in the decompiled file, you can skip these steps.
 
-- [BenBrostoff](https://github.com/BenBrostoff)
-- [sharkiteuthis](https://github.com/sharkiteuthis)
+1. Test your .rpyc files with the command line tool and both game injection methods. Please
+   do this directly, do not use wrapper tools incorporating unrpyc for the report.
+2. Run the command line tool with the anti-obfuscation option `--try-harder`.
+
+### When making an issue report:
+
+1. List the used version of unrpyc and the version of ren'py used to create the .rpyc file
+   you're trying to decompile (and if applicable, what game).
+2. Describe exactly what you're trying to do, and what the issue is (is it not decompiling
+   at all, is there an omission in the decompiled file, or is the decompiled file invalid).
+3. Attach any relevant output produced by the tool (full command line output is preferred,
+   if output is generated attach that as well).
+4. Attach the .rpyc file that is failing to decompile properly.
+
+Please perform all these steps, and write your issue report in legible English. Otherwise
+it is likely that your issue report will just receive a reminder to follow these steps.
+
+## Feature and pull requests
+
+Feature and pull requests are welcome. Feature requests will be handled whenever we feel
+like it, so if you really want a feature in the tool a pull request is usually the right
+way to go. Please do your best to conform to the style used by the rest of the code base
+and only affect what's absolutely necessary, this keeps the process smooth.
+
+### Notes on deobfuscation
+
+Recently a lot of modifications of Ren'py have turned up that slightly alter the Ren'py
+file format to block this tool from working. The tool now includes a basic framework
+for deobfuscation, but feature requests to create deobfuscation support for specific
+games are not likely to get a response from us as this is essentially just an arms race,
+and it's trivial to figure out a way to obfuscate the file that blocks anything that is
+supported right now. If you make a pull request with it we'll happily put it in mainline
+or a game-specific branch depending on how many games it affects, but we have little
+motivation ourselves to put time in this arms race.
+
+https://github.com/CensoredUsername/unrpyc
