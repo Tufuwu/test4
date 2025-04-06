@@ -1,372 +1,179 @@
-A REPL for Postgres
--------------------
+osmcha-django
+==============
 
-|Build Status| |CodeCov| |PyPI| |Landscape| |Gitter|
+.. image:: https://travis-ci.org/willemarcel/osmcha-django.svg
+    :target: https://travis-ci.org/willemarcel/osmcha-django
 
-This is a postgres client that does auto-completion and syntax highlighting.
+.. image:: https://coveralls.io/repos/github/willemarcel/osmcha-django/badge.svg?branch=master
+    :target: https://coveralls.io/github/willemarcel/osmcha-django?branch=master
 
-Home Page: http://pgcli.com
 
-MySQL Equivalent: http://mycli.net
+The aim of OSMCHA is to help identify and fix harmful edits in the OpenStreetMap.
+It relies on `OSMCHA <https://github.com/willemarcel/osmcha>`_ to analyse the changesets.
 
-.. image:: screenshots/pgcli.gif
-.. image:: screenshots/image01.png
+This project provides a Django application that get the changesets from the
+OpenStreetMap API, analyses and store it in a database and finally provides a
+REST API to interact with the changeset data.
 
-Quick Start
------------
+This repository contains the backend code. You can report errors or request new features in the
+`osmcha-frontend repository <https://github.com/mapbox/osmcha-frontend>`_.
 
-If you already know how to install python packages, then you can simply do:
+License: BSD 2-Clause
 
-::
+Settings
+------------
 
-    $ pip install -U pgcli
+osmcha-django relies extensively on environment settings which **will not work with
+Apache/mod_wsgi setups**. It has been deployed successfully with both Gunicorn/Nginx
+and uWSGI/Nginx.
 
-    or
+For configuration purposes, the following table maps the 'osmcha-django' environment
+variables to their Django setting:
 
-    $ sudo apt-get install pgcli # Only on Debian based Linux (e.g. Ubuntu, Mint, etc)
-    $ brew install pgcli  # Only on macOS
 
-If you don't know how to install python packages, please check the
-`detailed instructions`_.
+======================================= ================================= ========================================= ===========================================
+Environment Variable                    Django Setting                    Development Default                       Production Default
+======================================= ================================= ========================================= ===========================================
+DJANGO_CACHES                           CACHES (default)                  locmem                                    redis
+DJANGO_DEBUG                            DEBUG                             True                                      False
+DJANGO_SECRET_KEY                       SECRET_KEY                        CHANGEME!!!                               raises error
+DJANGO_SECURE_BROWSER_XSS_FILTER        SECURE_BROWSER_XSS_FILTER         n/a                                       True
+DJANGO_SECURE_SSL_REDIRECT              SECURE_SSL_REDIRECT               n/a                                       True
+DJANGO_SECURE_CONTENT_TYPE_NOSNIFF      SECURE_CONTENT_TYPE_NOSNIFF       n/a                                       True
+DJANGO_SECURE_FRAME_DENY                SECURE_FRAME_DENY                 n/a                                       True
+DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS   HSTS_INCLUDE_SUBDOMAINS           n/a                                       True
+DJANGO_SESSION_COOKIE_HTTPONLY          SESSION_COOKIE_HTTPONLY           n/a                                       True
+DJANGO_SESSION_COOKIE_SECURE            SESSION_COOKIE_SECURE             n/a                                       False
+DJANGO_DEFAULT_FROM_EMAIL               DEFAULT_FROM_EMAIL                n/a                                       "osmcha-django <noreply@example.com>"
+DJANGO_SERVER_EMAIL                     SERVER_EMAIL                      n/a                                       "osmcha-django <noreply@example.com>"
+DJANGO_EMAIL_SUBJECT_PREFIX             EMAIL_SUBJECT_PREFIX              n/a                                       "[osmcha-django] "
+DJANGO_CHANGESETS_FILTER                CHANGESETS_FILTER                 None                                      None
+POSTGRES_USER                           POSTGRES_USER                     None                                      None
+POSTGRES_PASSWORD                       POSTGRES_PASSWORD                 None                                      None
+PGHOST                                  PGHOST                            localhost                                 localhost
+OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
+OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
+OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK                     https://osmlab.github.io/changeset-map/#  https://osmlab.github.io/changeset-map/#
+DJANGO_ANON_USER_THROTTLE_RATE          ANON_USER_THROTTLE_RATE           None                                      30/min
+DJANGO_COMMON_USER_THROTTLE_RATE        COMMON_USER_THROTTLE_RATE         None                                      180/min
+DJANGO_NON_STAFF_USER_THROTTLE_RATE     NON_STAFF_USER_THROTTLE_RATE      3/min                                     3/min
+OAUTH_REDIRECT_URI                      OAUTH_REDIRECT_URI                http://localhost:8000/oauth-landing.html  http://localhost:8000/oauth-landing.html
+OSMCHA_FRONTEND_VERSION                 OSMCHA_FRONTEND_VERSION           oh-pages                                  oh-pages
+DJANGO_ENABLE_CHANGESET_COMMENTS        ENABLE_POST_CHANGESET_COMMENTS    False                                     False
+DJANGO_OSM_COMMENTS_API_KEY             OSM_COMMENTS_API_KEY              ''                                        ''
+======================================= ================================= ========================================= ===========================================
 
-If you are restricted to using psycopg2 2.7.x then pip will try to install it from a binary. There are some known issues with the psycopg2 2.7 binary - see the `psycopg docs`_ for more information about this and how to force installation from source. psycopg2 2.8 has fixed these problems, and will build from source.
+You can set each of these variables with:
 
-.. _`detailed instructions`: https://github.com/dbcli/pgcli#detailed-installation-instructions
-.. _`psycopg docs`: http://initd.org/psycopg/docs/install.html#change-in-binary-packages-between-psycopg-2-7-and-2-8
+    $ export VAR=VALUE
 
-Usage
------
+During the development, you can define the values inside your virtualenv ``bin/activate`` file.
 
-::
 
-    $ pgcli [database_name]
+Filtering Changesets
+---------------------
 
-    or
+You can filter the changesets that will be imported by defining the variable CHANGESETS_FILTER
+with the path to a GeoJSON file containing a polygon with the geographical area you want to filter.
 
-    $ pgcli postgresql://[user[:password]@][netloc][:port][/dbname][?extra=value[&other=other-value]]
 
-Examples:
+Getting up and running
+----------------------
 
-::
+Basics
+^^^^^^
 
-    $ pgcli local_database
+The steps below will get you up and running with a local development environment.
+We assume you have the following installed:
 
-    $ pgcli postgres://amjith:pa$$w0rd@example.com:5432/app_db?sslmode=verify-ca&sslrootcert=/myrootcert
+* pip
+* virtualenv
+* PostgreSQL
 
-For more details:
+Before to install the python libraries, we need to install some packages in the
+operational system::
 
-::
+    $ sudo ./install_os_dependencies.sh install
 
-    $ pgcli --help
+For the next step, make sure to create and activate a virtualenv_, then open a terminal at the project root and install the
+requirements for local development::
 
-    Usage: pgcli [OPTIONS] [DBNAME] [USERNAME]
+    $ pip install -r requirements/local.txt
 
-    Options:
-      -h, --host TEXT         Host address of the postgres database.
-      -p, --port INTEGER      Port number at which the postgres instance is
-                              listening.
-      -U, --username TEXT     Username to connect to the postgres database.
-      -u, --user TEXT         Username to connect to the postgres database.
-      -W, --password          Force password prompt.
-      -w, --no-password       Never prompt for password.
-      --single-connection     Do not use a separate connection for completions.
-      -v, --version           Version of pgcli.
-      -d, --dbname TEXT       database name to connect to.
-      --pgclirc PATH          Location of pgclirc file.
-      -D, --dsn TEXT          Use DSN configured into the [alias_dsn] section of
-                              pgclirc file.
-      --list-dsn              list of DSN configured into the [alias_dsn] section
-                              of pgclirc file.
-      --row-limit INTEGER     Set threshold for row limit prompt. Use 0 to disable
-                              prompt.
-      --less-chatty           Skip intro on startup and goodbye on exit.
-      --prompt TEXT           Prompt format (Default: "\u@\h:\d> ").
-      --prompt-dsn TEXT       Prompt format for connections using DSN aliases
-                              (Default: "\u@\h:\d> ").
-      -l, --list              list available databases, then exit.
-      --auto-vertical-output  Automatically switch to vertical output mode if the
-                              result is wider than the terminal width.
-      --warn / --no-warn      Warn before running a destructive query.
-      --help                  Show this message and exit.
+.. _virtualenv: http://docs.python-guide.org/en/latest/dev/virtualenvs/
 
-``pgcli`` also supports many of the same `environment variables`_ as ``psql`` for login options (e.g. ``PGHOST``, ``PGPORT``, ``PGUSER``, ``PGPASSWORD``, ``PGDATABASE``).
+Create a local PostgreSQL database::
 
-The SSL-related environment variables are also supported, so if you need to connect a postgres database via ssl connection, you can set set environment like this:
+    $ createdb osmcha
 
-::
+Run ``migrate`` on your new database::
 
-    export PGSSLMODE="verify-full"
-    export PGSSLCERT="/your-path-to-certs/client.crt"
-    export PGSSLKEY="/your-path-to-keys/client.key"
-    export PGSSLROOTCERT="/your-path-to-ca/ca.crt"
-    pgcli -h localhost -p 5432 -U username postgres
+    $ python manage.py migrate
 
-.. _environment variables: https://www.postgresql.org/docs/current/libpq-envars.html
+You can now run the ``runserver_plus`` command::
 
-Features
---------
+    $ python manage.py runserver_plus
 
-The `pgcli` is written using prompt_toolkit_.
+Open up your browser to http://127.0.0.1:8000/ to see the site running locally.
 
-* Auto-completes as you type for SQL keywords as well as tables and
-  columns in the database.
-* Syntax highlighting using Pygments.
-* Smart-completion (enabled by default) will suggest context-sensitive
-  completion.
+Setting Up Your Users
+^^^^^^^^^^^^^^^^^^^^^
 
-    - ``SELECT * FROM <tab>`` will only show table names.
-    - ``SELECT * FROM users WHERE <tab>`` will only show column names.
+To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
 
-* Primitive support for ``psql`` back-slash commands.
-* Pretty prints tabular data.
+To create an **superuser account**, use this command::
 
-.. _prompt_toolkit: https://github.com/jonathanslenders/python-prompt-toolkit
-.. _tabulate: https://pypi.python.org/pypi/tabulate
+    $ python manage.py createsuperuser
 
-Config
-------
-A config file is automatically created at ``~/.config/pgcli/config`` at first launch.
-See the file itself for a description of all available options.
+For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
 
-Contributions:
---------------
+How to login using the OAuth api
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you're interested in contributing to this project, first of all I would like
-to extend my heartfelt gratitude. I've written a small doc to describe how to
-get this running in a development setup.
+* Make a POST request to ``<your_base_url>/api/v1/social-auth/`` to receive the ``oauth_token``, ``oauth_token_secret`` keys.
+* Take the ``oauth_token`` and redirect the user to ``https://www.openstreetmap.org/oauth/authorize?oauth_token=<oauth_token>``.
+* You'll be redirected to the URL that you configured in your OSM OAuth key settings. That redirect url will contain the ``oauth_verifier`` param.
+* Make another POST request to ``<your_base_url>/api/v1/social-auth/`` and send the ``oauth_token``, ``oauth_token_secret`` and ``oauth_verifier`` as the data. You'll receive a token that you can use to make authenticated requests.
+* The token key should be included in the Authorization HTTP header. The key should be prefixed by the string literal "Token", with whitespace separating the two strings. For example: ``Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b``.
 
-https://github.com/dbcli/pgcli/blob/master/DEVELOP.rst
+Frontend
+^^^^^^^^
 
-Please feel free to reach out to me if you need help.
-My email: amjith.r@gmail.com, Twitter: `@amjithr <http://twitter.com/amjithr>`_
+`osmcha-frontend <https://github.com/mapbox/osmcha-frontend>`_ is a web interface
+that you can use to interact with the API. We have a django management command
+to get the last version of osmcha-frontend and serve it with the API.
 
-Detailed Installation Instructions:
------------------------------------
+    $ python manage.py update_frontend
 
-macOS:
-======
+After that, if you have set all the environment variables properly, you can start
+the server and have the frontend in your root url.
 
-The easiest way to install pgcli is using Homebrew.
+Feature creation endpoint
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-::
+The feature creation endpoint allows only admin users to create features. You can
+use the admin site to create a token to a user.
 
-    $ brew install pgcli
+Instances
+---------
 
-Done!
+We have some instances running ``osmcha-django``:
 
-Alternatively, you can install ``pgcli`` as a python package using a package
-manager called called ``pip``. You will need postgres installed on your system
-for this to work.
+The main instance is https://osmcha.org/. You can check the API
+documentation at https://osmcha.org/api-docs/.
 
-In depth getting started guide for ``pip`` - https://pip.pypa.io/en/latest/installing.html.
+Furthermore, we have a test instance running at http://osmcha-org-staging.osmcha.org/.
 
-::
+Deployment
+------------
 
-    $ which pip
+Check the `Deploy <DEPLOY.rst>`_ file for instructions on how to deploy with Heroku and Dokku.
 
-If it is installed then you can do:
 
-::
+Get in contact
+---------------
 
-    $ pip install pgcli
-
-If that fails due to permission issues, you might need to run the command with
-sudo permissions.
-
-::
-
-    $ sudo pip install pgcli
-
-If pip is not installed check if easy_install is available on the system.
-
-::
-
-    $ which easy_install
-
-    $ sudo easy_install pgcli
-
-Linux:
-======
-
-In depth getting started guide for ``pip`` - https://pip.pypa.io/en/latest/installing.html.
-
-Check if pip is already available in your system.
-
-::
-
-    $ which pip
-
-If it doesn't exist, use your linux package manager to install `pip`. This
-might look something like:
-
-::
-
-    $ sudo apt-get install python-pip   # Debian, Ubuntu, Mint etc
-
-    or
-
-    $ sudo yum install python-pip  # RHEL, Centos, Fedora etc
-
-``pgcli`` requires python-dev, libpq-dev and libevent-dev packages. You can
-install these via your operating system package manager.
-
-
-::
-
-    $ sudo apt-get install python-dev libpq-dev libevent-dev
-
-    or
-
-    $ sudo yum install python-devel postgresql-devel
-
-Then you can install pgcli:
-
-::
-
-    $ sudo pip install pgcli
-
-
-Docker
-======
-
-Pgcli can be run from within Docker. This can be useful to try pgcli without
-installing it, or any dependencies, system-wide.
-
-To build the image:
-
-::
-
-    $ docker build -t pgcli .
-
-To create a container from the image:
-
-::
-
-    $ docker run --rm -ti pgcli pgcli <ARGS>
-
-To access postgresql databases listening on localhost, make sure to run the
-docker in "host net mode". E.g. to access a database called "foo" on the
-postgresql server running on localhost:5432 (the standard port):
-
-::
-
-    $ docker run --rm -ti --net host pgcli pgcli -h localhost foo
-
-To connect to a locally running instance over a unix socket, bind the socket to
-the docker container:
-
-::
-
-    $ docker run --rm -ti -v /var/run/postgres:/var/run/postgres pgcli pgcli foo
-
-
-IPython
-=======
-
-Pgcli can be run from within `IPython <https://ipython.org>`_ console. When working on a query,
-it may be useful to drop into a pgcli session without leaving the IPython console, iterate on a
-query, then quit pgcli to find the query results in your IPython workspace.
-
-Assuming you have IPython installed:
-
-::
-
-    $ pip install ipython-sql
-
-After that, run ipython and load the ``pgcli.magic`` extension:
-
-::
-
-    $ ipython
-
-    In [1]: %load_ext pgcli.magic
-
-
-Connect to a database and construct a query:
-
-::
-
-    In [2]: %pgcli postgres://someone@localhost:5432/world
-    Connected: someone@world
-    someone@localhost:world> select * from city c where countrycode = 'USA' and population > 1000000;
-    +------+--------------+---------------+--------------+--------------+
-    | id   | name         | countrycode   | district     | population   |
-    |------+--------------+---------------+--------------+--------------|
-    | 3793 | New York     | USA           | New York     | 8008278      |
-    | 3794 | Los Angeles  | USA           | California   | 3694820      |
-    | 3795 | Chicago      | USA           | Illinois     | 2896016      |
-    | 3796 | Houston      | USA           | Texas        | 1953631      |
-    | 3797 | Philadelphia | USA           | Pennsylvania | 1517550      |
-    | 3798 | Phoenix      | USA           | Arizona      | 1321045      |
-    | 3799 | San Diego    | USA           | California   | 1223400      |
-    | 3800 | Dallas       | USA           | Texas        | 1188580      |
-    | 3801 | San Antonio  | USA           | Texas        | 1144646      |
-    +------+--------------+---------------+--------------+--------------+
-    SELECT 9
-    Time: 0.003s
-
-
-Exit out of pgcli session with ``Ctrl + D`` and find the query results:
-
-::
-
-    someone@localhost:world>
-    Goodbye!
-    9 rows affected.
-    Out[2]:
-    [(3793, u'New York', u'USA', u'New York', 8008278),
-     (3794, u'Los Angeles', u'USA', u'California', 3694820),
-     (3795, u'Chicago', u'USA', u'Illinois', 2896016),
-     (3796, u'Houston', u'USA', u'Texas', 1953631),
-     (3797, u'Philadelphia', u'USA', u'Pennsylvania', 1517550),
-     (3798, u'Phoenix', u'USA', u'Arizona', 1321045),
-     (3799, u'San Diego', u'USA', u'California', 1223400),
-     (3800, u'Dallas', u'USA', u'Texas', 1188580),
-     (3801, u'San Antonio', u'USA', u'Texas', 1144646)]
-
-The results are available in special local variable ``_``, and can be assigned to a variable of your
-choice:
-
-::
-
-    In [3]: my_result = _
-
-Pgcli only runs on Python3.6+ since 2.2.0, if you use an old version of Python,
-you should use install ``pgcli <= 2.2.0``.
-
-Thanks:
--------
-
-A special thanks to `Jonathan Slenders <https://twitter.com/jonathan_s>`_ for
-creating `Python Prompt Toolkit <http://github.com/jonathanslenders/python-prompt-toolkit>`_,
-which is quite literally the backbone library, that made this app possible.
-Jonathan has also provided valuable feedback and support during the development
-of this app.
-
-`Click <http://click.pocoo.org/>`_ is used for command line option parsing
-and printing error messages.
-
-Thanks to `psycopg <http://initd.org/psycopg/>`_ for providing a rock solid
-interface to Postgres database.
-
-Thanks to all the beta testers and contributors for your time and patience. :)
-
-
-.. |Build Status| image:: https://api.travis-ci.org/dbcli/pgcli.svg?branch=master
-    :target: https://travis-ci.org/dbcli/pgcli
-
-.. |CodeCov| image:: https://codecov.io/gh/dbcli/pgcli/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/dbcli/pgcli
-   :alt: Code coverage report
-
-.. |Landscape| image:: https://landscape.io/github/dbcli/pgcli/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/dbcli/pgcli/master
-   :alt: Code Health
-
-.. |PyPI| image:: https://img.shields.io/pypi/v/pgcli.svg
-    :target: https://pypi.python.org/pypi/pgcli/
-    :alt: Latest Version
-
-.. |Gitter| image:: https://badges.gitter.im/Join%20Chat.svg
-    :target: https://gitter.im/dbcli/pgcli?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-    :alt: Gitter Chat
+If you use, deploy or are interested in help to develop OSMCha, subscribe to our
+`mailing list <https://lists.openstreetmap.org/listinfo/osmcha-dev>`_. You can
+report errors or request new features in the
+`osmcha-frontend repository <https://github.com/mapbox/osmcha-frontend>`_.
