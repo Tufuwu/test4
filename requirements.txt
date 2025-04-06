@@ -1,4 +1,1 @@
-sphinx==1.8.5
-sphinx_rtd_theme
-sphinx-cjkspace
-pygments
+-e .[dev]

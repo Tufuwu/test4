@@ -1,60 +1,51 @@
-#
-# Build and deploy the documentation
-#
-name: Deploy
+name: Main
 
-on:
-  pull_request:
-  push:
-    branches:
-      - main
+on: [push, pull_request]
 
 jobs:
-  deploy:
+  test:
+    name: Test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
     steps:
-      # Cancel previous runs that are not completed
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.9.1
-
       - name: Checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v2
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Build HTML documentaiton
-        run: make html
-
-      - name: Install TinyTeX
-        uses: r-lib/actions/setup-tinytex@v1
-
-      - name: Install LaTeX packages
         run: |
-          tlmgr install tabulary latexmk ulem environ trimspaces titlesec \
-                      varwidth framed threeparttable wrapfig upquote capt-of \
-                      multirow eqparbox needspace fncychap letltxmacro
+          pip install --upgrade pip
+          pip install tox-gh-actions coveralls
 
-      - name: Build PDF documentaiton
+      - name: Run tests
         run: |
-          make latexpdf
-          cp build/latex/Makefile.pdf build/html/
+          tox
 
-      - name: Deploy documentation
-        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305
-        if: ${{ github.ref == 'refs/heads/main' }}
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/html
-          # Only keep the latest commit to avoid bloating the repository
-          force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+      - name: Send coverage report
+        run: |
+          coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_FLAG_NAME: ${{ matrix.python-version }}
+          COVERALLS_PARALLEL: true
+
+  coveralls:
+    name: Finish Coveralls
+    needs: test
+    runs-on: ubuntu-latest
+    container: python:3-slim
+
+    steps:
+      - name: Finished
+        run: |
+          pip install --upgrade coveralls
+          coveralls --finish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
