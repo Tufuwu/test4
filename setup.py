@@ -1,26 +1,25 @@
-import io
+from setuptools import setup
 
-from setuptools import setup, find_packages
-
-# This reads the __version__ variable from openfermionpyscf/_version.py
-exec(open('openfermionpyscf/_version.py').read())
-
-# Readme file as long_description:
-long_description = io.open('README.rst', encoding='utf-8').read()
-
-# Read in requirements.txt
-requirements = open('requirements.txt').readlines()
-requirements = [r.strip() for r in requirements]
+with open('README.md') as f:
+    long_description = f.read()
 
 setup(
-    name='openfermionpyscf',
-    version=__version__,
-    author='The OpenFermion Developers',
-    author_email='help@openfermion.org',
-    url='http://www.openfermion.org',
-    description='A plugin allowing OpenFermion to interface with PySCF.',
+    name='django_urls',
+    version='1.1.3',
+    packages=['django_urls'],
+    url='https://github.com/isik-kaplan/django_urls',
+    description="URL decorator for django views",
     long_description=long_description,
-    install_requires=requirements,
-    license='Apache 2',
-    packages=find_packages()
+    long_description_content_type="text/markdown",
+    license='MIT LICENSE',
+    author='isik-kaplan',
+    author_email='',
+    python_requires=">=3.5",
+    install_requires=['django>=2.0'],
+    classifiers=[
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Framework :: Django',
+        'Development Status :: 5 - Production/Stable',
+    ],
 )
