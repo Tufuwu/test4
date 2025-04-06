@@ -1,128 +1,268 @@
-name: CI
+---
+name: ros_buildfarm-ci
 
 on:
   push:
-    branches:
-    - main
+    branches: [main]
   pull_request:
+    branches: ['*']
 
 jobs:
-  lint:
-    name: Check lint
+  pytest:
+    name: Pytest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('setup.cfg') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+      - name: Check out project
+        uses: actions/checkout@v2
       - name: Install dependencies
         run: |
-          set -xeu
-          python -VV
-          pip install tox
-      - name: Check lint
-        run: tox -e check-lint
+          python -m pip install -U catkin-pkg EmPy jenkinsapi PyYAML rosdistro vcstool
+          python -m pip install -U flake8 flake8-class-newline flake8-docstrings flake8-import-order pep8 pyflakes pytest
+      - name: Run tests
+        run: |
+          python -m pytest -s test
 
-  tests:
-    name: Python ${{ matrix.python-version }}
+  ros1_audit:
+    name: ROS 1 Audit
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:10
-        env:
-          POSTGRES_DB: procrastinate
-          POSTGRES_PASSWORD: password
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-        ports:
-          - 5432:5432
-
     strategy:
       matrix:
+        python: ["3.9"]
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{matrix.python}}
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/audit
+        with:
+          ros_distro: melodic
+          os_code_name: bionic
+
+  ros1_devel:
+    name: ROS 1 Devel
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9"]
+        build_tool: [null]
         include:
-          - python-version: 3.9
-            tox-env: py36-tests
-          - python-version: 3.9
-            tox-env: py37-tests
-          - python-version: 3.9
-            tox-env: py38-tests
-
+          - python: '3.9'
+            build_tool: colcon
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out project
+        uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{matrix.python}}
       - name: Install dependencies
-        run: |
-          set -xeu
-          python -VV
-          pip install tox coverage
-      - name: Run tox targets for ${{ matrix.python-version }}
-        run: tox -e ${{ matrix.tox-env }}
-        env:
-          PGDATABASE: procrastinate
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: password
-          PYTEST_ADDOPTS: --cov-report xml
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/devel
         with:
-          fail_ci_if_error: true
+          ros_distro: melodic
+          os_code_name: bionic
+          build_tool: ${{matrix.build_tool}}
+          repo: roscpp_core
 
-  docs:
-    name: Build doc
+  ros1_doc:
+    name: ROS 1 Doc
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9"]
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out project
+        uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: ${{matrix.python}}
       - name: Install dependencies
-        run: |
-          set -xeu
-          python -VV
-          pip install tox
-      - name: Build doc
-        run: tox -e docs
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/doc
+        with:
+          ros_distro: melodic
+          os_code_name: bionic
+          repo: roscpp_core
 
-  deploy:
-    name: Publish package to PyPI
+  ros1_prerelease:
+    name: ROS 1 Prerelease
     runs-on: ubuntu-latest
-    needs:
-      - lint
-      - tests
-      - docs
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    strategy:
+      matrix:
+        python: ["3.9"]
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup Python
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: ${{matrix.python}}
       - name: Install dependencies
-        run: |
-          set -xeu
-          python -VV
-          pip install setuptools wheel
-      - name: Build the wheel
-        run: python setup.py sdist bdist_wheel
-      - name: Publish to PyPI
-        uses: pypa/gh-actions-pypi-publish@main
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/prerelease
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
+          ros_distro: melodic
+          os_code_name: bionic
+          overlay_pkg: roscpp
+          underlay_repos: roscpp_core
+
+  ros1_prerelease_external:
+    name: ROS 1 Prerelease (External)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9"]
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Check out dummy_package
+        uses: actions/checkout@v2
+        with:
+          repository: ros-infrastructure/ros_buildfarm
+          ref: dummy_package
+          path: dummy_package
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{matrix.python}}
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/prerelease
+        with:
+          ros_distro: melodic
+          os_code_name: bionic
+          source_dir: ${{github.workspace}}/dummy_package
+
+  ros1_release:
+    name: ROS 1 Release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9"]
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{matrix.python}}
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/release
+        with:
+          ros_distro: melodic
+          os_code_name: bionic
+          pkg_name: rostime
+
+  ros1_status_pages:
+    name: ROS 1 Status Pages
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9"]
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{matrix.python}}
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/status_pages
+        with:
+          ros_distro: melodic
+
+  ros2_audit:
+    name: ROS 2 Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/audit
+        with:
+          config_url: https://raw.githubusercontent.com/ros2/ros_buildfarm_config/ros2/index.yaml
+          ros_distro: foxy
+          os_code_name: focal
+
+  ros2_ci:
+    name: ROS 2 CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run job 1
+        id: underlay1
+        uses: ./.github/actions/ci
+        with:
+          config_url: https://raw.githubusercontent.com/ros2/ros_buildfarm_config/ros2/index.yaml
+          ros_distro: foxy
+          os_code_name: focal
+          package_selection_args: --packages-up-to ament_flake8
+      - name: Run job 2
+        id: underlay2
+        uses: ./.github/actions/ci
+        with:
+          config_url: https://raw.githubusercontent.com/ros2/ros_buildfarm_config/ros2/index.yaml
+          ros_distro: foxy
+          os_code_name: focal
+          underlay_dirs: ${{steps.underlay1.outputs.install_dir}}
+          package_selection_args: --packages-skip-up-to ament_flake8 --packages-up-to ament_pep257
+      - name: Run job 3
+        uses: ./.github/actions/ci
+        with:
+          config_url: https://raw.githubusercontent.com/ros2/ros_buildfarm_config/ros2/index.yaml
+          ros_distro: foxy
+          os_code_name: focal
+          underlay_dirs: ${{steps.underlay1.outputs.install_dir}} ${{steps.underlay2.outputs.install_dir}}
+          package_selection_args: --packages-skip-up-to ament_flake8 ament_pep257 --packages-up-to ament_cmake_ros
+
+  ros2_devel:
+    name: ROS 2 Devel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/devel
+        with:
+          config_url: https://raw.githubusercontent.com/ros2/ros_buildfarm_config/ros2/index.yaml
+          ros_distro: foxy
+          os_code_name: focal
+          repo: rcutils
+
+  ros2_prerelease:
+    name: ROS 2 Prerelease
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: ./.github/actions/setup
+      - name: Run job
+        uses: ./.github/actions/prerelease
+        with:
+          config_url: https://raw.githubusercontent.com/ros2/ros_buildfarm_config/ros2/index.yaml
+          ros_distro: foxy
+          os_code_name: focal
+          overlay_pkg: rcutils
+          underlay_repos: ament_cmake_ros
