@@ -1,47 +1,47 @@
-Examples of simple applications for Flask-AppBuilder
-----------------------------------------------------
+Elasticsearch DSL Examples
+==========================
 
-:basefilter: Simple contacts application where contacts are filtered by the user who has created them. The user only "sees" his/her contacts
+In this directory you can see several complete examples demonstrating key
+concepts and patterns exposed by ``elasticsearch-dsl``.
 
-:employees: Shows how to setup many to many relationships and a simple custom security class (creates an action to delete multiple users)
+``alias_migration.py``
+----------------------
 
-:extendedsecurity: Simple contacts application where contacts are filtered by the user's company who has created them. The user only "sees" his/her companies contacts. It also extends the User Model adding a company relationship and employee number.
+The alias migration example shows a useful pattern where we use versioned
+indices (``test-blog-0``, ``test-blog-1``, ...) to manage schema changes and
+hides that behind an alias so that the application doesn't have to be aware of
+the versions and just refer to the ``test-blog`` alias for both read and write
+operations.
 
-:factoryapp: Simple example to show how to use a factory setup
+For simplicity we use a timestamp as version in the index name.
 
-:masterdetail: Shows how to use a master detail view
+``parent_child.py``
+-------------------
 
-:mongoengine: Simple Contacts application example using MongoEngine support for MongoDB.
+More complex example highlighting the possible relationships available in
+elasticsearch - `parent/child
+<https://www.elastic.co/guide/en/elasticsearch/reference/6.3/nested.html>`_ and
+`nested
+<https://www.elastic.co/guide/en/elasticsearch/reference/6.3/nested.html>`_.
 
-:mongoimages: Simple Contacts application with files and images example. Using MongoEngine support for MongoDB.
+``composite_agg.py``
+--------------------
 
-:oauth: OAuth authentication with twitter or google, sending tweets on behalf of their user.
+A helper function using the `composite aggregation
+<https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-composite-aggregation.html>`_
+to paginate over aggregation results.
 
-:productsale: Just another simple app.
+``percolate.py``
+----------------
 
-:quickactions: Show how to setup actions for list views.
+A ``BlogPost`` document with automatic classification using the `percolator
+<https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-percolate-query.html>`_
+functionality.
 
-:quickcharts: Simple application using chart views.
+``completion.py``
+-----------------
 
-:quickfiles: Show how to use files with your models, upload, download and assoc with records.
-
-:quickhowto: Simple contacts application from the docs.
-
-:quickimages: The contacts application with images (upload and render on list).
-
-:quickminimal: How to setup a minimal application, one file only.
-
-:quicktemplates: Shows how to override the base template and create a different menu.
-
-:simpleform: Shows how to render a simple form not backed by database models.
-
-:simpleview1: The simple view, base applications, shows how to expose and render.
-
-:simpleview2: Same as simpleview1, but the views use the base template.
-
-:user_registration: Shows how to setup, db authentication and self user registration.
-
-:related_fields: Simple example with two select2 related fields.
-
-:widgets: A show case for the various builtin widgets.
+As example using `completion suggester
+<https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters-completion.html>`_
+to auto complete people's names.
 

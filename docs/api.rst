@@ -1,252 +1,112 @@
-=============
-API Reference
-=============
+.. _api:
 
-flask_appbuilder
-====================
+API Documentation
+=================
 
-AppBuilder
-----------
+Below please find the documentation for the public classes and functions of ``elasticsearch_dsl``.
 
-.. automodule:: flask_appbuilder.base
+.. py:module:: elasticsearch_dsl
 
-    .. autoclass:: AppBuilder
-        :members:
-        
-        .. automethod:: __init__
+Search
+------
 
-flask_appbuilder.security.decorators
-========================================
+.. autoclass:: Search
+   :members:
 
-.. automodule:: flask_appbuilder.security.decorators
+.. autoclass:: MultiSearch
+   :members:
 
-    .. autofunction:: protect
-    .. autofunction:: has_access
-    .. autofunction:: permission_name
-
-flask_appbuilder.models.decorators
-========================================
-
-.. automodule:: flask_appbuilder.models.decorators
-
-    .. autofunction:: renders
-
-flask_appbuilder.api
-==============================
-
-.. automodule:: flask_appbuilder.api
-
-    .. autofunction:: expose
-    .. autofunction:: rison
-    .. autofunction:: safe
-
-BaseApi
--------
-
-.. autoclass:: BaseApi
-    :members:
-
-ModelRestApi
-------------
-
-.. autoclass:: ModelRestApi
-    :members:
-
-flask_appbuilder.baseviews
-==============================
-
-.. automodule:: flask_appbuilder.baseviews
-
-    .. autofunction:: expose
-
-BaseView
+Document
 --------
 
-.. autoclass:: BaseView
-    :members:
+.. autoclass:: Document
+   :members:
 
-BaseFormView
-------------
+Index
+-----
 
-.. autoclass:: BaseFormView
-    :members:
+.. autoclass:: Index
+   :members:
 
-BaseModelView
--------------
-
-.. autoclass:: BaseModelView
-    :members:
-
-BaseCRUDView
-------------
-
-.. autoclass:: BaseCRUDView
-    :members:
-
-flask_appbuilder.views
-==========================
-
-.. automodule:: flask_appbuilder.views
-
-IndexView
----------
-
-.. autoclass:: IndexView
-    :members:
-
-SimpleFormView
+Faceted Search
 --------------
 
-.. autoclass:: SimpleFormView
-    :members:
+.. autoclass:: FacetedSearch
+   :members:
 
-PublicFormView
---------------
-
-.. autoclass:: PublicFormView
-    :members:
-
-ModelView
------------
-
-.. autoclass:: ModelView
-    :members:
-
-MultipleView
+Update By Query 
 ----------------
+.. autoclass:: UpdateByQuery
+  :members:
 
-.. autoclass:: MultipleView
-    :members:
+Mappings
+--------
 
-MasterDetailView
-----------------
+If you wish to create mappings manually you can use the ``Mapping`` class, for
+more advanced use cases, however, we recommend you use the :ref:`doc_type`
+abstraction in combination with :ref:`index` (or :ref:`index-template`) to define
+index-level settings and properties. The mapping definition follows a similar
+pattern to the query dsl:
 
-.. autoclass:: MasterDetailView
-    :members:
+.. code:: python
 
-CompactCRUDMixin
-----------------
+    from elasticsearch_dsl import Keyword, Mapping, Nested, Text
 
-.. autoclass:: CompactCRUDMixin
-    :members:
+    # name your type
+    m = Mapping('my-type')
 
-flask_appbuilder.actions
-============================
+    # add fields
+    m.field('title', 'text')
 
-.. automodule:: flask_appbuilder.actions
+    # you can use multi-fields easily
+    m.field('category', 'text', fields={'raw': Keyword()})
 
-    .. autofunction:: action
+    # you can also create a field manually
+    comment = Nested(
+                     properties={
+                        'author': Text(),
+                        'created_at': Date()
+                     })
 
-flask_appbuilder.security
-=============================
+    # and attach it to the mapping
+    m.field('comments', comment)
 
-.. automodule:: flask_appbuilder.security.manager
+    # you can also define mappings for the meta fields
+    m.meta('_all', enabled=False)
 
-BaseSecurityManager
--------------------
+    # save the mapping into index 'my-index'
+    m.save('my-index')
 
-.. autoclass:: BaseSecurityManager
-    :members:
+.. note::
 
-BaseRegisterUser
-----------------
+    By default all fields (with the exception of ``Nested``) will expect single
+    values. You can always override this expectation during the field
+    creation/definition by passing in ``multi=True`` into the constructor
+    (``m.field('tags', Keyword(multi=True))``). Then the
+    value of the field, even if the field hasn't been set, will be an empty
+    list enabling you to write ``doc.tags.append('search')``.
 
-.. automodule:: flask_appbuilder.security.registerviews
+Especially if you are using dynamic mappings it might be useful to update the
+mapping based on an existing type in Elasticsearch, or create the mapping
+directly from an existing type:
 
-    .. autoclass:: BaseRegisterUser
-        :members:
+.. code:: python
 
-flask_appbuilder.filemanager
-================================
+    # get the mapping from our production cluster
+    m = Mapping.from_es('my-index', 'my-type', using='prod')
 
-.. automodule:: flask_appbuilder.filemanager
+    # update based on data in QA cluster
+    m.update_from_es('my-index', using='qa')
 
-    .. autofunction:: get_file_original_name
+    # update the mapping on production
+    m.save('my-index', using='prod')
 
-Aggr Functions for Group By Charts
-==================================
+Common field options:
 
-.. automodule:: flask_appbuilder.models.group
+``multi``
+  If set to ``True`` the field's value will be set to ``[]`` at first access.
 
-    .. autofunction:: aggregate_count
-    .. autofunction:: aggregate_avg
-    .. autofunction:: aggregate_sum
-
-flask_appbuilder.charts.views
-=================================
-
-.. automodule:: flask_appbuilder.charts.views
-
-BaseChartView
--------------
-
-.. autoclass:: BaseChartView
-    :members:
-
-DirectByChartView
------------------
-
-.. autoclass:: DirectByChartView
-    :members:
-
-GroupByChartView
-----------------
-
-.. autoclass:: GroupByChartView
-    :members:
-
-(Deprecated) ChartView
-----------------------
-
-.. autoclass:: ChartView
-    :members:
-
-(Deprecated) TimeChartView
---------------------------
-
-.. autoclass:: TimeChartView
-    :members:
-
-(Deprecated) DirectChartView
-----------------------------
-
-.. autoclass:: DirectChartView
-    :members:
+``required``
+  Indicates if a field requires a value for the document to be valid.
 
 
-flask_appbuilder.models.mixins
-==================================
-
-.. automodule:: flask_appbuilder.models.mixins
-
-    .. autoclass:: BaseMixin
-        :members:
-
-    .. autoclass:: AuditMixin
-        :members:
-
-Extra Columns
--------------
-
-.. autoclass:: FileColumn
-    :members:
-
-.. autoclass:: ImageColumn
-    :members:
-
-Generic Data Source (Beta)
---------------------------
-
-flask_appbuilder.models.generic
-===================================
-
-.. automodule:: flask_appbuilder.models.generic
-
-    .. autoclass:: GenericColumn
-        :members:
-
-    .. autoclass:: GenericModel
-        :members:
-
-    .. autoclass:: GenericSession
-        :members:
