@@ -1,17 +1,17 @@
-# EditorConfig http://EditorConfig.org
+# EditorConfig (http://editorconfig.org)
 
-# Project Root
 root = true
 
-# Default Code Style
 [*]
 charset = utf-8
 end_of_line = lf
-indent_size = 2
-indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
-
-# Python Code Style
-[*.py]
+indent_style = space
 indent_size = 4
+
+[*.{json,yml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

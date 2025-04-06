@@ -1,2 +1,1 @@
-#*.po -diff
-*.mo -diff
+*.py diff=python
