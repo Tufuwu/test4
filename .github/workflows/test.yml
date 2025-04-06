@@ -1,158 +1,90 @@
-name: Modoboa amavis plugin
+# GitHub Actions workflow for testing and continuous integration.
+#
+# This file performs testing using tox and tox.ini to define and configure the test environments.
+
+name: CI Tests
 
 on:
   push:
-    branches: [ main ]
+    branches:
+  #  - main  # GitHub now defaults to 'main' as the name of the primary branch. Change this as needed.
+  #  tags: # run CI if specific tags are pushed
   pull_request:
-    branches: [ main ]
-  release:
-    branches: [ main ]
-
-env:
-  POSTGRES_HOST: localhost
+    # branches: # only build on PRs against 'main' if you need to further limit when CI is run.
+    #    - main
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:11
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-        # will assign a random free host port
-        - 5432/tcp
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_USER: modoboa
-          MYSQL_PASSWORD: modoboa
-          MYSQL_DATABASE: modoboa
-        ports:
-          - 3306/tcp
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-
+  # Github Actions supports ubuntu, windows, and macos virtual environments:
+  # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners
+  ci_tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        database: ['postgres', 'mysql']
-        python-version: ["3.9"]
-      fail-fast: false
+        include:
+          - name: Code style checks
+            os: ubuntu-latest
+            python: 3.x
+            toxenv: codestyle
+
+          - name: Python 3.7 with minimal dependencies
+            os: ubuntu-latest
+            python: 3.9
+            toxenv: py37-test
+
+          - name: Python 3.8 with all optional dependencies, coverage checking and remote data
+            os: ubuntu-latest
+            python: 3.9
+            toxenv: py38-test-alldeps-cov
+            toxposargs: --remote-data
+
+          - name: OS X - Python 3.8 with all optional dependencies
+            os: macos-latest
+            python: 3.9
+            toxenv: py38-test-alldeps
+
+          - name: Windows - Python 3.8 with all optional dependencies
+            os: windows-latest
+            python: 3.9
+            toxenv: py38-test-alldeps
+
+          # - name: Python 3.7 with oldest supported version of all dependencies
+          #   os: ubuntu-latest
+          #   python: 3.9
+          #   toxenv: py37-test-oldestdeps
+
+          - name: Python 3.8 with latest dev versions of key dependencies
+            os: ubuntu-latest
+            python: 3.9
+            toxenv: py38-test-devdeps
+
+          - name: Test building of Sphinx docs
+            os: ubuntu-latest
+            python: 3.x
+            toxenv: build_docs
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -y && sudo apt-get install -y librrd-dev rrdtool
-          python -m pip install --upgrade pip
-          pip install -e git+https://github.com/modoboa/modoboa.git#egg=modoboa
-          pip install -r requirements.txt
-          pip install -r test-requirements.txt
-          python setup.py develop
-      - name: Install postgres requirements
-        if: ${{ matrix.database == 'postgres' }}
-        run: |
-          pip install 'psycopg2-binary>=2.8,<2.9'
-          pip install coverage
-          echo "DB=postgres" >> $GITHUB_ENV
-      - name: Install mysql requirements
-        if: ${{ matrix.database == 'mysql' }}
-        run: |
-          pip install 'mysqlclient<2.0.4'
-          echo "DB=mysql" >> $GITHUB_ENV
-      - name: Test with pytest
-        if: ${{ matrix.python-version != '3.8' || matrix.database != 'postgres' }}
-        run: |
-          cd test_project
-          python3 manage.py test modoboa_amavis
-        env:
-          # use localhost for the host here because we are running the job on the VM.
-          # If we were running the job on in a container this would be postgres
-          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published port
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }} # get randomly assigned published port
-          MYSQL_USER: root
-
-      - name: Test with pytest and coverage
-        if: ${{ matrix.python-version == '3.8' && matrix.database == 'postgres' }}
-        run: |
-          cd test_project
-          coverage run --source ../modoboa_amavis manage.py test modoboa_amavis
-        env:
-          # use localhost for the host here because we are running the job on the VM.
-          # If we were running the job on in a container this would be postgres
-          POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }} # get randomly assigned published port
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }} # get randomly assigned published port
-          MYSQL_USER: root
-      - name: Upload coverage result
-        if: ${{ matrix.python-version == '3.8' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-results
-          path: test_project/.coverage
-
-  coverage:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Install dependencies
-        run: |
-          pip install codecov
-      - name: Download coverage results
-        uses: actions/download-artifact@v2
-        with:
-          name: coverage-results
-      - name: Report coverage
-        run: |
-          coverage report
-          codecov
-
-  release:
-    needs: coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Build packages
-        run: |
-          sudo apt-get install librrd-dev rrdtool libssl-dev gettext
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt
-          cd modoboa_amavis
-          django-admin compilemessages
-          cd ..
-          python setup.py sdist bdist_wheel
-      - name: Publish to Test PyPI
-        if: endsWith(github.event.ref, '/main')
-        uses: pypa/gh-action-pypi-publish@main
-        with:
-          user: __token__
-          password: ${{ secrets.test_pypi_password }}
-          repository_url: https://test.pypi.org/legacy/
-          skip_existing: true
-      - name: Publish distribution to PyPI
-        if: startsWith(github.event.ref, 'refs/tags') || github.event_name == 'release'
-        uses: pypa/gh-action-pypi-publish@main
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
-          skip_existing: true
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up python ${{ matrix.python }} on ${{ matrix.os }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install base dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install tox codecov
+    - name: Install graphviz dependency
+      if: ${{ contains(matrix.toxenv, 'build_docs') }}
+      run: sudo apt-get -y install graphviz
+    - name: Test with tox
+      run: |
+        tox -e ${{ matrix.toxenv }}
+    # This is an example of how to upload coverage to codecov
+    # - name: Upload coverage to codecov
+    #   if: "contains(matrix.toxenv, '-cov')"
+    #   uses: codecov/codecov-action@v1
+    #   with:
+    #     file: ./coverage.xml

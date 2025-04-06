@@ -1,56 +1,70 @@
-modoboa-amavis
-==============
+astroplan
+=========
 
-|gha| |codecov|
+Observation planning package for astronomers
 
-The `amavis <http://www.amavis.org/>`_ frontend of Modoboa.
+* Code: https://github.com/astropy/astroplan
+* Docs: https://astroplan.readthedocs.io/
+* License: BSD-3
 
-Installation
-------------
+.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+    :target: http://www.astropy.org/
 
-Install this extension system-wide or inside a virtual environment by
-running the following command::
+.. image:: http://img.shields.io/pypi/v/astroplan.svg?text=version
+    :target: https://pypi.python.org/pypi/astroplan/
+    :alt: Latest release
+    
+.. image:: http://img.shields.io/badge/arXiv-1709.03913-red.svg?style=flat
+    :target: https://arxiv.org/abs/1712.09631
+    :alt: arXiv paper
 
-  $ pip install modoboa-amavis
+Status shields
+++++++++++++++
 
-Edit the settings.py file of your modoboa instance and add
-``modoboa_amavis`` inside the ``MODOBOA_APPS`` variable like this::
+(mostly useful for developers)
 
-    MODOBOA_APPS = (
-        'modoboa',
-        'modoboa.core',
-        'modoboa.lib',
-        'modoboa.admin',
-        'modoboa.relaydomains',
-        'modoboa.limits',
-        'modoboa.parameters',
-        # Extensions here
-        # ...
-        'modoboa_amavis',
-    )
+.. image:: http://img.shields.io/travis/astropy/astroplan.svg?branch=master
+    :target: https://travis-ci.org/astropy/astroplan
+    :alt: Travis Status
 
-Then, add the following at the end of the file::
+.. image:: https://img.shields.io/coveralls/astropy/astroplan.svg
+    :target: https://coveralls.io/r/astropy/astroplan
+    :alt: Code Coverage
 
-  from modoboa_amavis import settings as modoboa_amavis_settings
-  modoboa_amavis_settings.apply(globals())
+.. image:: https://readthedocs.org/projects/astroplan/badge/?version=stable
+    :target: http://astroplan.readthedocs.io/en/stable/
+    :alt: Stable Documentation Status
 
-Run the following commands to setup the database tables::
+.. image:: https://readthedocs.org/projects/astroplan/badge/?version=latest
+    :target: http://astroplan.readthedocs.io/en/latest/
+    :alt: Latest Documentation Status
 
-  $ cd <modoboa_instance_dir>
-  $ python manage.py migrate
-  $ python manage.py collectstatic
-  $ python manage.py load_initial_data
+Attribution
++++++++++++
 
-Finally, restart the python process running modoboa (uwsgi, gunicorn,
-apache, whatever).
+If you use astroplan in your work, please cite `Morris et al. 2018 <http://adsabs.harvard.edu/abs/2018AJ....155..128M>`_: 
 
-Note
-----
-Notice that if you dont configure amavis and its database, Modoboa
-won't work. Check `docs/setup` for more information.
+.. code :: bibtex
 
-.. |gha| image:: https://github.com/modoboa/modoboa-amavis/actions/workflows/plugin.yml/badge.svg
-   :target: https://github.com/modoboa/modoboa-amavis/actions/workflows/plugin.yml
+    @ARTICLE{astroplan2018,
+       author = {{Morris}, B.~M. and {Tollerud}, E. and {Sip{\H o}cz}, B. and 
+        {Deil}, C. and {Douglas}, S.~T. and {Berlanga Medina}, J. and 
+        {Vyhmeister}, K. and {Smith}, T.~R. and {Littlefair}, S. and 
+        {Price-Whelan}, A.~M. and {Gee}, W.~T. and {Jeschke}, E.},
+        title = "{astroplan: An Open Source Observation Planning Package in Python}",
+      journal = {\aj},
+    archivePrefix = "arXiv",
+       eprint = {1712.09631},
+     primaryClass = "astro-ph.IM",
+     keywords = {methods: numerical, methods: observational },
+         year = 2018,
+        month = mar,
+       volume = 155,
+          eid = {128},
+        pages = {128},
+          doi = {10.3847/1538-3881/aaa47e},
+       adsurl = {http://adsabs.harvard.edu/abs/2018AJ....155..128M},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
 
-.. |codecov| image:: https://codecov.io/gh/modoboa/modoboa-amavis/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/modoboa/modoboa-amavis
+

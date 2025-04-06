@@ -1,81 +1,63 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# NOTE: The configuration for the package, including the name, version, and
+# other information are set in the setup.cfg file.
+
+import os
+import sys
+
+from setuptools import setup
+
+# First provide helpful messages if contributors try and run legacy commands
+# for tests or docs.
+
+TEST_HELP = """
+Note: running tests is no longer done using 'python setup.py test'. Instead
+you will need to run:
+    tox -e test
+If you don't already have tox installed, you can install it with:
+    pip install tox
+If you only want to run part of the test suite, you can also use pytest
+directly with::
+    pip install -e .[test]
+    pytest
+For more information, see:
+  http://docs.astropy.org/en/latest/development/testguide.html#running-tests
 """
-A setuptools based setup module.
 
-See:
-https://packaging.python.org/en/latest/distributing.html
+if 'test' in sys.argv:
+    print(TEST_HELP)
+    sys.exit(1)
+
+DOCS_HELP = """
+Note: building the documentation is no longer done using
+'python setup.py build_docs'. Instead you will need to run:
+    tox -e build_docs
+If you don't already have tox installed, you can install it with:
+    pip install tox
+You can also build the documentation with Sphinx directly using::
+    pip install -e .[docs]
+    cd docs
+    make html
+For more information, see:
+  http://docs.astropy.org/en/latest/install.html#builddocs
 """
 
-import io
-from os import path
+if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
+    print(DOCS_HELP)
+    sys.exit(1)
 
+VERSION_TEMPLATE = """
+# Note that we need to fall back to the hard-coded version if either
+# setuptools_scm can't be imported or setuptools_scm can't determine the
+# version, so we catch the generic 'Exception'.
 try:
-    from pip.req import parse_requirements
-except ImportError:
-    # pip >= 10
-    from pip._internal.req import parse_requirements
-from setuptools import find_packages, setup
+    from setuptools_scm import get_version
+    version = get_version(root='..', relative_to=__file__)
+except Exception:
+    version = '{version}'
+""".lstrip()
 
-
-def get_requirements(requirements_file):
-    """Use pip to parse requirements file."""
-    requirements = []
-    if path.isfile(requirements_file):
-        for req in parse_requirements(requirements_file, session="hack"):
-            try:
-                # check markers, such as
-                #
-                #     rope_py3k    ; python_version >= '3.0'
-                #
-                if req.match_markers():
-                    requirements.append(str(req.req))
-            except AttributeError:
-                # pip >= 20.0.2
-                requirements.append(req.requirement)
-    return requirements
-
-
-if __name__ == "__main__":
-    HERE = path.abspath(path.dirname(__file__))
-    INSTALL_REQUIRES = get_requirements(path.join(HERE, "requirements.txt"))
-
-    with io.open(path.join(HERE, "README.rst"), encoding="utf-8") as readme:
-        LONG_DESCRIPTION = readme.read()
-
-    def local_scheme(version):
-        """Skip the local version (eg. +xyz of 0.6.1.dev4+gdf99fe2)
-            to be able to upload to Test PyPI"""
-        return ""
-
-    setup(
-        name="modoboa-amavis",
-        description="The amavis frontend of Modoboa",
-        long_description=LONG_DESCRIPTION,
-        license="MIT",
-        url="http://modoboa.org/",
-        author="Antoine Nguyen",
-        author_email="tonio@ngyn.org",
-        classifiers=[
-            "Development Status :: 5 - Production/Stable",
-            "Environment :: Web Environment",
-            "Framework :: Django :: 2.2",
-            "Intended Audience :: System Administrators",
-            "License :: OSI Approved :: MIT License",
-            "Operating System :: OS Independent",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "Topic :: Communications :: Email",
-            "Topic :: Internet :: WWW/HTTP",
-        ],
-        keywords="email amavis spamassassin",
-        packages=find_packages(exclude=["docs", "test_project"]),
-        include_package_data=True,
-        zip_safe=False,
-        install_requires=INSTALL_REQUIRES,
-        use_scm_version={"local_scheme": local_scheme},
-        setup_requires=["setuptools_scm"],
-    )
+setup(use_scm_version={'write_to': os.path.join('astroplan', 'version.py'),
+                       'write_to_template': VERSION_TEMPLATE})

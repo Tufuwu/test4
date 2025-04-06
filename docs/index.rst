@@ -1,44 +1,73 @@
-.. modoboa-amavis documentation master file, created by
-   sphinx-quickstart on Sun Feb 22 14:35:42 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. include:: references.txt
 
-Welcome to modoboa-amavis's documentation!
-==========================================
+.. _astroplan:
 
-This plugin provides a simple management frontend for `amavisd-new
-<http://www.amavis.org>`_. The supported features are:
+**********************************
+Observation Planning (`astroplan`)
+**********************************
 
-* SQL quarantine management: available to administrators or users,
-  possibility to delete or release messages
-* Per domain customization (using policies): specify how amavisd-new
-  will handle traffic
-* Manual training of `SpamAssassin
-  <http://spamassassin.apache.org/>`_ using quarantine's content
+What is astroplan?
+==================
 
-.. note::
+**astroplan** is an open source Python package to help astronomers plan
+observations.
 
-   The per-domain policies feature only works for new
-   installations. Currently, you can't use modoboa with an existing
-   database (ie. with data in ``users`` and ``policies`` tables).
+The goal of astroplan is to make a flexible toolbox for observation planning and
+scheduling.  When complete, the goal is to be easy for Python beginners and new
+observers to to pick up, but powerful enough for observatories preparing nightly
+and long-term schedules.
 
-.. note::
 
-   This plugin requires amavisd-new version **2.7.0** or higher. If
-   you're planning to use the :ref:`selfservice`, you'll need version
-   **2.8.0**.
+Features:
 
-.. note::
+* Calculate rise/set/meridian transit times, alt/az positions for targets at
+  observatories anywhere on Earth
+* Built-in plotting convenience functions for standard observation planning
+  plots (airmass, parallactic angle, sky maps).
+* Determining observability of sets of targets given an arbitrary set of
+  constraints (i.e., altitude, airmass, moon separation/illumination, etc.).
+* `Astropy <https://astropy.org>`__ powered!
 
-   ``$sql_partition_tag`` should remain undefined in ``amavisd.conf``. Modoboa
-   does not support the use of ``sql_partition_tag``, setting this value can
-   result in quarantined messages not showing or the wrong messages being
-   released or learnt as ham/spam.
+Links
+=====
 
-Contents:
+* `Source code <https://github.com/astropy/astroplan>`_
+* `Docs <https://astroplan.readthedocs.io/>`_
+* `Issues <https://github.com/astropy/astroplan/issues>`_
+
+License: BSD-3
+
+.. _astroplan_docs:
+
+General Documentation
+=====================
 
 .. toctree::
    :maxdepth: 2
 
-   install
-   setup
+   installation
+   getting_started
+   tutorials/index
+   faq/index
+   api
+   changelog
+
+.. _astroplan_authors:
+
+Authors
+=======
+
+Maintainers
+-----------
+* `Jazmin Berlanga Medina, including contributions from Google Summer of Code 2015 <https://www.google-melange.com/gsoc/project/details/google/gsoc2015/jberlanga/5707702298738688>`_
+* `Brett Morris, including contributions from Google Summer of Code 2015 <https://www.google-melange.com/gsoc/project/details/google/gsoc2015/bmmorris/5707702298738688>`_
+
+Contributors
+------------
+* Christoph Deil
+* Stephanie Douglas
+* Eric Jeschke
+* Adrian Price-Whelan
+* Erik Tollerud
+* Brigitta Sipocz
+* Karl Vyhmeister
