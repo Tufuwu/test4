@@ -1,20 +1,13 @@
-# win32-setctime
-
-[![Pypi version](https://img.shields.io/pypi/v/win32-setctime.svg)](https://pypi.python.org/pypi/win32-setctime) [![Python version](https://img.shields.io/badge/python-3.5%2B-blue.svg)](https://pypi.python.org/pypi/win32-setctime) [![Build status](https://img.shields.io/github/workflow/status/Delgan/win32-setctime/Tests/master)](https://github.com/Delgan/win32-setctime/actions/workflows/tests.yml?query=branch%3Amaster) [![License](https://img.shields.io/github/license/delgan/win32-setctime.svg)](https://github.com/Delgan/win32-setctime/blob/master/LICENSE)
-
-A small Python utility to set file creation time on Windows.
+![Hackerman](https://www.gravatar.com/avatar/2090713a50fcdae69b802e73815000a4?s=328&d=identicon&r=PG )
 
 
-## Installation
+|-----------------------|-----------------------------------------------------------------------------------------|
+| Build Status          | ![Build Status](https://secure.travis-ci.org/getslash/flux.png?branch=master,develop)   |
+| Supported Versions    | ![Supported Versions](https://img.shields.io/pypi/pyversions/flux.svg)                  |
+| Latest Version        | ![Latest Version](https://img.shields.io/pypi/v/flux.svg)                               |
 
-```shell
-pip install win32-setctime
-```
 
-## Usage
+# What is Flux?
+Flux is a Python library enabling you to create virtual timelines and use them to test long processes.
 
-```python
-from win32_setctime import setctime
-
-setctime("my_file.txt", 1561675987.509)
-```
+For more details, see the documentation at http://flux.readthedocs.org
