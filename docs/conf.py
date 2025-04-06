@@ -1,33 +1,17 @@
 # -*- coding: utf-8 -*-
 #
-# This file is part of HEPData.
-# Copyright (C) 2016 CERN.
+# Copyright (C) 2018 CERN.
 #
-# HEPData is free software; you can redistribute it
-# and/or modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of the
-# License, or (at your option) any later version.
-#
-# HEPData is distributed in the hope that it will be
-# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with HEPData; if not, write to the
-# Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307, USA.
-#
-# In applying this license, CERN does not
-# waive the privileges and immunities granted to it by virtue of its status
-# as an Intergovernmental Organization or submit itself to any jurisdiction.
+# invenio-app-ils is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+
+"""Sphinx configuration."""
 
 from __future__ import print_function
 
 import os
 
 import sphinx.environment
-
 
 # -- General configuration ------------------------------------------------
 
@@ -42,13 +26,10 @@ suppress_warnings = ['image.nonlocal_uri']
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
-    'sphinx_click.ext',
-    'celery.contrib.sphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -66,8 +47,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u''
-copyright = u'2016, CERN'
+project = u'invenio-app-ils'
+copyright = u'2018, CERN'
 author = u'CERN'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -78,7 +59,9 @@ author = u'CERN'
 
 # Get the version string. Cannot be done with import!
 g = {}
-with open(os.path.join('..', 'hepdata', 'version.py'), 'rt') as fp:
+with open(os.path.join(os.path.dirname(__file__), '..',
+                       'invenio_app_ils', 'version.py'),
+          'rt') as fp:
     exec(fp.read(), g)
     version = g['__version__']
 
@@ -134,14 +117,15 @@ todo_include_todos = False
 html_theme = 'alabaster'
 
 html_theme_options = {
-    'description': 'HEPData web application.',
-    'github_user': 'hepdata',
-    'github_repo': 'hepdata',
-    'github_button': True,
+    'description': 'Invenio app ils',
+    'github_user': 'inveniosoftware',
+    'github_repo': 'invenio_app_ils',
+    'github_button': False,
     'github_banner': True,
     'show_powered_by': False,
     'extra_nav_links': {
-        'HEPData@GitHub': 'https://github.com/HEPData',
+        'invenio_app_ils@GitHub': 'https://github.com/invenio_app_ils/invenio_app_ils',
+        'invenio_app_ils@PyPI': 'https://pypi.python.org/pypi/invenio_app_ils/',
     }
 }
 
@@ -165,7 +149,7 @@ html_theme_options = {
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'hepdata-logo.png'
+#html_logo = None
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -246,7 +230,7 @@ html_sidebars = {
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'HEPData_namedoc'
+htmlhelp_basename = 'invenio_app_ils_namedoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -268,8 +252,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'HEPData.tex', u'HEPData Documentation',
-   u'CERN', 'manual'),
+    (master_doc, 'invenio_app_ils.tex', u'invenio_app_ils Documentation',
+     u'CERN', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -298,7 +282,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'HEPData', u'HEPData Documentation',
+    (master_doc, 'invenio_app_ils', u'invenio_app_ils Documentation',
      [author], 1)
 ]
 
@@ -312,9 +296,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'HEPData', u'HEPData Documentation',
-   author, 'HEPData', 'HEPData - Repository for publication-related High-Energy Physics data.',
-   'Miscellaneous'),
+    (master_doc, 'invenio_app_ils', u'invenio-app-ils Documentation',
+     author, 'invenio_app_ils', 'Invenio app ils',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -331,16 +315,11 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/2/': None}
-
-# If you’d like to change the prefix for tasks in reference documentation
-# then you can change the celery_task_prefix configuration value.
-# http://docs.celeryproject.org/en/latest/userguide/sphinx.html
-celery_task_prefix = '(task)'  # < default
-
-# The default options for autodoc directives.
-autodoc_default_options = {
-    'members': None,
-    'undoc-members': None,
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/', None),
+    # TODO: Configure external documentation references, eg:
+    # 'Flask-Admin': ('https://flask-admin.readthedocs.io/en/latest/', None),
 }
-autodoc_member_order = 'bysource'
+
+# Autodoc configuraton.
+autoclass_content = 'both'

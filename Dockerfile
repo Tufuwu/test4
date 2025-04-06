@@ -1,43 +1,43 @@
-FROM inspirehep/python:3.6
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2018-2020 CERN.
+#
+# invenio-app-ils is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
 
-ARG APP_ENVIRONMENT
+FROM python:3.6
 
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get update
-RUN apt-get install -y nodejs
+RUN apt-get update && apt-get upgrade -y && apt-get install apt-file -y && apt-file update
+RUN apt-get install -y git curl vim npm
+RUN pip install --upgrade setuptools wheel pip uwsgi uwsgitop uwsgi-tools
 
-RUN npm install -g \
-    clean-css@^3.4.24 \
-    requirejs \
-    uglify-js
+RUN python -m site
+RUN python -m site --user-site
 
-RUN npm install -g --unsafe-perm \
-    node-sass@4.14.1
+# Install Invenio
+ENV WORKING_DIR=/opt/invenio_app_ils
+ENV INVENIO_INSTANCE_PATH=${WORKING_DIR}/var/instance
+ENV INVENIO_STATIC_URL_PATH='/invenio-assets'
+ENV INVENIO_STATIC_FOLDER=${INVENIO_INSTANCE_PATH}/invenio-assets
 
-WORKDIR /code
+# copy everything inside /src
+RUN mkdir -p ${WORKING_DIR}/src
+COPY ./ ${WORKING_DIR}/src
+WORKDIR ${WORKING_DIR}/src
 
-COPY . .
+# Install/create static files
+RUN mkdir -p ${INVENIO_INSTANCE_PATH}
+RUN mkdir -p ${INVENIO_STATIC_FOLDER}
 
-RUN pip install --no-cache-dir --upgrade pip && \
- pip install --no-cache-dir --upgrade setuptools && \
- pip install --no-cache-dir --upgrade wheel && \
- pip install -e . -r requirements.txt
+RUN ./scripts/bootstrap
 
-RUN bash -c "set -x; [[ ${APP_ENVIRONMENT:-prod} = local-web ]] && \
-  pip install -e .[all] || echo 'Not installing test or doc requirements on prod or worker build'"
+# copy uwsgi config files
+COPY ./docker/uwsgi/ ${INVENIO_INSTANCE_PATH}
 
-WORKDIR /usr/local/var/hepdata-instance/static
+# Set folder permissions
+RUN chgrp -R 0 ${WORKING_DIR} && \
+    chmod -R g=u ${WORKING_DIR}
 
-RUN hepdata npm \
- && npm install \
- && hepdata collect -v \
- && hepdata assets build
-
-RUN bash -c "echo $APP_ENVIRONMENT"
-
-RUN bash -c "set -x; [[ ${APP_ENVIRONMENT:-prod} = local-web ]] && (cd /usr/local/var && wget https://saucelabs.com/downloads/sc-4.6.2-linux.tar.gz && \
-  tar -xvf sc-4.6.2-linux.tar.gz) || echo 'Not installing SC on prod or worker build'"
-
-WORKDIR /code
-
-ENTRYPOINT []
+RUN useradd invenio --uid 1000 --gid 0 && \
+    chown -R invenio:root ${WORKING_DIR}
+USER 1000

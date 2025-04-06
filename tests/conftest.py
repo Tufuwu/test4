@@ -1,143 +1,103 @@
 # -*- coding: utf-8 -*-
 #
-# This file is part of HEPData.
-# Copyright (C) 2016 CERN.
+# Copyright (C) 2020 CERN.
 #
-# HEPData is free software; you can redistribute it
-# and/or modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of the
-# License, or (at your option) any later version.
-#
-# HEPData is distributed in the hope that it will be
-# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with HEPData; if not, write to the
-# Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307, USA.
-#
-# In applying this license, CERN does not
-# waive the privileges and immunities granted to it by virtue of its status
-# as an Intergovernmental Organization or submit itself to any jurisdiction.
+# invenio-app-ils is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
 
-"""HEPData Test Fixtures"""
+"""Common pytest fixtures and plugins."""
 
 import os
 
-from invenio_accounts.models import Role, User
-from invenio_db import db
+import jinja2
 import pytest
+from flask import Blueprint
+from invenio_access.models import ActionRoles
+from invenio_access.permissions import superuser_access
+from invenio_accounts.models import Role
 
-from hepdata.ext.elasticsearch.admin_view.api import AdminIndexer
-from hepdata.ext.elasticsearch.api import reindex_all
-from hepdata.factory import create_app
-from hepdata.modules.records.migrator.api import Migrator, load_files
-
-TEST_EMAIL = 'test@hepdata.net'
-TEST_PWD = 'hello1'
-
-
-def create_basic_app():
-    app = create_app()
-    test_db_host = app.config.get('TEST_DB_HOST', 'localhost')
-    app.config.update(dict(
-        TESTING=True,
-        TEST_RUNNER="celery.contrib.test_runner.CeleryTestSuiteRunner",
-        CELERY_TASK_ALWAYS_EAGER=True,
-        CELERY_RESULT_BACKEND="cache",
-        CELERY_CACHE_BACKEND="memory",
-        MAIL_SUPPRESS_SEND=True,
-        CELERY_TASK_EAGER_PROPAGATES=True,
-        ELASTICSEARCH_INDEX="hepdata-main-test",
-        SUBMISSION_INDEX='hepdata-submission-test',
-        AUTHOR_INDEX='hepdata-authors-test',
-        SQLALCHEMY_DATABASE_URI=os.environ.get(
-            'SQLALCHEMY_DATABASE_URI', 'postgresql+psycopg2://hepdata:hepdata@' + test_db_host + '/hepdata_test')
-    ))
-    return app
-
-
-def setup_app(app):
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
-        reindex_all(recreate=True, synchronous=True)
-
-        ctx = app.test_request_context()
-        ctx.push()
-
-        user_count = User.query.filter_by(email='test@hepdata.net').count()
-        if user_count == 0:
-            user = User(email=TEST_EMAIL, password='hello1', active=True)
-            admin_role = Role(name='admin')
-            coordinator_role = Role(name='coordinator')
-
-            user.roles.append(admin_role)
-            user.roles.append(coordinator_role)
-
-            db.session.add(admin_role)
-            db.session.add(coordinator_role)
-            db.session.add(user)
-            db.session.commit()
-
-        yield app
-        ctx.pop()
+from invenio_app_ils.permissions import backoffice_access_action
 
 
 @pytest.fixture()
-def app(request):
-    """Flask app fixture."""
-    app = create_basic_app()
-    app_generator = setup_app(app)
-    for app in app_generator:
-        yield app
+def users(app, db):
+    """Create admin, librarians and patrons."""
+    # with Postgresql, when dropping the User table, the sequence is not
+    # automatically reset to 1, causing issues with the tests demo data.
+    db.session.execute("ALTER SEQUENCE IF EXISTS accounts_user_id_seq RESTART")
+    db.session.commit()
+
+    with db.session.begin_nested():
+        datastore = app.extensions["security"].datastore
+        # create users
+        patron1 = datastore.create_user(
+            email="patron1@test.com", password="123456", active=True
+        )
+        patron2 = datastore.create_user(
+            email="patron2@test.com", password="123456", active=True
+        )
+        patron3 = datastore.create_user(
+            email="patron3@test.com", password="123456", active=True
+        )
+        librarian = datastore.create_user(
+            email="librarian@test.com", password="123456", active=True
+        )
+        librarian2 = datastore.create_user(
+            email="librarian2@test.com", password="123456", active=True
+        )
+        admin = datastore.create_user(
+            email="admin@test.com", password="123456", active=True
+        )
+        # Give role to admin
+        admin_role = Role(name="admin")
+        db.session.add(
+            ActionRoles(action=superuser_access.value, role=admin_role)
+        )
+        datastore.add_role_to_user(admin, admin_role)
+        # Give role to librarian
+        librarian_role = Role(name="librarian")
+        db.session.add(
+            ActionRoles(
+                action=backoffice_access_action.value, role=librarian_role
+            )
+        )
+        datastore.add_role_to_user(librarian, librarian_role)
+        # Give role to librarian2
+        db.session.add(
+            ActionRoles(
+                action=backoffice_access_action.value, role=librarian_role
+            )
+        )
+        datastore.add_role_to_user(librarian2, librarian_role)
+    db.session.commit()
+
+    return {
+        "admin": admin,
+        "librarian": librarian,
+        "librarian2": librarian2,
+        "patron1": patron1,
+        "patron2": patron2,
+        "patron3": patron3,
+    }
 
 
-@pytest.fixture()
-def admin_idx(app):
-    with app.app_context():
-        admin_idx = AdminIndexer()
-        return admin_idx
-
-
-@pytest.fixture()
-def load_default_data(app, identifiers):
-    with app.app_context():
-        to_load = [x["hepdata_id"] for x in identifiers]
-        load_files(to_load, synchronous=True)
-
-
-@pytest.fixture()
-def client(app):
-    with app.test_client() as client:
-        yield client
-
-
-@pytest.fixture()
-def migrator():
-    return Migrator()
-
-
-@pytest.fixture()
-def identifiers():
-    return get_identifiers()
-
-def get_identifiers():
-    return [{"hepdata_id": "ins1283842", "inspire_id": 1283842,
-             "title": "Measurement of the forward-backward asymmetry "
-                      "in the distribution of leptons in $t\\bar{t}$ "
-                      "events in the lepton$+$jets channel",
-             "data_tables": 14,
-             "arxiv": "arXiv:1403.1294"},
-
-            {"hepdata_id": "ins1245023", "inspire_id": 1245023,
-             "title": "High-statistics study of $K^0_S$ pair production in two-photon collisions",
-             "data_tables": 40,
-             "arxiv": "arXiv:1307.7457"}
-            ]
-
-@pytest.fixture()
-def load_submission(app, load_default_data, migrator):
-    migrator.load_file('ins1487726')
+@pytest.fixture(scope="module")
+def app_with_mail(app):
+    """App with email test templates."""
+    app.register_blueprint(
+        Blueprint(
+            "invenio_app_ils_tests", __name__, template_folder="templates"
+        )
+    )
+    # add extra test templates to the search app blueprint, to fake the
+    # existence of `invenio-theme` base templates.
+    test_templates_path = os.path.join(os.path.dirname(__file__), "templates")
+    enhanced_jinja_loader = jinja2.ChoiceLoader(
+        [
+            app.jinja_loader,
+            jinja2.FileSystemLoader(test_templates_path),
+        ]
+    )
+    # override default app jinja_loader to add the new path
+    app.jinja_loader = enhanced_jinja_loader
+    yield app

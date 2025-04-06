@@ -2,6 +2,12 @@
 __pycache__/
 *.py[cod]
 
+# VS code
+.vscode/
+
+# Idea software family
+.idea/
+
 # C extensions
 *.so
 
@@ -14,6 +20,7 @@ dist/
 downloads/
 eggs/
 .eggs/
+lib/
 lib64/
 parts/
 sdist/
@@ -44,7 +51,6 @@ coverage.xml
 
 # Translations
 *.mo
-*.pot
 
 # Django stuff:
 *.log
@@ -55,14 +61,13 @@ docs/_build/
 # PyBuilder
 target/
 
-# Local config file
-hepdata/config_local.py
+# Vim swapfiles
+.*.sw?
 
-# Local tmp directory
-tmp/
-
-# Futurize
-*.bak
-
-.idea
-.pytest_cache
+# Project specific
+**/node_modules
+**/build
+.eggs
+*.egg-info
+*.pid
+celerybeat-schedule

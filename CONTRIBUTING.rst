@@ -1,3 +1,9 @@
+..
+    Copyright (C) 2018 CERN.
+
+    invenio-app-ils is free software; you can redistribute it and/or modify it
+    under the terms of the MIT License; see LICENSE file for more details.
+
 Contributing
 ============
 
@@ -10,7 +16,13 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs by sending an email to ``info@hepdata.net``.
+Report bugs at https://github.com/invenio_app_ils/invenio_app_ils/issues.
+
+If you are reporting a bug, please include:
+
+* Your operating system name and version.
+* Any details about your local setup that might be helpful in troubleshooting.
+* Detailed steps to reproduce the bug.
 
 Fix Bugs
 ~~~~~~~~
@@ -27,35 +39,44 @@ is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-HEPData could always use more documentation, whether as part of the
-official HEPData docs, in docstrings, or even on the web in blog posts,
+invenio-app-ils could always use more documentation, whether as part of the
+official invenio-app-ils docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to send an email to ``info@hepdata.net``.
-Alternatively, open an issue at https://github.com/HEPData/hepdata/issues.
+The best way to send feedback is to file an issue at
+https://github.com/invenio_app_ils/invenio_app_ils/issues.
 
 If you are proposing a feature:
 
 * Explain in detail how it would work.
 * Keep the scope as narrow as possible, to make it easier to implement.
-* Remember that contributions are welcome :)
+* Remember that this is a volunteer-driven project, and that contributions
+  are welcome :)
 
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up ``hepdata`` for local development.
+Ready to contribute? Here's how to set up `invenio_app_ils` for local development.
 
-1. Fork the ``hepdata`` repo on GitHub.
+1. Fork the `invenio_app_ils/invenio_app_ils` repo on GitHub.
 2. Clone your fork locally:
 
    .. code-block:: console
 
-      $ git clone git@github.com:your_name_here/hepdata.git
+      $ git clone git@github.com:your_name_here/invenio_app_ils.git
 
-3. Install your local copy into a virtualenv as described in :ref:`installation`.
+3. Install your local copy into a virtualenv. Assuming you have
+   virtualenvwrapper installed, this is how you set up your fork for local
+   development:
+
+   .. code-block:: console
+
+      $ mkvirtualenv invenio_app_ils
+      $ cd invenio_app_ils/
+      $ pip install -e .[all]
 
 4. Create a branch for local development:
 
@@ -71,12 +92,21 @@ Ready to contribute? Here's how to set up ``hepdata`` for local development.
 
       $ ./run-tests.sh
 
+   The tests will provide you with test coverage and also check PEP8
+   (code style), PEP257 (documentation), flake8 as well as build the Sphinx
+   documentation and run doctests.
+
 6. Commit your changes and push your branch to GitHub:
 
    .. code-block:: console
 
       $ git add .
-      $ git commit -s -m "Your detailed description of your changes."
+      $ git commit -s
+          -m "component: title without verbs"
+          -m "* NEW Adds your new feature."
+          -m "* FIX Fixes an existing issue."
+          -m "* BETTER Improves and existing feature."
+          -m "* Changes something that should not be visible in release notes."
       $ git push origin name-of-your-bugfix-or-feature
 
 7. Submit a pull request through the GitHub website.
@@ -89,6 +119,6 @@ Before you submit a pull request, check that it meets these guidelines:
 1. The pull request should include tests and must not decrease test coverage.
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring.
-3. The pull request should work for Python 3.6. Check
-   https://github.com/HEPData/hepdata/actions?query=event%3Apull_request
-   and make sure that the tests pass.
+3. The pull request should work for Python 2.7, 3.3, 3.4 and 3.5. Check
+   https://travis-ci.org/invenio_app_ils/invenio_app_ils/pull_requests
+   and make sure that the tests pass for all supported Python versions.
