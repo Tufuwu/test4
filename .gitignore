@@ -1,18 +1,16 @@
-*.swp
+venv/
+/static/
+
+local.cfg
+db.sqlite3
 *.pyc
-*.pyo
 
-*.rpy
-*.rpyc
-!un.rpyc
-*.txt
+.idea/
+.tox/
+MANIFEST/
 
-/renpy
-/build
-/dist
-/tests
-/*.egg-info
+.coverage
+htmlcov/
 
-/bintray.json
-
-unrpyc.sublime-*
+# ignore mobilepay api token
+stregsystem/management/commands/tokens.json

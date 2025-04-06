@@ -1,33 +1,37 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Test build and run tests
+name: Django CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ next ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ next ]
+
 
 jobs:
-  tests-py2:
-    name: Runs tests that require python 2
+  build:
+
     runs-on: ubuntu-latest
-    container:
-      image: python:3.9.18-buster
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ["3.9"]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
       with:
-        submodules: recursive
-    # - name: Set up Python 2.7
-    #   uses: actions/setup-python@v2
-    #   with:
-    #     python-version: "3.9"
-    - name: Test by decompiling a script and building un.rpyc
+        python-version: ${{ matrix.python-version }}
+    - name: Install Dependencies
       run: |
-        ./unrpyc.py --clobber testcases/script.rpyc
-        diff -u testcases/script.orig.rpy testcases/script.rpy
-        cd un.rpyc;
-        ./compile.py -p 1
-        cd ..
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run Tests
+      run: |
+        coverage run ./manage.py test
+    - name: Coverage report
+      run: |
+        coverage report
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v1.0.14    
+
