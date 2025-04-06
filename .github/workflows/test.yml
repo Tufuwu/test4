@@ -1,40 +1,46 @@
-name: Run Tests and Linter
+# This workflow will install Python dependencies, run tests and converage with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-on:
-  pull_request:
-    branches:
-      - main
-      - main
+name: Run tests
+
+on: [push, pull_request]
 
 jobs:
-  lint-and-test:
+  test:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         python-version: ["3.9"]
-        django-version: [3.2, 4.2]
-
-    name: Lint and Test (Python ${{ matrix.python-version }} - Django ${{ matrix.django-version }})
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: |
-          pip install -q Django==${{ matrix.django-version }}
-          pip install -e .[flake8,tests]
+    - name: Upgrade pip
+      run: |
+        python -m pip install --upgrade pip
 
-      - name: Add current directory to PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+    - name: Install dependencies
+      run: |
+        python -m pip install -r requirements-dev.txt
 
-      - name: Lint with flake8
-        run: flake8
+    - name: 'Python2: Run tests'
+      if: matrix.python-version == '2.7' || matrix.python-version == 'pypy2'
+      run: |
+        python sh.py travis
+        python -m flake8 sh.py test.py
 
-      - name: Test with pytest
-        run: pytest
+    - name: 'Python3: Run tests and report to Coveralls'
+      env:
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: matrix.python-version != '2.7' && matrix.python-version != 'pypy2'
+      run: |
+        python sh.py travis
+        python -m flake8 sh.py test.py
+        python setup.py check --restructuredtext --metadata --strict
+        python -m pip install coveralls==3.1.0
+        coveralls --service=github
