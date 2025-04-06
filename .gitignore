@@ -1,13 +1,21 @@
-# general things to ignore
-build/
-dist/
-*.egg-info/
-*.egg
-*.py[cod]
-__pycache__/
-*.so
+*.pyc
+*.pyo
+.DS*
+.pylint_rc
+/.idea
+/.project
+/.pydevproject
+/.settings
+Thumbs.db
 *~
-
-# due to using tox and pytest
-.tox
 .cache
+
+.coverage
+.tox/
+test/userdata/addon_settings.json
+test/userdata/credentials.json
+test/userdata/temp
+test/userdata/token.json
+test/userdata/cache
+test/userdata/addon_data
+test/cdm
