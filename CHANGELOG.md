@@ -1,102 +1,81 @@
-# 3.5.2
+# Changelog
 
-The binary wheels have now been built with `-DPORTABLE=True`. This should fix issues with Dysco crashing on some platforms (due to missing AVX instructions). Otherwise nothing has changed.
+## [Unreleased]
 
+### Added
 
-# 3.5.1
+- We now officially support Django 3.2, and tentatively Django 4.0
 
-The binary wheel for python 3.10 is now based on numpy 1.22.4. Otherwise nothing has changed.
+### Fixed
 
+- Update tox config to account for Django's primary branch rename.
 
-# 3.5.0
+## [0.3.0] - 2020-11-02
 
-This version as a binary wheel ships with underlying casacore v3.5.0
+We have a new documentation website! Check out [torchbox.github.io/django-pattern-library](https://torchbox.github.io/django-pattern-library/).
 
-Binary wheels are now `manylinux2014` which will only work with pip >= 19.3
+### Added
 
-The license has changed to LGPL.
+- This package now supports Django 3.1, and has tentative support for Django 3.2
+- We also now support Python 3.9
+- Implement optional default for [override_tag](https://torchbox.github.io/django-pattern-library/reference/api/#override_tag) ([#125](https://github.com/torchbox/django-pattern-library/issues/125))
+- A new `render_patterns` command makes it possible to export the pattern library templates for automated tests or static hosting ([#16](https://github.com/torchbox/django-pattern-library/issues/16), [#17](https://github.com/torchbox/django-pattern-library/issues/17))
+- Permit variable template names in extends and include tags ([#112](https://github.com/torchbox/django-pattern-library/pull/112))
 
+### Removed
 
-# 3.4.0
+- We no longer support Django 1.11, 2.0, 2.1
+- The project no longer includes polyfills for all ES6 features, and only supports modern browsers.
 
-This version as a binary wheel ships with underlying casacore v3.4.0
+### Fixed
 
-There are no changes to python-casacore itself
+- Pages and fragments are now handled correctly again ([#119](https://github.com/torchbox/django-pattern-library/issues/119))
+- PyPI package metadata now uses absolute URLs to GitHub ([#120](https://github.com/torchbox/django-pattern-library/issues/120)).
 
+## [0.2.9] - 2020-07-29
 
-# 3.3.0
+### Added
+- Atomic design no longer enforced and pattern templates can be from several locations, rather than a single location.
+  These changes are currently undocumented, see the tests for examples.
 
-This version as a binary wheel ships with underlying casacore v3.3.0.
+### Fixed
+- Templates that are not explicitly part of the pattern library can no longer be rendered by the pattern library
 
-Ony a few changes in python-casacore itself:
+## [0.2.8] - 2020-03-13
 
- - Expose complete MS and subtable definitions (#183)
- - Miminum casacore version is now 3.2.0 (#195)
- - Several improvements to library handling in setup.py (#194)
+### Added
+- Moved to github and open sourced
+- Support for Django 3.0
+- Support for Python 3.8
 
+### Removed
+- webpack-dev-server
+- references to old name of 'Mikalab'
 
-# 3.2.0
+### Fixed
+- Documentation links and improved documentation
+- Accessibility issues with pattern library chrome
+- JavaScript in IE11 (added polyfills)
+- Pattern search (no longer case sensitive)
+- Issue with xframe-options header in django 3
 
-This version as a binary wheel ships with underlying casacore v3.2.0.
+## [0.2.5] - 2019-11-01
 
-Changes are only in the underlying casacore.
+### Added
+- Switch to Poetry for dependency management
+- Documentation tab for each pattern that will display a markdown file if it is stored along with the html and yaml files
+- Extra yaml examples in the README
+- Merge request template
 
+### Changed
+- Improve documentation for developers
 
-# 3.1.1
+## [0.2.4] - 2019-06-11
 
-This is the first release that will be supplied as binary wheels
-(manylinux2010). Note that you need pip > 10.x to use manylinux2010 wheels.
-If you don't use the binary wheel and unicode is important to you, use
-casacore 3.1.1. Note that we skipped 3.1.0 to match the casacore version
-and hopefully avoid confusion.
+### Added
+- Compatibility with Django 2.2
 
-Changes:
-
- - handle unicode even better! :) (#158)
- - iteritems() in casacore/tables/table.py incompatible with Python 3 (#165)
- - Make a big binary wheel including dependencies (#145)
- - Use ~ instead of - to negate the mask (#179)
- 
- 
-# 3.0
-
- - Improve the setup procedure (#146)
- - prepare for 3.0.0 (#147)
- - More find_boost improvements  build system (#131)
- - gcc failure when attempting setup.py build_ext on Red Hat EL 7.4 (quantamath.cc) (#135)
- - python-casacore uses hardcoded casa:: calls (#136)
- - quanta example not working with python 2.7.6 bug (#17)
- - Fix build and namespace problem (#137)
- - Remove deprecated has_key (#132)
- - Correct header guard macro definition (#156)
- - Avoiding TypeError deep down in setuptool (#155)
-
-
-# 2.2.0
-
- - Expose MeasurementSet functionality (#61)
- - Many improvements to documentation and test coverage
-   Thanks to Shibasis Patel (@shibasisp) our Google summer of Code '17 student.
- 
- A full list of changes can be found on the issue tracker:
- 
- https://github.com/casacore/python-casacore/milestone/6?closed=1
- 
-
-# 2.1.0
-
-
- - Replaced references to pyrap -> casacore (issue #16)
- - Experimental support for Python3 (needs python3 branch build of casacore)
- - Link against correct Python on OSX when using homebrew (issue #15)
-
-
-# 2.0.0
-
-- Renamed project from pyrap to python-casacore
-- Renamed modules from pyrap to casacore
-- Added backswards compatible module which imports casacore
-- Removed scons build dependency, just use setup.py 
-- Depends on CASACORE 2.0
-- Cleanup of project structure
-- Moved development to github
+[0.2.9]: https://github.com/torchbox/django-pattern-library/releases/tag/v0.2.9
+[0.2.8]: https://github.com/torchbox/django-pattern-library/releases/tag/v0.2.8
+[0.2.5]: https://github.com/torchbox/django-pattern-library/releases/tag/v0.2.5
+[0.2.4]: https://github.com/torchbox/django-pattern-library/releases/tag/v0.2.4

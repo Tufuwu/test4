@@ -1,5 +1,6 @@
-.venv*/
-venv/
-.virtualenv*/
-build/
-*.egg-info/
+/.git/
+node_modules/
+/build/
+/dist/
+/pattern_library/static/
+site/
