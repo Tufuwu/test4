@@ -1,69 +1,94 @@
+#!/usr/bin/python3
+
+# -------------------------------------------------------------------------------
+# This file is part of Phobos, a Blender Add-On to edit robot models.
+# Copyright (C) 2020 University of Bremen & DFKI GmbH Robotics Innovation Center
+#
+# You should have received a copy of the 3-Clause BSD License in the LICENSE file.
+# If not, see <https://opensource.org/licenses/BSD-3-Clause>.
+# -------------------------------------------------------------------------------
+import json
 import os
-from setuptools import setup, Command
-
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
-    README = readme.read()
-
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+import setuptools
+import subprocess
+from pathlib import Path
 
 
-class PyTest(Command):
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import subprocess
-        import sys
-
-        errno = subprocess.call([sys.executable, 'runtests.py'])
-        raise SystemExit(errno)
+# utilities
+def get_git_revision_hash():
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip().decode("utf-8")
 
 
-setup(
-    name='django-q',
-    version='1.3.4',
-    author='Ilan Steemers',
-    author_email='koed00@gmail.com',
-    keywords='django multiprocessing worker scheduler queue',
-    packages=['django_q'],
-    include_package_data=True,
-    url='https://django-q.readthedocs.org',
-    license='MIT',
-    description='A multiprocessing distributed task queue for Django',
-    long_description=README,
-    install_requires=['django>=2.2', 'django-picklefield', 'blessed', 'arrow'],
-    test_requires=['pytest', 'pytest-django', ],
-    cmdclass={'test': PyTest},
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Web Environment',
-        'Framework :: Django',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: POSIX',
-        'Operating System :: MacOS',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Topic :: Internet :: WWW/HTTP',
-        'Topic :: System :: Distributed Computing',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-    ],
-    entry_points={
-        'djangoq.errorreporters': [
-            'rollbar = django_q_rollbar:Rollbar',
-            'sentry = django_q_sentry:Sentry',
-        ]
-    },
-    extras_require={
-        'rollbar': ["django-q-rollbar>=0.1"],
-        'sentry': ["django-q-sentry>=0.1"],
+def get_git_revision_short_hash():
+    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode("utf-8")
+
+
+def get_git_branch():
+    return subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip().decode("utf-8")
+
+
+def main(args):
+    # data
+    with open("README.md", "r") as fh:
+        long_description = fh.read()
+    codemeta = json.load(open("codemeta.json", "r"))
+    requirements = {
+        "yaml": "pyyaml",
+        "networkx": "networkx",  # optional for blender
+        "numpy": "numpy",
+        "scipy": "scipy",
+        "trimesh": "trimesh",  # optional for blender
+        "pkg_resources": "setuptools",
+        "collada": "pycollada",
+        "pydot": "pydot"
     }
-)
+    optional_requirements = {
+        "yaml": "pyyaml",
+        "pybullet": "pybullet",  # optional for blender
+        "open3d": "open3d",  # optional for blender
+        "python-fcl": "python-fcl",  # optional for blender
+    }
+    this_dir = Path(__file__).parent
+
+    ##################
+    # python package #
+    ##################
+    kwargs = {
+        "name": codemeta["title"].lower(),  # Replace with your own username
+        "version": codemeta["version"],
+        "author": ",  ".join(codemeta["author"]),
+        "author_email": codemeta["maintainer"],
+        "description": codemeta["description"] + " Revision:" + get_git_branch() + "-" + get_git_revision_short_hash(),
+        "long_description": long_description,
+        "long_description_content_type":" text/markdown",
+        "url": codemeta["codeRepository"],
+        "packages": setuptools.find_packages(),
+        "include_package_data": True,
+        "package_data":{'':  [os.path.join("data", x) for x in os.listdir(this_dir/"phobos"/"data")],},
+        "classifiers": [
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.10",
+            "Operating System :: OS Independent",
+        ],
+        "python_requires": '>= 3.6',
+        "entry_points": {
+            'console_scripts': [
+                'phobos=phobos.scripts.phobos:main',
+            ]
+        }
+    }
+    # autoproj handling
+    if not "AUTOPROJ_CURRENT_ROOT" in os.environ:
+        kwargs["install_requires"] = list(requirements.values())
+        kwargs["extras_require"] = {'console_scripts': list(optional_requirements.keys())}
+
+    setuptools.setup(
+        **kwargs
+    )
+
+
+if __name__ == "__main__":
+    import sys
+    main(sys.argv)
