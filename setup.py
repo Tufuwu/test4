@@ -1,53 +1,71 @@
 #!/usr/bin/env python
+# Generic setup script for single-package Python projects
+# by Thomas Perl <thp.io/about>
 
-import sys
-from setuptools import setup, find_packages
-from io import open
+from distutils.core import setup
 
+import re
+import os
+import glob
 
-needs_wheel = {'bdist_wheel'}.intersection(sys.argv)
-wheel = ['wheel'] if needs_wheel else []
+PACKAGE = 'mygpoclient'
+SCRIPT_FILE = os.path.join(PACKAGE, '__init__.py')
 
-with open('README.md', 'r', encoding='utf-8') as f:
-    long_description = f.read()
+main_py = open(SCRIPT_FILE).read()
+metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", main_py))
+docstrings = re.findall('"""(.*?)"""', main_py, re.DOTALL)
 
-setup(
-    name="ufoProcessor",
-    use_scm_version={"write_to": "Lib/ufoProcessor/_version.py"},
-    description="Read, write and generate UFOs with designspace data.",
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    author="Erik van Blokland",
-    author_email="erik@letterror.com",
-    url="https://github.com/LettError/ufoProcessor",
-    keywords='font development tools',
-    license="MIT",
-    packages=find_packages("Lib"),
-    package_dir={"": "Lib"},
-    python_requires='>=2.7',
-    setup_requires=wheel + ["setuptools_scm"],
-    install_requires=[
-        "defcon[lxml]>=0.6.0",
-        "fontMath>=0.4.9",
-        "fontParts>=0.8.2",
-        "fontTools[ufo,lxml]>=3.32.0",
-        "mutatorMath>=2.1.2",
-    ],
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Environment :: Console",
-        "Environment :: Other Environment",
-        "Intended Audience :: Developers",
-        "Intended Audience :: End Users/Desktop",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 3",
-        "Topic :: Multimedia :: Graphics",
-        "Topic :: Multimedia :: Graphics :: Graphics Conversion",
-        "Topic :: Multimedia :: Graphics :: Editors :: Vector-Based",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ],
+# List the packages that need to be installed/packaged
+PACKAGES = (
+        PACKAGE,
 )
+
+SCRIPTS = glob.glob('bin/*')
+
+# Metadata fields extracted from SCRIPT_FILE
+AUTHOR_EMAIL = metadata['author']
+VERSION = metadata['version']
+WEBSITE = metadata['website']
+LICENSE = metadata['license']
+DESCRIPTION = docstrings[0].strip()
+if '\n\n' in DESCRIPTION:
+    DESCRIPTION, LONG_DESCRIPTION = DESCRIPTION.split('\n\n', 1)
+else:
+    LONG_DESCRIPTION = None
+
+# Extract name and e-mail ("Firstname Lastname <mail@example.org>")
+AUTHOR, EMAIL = re.match(r'(.*) <(.*)>', AUTHOR_EMAIL).groups()
+
+DATA_FILES = [
+    ('share/man/man1', glob.glob('man/*')),
+]
+
+CLASSIFIERS = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 2',
+    'Programming Language :: Python :: 2.6',
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.3',
+    'Programming Language :: Python :: 3.4',
+]
+
+setup(name=PACKAGE,
+      version=VERSION,
+      description=DESCRIPTION,
+      long_description=LONG_DESCRIPTION,
+      author=AUTHOR,
+      author_email=EMAIL,
+      license=LICENSE,
+      url=WEBSITE,
+      packages=PACKAGES,
+      scripts=SCRIPTS,
+      data_files=DATA_FILES,
+      download_url=WEBSITE+PACKAGE+'-'+VERSION+'.tar.gz',
+      classifiers=CLASSIFIERS,
+    )
+
