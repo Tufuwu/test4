@@ -1,20 +1,44 @@
-*.pyc
-*.pyo
-*.log
-*~
-/.cache
-/.coverage
-/.project
-/.pydevproject
-/.vagrant
-/.idea
+# Byte-compiled / optimized / DLL files
 __pycache__/
-/build/
-/dist/
-/*.egg-info/
-/*-rpm-src.tar
-/rpm/
-.vagrant
-/venv/
-/.venv/
-*.orig
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+reports/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+.pytest_cache
+queryable_properties.db
+
+# Translations
+*.mo
+*.pot
+
+# Sphinx
+docs/_build
+
+# IDE
+.idea/
