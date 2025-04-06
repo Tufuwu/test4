@@ -1,73 +1,87 @@
-QmeQ: Quantum master equation for Quantum dot transport calculations
-====================================================================
+i3-quickterm
+=============
 
-QmeQ is an open-source Python package for calculations of transport through
-quantum  dot devices. The so-called Anderson-type models are used to describe
-the quantum dot device, where quantum dots are coupled to the leads by
-tunneling. QmeQ can calculate the stationary state **particle** and
-**energy currents** using various approximate density matrix approaches. As for
-now we have implemented the following first-order methods
+[![Packaging status](https://repology.org/badge/vertical-allrepos/python:i3-quickterm.svg)](https://repology.org/project/python:i3-quickterm/versions)
 
-* Pauli (classical) master equation
-* Lindblad approach
-* Redfield approach
-* First order von Neumann (1vN) approach
+A small drop-down terminal for [i3wm](https://i3wm.org/) and [sway](https://swaywm.org/)
 
-which can describe the effect of Coulomb blockade. Additionally, there is a
-possibility to model electron-phonon interaction inside a quantum dot using
-the first-order approaches. QmeQ also has two second-order methods
+Features
+--------
 
-* Second order von Neumann (2vN) approach
-* Real Time Diagrammatic (RTD) approach
+* use your favourite terminal emulator
+* can select a shell with [dmenu](http://tools.suckless.org/dmenu/) /
+  [rofi](https://github.com/DaveDavenport/rofi)
+* adapt to screen width
+* multi-monitor aware
 
-2vN and RTD approaches can address the effects of cotunneling and pair tunneling.
-Additionally, the 2vN approach can describe broadening of quantum dot states.
-The advantage of RTD approach is that it requires a lot less memory and
-computation time resources.
+Usage
+-----
 
-Physics disclaimer
-------------------
+When launched, it will minimize the quickterm on the current screen if there is
+one.  Otherwise, it will either prompt the user for the shell to open or use the
+one supplied in argument.
 
-All the methods in QmeQ are approximate so depending on parameter regime they
-**can fail**, and a good knowledge of the method is required whether to trust
-the result or not. For example, Redfield, 1vN, and 2vN approaches can **violate
-positivity** of the reduced density matrix and lead to **currents flowing against
-the bias**. We still think it is important to have a package where a user can
-duplicate existing calculations, check applicability of different methods, or
-simply discover new kind of physics using different approximate master equations.
+If the requested shell is already opened on another screen, it will be moved on
+the current screen.
 
-Installation
+It is recommended to map it to an i3 binding:
+
+```
+# with prompt
+bindsym $mod+p exec i3-quickterm
+# always pop standard shell, without the menu
+bindsym $mod+b exec i3-quickterm shell
+```
+
+Configuration
+-------------
+
+The configuration is read from `~/.config/i3/i3-quickterm.json`.
+
+* `menu`: the dmenu-compatible application used to select the shell
+* `term`: the terminal emulator of choice
+* `history`: a file to save the last-used shells order, last-used ordering
+  is disabled if set to null
+* `ratio`: the percentage of the screen height to use
+* `pos`: where to pop the terminal (`top` or `bottom`)
+* `shells`: registered shells (`{ name: command }`)
+
+`term` can be either:
+- a format string, like this one: `urxvt -t {title} -e {expanded}` with
+  the correct arguments format of your terminal. Some terminals, like
+  xfce4-terminal need the command argument to be passed as a string. In
+  this case, replace `{expanded}` by `{string}`
+- a terminal name from the hardcoded list, which should work out of the box.
+  Right now, the only reference for the list is the source code
+  (search for `TERMS =`).
+  If you'd like to add another terminal (or correct an error), please open
+  a pull request.
+
+`menu`, `term`, `history` and `shell` can contain placeholders for environment
+variables: `{$var}`.
+
+Unspecified keys are inherited from the defaults:
+
+```
+{
+    "menu": "rofi -dmenu -p 'quickterm: ' -no-custom -auto-select",
+    "term": "urxvt",
+    "history": "{$HOME}/.cache/i3/i3-quickterm.order",
+    "ratio": 0.25,
+    "pos": "top",
+    "shells": {
+        "haskell": "ghci",
+        "js": "node",
+        "python": "ipython3 --no-banner",
+        "shell": "{$SHELL}"
+    }
+}
+```
+
+Requirements
 ------------
 
-For installation instructions see [INSTALL.md](INSTALL.md).
-
-Tutorial & Examples
--------------------
-
-For an introduction to QmeQ see this [tutorial][tutorial]
-and various [examples][examples].
-
-License
--------
-
-QmeQ has [The BSD 2-Clause License][license] and it can be found
-in [LICENSE.md](LICENSE.md).
-
-Citing QmeQ
------------
-
-Please consider citing QmeQ if the use of this project gives results which lead
-to scientific publication:
-
-G. Kiršanskas, J. N. Pedersen, O. Karlström, M. Leijnse, and A. Wacker,
-*QmeQ 1.0: An open-source Python package for calculations of transport through
-quantum dot devices*, [Comput. Phys. Commun. 221, 317 (2017)][qmeqdoi].
-
-The preprint version of the paper can be found on the
-[arXiv.org][qmeqarxiv] server.
-
-[tutorial]: https://github.com/gedaskir/qmeq-examples/tree/master/tutorial/tutorial.ipynb
-[examples]: https://github.com/gedaskir/qmeq-examples
-[license]: https://opensource.org/licenses/BSD-2-Clause
-[qmeqdoi]: https://dx.doi.org/10.1016/j.cpc.2017.07.024
-[qmeqarxiv]: https://arxiv.org/abs/1706.10104
+* python >= 3.4
+* i3 >= v3.11 or sway >= 1.2
+* [i3ipc-python](https://i3ipc-python.readthedocs.io/en/latest/) >= v2.0.1
+* dmenu or rofi (optional)
