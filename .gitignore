@@ -1,16 +1,31 @@
-*.pyc
-.*swp
-build/
-dist/
-superview.egg-info/
-django_superview.egg-info
-versiontools-*.egg
+*.py[cod]
+.cache
+.ropeproject
+*.sublime-*
+.python-version
+
+# Packages
+*.egg
 *.egg-info
-.project
-.pydevproject
-.idea
-.settings
-/testing/venv
-doc/index.html
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
 .tox
-env/
+
+# Sphinx
+docs/_build
+
+# Django
+*.sqlite3
