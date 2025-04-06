@@ -1,11 +1,19 @@
-# autosuspend
+![Build Status](https://github.com/hotdoc/hotdoc/workflows/python/badge.svg)
 
-[![Actions Status](https://github.com/languitar/autosuspend/workflows/CI%20build/badge.svg)](https://github.com/languitar/autosuspend/actions) [![codecov](https://codecov.io/gh/languitar/autosuspend/branch/master/graph/badge.svg)](https://codecov.io/gh/languitar/autosuspend) [![Documentation Status](https://readthedocs.org/projects/autosuspend/badge/?version=latest)](http://autosuspend.readthedocs.io/en/latest/?badge=latest) [![Debian CI](https://badges.debian.net/badges/debian/testing/autosuspend/version.svg)](https://buildd.debian.org/autosuspend) [![AUR](https://img.shields.io/aur/version/autosuspend.svg)](https://aur.archlinux.org/packages/autosuspend/)
+![Hotdoc logo](https://cdn.rawgit.com/hotdoc/hotdoc/master/documentation/hotdoc.svg)
 
-`autosuspend` is a python daemon that suspends a system if certain conditions are met, or not met. This enables a server to sleep in case of inactivity without depending on the X infrastructure usually used by normal desktop environments.
+This project needs a logo. In the meantime, eyes will get hurt by this 
+horrible illustration of programmer art.
 
-Documentation is [available here](https://autosuspend.readthedocs.io).
+Hotdoc is a documentation micro-framework. It provides an interface for
+extensions to plug upon, along with some base objects (formatters, ...)
 
-## License
+Please check the packages listed at [https://github.com/hotdoc](https://github.com/hotdoc) to
+pick the extensions you are interested in.
 
-This software is licensed using the [GPL2 license](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
+You can find the documentation for hotdoc, by hotdoc [here](https://hotdoc.github.io/)
+
+### Licensing
+
+hotdoc is licensed under the LGPL version 2.1 (or, at your option, any
+later version). See COPYING for more details.
