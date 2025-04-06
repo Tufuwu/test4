@@ -1,5 +1,0 @@
-cmake_minimum_required(VERSION 2.8.12)
-project(cmake_err)
-find_package(catkin REQUIRED)
-catkin_package()
-message(SEND_ERROR "This package sends an error from cmake.")

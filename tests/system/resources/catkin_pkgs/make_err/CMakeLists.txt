@@ -1,5 +1,0 @@
-cmake_minimum_required(VERSION 2.8.12)
-project(make_err)
-find_package(catkin REQUIRED)
-catkin_package()
-add_executable(fail fail.cpp)

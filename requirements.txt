@@ -1,5 +1,5 @@
-catkin_pkg
-osrf_pycommon
-pyyaml
-setuptools
-sphinxcontrib-programoutput
+cython>=0.28
+numpy>=1.14
+scipy
+matplotlib
+raysect==0.7

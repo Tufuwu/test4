@@ -1,7 +1,0 @@
-usage: catkin profile remove [-h] [name [name ...]]
-
-positional arguments:
-  name        One or more profile names to remove.
-
-optional arguments:
-  -h, --help  show this help message and exit

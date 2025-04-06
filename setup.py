@@ -1,146 +1,113 @@
-import argparse
-from distutils import log
-import os
-import site
-from stat import ST_MODE
+from setuptools import setup, find_packages, Extension
 import sys
+import numpy
+import os
+import os.path as path
+import multiprocessing
 
-from setuptools import find_packages
-from setuptools import setup
-from setuptools.command.install import install
+use_cython = True
+force = False
+profile = False
+line_profile = False
+install_rates = False
 
-# Setup installation dependencies
-install_requires = [
-    'setuptools',
-    'PyYAML',
-    'osrf-pycommon > 0.1.1',
-]
+if "--skip-cython" in sys.argv:
+    use_cython = False
+    del sys.argv[sys.argv.index("--skip-cython")]
 
-# When building the deb, do not require catkin_pkg
-if 'DEB_BUILD' not in os.environ:
-    install_requires += ['catkin_pkg >= 0.3.0']
+if "--force" in sys.argv:
+    force = True
+    del sys.argv[sys.argv.index("--force")]
 
+if "--profile" in sys.argv:
+    profile = True
+    del sys.argv[sys.argv.index("--profile")]
 
-# Figure out the resources that need to be installed
-this_dir = os.path.abspath(os.path.dirname(__file__))
-osx_resources_path = os.path.join(
-    this_dir,
-    'catkin_tools',
-    'notifications',
-    'resources',
-    'osx',
-    'catkin build.app')
-osx_notification_resources = [os.path.join(dp, f)
-                              for dp, dn, fn in os.walk(osx_resources_path)
-                              for f in fn]
-src_path = os.path.join(this_dir, 'catkin_tools')
-osx_notification_resources = [os.path.relpath(x, src_path)
-                              for x in osx_notification_resources]
+if "--line-profile" in sys.argv:
+    line_profile = True
+    del sys.argv[sys.argv.index("--line-profile")]
 
+if "--install-rates" in sys.argv:
+    install_rates = True
+    del sys.argv[sys.argv.index("--install-rates")]
 
-def _resolve_prefix(type):
-    osx_system_prefix = '/System/Library/Frameworks/Python.framework/Versions'
-    if type == 'bash_comp':
-        if sys.prefix.startswith(osx_system_prefix):
-            return '/usr'
-    elif type == 'zsh_comp':
-        if sys.prefix.startswith(osx_system_prefix):
-            return '/usr/local'
-    else:
-        raise ValueError('not supported type')
-    return ''
+source_paths = ['cherab', 'demos']
+compilation_includes = [".", numpy.get_include()]
+compilation_args = []
+cython_directives = {
+    'language_level': 3
+}
+setup_path = path.dirname(path.abspath(__file__))
 
+if line_profile:
+    compilation_args.append("-DCYTHON_TRACE=1")
+    compilation_args.append("-DCYTHON_TRACE_NOGIL=1")
+    cython_directives["linetrace"] = True
 
-def get_data_files():
-    data_files = []
+if use_cython:
 
-    # Bash completion
-    bash_comp_dest = os.path.join(_resolve_prefix('bash_comp'),
-                                  'share/bash-completion/completions')
-    data_files.append((bash_comp_dest, ['completion/catkin.bash']))
+    from Cython.Build import cythonize
 
-    # Zsh completion
-    if 'DEB_BUILD' in os.environ:
-        dirname = 'share/zsh/vendor-completions'
-    else:
-        dirname = 'share/zsh/site-functions'
-    zsh_comp_dest = os.path.join(_resolve_prefix('zsh_comp'), dirname)
-    data_files.append((zsh_comp_dest, ['completion/_catkin']))
-    return data_files
+    # build .pyx extension list
+    extensions = []
+    for package in source_paths:
+        for root, dirs, files in os.walk(path.join(setup_path, package)):
+            for file in files:
+                if path.splitext(file)[1] == ".pyx":
+                    pyx_file = path.relpath(path.join(root, file), setup_path)
+                    module = path.splitext(pyx_file)[0].replace("/", ".")
+                    extensions.append(Extension(module, [pyx_file], include_dirs=compilation_includes, extra_compile_args=compilation_args),)
 
+    if profile:
+        cython_directives["profile"] = True
 
-class PermissiveInstall(install):
+    # generate .c files from .pyx
+    extensions = cythonize(extensions, nthreads=multiprocessing.cpu_count(), force=force, compiler_directives=cython_directives)
 
-    def run(self):
-        install.run(self)
-        if os.name == 'posix':
-            for file in self.get_outputs():
-                # all installed files should be readable for anybody
-                mode = ((os.stat(file)[ST_MODE]) | 0o444) & 0o7777
-                log.info("changing permissions of %s to %o" % (file, mode))
-                os.chmod(file, mode)
+else:
 
+    # build .c extension list
+    extensions = []
+    for package in source_paths:
+        for root, dirs, files in os.walk(path.join(setup_path, package)):
+            for file in files:
+                if path.splitext(file)[1] == ".c":
+                    c_file = path.relpath(path.join(root, file), setup_path)
+                    module = path.splitext(c_file)[0].replace("/", ".")
+                    extensions.append(Extension(module, [c_file], include_dirs=compilation_includes, extra_compile_args=compilation_args),)
+
+# parse the package version number
+with open(path.join(path.dirname(__file__), 'cherab/core/VERSION')) as version_file:
+    version = version_file.read().strip()
 
 setup(
-    name='catkin_tools',
-    version='0.7.1',
-    python_requires='>=3.5',
-    packages=find_packages(exclude=['tests*', 'docs']),
-    package_data={
-        'catkin_tools': [
-            'jobs/cmake/python.cmake',
-            'jobs/cmake/python_install_dir.cmake',
-            'notifications/resources/linux/catkin_icon.png',
-            'notifications/resources/linux/catkin_icon_red.png',
-            'verbs/catkin_shell_verbs.bash',
-            'docs/examples',
-        ] + osx_notification_resources
-    },
-    data_files=get_data_files(),
-    install_requires=install_requires,
-    author='William Woodall',
-    author_email='william@osrfoundation.org',
-    maintainer='William Woodall',
-    maintainer_email='william@osrfoundation.org',
-    url='http://catkin-tools.readthedocs.org/',
-    keywords=['catkin'],
+    name="cherab",
+    version=version,
+    license="EUPL 1.1",
+    namespace_packages=['cherab'],
+    description='Cherab spectroscopy framework',
     classifiers=[
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python',
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Education",
+        "Intended Audience :: Developers",
+        "Natural Language :: English",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Cython",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering :: Physics"
     ],
-    description="Command line tools for working with catkin.",
-    long_description="Provides command line tools for working with catkin.",
-    license='Apache 2.0',
-    test_suite='tests',
-    entry_points={
-        'console_scripts': [
-            'catkin = catkin_tools.commands.catkin:main',
-        ],
-        'catkin_tools.commands.catkin.verbs': [
-            'build = catkin_tools.verbs.catkin_build:description',
-            'clean = catkin_tools.verbs.catkin_clean:description',
-            'config = catkin_tools.verbs.catkin_config:description',
-            'create = catkin_tools.verbs.catkin_create:description',
-            'env = catkin_tools.verbs.catkin_env:description',
-            'init = catkin_tools.verbs.catkin_init:description',
-            'list = catkin_tools.verbs.catkin_list:description',
-            'locate = catkin_tools.verbs.catkin_locate:description',
-            'profile = catkin_tools.verbs.catkin_profile:description',
-            'test = catkin_tools.verbs.catkin_test:description',
-        ],
-        'catkin_tools.jobs': [
-            'catkin = catkin_tools.jobs.catkin:description',
-            'cmake = catkin_tools.jobs.cmake:description',
-        ],
-        'catkin_tools.spaces': [
-            'build = catkin_tools.spaces.build:description',
-            'devel = catkin_tools.spaces.devel:description',
-            'install = catkin_tools.spaces.install:description',
-            'log = catkin_tools.spaces.log:description',
-            'source = catkin_tools.spaces.source:description',
-        ],
-    },
-    cmdclass={'install': PermissiveInstall},
+    install_requires=['numpy>=1.14', 'scipy', 'matplotlib', 'raysect>=0.7.1', 'cython>=0.28'],
+    packages=find_packages(),
+    include_package_data=True,
+    zip_safe=False,
+    ext_modules=extensions
 )
+
+# setup a rate repository with common rates
+if install_rates:
+    try:
+        from cherab.openadas import repository
+        repository.populate()
+    except ImportError:
+        pass
