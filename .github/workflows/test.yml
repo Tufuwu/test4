@@ -1,35 +1,57 @@
-name: "Continuous Integration"
+name: Tests
+
 on:
-  - pull_request
-  - push
+  push:
+    branches: main
+  pull_request:
+    branches: main
 
 jobs:
-  run:
-    name: "Test"
-    runs-on: ${{ matrix.operating-system }}
+  miniconda-setup:
     strategy:
       fail-fast: false
       matrix:
-        operating-system: ['ubuntu-latest']
         python-version: ["3.9"]
+        environment: ["min-deps", "full", "min-ver"]
+
+    name: Env (${{ matrix.environment }}) - Py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        mamba-version: "*"
+        channel-priority: true
+        activate-environment: test
+        environment-file: devtools/conda-envs/${{ matrix.environment }}-environment.yaml
 
-      - name: Install pipenv
-        run: pip install pipenv
+    - name: Environment Information
+      shell: bash -l {0}
+      run: |
+        conda info
+        conda list
+        conda config --show-sources
+        conda config --show
 
-      - name: Install dependencies
-        run: pipenv install --dev
+    - name: Install
+      shell: bash -l {0}
+      run: |
+        python -m pip install . --no-deps
 
-      - name: Test
-        run: pipenv run test
+    - name: Test
+      shell: bash -l {0}
+      run: |
+        pytest -v --cov=opt_einsum opt_einsum/ --cov-report=xml
 
-      - name: Lint
-        run: pipenv run lint
+    - name: Coverage
+      shell: bash -l {0}
+      run: |
+        coverage report
+
+    - uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml

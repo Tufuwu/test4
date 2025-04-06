@@ -1,82 +1,92 @@
-# SoundCloud Add-on for [Kodi](https://github.com/xbmc/xbmc)
 
-<img align="right" src="https://github.com/xbmc/xbmc/raw/master/addons/webinterface.default/icon-128.png" alt="Kodi logo">
+# Optimized Einsum
 
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/jaylinski/kodi-addon-soundcloud.svg)](https://github.com/jaylinski/kodi-addon-soundcloud/releases)
-[![Build Status](https://img.shields.io/github/workflow/status/jaylinski/kodi-addon-soundcloud/Continuous%20Integration/master.svg)](https://github.com/jaylinski/kodi-addon-soundcloud/actions)
-[![Link to Kodi forum](https://img.shields.io/badge/Kodi-Forum-informational.svg)](https://forum.kodi.tv/showthread.php?tid=206635)
-[![Link to Kodi wiki](https://img.shields.io/badge/Kodi-Wiki-informational.svg)](https://kodi.wiki/view/Add-on:SoundCloud)
-[![Link to Kodi releases](https://img.shields.io/badge/Kodi-v19%20%22Matrix%22-green.svg)](https://kodi.wiki/view/Releases)
-[![Link to Kodi releases](https://img.shields.io/badge/Kodi-v18%20%22Leia%22-green.svg)](https://kodi.wiki/view/Releases)
-[![Link to Kodi releases](https://img.shields.io/badge/Kodi-v17%20%22Krypton%22-green.svg)](https://kodi.wiki/view/Releases)
+[![Build Status](https://travis-ci.org/dgasmith/opt_einsum.svg?branch=master)](https://travis-ci.org/dgasmith/opt_einsum)
+[![codecov](https://codecov.io/gh/dgasmith/opt_einsum/branch/master/graph/badge.svg)](https://codecov.io/gh/dgasmith/opt_einsum)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/opt_einsum/badges/version.svg)](https://anaconda.org/conda-forge/opt_einsum)
+[![PyPI](https://img.shields.io/pypi/v/opt_einsum.svg)](https://pypi.org/project/opt-einsum/#description)
+[![PyPIStats](https://img.shields.io/pypi/dm/opt_einsum)](https://pypistats.org/packages/opt-einsum)
+[![Documentation Status](https://readthedocs.org/projects/optimized-einsum/badge/?version=latest)](http://optimized-einsum.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.00753/status.svg)](https://doi.org/10.21105/joss.00753)
 
-This [Kodi](https://github.com/xbmc/xbmc) Add-on provides a minimal interface for SoundCloud.
+## Optimized Einsum: A tensor contraction order optimizer
+
+Optimized einsum can significantly reduce the overall execution time of einsum-like expressions (e.g.,
+[`np.einsum`](https://docs.scipy.org/doc/numpy/reference/generated/numpy.einsum.html),
+[`dask.array.einsum`](https://docs.dask.org/en/latest/array-api.html#dask.array.einsum),
+[`pytorch.einsum`](https://pytorch.org/docs/stable/torch.html#torch.einsum),
+[`tensorflow.einsum`](https://www.tensorflow.org/api_docs/python/tf/einsum),
+)
+by optimizing the expression's contraction order and dispatching many
+operations to canonical BLAS, cuBLAS, or other specialized routines.
+
+Optimized
+einsum is agnostic to the backend and can handle NumPy, Dask, PyTorch,
+Tensorflow, CuPy, Sparse, Theano, JAX, and Autograd arrays as well as potentially
+any library which conforms to a standard API. See the
+[**documentation**](http://optimized-einsum.readthedocs.io) for more
+information.
+
+## Example usage
+
+The [`opt_einsum.contract`](https://optimized-einsum.readthedocs.io/en/latest/autosummary/opt_einsum.contract.html#opt-einsum-contract)
+function can often act as a drop-in replacement for `einsum`
+functions without further changes to the code while providing superior performance.
+Here, a tensor contraction is preformed with and without optimization:
+
+```python
+import numpy as np
+from opt_einsum import contract
+
+N = 10
+C = np.random.rand(N, N)
+I = np.random.rand(N, N, N, N)
+
+%timeit np.einsum('pi,qj,ijkl,rk,sl->pqrs', C, C, I, C, C)
+1 loops, best of 3: 934 ms per loop
+
+%timeit contract('pi,qj,ijkl,rk,sl->pqrs', C, C, I, C, C)
+1000 loops, best of 3: 324 us per loop
+```
+
+In this particular example, we see a ~3000x performance improvement which is
+not uncommon when compared against unoptimized contractions. See the [backend
+examples](https://optimized-einsum.readthedocs.io/en/latest/backends.html)
+for more information on using other backends.
 
 ## Features
 
-* Search
-* Discover new music
-* Play tracks, albums and playlists
+The algorithms found in this repository often power the `einsum` optimizations
+in many of the above projects. For example, the optimization of `np.einsum`
+has been passed upstream and most of the same features that can be found in
+this repository can be enabled with `np.einsum(..., optimize=True)`. However,
+this repository often has more up to date algorithms for complex contractions.
+
+The following capabilities are enabled by `opt_einsum`:
+
+* Inspect [detailed information](http://optimized-einsum.readthedocs.io/en/latest/path_finding.html) about the path chosen.
+* Perform contractions with [numerous backends](http://optimized-einsum.readthedocs.io/en/latest/backends.html), including on the GPU and with libraries such as [TensorFlow](https://www.tensorflow.org) and [PyTorch](https://pytorch.org).
+* Generate [reusable expressions](http://optimized-einsum.readthedocs.io/en/latest/reusing_paths.html), potentially with [constant tensors](http://optimized-einsum.readthedocs.io/en/latest/reusing_paths.html#specifying-constants), that can be compiled for greater performance.
+* Use an arbitrary number of indices to find contractions for [hundreds or even thousands of tensors](http://optimized-einsum.readthedocs.io/en/latest/ex_large_expr_with_greedy.html).
+* Share [intermediate computations](http://optimized-einsum.readthedocs.io/en/latest/sharing_intermediates.html) among multiple contractions.
+* Compute gradients of tensor contractions using [autograd](https://github.com/HIPS/autograd) or [jax](https://github.com/google/jax)
+
+Please see the [documentation](http://optimized-einsum.readthedocs.io/en/latest/?badge=latest) for more features!
 
 ## Installation
 
-### Kodi Repository
+`opt_einsum` can either be installed via `pip install opt_einsum` or from conda `conda install opt_einsum -c conda-forge`. See the installation [documentation](http://optimized-einsum.readthedocs.io/en/latest/install.html) for further methods.
 
-Follow the instructions on [https://kodi.wiki/view/Add-on:SoundCloud](https://kodi.wiki/view/Add-on:SoundCloud).
+## Citation
 
-### Manual
+If this code has benefited your research, please support us by citing:
 
-* [Download the latest release](https://github.com/jaylinski/kodi-addon-soundcloud/releases) (`plugin.audio.soundcloud.zip`)
-* Copy the zip file to your Kodi system
-* Open Kodi, go to Add-ons and select "Install from zip file"
-* Select the file `plugin.audio.soundcloud.zip`
+Daniel G. A. Smith and Johnnie Gray, opt_einsum - A Python package for optimizing contraction order for einsum-like expressions. *Journal of Open Source Software*, **2018**, 3(26), 753
 
-## API
+DOI: <https://doi.org/10.21105/joss.00753>
 
-Documentation of the **public** interface.
+## Contributing
 
-### plugin://plugin.audio.soundcloud/play/?[track_id|playlist_id|url]
+All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
 
-Examples:
-
-* `plugin://plugin.audio.soundcloud/play/?track_id=1`
-* `plugin://plugin.audio.soundcloud/play/?playlist_id=1`
-* `plugin://plugin.audio.soundcloud/play/?url=https%3A%2F%2Fsoundcloud.com%2Fpslwave%2Fallwithit`
-
-Legacy (will be removed in v5.0):
-
-* `plugin://plugin.audio.soundcloud/play/?audio_id=1` Use `track_id=1` instead.
-
-## Development
-
-This add-on uses [Pipenv](https://pypi.org/project/pipenv/) to manage its dependencies.
-
-### Setup
-
-[Install Pipenv](https://pipenv.readthedocs.io/en/latest/install/#installing-pipenv) and run `pipenv install --dev`.
-
-### Build
-
-Run `pipenv run build`.
-
-### Lint
-
-Run `pipenv run lint`.
-
-### Test
-
-Run `pipenv run test`.
-
-## Roadmap
-
-* Re-implement all features from original add-on
-* Implement [enhancements](https://github.com/jaylinski/kodi-addon-soundcloud/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement)
-
-## Attributions
-
-This add-on is strongly inspired by the [original add-on](https://github.com/SLiX69/plugin.audio.soundcloud)
-developed by [bromix](https://kodi.tv/addon-author/bromix) and [SLiX](https://github.com/SLiX69).
-
-## Copyright and license
-
-This add-on is licensed under the MIT License - see `LICENSE.txt` for details.
+A detailed overview on how to contribute can be found in the [contributing guide](https://github.com/dgasmith/opt_einsum/blob/master/.github/CONTRIBUTING.md).
