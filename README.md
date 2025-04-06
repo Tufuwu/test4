@@ -1,268 +1,195 @@
-# amitools - various AmigaOS tools for other platforms
+# Micropy Cli [![PyPI][pypi-img]][pypi-url] [![PyPI - Python Version][pypiv-img]][pypi-url] [![Travis (.com)][travis-img]][travis-url] [![Coverage Status][cover-img]][cover-url]
 
-- written by Christian Vogelgsang <chris@vogelgsang.org>
-- under the GNU Public License V2
 
-## Introduction
+Micropy Cli is a project management/generation tool for writing [Micropython](https://micropython.org/) code in modern IDEs such as VSCode.
+Its primary goal is to automate the process of creating a workspace complete with:
 
-`amitools` is a collection of Python 3 tools that I've written to work with
-*Amiga OS* binaries and files on macOS and all other *nix-like platforms
-supporting Python. Windows might work as
-well, but is heavily untested. However, patches are welcome.
+* **Linting** compatible with Micropython
+* VSCode **Intellisense**
+* **Autocompletion**
+* Dependency Management
+* VCS Compatibility
 
-I focus with my tools on classic Amiga setups, i.e. a 680x0 based system with
-Amiga OS 1.x - 3.x running on it. However, this is an open project, so you can
-provide other Amiga support, too.
 
-The tools are mostly developer-oriented, so a background in Amiga programming
-will be very helpful.
+<p align='center'>
+    <img width='95%' src='.github/img/micropy.svg' alt="Micropy Demo SVG">
+</p>
 
-## Prerequisites
-
-- Python >= ```3.6```
-- pip
-
-### Optional Packages
-
-- [lhafile - FS Edition][1]: required to use ```.lha``` file scanner
-- [cython][7]: (version >= **0.25**) required to rebuild the native module
-
-### Install pip
-
-First make sure to have the Python 3 package installer ```pip3```:
-
-#### macOS
-
-On macOS you have multiple ways of installing ```pip3```:
-
-#### System Python
-
-```bash
-sudo easy_install pip
-```
-
-#### Homebrew Package Manager
-
-With the [Homebrew][3] package manager (```pip3``` is included in the ```python3``` package):
-
-```bash
-brew install python3
-```
-
-#### Linux/Ubuntu
-
-On Linux Ubuntu use the provided packages ```python3-pip```
-
-```bash
-sudo apt-get install python3-pip
-```
-
-#### Centos
-
-To get pip run:
-
-```bash
-curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
-python3 get-pip.py
-```
-
-#### Windows with Visual Studio
-
-- Install the latest native Windows Python >= 3.6 from [python.org][6]
-- There is a special Edition for Visual Studio available that allows
-  to compile Python 3.x modules: Install [VCpython3][5]
-- Open the Command Shell of the Compiler and run
-
-```bash
-cd C:\Python3x\Scripts
-pip install amitools
-```
-
-#### Windows with MSYS2
-
-- (I use the mingw gcc compiler here to build the extension)
-- On Windows with [MSYS2][4] (use x86_64 version if possible):
-  - Install with exe installer
-  - Initial update is done with: (Open shell first)
-
-```bash
-pacman -Sy
-pacman --needed -S bash pacman msys2-runtime
-```
-
-- Now close shell and re-open a new dev shell (```MinGW-w64 Win64 Shell```)
-
-```bash
-pacman -Su
-pacman -S mingw-w64-x86_64-python2-pip mingw-w64-x86_64-gcc git make
-```
-
-[1]: https://github.com/FrodeSolheim/python-lhafile
-[2]: https://www.macports.org
-[3]: https://brew.sh
-[4]: https://github.com/msys2/msys2/wiki
-[5]: https://www.microsoft.com/en-gb/download/details.aspx?id=44266
-[6]: https://www.python.org
-[7]: https://cython.org
+[pypi-img]: https://img.shields.io/pypi/v/micropy-cli.svg?style=popout-square
+[pypi-url]: https://pypi.org/project/micropy-cli/
+[pypiv-img]: https://img.shields.io/pypi/pyversions/micropy-cli.svg?style=popout-square
+[travis-img]: https://img.shields.io/travis/com/BradenM/micropy-cli/master.svg?style=popout-square
+[travis-url]: https://travis-ci.com/BradenM/micropy-cli
+[cover-img]: https://coveralls.io/repos/github/BradenM/micropy-cli/badge.svg
+[cover-url]: https://coveralls.io/github/BradenM/micropy-cli
 
 ## Installation
 
-### The Easy Way for Users
+You can download and install the latest version of this software from the Python package index (PyPI) as follows:
 
-#### Release Version
+`pip install --upgrade micropy-cli`
 
-```bash
-pip3 install amitools
+### VSCode Integration
+
+If you plan on using `micropy-cli` for it's VSCode related features, you must install the `vscode-python` extension:
+
+`code --install-extension ms-python.python`
+
+You can find the offical page [here](https://marketplace.visualstudio.com/items?itemName=ms-python.python).
+
+> Note: As of `micropy-cli v2.1.1`, you must use version `2019.9.34474` of `vscode-python` or higher. See [#50](https://github.com/BradenM/micropy-cli/issues/50) for details.
+
+
+## Usage
+
+```sh
+Usage: micropy [OPTIONS] COMMAND [ARGS]...
+
+  CLI Application for creating/managing Micropython Projects.
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  init     Create new Micropython Project
+  install  Install Project Requirements
+  stubs    Manage Micropy Stubs
 ```
 
-Note:
+### Creating a Project
 
-- on Linux/macOS may use ``sudo`` to install for all users
-- requires a host C compiler to compile the extension.
+Creating a new project folder is as simple as:
 
-#### Current Version from GitHub
+1. Executing `micropy init <PROJECT NAME>`
+2. Selecting which templates to use
+3. Selecting your target device/firmware
+4. Boom. Your workspace is ready.
 
-```bash
-pip3 install -U  git+https://github.com/cnvogelg/amitools.git
-```
+<p align='center'>
+    <img src='https://github.com/BradenM/micropy-cli/raw/master/.github/img/demo.gif' alt="Micropy Demo">
+</p>
 
-This will install the latest version found in the github repository.
-You find the latest features but it may also be unstable from time to time.
 
-### Developers
+#### Micropy Project Environment
 
-- Follow this route if you want to hack around with the amitools codebase
-- Clone the Git repo: [amitools@git](https://github.com/cnvogelg/amitools)
-- Ensure to have Cython (version >= **0.25**) installed:
+When creating a project with `micropy-cli`, two special items are added:
 
-```bash
-sudo pip3 install cython
-```
+* A `.micropy/` folder
+* A `micropy.json` file
 
-You have multiple variants to install the tools with Python's `setuptools`:
+The `.micropy/` contains symlinks from your project to your `$HOME/.micropy/stubs` folder. By doing this, micropy can reference the required stub files for your project as relative to it, rather than using absolute paths to `$HOME/.micropy`. How does this benefit you? Thanks to this feature, you can feel free to push common setting files such as `settings.json` and `.pylint.rc` to your remote git repository. This way, others who clone your repo can achieve a matching workspace in their local environment.
 
-- **Global Install** is available for all users of your system and needs root privileges
+> Note: The generated `.micropy/` folder should be *IGNORED* by your VCS. It is created locally for each environment via the `micropy.json` file.
 
-```bash
-sudo python3 setup.py install
-```
+The `micropy.json` file contains information micropy needs in order to resolve your projects required files when other clone your repo. Think of it as a `package.json` for micropython.
 
-- **User Install** is available for your user only but does not require special privileges
+#### Cloning a Micropy Environment
 
-```bash
-python3 setup.py install --user
-```
+To setup a Micropy environment locally, simply:
 
-- **Developer Setup** only links this code into your installation and allows
-   you to change/develop the code and test it immediately. (I prefer user install here)
+* Install `micropy-cli`
+* Navigate to the project directory
+* Execute `micropy`
 
-```bash
-python3 setup.py develop --user
-```
+Micropy will automatically configure and install any stubs required by a project thanks to its `micropy.json` file.
 
-- **Run In Place** allows you to run the binaries directly from the `bin` directory
-   without any installation. You need `make` only to build the native library
-   of vamos:
+### Project Dependencies
 
-```bash
-python3 setup.py build_ext -i
-```
+While all modules that are included in your targeted micropython firmware are available with autocompletion, intellisense, and linting, most projects require external dependencies.
 
-or if you have installed `GNU make` simply use:
+Currently, handling dependencies with micropython is a bit tricky. Maybe you can install a cpython version of your requirement? Maybe you could just copy and paste it? What if it needs to be frozen?
 
-```bash
-make init       # global or virtualenv setup
-make init_user  # user setup
-```
+Micropy handles all these issues for you automatically. Not only does it track your project's dependencies, it keeps both `requirements.txt` and `dev-requirements.txt` updated, enables autocompletion/intellisense for each dep, and allows you to import them just as you would on your device.
 
-For more help on the `make` targets run:
+This allows you to include your requirement however you want, whether that be as a frozen module in your custom built firmware, or simply in the `/lib` folder on your device.
 
-```bash
-make help
-```
+#### Installing Packages
 
-## Contents
+To add a package as a requirement for your project, run:
 
-The new Documentation of `amitools` is hosted on [readthedocs][8]
+`micropy install <PACKAGE_NAMES>`
 
-### Tools
+while in your project's root directory.
 
-- [vamos](docs/vamos.md) **V)irtual AM)iga OS**
+This will automatically execute the following:
 
-  vamos allows you to run command line (CLI) Amiga programs on your host
-  Mac or PC. vamos is an API level Amiga OS Emulator that replaces exec
-  and dos calls with its own implementation and maps all file access to
-  your local file system.
+* Source `PACKAGE_NAMES` from pypi, as a url, or a local path
+* Retrieve the module/package and stub it, adding it to your local `.micropy` folder.
+* Add requirement to your `micropy.json`
+* Update `requirements.txt`
 
-- [xdftool][9]
+To install dev packages that are not needed on your device, but are needed for local development, add the `--dev` flag. This will do everything above **except** stub the requirement.
 
-  Create and modify ADF or HDF disk image files.
+You can also install all requirements found in `micropy.json`/`requirements.txt`/`dev-requirements.txt` by executing `micropy install` without passing any packages. Micropy will automatically do this when setting up a local environment of an existing micropy project.
 
-- [xdfscan][10]
+#### Example
 
-  Scan directory trees for ADF or HDF disk image files and verify the contents.
+Lets say your new project will depend on [picoweb](https://pypi.org/project/picoweb/) and [blynklib](https://pypi.org/project/blynklib/). Plus, you'd like to use [rshell](https://pypi.org/project/rshell/) to communicate directly with your device. After creating your project via `micropy init`, you can install your requirements as so:
 
-- [rdbtool][11]
+<p align='center'>
+    <img width="70%" src='.github/img/install_demo.svg' alt="Micropy Pkg Install Demo">
+</p>
 
-  Create or modify disk images with Rigid Disk Block (RDB)
+Now you or anybody cloning your project can import those requirements normally, and have the benefits of all the features micropy brings:
 
-- [romtool][12]
+<p align='center'>
+    <img width="70%" src='https://github.com/BradenM/micropy-cli/raw/master/.github/img/deps_demo.gif' alt="Micropy Deps Demo">
+</p>
 
-  A tool to inspect, dissect, and build Amiga Kickstart ROM images to be
-  used with emulators, run with soft kickers or burned into flash ROMs.
 
-- hunktool
+### Stub Management
 
-  The hunktool uses amitools' hunk library to load a hunk-based amiga
-  binary. Currently, its main purpose is to display the contents of the
-  files in various formats.
+Stub files are the magic behind how micropy allows features such as linting, Intellisense, and autocompletion to work. To achieve the best results with MicropyCli, its important that you first add the appropriate stubs for the device/firmware your project uses.
 
-  You can load hunk-based binaries, libraries, and object files. Even
-  overlayed binary files are supporte.
+> Note: When working in a micropy project, all stub related commands will also be executed on the active project. (i.e if in a project and you run `micropy stubs add <stub-name>`, then that stub retrieved AND added to the active project.)
 
-- typetool
+#### Adding Stubs
 
-  This little tool is a companion for vamos. It allows you to dump and get
-  further information on the API C structure of AmigaOS used in vamos.
+Adding stubs to Micropy is a breeze. Simply run: `micropy stubs add <STUB_NAME>`
+By sourcing [micropy-stubs](https://github.com/BradenM/micropy-stubs), MicroPy has several premade stub packages to choose from.
 
-- fdtool
+These packages generally use the following naming schema:
 
-  This tool reads the fd (function description) files Commodore supplied for
-  all of their libraries and dumps their contents in different formats
-  including a code structure used in vamos.
+`<device>-<firmware>-<version>`
 
-  You can query functions and find their jump table offset.
+For example, running `micropy stubs add esp32-micropython-1.11.0` will install the following:
+* Micropython Specific Stubs
+* ESP32 Micropython v1.11 Device Specific Stubs
+* Frozen Modules for both device and firmware
 
-[8]: https://amitools.readthedocs.io/
-[9]: https://amitools.readthedocs.io/en/latest/tools/xdftool.html
-[10]: https://amitools.readthedocs.io/en/latest/tools/xdfscan.html
-[11]: https://amitools.readthedocs.io/en/latest/tools/rdbtool.html
-[12]: https://amitools.readthedocs.io/en/latest/tools/romtool.html
+You can search stubs that are made available to Micropy via `micropy stubs search <QUERY>`
 
-### Python Libraries
+Alternatively, using `micropy stubs add <PATH>`, you can manually add stubs to Micropy.
+For manual stub generation, please see [Josvel/micropython-stubber](https://github.com/Josverl/micropython-stubber).
 
-- Hunk library ```amitools.binfmt.hunk```
+#### Creating Stubs
 
-  This library allows to read Amiga OS loadSeg()able binaries and represent
-  them in a python structure. You could query all items found there,
-  retrieve the code, data, and bss segments and even relocate them to target
-  addresses
+Using `micropy stubs create <PORT/IP_ADDRESS>`, MicropyCli can automatically generate and add stubs from any Micropython device you have on hand. This can be done over both USB and WiFi.
 
-- ELF library ```amitools.binfmt.elf```
+> Note: For stub creation, micropy-cli has additional dependencies.
+>
+> These can be installed by executing: `pip install micropy-cli[create_stubs]`
 
-  This library allows to read a subset of the ELF format mainly used in
-  AROS m68k.
 
-- .fd File Parser ```amitools.fd```
+#### Viewing Stubs
 
-  Parse function descriptions shipped by Commodore to describe the Amiga APIs
+To list stubs you have installed, simply run `micropy stubs list`.
 
-- OFS and FFS File System Tools ```amitools.fs```
+To search for stubs for your device, use `micropy stubs search <QUERY>`.
 
-  Create or modify Amiga's OFS and FFS file system structures
+## See Also
 
-- File Scanners ```amitools.scan```
+* [VSCode IntelliSense, Autocompletion & Linting capabilities](https://lemariva.com/blog/2019/08/micropython-vsc-ide-intellisense)
+    - An awesome article written by [lemariva](https://github.com/lemariva). It covers creating a micropython project environment from scratch using `micropy-cli` and [pymakr-vsc](pymakr-vsc). Great place to start if you're new to this!
 
-  I've written some scanners that walk through file trees and retrieve the
-  file data for further processing. I support file trees on the file system,
-  in lha archives or in adf/hdf disk images
+
+## Acknowledgements
+
+### Micropython-Stubber
+[Josvel/micropython-stubber](https://github.com/Josverl/micropython-stubber)
+
+Josverl's Repo is full of information regarding Micropython compatibility with VSCode and more. To find out more about how this process works, take a look at it.
+
+micropy-cli and [micropy-stubs](https://github.com/BradenM/micropy-stubs) depend on micropython-stubber for its ability to generate frozen modules, create stubs on a pyboard, and more.
+
