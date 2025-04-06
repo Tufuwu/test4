@@ -1,29 +1,34 @@
-name: Test
-on: [push, pull_request]
-
+name: ci
+on: [pull_request, workflow_dispatch]
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  check3:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ["3.9"]
+        os: ["ubuntu-latest", "ubuntu-latest"]
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: x64
-    - uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}-${{ matrix.python-version }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
-    - name: Install requirements_test.txt
-      run: pip install -r requirements_test.txt
-    - name: flake8
-      run: flake8 --exclude=src --max-line-length=119
-    - name: pytest
-      run: pytest
+      - uses: actions/checkout@v2
+      - run: |
+          make depends
+          # -common seems a catch-22, but this is just a shortcut to
+          # initialize user and dirs, some used through tests.
+          sudo apt-get -y install landscape-common
+      - run: make check3 TRIAL=/usr/bin/trial3
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: make depends
+      - run: make lint
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          make depends
+          # -common seems a catch-22, but this is just a shortcut to
+          # initialize user and dirs, some used through tests.
+          sudo apt-get -y install landscape-common
+      - run: make coverage TRIAL=/usr/bin/trial3
+      - name: upload
+        uses: codecov/codecov-action@v1
