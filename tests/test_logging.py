@@ -1,35 +1,49 @@
-import pytest
-from autopilot.utils.loggers import LOG_FORMATS, LogEntry, Log
-from pathlib import Path
+import json
+import unittest
 
-@pytest.mark.parametrize('format', LOG_FORMATS)
-def test_parse_log_formats(format):
-    parsed = format.parse(format.example)
-    assert isinstance(parsed, dict)
+from alerta.app import create_app, custom_webhooks
+from alerta.models.alert import Alert
+from alerta.webhooks import WebhookBase
 
 
-@pytest.mark.parametrize('format', LOG_FORMATS)
-def test_parse_log_entries(format):
-    parsed = LogEntry.from_string(format.example)
-    assert isinstance(parsed, LogEntry)
+class LoggingTestCase(unittest.TestCase):
+
+    def setUp(self):
+
+        test_config = {
+            'TESTING': True,
+            'AUTH_REQUIRED': False,
+            'LOG_HANDLERS': ['console'],
+            'LOG_FORMAT': 'verbose',
+            'AUDIT_TRAIL': ['admin', 'write', 'auth'],
+            'AUDIT_LOG': True
+        }
+        self.app = create_app(test_config)
+        self.client = self.app.test_client()
+
+    def test_custom_webhook(self):
+
+        # setup custom webhook
+        custom_webhooks.webhooks['json'] = DummyJsonWebhook()
+
+        payload = """
+            {"baz": "quux %X %%"}
+        """
+
+        # test json payload
+        response = self.client.post('/webhooks/json?foo=bar', json=json.loads(payload), content_type='application/json')
+        self.assertEqual(response.status_code, 201, response.data)
+        data = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(data['alert']['resource'], 'bar')
+        self.assertEqual(data['alert']['event'], 'quux %X %%')
 
 
-log_format_folders = Path(__file__).parent.resolve() / 'samples' / 'logs'
-log_format_folders = list(log_format_folders.glob('*'))
-@pytest.mark.parametrize('folder', log_format_folders)
-def test_parse_log_folder(folder):
-    """
-    Test loading folders of sample log files
+class DummyJsonWebhook(WebhookBase):
 
-    .. todo::
-
-        for now just testing if they parse (pydantic should take care of raising an exception if there are any errors)
-        and will return later to check if there are any problems with the literal values of the parsed logs. just throwing
-        the examples in there for now based on what I have lying around tbh
-
-    """
-    root_file = list(folder.glob('*.log'))[0]
-
-    parsed = Log.from_logfile(root_file, include_backups=True)
-    assert isinstance(parsed, Log)
-
+    def incoming(self, query_string, payload):
+        return Alert(
+            resource=query_string['foo'],
+            event=payload['baz'],
+            environment='Production',
+            service=['Foo']
+        )
