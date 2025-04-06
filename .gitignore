@@ -1,23 +1,3 @@
-.DS_Store
-local/
-bin/
-include/
-pip-selfcheck.json
-
-course_import.py
-.idea/
-dist/
-.vscode/
-db.json
-htmlcov/
-media/
-db.sqlite3
-staticfiles/
-.env
-.coverage
-celerybeat.pid
-celerybeat-schedule
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -29,8 +9,10 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
+#doc/build/
+#doc/Makefile
 develop-eggs/
+dist/
 downloads/
 eggs/
 .eggs/
@@ -39,7 +21,6 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -54,7 +35,7 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit tests / coverage reports
 htmlcov/
 .tox/
 .coverage
@@ -62,8 +43,9 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*.cover
+*,cover
 .hypothesis/
+tests/result_images/
 
 # Translations
 *.mo
@@ -81,13 +63,15 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+doc/_build/
 
 # PyBuilder
 target/
 
-# Jupyter Notebook
+# IPython Notebook
 .ipynb_checkpoints
+*-test.ipynb
+doc/_static/*/*/*.ipynb
 
 # pyenv
 .python-version
@@ -95,26 +79,28 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
-# SageMath parsed files
-*.sage.py
-
 # dotenv
 .env
 
 # virtualenv
-.venv
+.venv/
 venv/
+testenv/
 ENV/
 
 # Spyder project settings
 .spyderproject
-.spyproject
 
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+# PyCharm project settings
+.idea/
 
-# mypy
-.mypy_cache/
+# Visual Studo Code
+.vscode/
+*.code-workspace
+
+#auto changing files
+build/
+src/
