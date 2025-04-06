@@ -1,49 +1,102 @@
-========
-piwheels
-========
+==================
+Python HDFS client
+==================
 
-piwheels is a project for automating building Raspberry Pi platform wheels
-(pre-compiled binary distributions) for all Python packages found on `PyPI`_.
+Because the world needs `yet <https://github.com/spotify/snakebite>`_ `another <https://github.com/ProjectMeniscus/pywebhdfs>`_ `way <https://pypi.python.org/pypi/hdfs>`_ to talk to HDFS from Python.
 
-.. _PyPI: https://pypi.org/
+Usage
+=====
 
-.. image:: https://badge.fury.io/py/piwheels.svg
-    :target: https://badge.fury.io/py/piwheels
-    :alt: Latest Version
+This library provides a Python client for `WebHDFS <https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/WebHDFS.html>`_.
+NameNode HA is supported by passing in both NameNodes.
+Responses are returned as nice Python classes, and any failed operation will raise some subclass of ``HdfsException`` matching the Java exception.
 
-.. image:: https://travis-ci.org/piwheels/piwheels.svg?branch=master
-    :target: https://travis-ci.org/piwheels/piwheels
-    :alt: Build Tests
+Example usage:
 
-.. image:: https://img.shields.io/codecov/c/github/piwheels/piwheels/master.svg?maxAge=2592000
-    :target: https://codecov.io/github/piwheels/piwheels
-    :alt: Code Coverage
+.. code-block:: python
 
-`piwheels.org`_ is a Python package repository providing Raspberry Pi wheels
-built by the project. See the homepage for usage and more information about the
-service.
+    >>> fs = pyhdfs.HdfsClient(hosts='nn1.example.com:50070,nn2.example.com:50070', user_name='someone')
+    >>> fs.list_status('/')
+    [FileStatus(pathSuffix='benchmarks', permission='777', type='DIRECTORY', ...), FileStatus(...), ...]
+    >>> fs.listdir('/')
+    ['benchmarks', 'hbase', 'solr', 'tmp', 'user', 'var']
+    >>> fs.mkdirs('/fruit/x/y')
+    True
+    >>> fs.create('/fruit/apple', 'delicious')
+    >>> fs.append('/fruit/apple', ' food')
+    >>> with contextlib.closing(fs.open('/fruit/apple')) as f:
+    ...     f.read()
+    ...
+    b'delicious food'
+    >>> fs.get_file_status('/fruit/apple')
+    FileStatus(length=14, owner='someone', type='FILE', ...)
+    >>> fs.get_file_status('/fruit/apple').owner
+    'someone'
+    >>> fs.get_content_summary('/fruit')
+    ContentSummary(directoryCount=3, fileCount=1, length=14, quota=-1, spaceConsumed=14, spaceQuota=-1)
+    >>> list(fs.walk('/fruit'))
+    [('/fruit', ['x'], ['apple']), ('/fruit/x', ['y'], []), ('/fruit/x/y', [], [])]
+    >>> fs.exists('/fruit/apple')
+    True
+    >>> fs.delete('/fruit')
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File ".../pyhdfs.py", line 525, in delete
+      ...
+    pyhdfs.HdfsPathIsNotEmptyDirectoryException: `/fruit is non empty': Directory is not empty
+    >>> fs.delete('/fruit', recursive=True)
+    True
+    >>> fs.exists('/fruit/apple')
+    False
+    >>> issubclass(pyhdfs.HdfsFileNotFoundException, pyhdfs.HdfsIOException)
+    True
 
-.. _piwheels.org: https://www.piwheels.org/
 
-Issues
-------
+You can also pass the hostname as part of the URI:
 
-If you have an issue with the piwheels project (i.e. related to the source code
-here, not the packages hosted on piwheels.org) on the `piwheels/piwheels`_ issue
-tracker.
+.. code-block:: python
 
-If you have an issue with a specific package found on piwheels.org, please use
-the `piwheels/packages`_ issue tracker, using the links on the package's
-`project page`_ on piwheels.org.
+    fs.list_status('//nn1.example.com:50070;nn2.example.com:50070/')
 
-.. _piwheels/piwheels: https://github.com/piwheels/piwheels/issues
-.. _piwheels/packages: https://github.com/piwheels/packages/issues
-.. _project page: https://www.piwheels.org/packages.html
+The methods and return values generally map directly to `WebHDFS endpoints <https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/WebHDFS.html>`_.
+The client also provides convenience methods that mimic Python ``os`` methods and HDFS CLI commands (e.g. ``walk`` and ``copy_to_local``).
 
-Development
------------
+``pyhdfs`` logs all HDFS actions at the INFO level, so turning on INFO level logging will give you a debug record for your application.
 
-If you're interested in developing with piwheels, or running your own instance,
-see the project documentation at `piwheels.readthedocs.org`_.
+For more information, see the `full API docs <http://pyhdfs.readthedocs.io/en/latest/>`_.
 
-.. _piwheels.readthedocs.org: https://piwheels.readthedocs.org/
+Installing
+==========
+
+``pip install pyhdfs``
+
+Python 3 is required.
+
+Development testing
+===================
+
+.. image:: https://github.com/jingw/pyhdfs/workflows/CI/badge.svg
+    :target: https://github.com/jingw/pyhdfs/actions?query=workflow%3ACI
+
+.. image:: http://codecov.io/github/jingw/pyhdfs/coverage.svg?branch=master
+    :target: http://codecov.io/github/jingw/pyhdfs?branch=master
+
+.. image:: https://readthedocs.org/projects/pyhdfs/badge/?version=latest
+    :target: https://pyhdfs.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
+First run ``install-hdfs.sh x.y.z``, which will download, extract, and run the HDFS NN/DN processes in the current directory.
+(Replace ``x.y.z`` with a real version.)
+Then run the following commands.
+Note they will create and delete ``hdfs://localhost/tmp/pyhdfs_test``.
+
+Commands::
+
+    python3 -m venv env
+    source env/bin/activate
+    pip install -e .
+    pip install -r dev_requirements.txt
+    pytest
