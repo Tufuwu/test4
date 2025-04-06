@@ -1,32 +1,72 @@
-name: Tests
+name: CI
 
 on: [push, pull_request]
 
+env:
+  POETRY_VERSION: 1.1.6
+
 jobs:
-  test:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }}"
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.9"]
-
+  flake8:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1.1.4
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: false
+
+      # Skip cache because we have few deps
+      - name: Install flake8
+        run: poetry install --no-root -v -E flake8
+
+      - name: Run flake8
+        run: poetry run flake8 -v .
+
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    name: pytest (Python ${{ matrix.python-version }})
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install poetry
+        uses: snok/install-poetry@v1.1.4
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+
+      - name: Cache poetry virtualenv
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: poetry-tests-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install test dependencies
+        run: poetry install -v -E test
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Run tests
+        run: poetry run py.test --cov st_package_reviewer --cov tests --cov-report term-missing
+
+      - name: Coveralls
+        continue-on-error: true
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run pytest
-        run: python -m pytest --cov-report=xml --cov=symspellpy
-
-      - name: Upload code coverage
-        uses: codecov/codecov-action@v2
+          pip install coveralls
+          coveralls
