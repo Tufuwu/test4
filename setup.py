@@ -1,91 +1,56 @@
-#!/usr/bin/env python
+# Copyright 2017-2021 Lawrence Livermore National Security, LLC and other
+# Hatchet Project Developers. See the top-level LICENSE file for details.
+#
+# SPDX-License-Identifier: MIT
 
-"""
-A setuptools based setup module.
-
-See:
-https://packaging.python.org/en/latest/distributing.html
-"""
-
+from setuptools import setup
+from setuptools import Extension
+from codecs import open
 from os import path
 
-try:
-    from pip.req import parse_requirements
-except ImportError:
-    # pip >= 10
-    from pip._internal.req import parse_requirements
+here = path.abspath(path.dirname(__file__))
 
-from setuptools import find_packages, setup
+# Get the long description from the README file
+with open(path.join(here, "README.md"), encoding="utf-8") as f:
+    long_description = f.read()
 
-
-def get_requirements(requirements_file):
-    """Use pip to parse requirements file."""
-    requirements = []
-    if path.isfile(requirements_file):
-        for req in parse_requirements(requirements_file, session="hack"):
-            try:
-                if req.markers:
-                    requirements.append("%s;%s" % (req.req, req.markers))
-                else:
-                    requirements.append("%s" % req.req)
-            except AttributeError:
-                # pip >= 20.0.2
-                requirements.append(req.requirement)
-    return requirements
+# Get the version in a safe way which does not refrence hatchet `__init__` file
+# per python docs: https://packaging.python.org/guides/single-sourcing-package-version/
+version = {}
+with open("./hatchet/version.py") as fp:
+    exec(fp.read(), version)
 
 
-if __name__ == "__main__":
-    HERE = path.abspath(path.dirname(__file__))
-    INSTALL_REQUIRES = get_requirements(path.join(HERE, "requirements.txt"))
-    MYSQL_REQUIRES = get_requirements(path.join(HERE, "mysql-requirements.txt"))
-    POSTGRESQL_REQUIRES = get_requirements(
-        path.join(HERE, "postgresql-requirements.txt"))
-    LDAP_REQUIRES = get_requirements(path.join(HERE, "ldap-requirements.txt"))
-
-    with open(path.join(HERE, "README.rst")) as readme:
-        LONG_DESCRIPTION = readme.read()
-
-    def local_scheme(version):
-        """Skip the local version (eg. +xyz of 0.6.1.dev4+gdf99fe2)
-            to be able to upload to Test PyPI"""
-        return ""
-
-    setup(
-        name="modoboa",
-        description="Mail hosting made simple",
-        long_description=LONG_DESCRIPTION,
-        license="ISC",
-        url="http://modoboa.org/",
-        author="Antoine Nguyen",
-        author_email="tonio@ngyn.org",
-        classifiers=[
-            "Development Status :: 5 - Production/Stable",
-            "Environment :: Web Environment",
-            "Framework :: Django :: 2.2",
-            "Intended Audience :: System Administrators",
-            "License :: OSI Approved :: ISC License (ISCL)",
-            "Operating System :: OS Independent",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.5",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "Topic :: Communications :: Email",
-            "Topic :: Internet :: WWW/HTTP",
-        ],
-        keywords="email",
-        packages=find_packages(exclude=["doc", "test_data", "test_project"]),
-        include_package_data=True,
-        zip_safe=False,
-        scripts=["bin/modoboa-admin.py"],
-        install_requires=INSTALL_REQUIRES,
-        use_scm_version={"local_scheme": local_scheme},
-        python_requires=">=3.4",
-        setup_requires=["setuptools_scm"],
-        extras_require={
-            "ldap": LDAP_REQUIRES,
-            "mysql": MYSQL_REQUIRES,
-            "postgresql": POSTGRESQL_REQUIRES,
-            "argon2": ["argon2-cffi >= 16.1.0"],
-        },
-    )
+setup(
+    name="hatchet",
+    version=version["__version__"],
+    description="A Python library for analyzing hierarchical performance data",
+    url="https://github.com/hatchet/hatchet",
+    author="Abhinav Bhatele",
+    author_email="bhatele@cs.umd.edu",
+    license="MIT",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "License :: OSI Approved :: MIT License",
+    ],
+    keywords="",
+    packages=[
+        "hatchet",
+        "hatchet.readers",
+        "hatchet.util",
+        "hatchet.external",
+        "hatchet.tests",
+        "hatchet.cython_modules.libs",
+    ],
+    install_requires=["pydot", "PyYAML", "matplotlib", "numpy", "pandas"],
+    ext_modules=[
+        Extension(
+            "hatchet.cython_modules.libs.reader_modules",
+            ["hatchet/cython_modules/reader_modules.c"],
+        ),
+        Extension(
+            "hatchet.cython_modules.libs.graphframe_modules",
+            ["hatchet/cython_modules/graphframe_modules.c"],
+        ),
+    ],
+)
