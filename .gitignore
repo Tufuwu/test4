@@ -1,26 +1,18 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-
-# Distribution / packaging
+build/
+.cache/
 dist/
-poetry.lock
-.venv
-*.egg-info
-pip-wheel-metadata
-requirements.txt
-
-# MacOS
+*.egg-info/
+.idea/
 .DS_Store
-
-# pytest
+*.orig
+*.jpg
+*.png
+*.png.old
+*.pyc
 .pytest_cache
-.env
-*.json
-
-# pycharm
-.idea
-
-# windows
-.vs
-*.pyproj
-*.sln
+.tox
+.vscode
+docs/output/
+.mypy_cache/
+__pycache__/
+venv/
