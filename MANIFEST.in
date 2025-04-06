@@ -1,2 +1,10 @@
-include kernel_gateway/jupyter_websocket/swagger.*
-include LICENSE.md
+include LICENSE
+include README.rst
+include CONTRIBUTING.rst
+include tasks.py
+include tox.ini
+include .coveragerc
+recursive-include localflavor/locale *.po *.mo
+recursive-include requirements *.txt
+recursive-include docs *
+recursive-include tests *
