@@ -1,1 +1,2 @@
-recursive-include feedcrawler/web *
+include LICENSE
+include README.rst

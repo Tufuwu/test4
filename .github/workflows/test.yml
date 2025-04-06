@@ -1,6 +1,7 @@
-name: Continuous Integration
+name: Build
 
-on: [pull_request]
+on:
+  - push
 
 jobs:
   build:
@@ -8,13 +9,16 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.9"]
-    name: Python ${{ matrix.python-version }}
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
-      - run: pip install -r requirements.txt
-      - run: python FeedCrawler.py --port=9090 --config="/home/runner/work/_temp/_github_home" --test_run --log-level=DEBUG
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox tox-gh-actions
+    - name: Test with tox
+      run: tox

@@ -1,36 +1,49 @@
-# -*- coding: utf-8 -*-
-# FeedCrawler
-# Projekt von https://github.com/rix1337
+# From: https://github.com/github/gitignore/blob/master/Python.gitignore
 
-# Python
-*.pyc
-*.bak
-*.spec
-file_version_info.txt
-version.txt
-__pycache__
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Build Tools
-build
-dist
-venv
-*.egg-info
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# FeedCrawler files
-*.conf
-*.db
-*.log
-*.crawljob
-*.ini
-*.journal
-*.zip
-*.1
-*.2
-*.3
-*.4
-*.5
+# Unit test / coverage reports
+.tox/
+.pytest_cache/
 
-# PyCharm
-.idea
-.eggs
+# Environments
+.env
+.venv
+env/
+venv/
+# Custom: python2 venv
+venv2/
 
+# Sphinx documentation
+docs/_build/
+
+# mypy
+.mypy_cache/
+
+# --- CUSTOM ---
+
+# temp outputs for isort and flake8
+/isort.out
+/flake8.out

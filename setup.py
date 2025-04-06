@@ -1,43 +1,53 @@
-# -*- coding: utf-8 -*-
-# FeedCrawler
-# Projekt von https://github.com/rix1337
+import os
 
-import setuptools
+from setuptools import find_packages, setup
 
-from feedcrawler.version import get_version
+basedir = os.path.dirname(__file__)
 
-try:
-    with open('README.md', encoding='utf-8') as f:
-        long_description = f.read()
-except:
-    import io
 
-    long_description = io.open('README.md', encoding='utf-8').read()
+def readme():
+    with open(os.path.join(basedir, 'README.rst')) as f:
+        return f.read()
 
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
 
-setuptools.setup(
-    name="feedcrawler",
-    version=get_version(),
-    author="rix1337",
-    author_email="",
-    description="Automating JDownloader Downloads (German!)",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/rix1337/FeedCrawler",
-    packages=setuptools.find_packages(),
-    include_package_data=True,
-    install_requires=required,
-    zip_safe=False,
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+about = {}
+with open(os.path.join(basedir, 'src', 'flake8_aaa', '__about__.py')) as f:
+    exec(f.read(), about)  # yapf: disable
+
+setup(
+    # --- META ---
+    name=about['__iam__'],
+    version=about['__version__'],
+    description=about['__description__'],
+    license='MIT',
+    long_description=readme(),
+    author='James Cooke',
+    author_email='github@jamescooke.info',
+    url='https://github.com/jamescooke/flake8-aaa',
+
+    # --- Python ---
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    python_requires='>=3.6, <4',
+    install_requires=[
+        'asttokens >= 2',
     ],
     entry_points={
-        'console_scripts': [
-            'feedcrawler = feedcrawler.crawler:main',
+        'flake8.extension': [
+            'AAA = flake8_aaa:Checker',
         ],
     },
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Framework :: Flake8',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python',
+    ],
+    zip_safe=False,
 )
