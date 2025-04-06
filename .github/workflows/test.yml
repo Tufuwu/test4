@@ -1,38 +1,66 @@
-name: CI
+---
+name: Python
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  CI:
-    name: "Linux x64 (Ubuntu 22.04) - Python ${{ matrix.python-version }}"
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Output env variables
+        run: |
+           echo "Default branch=${default-branch}"
+           echo "GITHUB_WORKFLOW=${GITHUB_WORKFLOW}"
+           echo "GITHUB_ACTION=$GITHUB_ACTION"
+           echo "GITHUB_ACTIONS=$GITHUB_ACTIONS"
+           echo "GITHUB_ACTOR=$GITHUB_ACTOR"
+           echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
+           echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
+           echo "GITHUB_EVENT_PATH=$GITHUB_EVENT_PATH"
+           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+           echo "GITHUB_SHA=$GITHUB_SHA"
+           echo "GITHUB_REF=$GITHUB_REF"
+           echo "GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
+           echo "GITHUB_BASE_REF=$GITHUB_BASE_REF"
+           echo "::debug::---Start content of file $GITHUB_EVENT_PATH"
+           cat $GITHUB_EVENT_PATH
+           echo "\n"
+           echo "::debug::---end"
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install tox tox-gh-actions
+      - name: Check
+        run: |
+          tox -e checks
+
+  tests:
+    needs: check
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      max-parallel: 5
       matrix:
-        # Only test supported Python versions:
-        # https://endoflife.date/python
         python-version: ["3.9"]
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v1
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install libvips
-        run: sudo apt-get install --no-install-recommends libvips
-
-      - name: Lint with flake8
+      - name: Install dependencies
         run: |
-          pip install flake8
-          flake8 .
-
-      - name: Install tox and any other packages
-        run: pip install tox
-
-      - name: Run tox
-        # Run tox using the version of Python in `PATH`
-        run: tox -e py
+          python3 -m pip install --upgrade pip
+          pip install tox tox-gh-actions
+      - name: Test with tox
+        run: |
+          tox

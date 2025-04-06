@@ -1,187 +1,238 @@
-# master 
+##########
+Change Log
+##########
 
-+ fix with libvips nodeprecated [kleisauke]
-+ update README notes for py3.8+ on win [CristiFati]
+Changes for the upcoming release can be found in
+the `"changelog.d" directory <https://github.com/python-semver/python-semver/tree/master/changelog.d>`_
+in our repository.
 
-## Version 2.2.1 (released 12 Jun 2022)
+..
+   Do *NOT* add changelog entries here!
 
-* add seek and end handlers for TargetCustom [jcupitt]
-* add `block_untrusted_set`, `operation_block_set` [jcupitt]
-* update for libvips 8.13 [jcupitt]
- 
-## Version 2.2.0 (released 18 Apr 2022)
+   This changelog is managed by towncrier and is compiled at release time.
 
-* `repr()` will print matrix images as matrices [jcupitt]
-* more robust bandwise index/slice; added fancy slicing (step != 1) [erdmann]
-* fix `im.bandjoin([])`, now returns `im` [erdmann]
-* add numpy-style extended indexing (index with list of ints or bools) [erdmann]
-* earlier detection of unknown methods and class methods [jcupitt]
-* add conversion from Image to numpy array via 'Image.__array__` [erdmann]
-* add `Image.fromarray()` for conversion from numpy-ish arrays [erdmann]
-* add `invalidate()` [jcupitt]
-* add array-like functionality to `Image.new_from_array()` for conversion from
-  numpy-ish arrays [erdmann]
-* add `Image.numpy()` (convenient for method chaining) [erdmann]
-* add `tolist()` [erdmann]
-* accept `pathlib.Path` objects for filenames (py3 only) [erdmann]
-* cache pspec lookups for a 10% speed boost [jcupitt]
+   See https://python-semver.rtd.io/en/latest/development.html#changelog
+   for details.
 
-## Version 2.1.16 (started 28 Jun 2021)
+.. towncrier release notes start
 
-* fix logging of deprecated args [manthey]
-* add shepards example [tourtiere]
-* update docs for 8.12 [jcupitt]
-* add pagesplit(), pagejoin(), get_page_height(), get_n_pages() [jcupitt]
-* add atan2() [jcupitt]
-* add `cache_get_max()`, `cache_get_max_mem()`, `cache_get_max_files()`, 
-  `cache_get_size()` [hroskes]
-* don't generate docs for deprecated arguments [jcupitt]
-* buffer save tries with the target API first [jcupitt]
-* add hyperbolic functions `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, 
-  `atanh` [jcupitt]
-* add `values_for_flag` [kleisauke]
+Version 3.0.0-dev.2
+===================
 
-## Version 2.1.15 (27 Dec 2020)
+:Released: 2020-11-04
+:Maintainer:
 
-* better autodocs for enums [int-ua]
-* better unreffing if operators fail [kleisauke]
 
-## Version 2.1.14 (18 Dec 2020)
+Improved Documentation
+----------------------
 
-* add `stdio.py` example
-* update examples
-* improve formatting of enum documentation
-* regenerate docs
-* remove old `vips_free` declaration, fixing API build on some platforms 
-  [rajasagashe]
+* :gh:`312`: Rework "Usage" section.
 
-## Version 2.1.13 (4 Jul 2020)
+  * Mention the rename of :class:`~semver.version.VersionInfo` to
+    :class:`~semver.version.Version` class
+  * Remove semver. prefix in doctests to make examples shorter
+  * Correct some references to dunder methods like
+    :func:`~.semver.version.Version.__getitem__`,
+    :func:`~.semver.version.Version.__gt__` etc.
+  * Remove inconsistencies and mention module level function as
+    deprecated and discouraged from using
+  * Make empty :py:func:`super` call in :file:`semverwithvprefix.py` example
 
-* better diagnostics for API mode install failure [kleisauke]
-* revise docs [int-ua]
-* better reference tracking for new_from_memory [aspadm]
 
-## Version 2.1.12 (17 Feb 2020) 
 
-* update enums.py [tony612]
-* add gen-enums.py [jcupitt]
-* improve custom source/target types [jcupitt]
-* revise types for set_blob to fix exception with old libvips [jcupitt]
-* fix 32-bit support [dqxpb]
-* remove pytest-runner from pipy deps [lgbaldoni]
-* add watermark with image example [jcupitt]
+----
 
-## Version 2.1.11 (7 Nov 2019) 
 
-* revise README [jcupitt]
-* add watermark example [jcupitt]
-* fix syntax highlighting in README [favorable-mutation]
-* add signal handling [jcupitt]
-* add Source / Target support [jcupitt]
-* add perf tests [kleisauke]
-* speed up Operation.call [kleisauke]
-* fix logging [h4l]
+Version 3.0.0-dev.2
+===================
 
-## Version 2.1.8 (1 Jul 2019)
+:Released: 2020-11-04
+:Maintainer:
 
-* fix regression with py27 [jcupitt]
 
-## Version 2.1.7 (1 Jul 2019)
+Improved Documentation
+----------------------
 
-* prevent exponential growth of reference tables in some cases [NextGuido]
+* :gh:`312`: Rework "Usage" section.
 
-## Version 2.1.6 (7 Jan 2019)
+  * Mention the rename of :class:`~semver.version.VersionInfo` to
+    :class:`~semver.version.Version` class
+  * Remove semver. prefix in doctests to make examples shorter
+  * Correct some references to dunder methods like :func:`__getitem__`,
+    :func:`__gt__` etc.
+  * Remove inconsistencies and mention module level function as
+    deprecated and discouraged from using
+  * Make empty :py:func:`super` call in :file:`semverwithvprefix.py` example
 
-* switch to new-style callbacks [kleisauke]
-* add get_suffixes() [jcupitt]
-* add Region [jcupitt]
-* better handling of NULL strings from ffi [jcupitt]
-* add support for dealing with uint64 types [kleisauke]
 
-## Version 2.1.5 (18 Dec 2018)
 
-* better behaviour for new_from_memory fixes some segvs [wppd]
-* added addalpha/hasalpha [jcupitt]
+----
 
-## Version 2.1.4 (3 Oct 2018)
 
-* update links for repo move [jcupitt]
-* update autodocs for libvips 8.7 [jcupitt]
+Version 3.0.0-dev.2
+===================
 
-## Version 2.1.3 (3 March 2018)
+:Released: 2020-11-01
+:Maintainer: Tom Schraitle
 
-* record header version number in binary module and check compatibility with
-  the library during startup [jcupitt]
-* add optional output params to docs [kleisauke]
-* update docs [jcupitt]
-* add some libvips 8.7 tests [jcupitt]
-* move to pytest [kleisauke]
-* better handling of many-byte values in py3 new_from_memory [MatthiasKohl]
-* better handling of utf-8 i18n text [felixbuenemann]
-* add enum introspection [kleisauke]
-* move the libvips test suite back to libvips, just test pyvips here [jcupitt]
-* fix five small memleaks [kleisauke]
 
-## Version 2.1.2 (1 March 2018)
+Deprecations
+------------
 
-* only use get_fields on libvips 8.5+ [rebkwok]
-* only use parent_instance on libvips 8.4+ [rebkwok]
-* relative import for decl 
+* :gh:`169`: Deprecate CLI functions not imported from ``semver.cli``.
 
-## Version 2.1.1 (25 February 2018)
 
-* switch to sdist
-* better ABI mode fallback behaviour
 
-## Version 2.1.0 (17 November 2017)
+Features
+--------
 
-* support cffi API mode as well: much faster startup, about 20% faster on the 
-  test suite [jcupitt]
-* on install, it tries to build a binary interface, and if that fails, falls 
-  back to ABI mode [jcupitt]
-* better error for bad kwarg [geniass]
+* :gh:`169`: Create semver package and split code among different modules in the packages.
 
-## Version 2.0.6 (22 February 2017)
+  * Remove :file:`semver.py`
+  * Create :file:`src/semver/__init__.py`
+  * Create :file:`src/semver/cli.py` for all CLI methods
+  * Create :file:`src/semver/_deprecated.py` for the ``deprecated`` decorator and other deprecated functions
+  * Create :file:`src/semver/__main__.py` to allow calling the CLI using :command:`python -m semver`
+  * Create :file:`src/semver/_types.py` to hold type aliases
+  * Create :file:`src/semver/version.py` to hold the :class:`Version` class (old name :class:`VersionInfo`) and its utility functions
+  * Create :file:`src/semver/__about__.py` for all the metadata variables
 
-* add version numbers to library names on linux
+* :gh:`305`: Rename :class:`VersionInfo` to :class:`Version` but keep an alias for compatibility
 
-## Version 2.0.5 (8 September 2017)
 
-* minor polish
-* more tests
-* add `composite` convenience method
-* move tests outside module [greut]
-* switch to tox [greut]
-* allow info message logging
 
-## Version 2.0.4 (3 September 2017)
+Improved Documentation
+----------------------
 
-* clear error log after failed get_typeof in get() workaround
-* more tests pass with older libvips
-* fix typo in logging handler
+* :gh:`304`: Several improvements in documentation:
 
-## Version 2.0.3 (2 September 2017)
+  * Reorganize API documentation.
+  * Add migration chapter from semver2 to semver3.
+  * Distinguish between changlog for version 2 and 3
 
-* fix get() with old libvips
-* better collapse for docs [kleisauke]
-* add `get_fields()`
+* :gh:`305`: Add note about :class:`Version` rename.
 
-## Version 2.0.2 (26 August 2017)
 
-* support `pyvips.__version__`
-* add `version()` to get libvips version number
-* add `cache_set_max()`, `cache_set_max_mem()`, `cache_set_max_files()`, 
-  `cache_set_trace()`
-* all glib log levels sent to py logger
-* docs are collapsed for less scrolling [kleisauke]
 
-## Version 2.0.1 (23 August 2017)
+Trivial/Internal Changes
+------------------------
 
-* doc revisions
-* fix test suite on Windows
-* redirect libvips warnings to logging
-* fix debug logging
+* :gh:`169`: Adapted infrastructure code to the new project layout.
 
-## Version 2.0.0 (19 August 2017)
+  * Replace :file:`setup.py` with :file:`setup.cfg` because the :file:`setup.cfg` is easier to use
+  * Adapt documentation code snippets where needed
+  * Adapt tests
+  * Changed the ``deprecated`` to hardcode the ``semver`` package name in the warning.
 
-* rewrite on top of 'cffi' 
+  Increase coverage to 100% for all non-deprecated APIs
+
+* :gh:`304`: Support PEP-561 :file:`py.typed`.
+
+  According to the mentioned PEP:
+
+    "Package maintainers who wish to support type checking
+    of their code MUST add a marker file named :file:`py.typed`
+    to their package supporting typing."
+
+  Add package_data to :file:`setup.cfg` to include this marker in dist
+  and whl file.
+
+
+
+----
+
+
+Version 3.0.0-dev.1
+===================
+
+:Released: 2020-10-26
+:Maintainer: Tom Schraitle
+
+
+Deprecations
+------------
+
+* :pr:`290`: For semver 3.0.0-alpha0:
+
+  * Remove anything related to Python2
+  * In :file:`tox.ini` and :file:`.travis.yml`
+    Remove targets py27, py34, py35, and pypy.
+    Add py38, py39, and nightly (allow to fail)
+  * In :file:`setup.py` simplified file and remove
+    ``Tox`` and ``Clean`` classes
+  * Remove old Python versions (2.7, 3.4, 3.5, and pypy)
+    from Travis
+
+* :gh:`234`: In :file:`setup.py` simplified file and remove
+  ``Tox`` and ``Clean`` classes
+
+
+
+Features
+--------
+
+* :pr:`290`: Create semver 3.0.0-alpha0
+
+  * Update :file:`README.rst`, mention maintenance
+    branch ``maint/v2``.
+  * Remove old code mainly used for Python2 compatibility,
+    adjusted code to support Python3 features.
+  * Split test suite into separate files under :file:`tests/`
+    directory
+  * Adjust and update :file:`setup.py`. Requires Python >=3.6.*
+    Extract metadata directly from source (affects all the ``__version__``,
+    ``__author__`` etc. variables)
+
+* :gh:`270`: Configure Towncrier (:pr:`273`:)
+
+  * Add :file:`changelog.d/.gitignore` to keep this directory
+  * Create :file:`changelog.d/README.rst` with some descriptions
+  * Add :file:`changelog.d/_template.rst` as Towncrier template
+  * Add ``[tool.towncrier]`` section in :file:`pyproject.toml`
+  * Add "changelog" target into :file:`tox.ini`. Use it like
+    :command:`tox -e changelog -- CMD` whereas ``CMD`` is a
+    Towncrier command. The default :command:`tox -e changelog`
+    calls Towncrier to create a draft of the changelog file
+    and output it to stdout.
+  * Update documentation and add include a new section
+    "Changelog" included from :file:`changelog.d/README.rst`.
+
+* :gh:`276`: Document how to create a sublass from :class:`VersionInfo` class
+
+* :gh:`213`: Add typing information
+
+
+Bug Fixes
+---------
+
+* :gh:`291`: Disallow negative numbers in VersionInfo arguments
+  for ``major``, ``minor``, and ``patch``.
+
+
+
+Improved Documentation
+----------------------
+
+* :pr:`290`: Several improvements in the documentation:
+
+  * New layout to distinguish from the semver2 development line.
+  * Create new logo.
+  * Remove any occurances of Python2.
+  * Describe changelog process with Towncrier.
+  * Update the release process.
+
+
+
+Trivial/Internal Changes
+------------------------
+
+* :pr:`290`: Add supported Python versions to :command:`black`.
+
+
+..
+    Local variables:
+    coding: utf-8
+    mode: text
+    mode: rst
+    End:
+    vim: fileencoding=utf-8 filetype=rst :

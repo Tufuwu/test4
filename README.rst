@@ -1,230 +1,120 @@
-README
-======
+.. warning::
 
-.. image:: https://github.com/libvips/pyvips/workflows/CI/badge.svg
-    :alt: Build Status
-    :target: https://github.com/libvips/pyvips/actions
+   This is a development version. Do **NOT** use it
+   in production before the final 3.0.0 is released.
 
-PyPI package:
+Quickstart
+==========
 
-https://pypi.python.org/pypi/pyvips
+.. teaser-begin
 
-conda package:
+A Python module for `semantic versioning`_. Simplifies comparing versions.
 
-https://anaconda.org/conda-forge/pyvips
+|build-status| |python-support| |downloads| |license| |docs| |black|
 
-We have formatted docs online here:
+.. teaser-end
 
-https://libvips.github.io/pyvips/
+.. note::
 
-This module wraps the libvips image processing library:
+   This project works for Python 3.6 and greater only. If you are
+   looking for a compatible version for Python 2, use the
+   maintenance branch |MAINT|_.
 
-https://libvips.github.io/libvips/
+   The last version of semver which supports Python 2.7 to 3.5 will be
+   2.x.y However, keep in mind, the major 2 release is frozen: no new
+   features nor backports will be integrated.
 
-The libvips docs are also very useful:
+   We recommend to upgrade your workflow to Python 3.x to gain support,
+   bugfixes, and new features.
 
-https://libvips.github.io/libvips/API/current/
+.. |MAINT| replace:: ``maint/v2``
+.. _MAINT: https://github.com/python-semver/python-semver/tree/maint/v2
 
-If you have the development headers for libvips installed and have a working C
-compiler, this module will use cffi API mode to try to build a libvips 
-binary extension for your Python. 
 
-If it is unable to build a binary extension, it will use cffi ABI mode
-instead and only needs the libvips shared library. This takes longer to
-start up and is typically ~20% slower in execution.  You can find out how
-pyvips installed with ``pip show pyvips``.
+The module follows the ``MAJOR.MINOR.PATCH`` style:
 
-This binding passes the vips test suite cleanly and with no leaks under
-python2.7 - python3.10, pypy and pypy3 on Windows, macOS and Linux. 
+* ``MAJOR`` version when you make incompatible API changes,
+* ``MINOR`` version when you add functionality in a backwards compatible manner, and
+* ``PATCH`` version when you make backwards compatible bug fixes.
 
-How it works
-------------
+Additional labels for pre-release and build metadata are supported.
 
-Programs that use ``pyvips`` don't manipulate images directly, instead
-they create pipelines of image processing operations building on a source
-image. When the end of the pipe is connected to a destination, the whole
-pipeline executes at once, streaming the image in parallel from source to
-destination a section at a time.
-
-Because ``pyvips`` is parallel, it's quick, and because it doesn't need to
-keep entire images in memory, it's light.  For example, the libvips 
-speed and memory use benchmark:
-
-https://github.com/libvips/libvips/wiki/Speed-and-memory-use
-
-Loads a large tiff image, shrinks by 10%, sharpens, and saves again. On this
-test ``pyvips`` is typically 3x faster than ImageMagick and needs 5x less
-memory. 
-
-There's a handy chapter in the docs explaining how libvips opens files,
-which gives some more background.
-
-http://libvips.github.io/libvips/API/current/How-it-opens-files.md.html
-
-conda install
--------------
-
-The conda package includes a matching libvips binary, so just enter:
-
-.. code-block:: shell
-
-    $ conda install --channel conda-forge pyvips
-
-Non-conda install
------------------
-
-First, you need the libvips shared library on your library search path,
-version 8.2 or later, though at least version 8.9 is required for all features
-to work.  On Linux and macOS, you can just install via your package manager;
-on Windows you can download a pre-compiled binary from the libvips website.
-
-https://libvips.github.io/libvips/install.html
-
-Next, install this package, perhaps:
-
-.. code-block:: shell
-
-    $ pip install --user pyvips
-
-On Windows, you'll need a 64-bit Python. The official one works well. 
-You will also need to add ``vips-dev-x.y\bin`` to your ``PATH`` so
-that pyvips can find all the DLLs it needs. You can either do this in the
-**Advanced System Settings** control panel, or you can just change
-``PATH`` in your Python program.
-
-If you set the ``PATH`` environment variable in the control panel, you can
-use the ``vips`` command-line tools, which I find useful. However, this will
-add a lot of extra DLLs to your search path and they might conflict with
-other programs, so it's usually safer just to set ``PATH`` in your program.
-
-To set ``PATH`` from within Python, you need something like this at the
-start:
+To import this library, use:
 
 .. code-block:: python
 
-    import os
-    vipsbin = r'c:\vips-dev-8.13\bin'
-    os.environ['PATH'] = vipsbin + ';' + os.environ['PATH']
+    >>> import semver
 
-For Python 3.8 and later, you need:
-
-.. code-block:: python
-
-    import os
-    vipsbin = r'c:\vips-dev-8.13\bin'
-    add_dll_dir = getattr(os, 'add_dll_directory', None)
-    if callable(add_dll_dir):
-        add_dll_dir(vipsbin)
-    else:
-        os.environ['PATH'] = os.pathsep.join((vipsbin, os.environ['PATH']))
-
-Now when you import pyvips, it should be able to find the DLLs.
-
-Example
--------
-
-This sample program loads a JPG image, doubles the value of every green pixel,
-sharpens, and then writes the image back to the filesystem again:
+Working with the library is quite straightforward. To turn a version string into the
+different parts, use the ``semver.Version.parse`` function:
 
 .. code-block:: python
 
-    import pyvips
+    >>> ver = semver.Version.parse('1.2.3-pre.2+build.4')
+    >>> ver.major
+    1
+    >>> ver.minor
+    2
+    >>> ver.patch
+    3
+    >>> ver.prerelease
+    'pre.2'
+    >>> ver.build
+    'build.4'
 
-    image = pyvips.Image.new_from_file('some-image.jpg', access='sequential')
-    image *= [1, 2, 1]
-    mask = pyvips.Image.new_from_array([
-        [-1, -1, -1],
-        [-1, 16, -1],
-        [-1, -1, -1],
-    ], scale=8)
-    image = image.conv(mask, precision='integer')
-    image.write_to_file('x.jpg')
+To raise parts of a version, there are a couple of functions available for
+you. The function ``semver.Version.bump_major`` leaves the original object untouched, but
+returns a new ``semver.Version`` instance with the raised major part:
+
+.. code-block:: python
+
+    >>> ver = semver.Version.parse("3.4.5")
+    >>> ver.bump_major()
+    Version(major=4, minor=0, patch=0, prerelease=None, build=None)
+
+It is allowed to concatenate different "bump functions":
+
+.. code-block:: python
+
+    >>> ver.bump_major().bump_minor()
+    Version(major=4, minor=1, patch=0, prerelease=None, build=None)
+
+To compare two versions, semver provides the ``semver.compare`` function.
+The return value indicates the relationship between the first and second
+version:
+
+.. code-block:: python
+
+    >>> semver.compare("1.0.0", "2.0.0")
+    -1
+    >>> semver.compare("2.0.0", "1.0.0")
+    1
+    >>> semver.compare("2.0.0", "2.0.0")
+    0
 
 
-Notes
------
+There are other functions to discover. Read on!
 
-Local user install:
 
-.. code-block:: shell
-
-    $ pip3 install -e .
-    $ pypy -m pip --user -e .
-
-Run all tests:
-
-.. code-block:: shell
-
-    $ tox 
-
-Run test suite:
-
-.. code-block:: shell
-
-    $ pytest
-
-Run a specific test:
-
-.. code-block:: shell
-
-    $ pytest tests/test_saveload.py
-
-Run perf tests:
-
-.. code-block:: shell
-
-   $ cd tests/perf
-   $ ./run.sh
-
-Stylecheck:
-
-.. code-block:: shell
-
-    $ flake8
-
-Generate HTML docs in ``doc/build/html``:
-
-.. code-block:: shell
-
-    $ cd doc; sphinx-build -bhtml . build/html
-
-Regenerate enums:
-
-Make sure you have installed a libvips with all optional packages enabled,
-then
-
-.. code-block:: shell
-
-    $ cd examples; \
-      ./gen-enums.py ~/GIT/libvips/libvips/Vips-8.0.gir > enums.py
-
-Then check and move `enums.py` into `pyvips/`.
-
-Regenerate autodocs:
-
-Make sure you have installed a libvips with all optional packages enabled,
-then
-
-.. code-block:: shell
-
-    $ cd doc; \
-      python3 -c "import pyvips; pyvips.Operation.generate_sphinx_all()" > x 
-
-And copy-paste ``x`` into the obvious place in ``doc/vimage.rst``. 
-
-Update version number:
-
-.. code-block:: shell
-
-    $ vi pyvips/version.py
-    $ vi doc/conf.py
-
-Update pypi package:
-
-.. code-block:: shell
-
-    $ python3 setup.py sdist
-    $ twine upload dist/*
-    $ git tag -a v2.2.0 -m "as uploaded to pypi"
-    $ git push origin v2.2.0
-
+.. |latest-version| image:: https://img.shields.io/pypi/v/semver.svg
+   :alt: Latest version on PyPI
+   :target: https://pypi.org/project/semver
+.. |build-status| image:: https://travis-ci.com/python-semver/python-semver.svg?branch=master
+   :alt: Build status
+   :target: https://travis-ci.com/python-semver/python-semver
+.. |python-support| image:: https://img.shields.io/pypi/pyversions/semver.svg
+   :target: https://pypi.org/project/semver
+   :alt: Python versions
+.. |downloads| image:: https://img.shields.io/pypi/dm/semver.svg
+   :alt: Monthly downloads from PyPI
+   :target: https://pypi.org/project/semver
+.. |license| image:: https://img.shields.io/pypi/l/semver.svg
+   :alt: Software license
+   :target: https://github.com/python-semver/python-semver/blob/master/LICENSE.txt
+.. |docs| image:: https://readthedocs.org/projects/python-semver/badge/?version=latest
+   :target: http://python-semver.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+.. _semantic versioning: http://semver.org/
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+    :alt: Black Formatter
