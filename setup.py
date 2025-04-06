@@ -1,63 +1,47 @@
-import os
+#!/usr/bin/env python
 
 from setuptools import setup
-from e3fp import version
-
-ON_RTD = os.environ.get("READTHEDOCS") == "True"
-
-
-requirements = [
-    "scipy>=0.18.0",
-    "numpy>=1.11.3",
-    "mmh3>=2.3.1",
-    "sdaxen_python_utilities>=0.1.4",
-]
-if ON_RTD:  # ReadTheDocs can't handle C libraries
-    requirements = requirements[-1:] + ["mock"]
-
-test_requirements = ["pytest", "mock"]
-
-classifiers = [
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 2.7",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
-    "Operating System :: OS Independent",
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Science/Research",
-    "Intended Audience :: Developers",
-    "Topic :: Scientific/Engineering :: Chemistry",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-]
-
-
-def get_readme():
-    with open("README.rst") as f:
-        return f.read()
-
 
 setup(
-    name="e3fp",
-    packages=[
-        "e3fp",
-        "e3fp.config",
-        "e3fp.conformer",
-        "e3fp.fingerprint",
-        "e3fp.test",
+    name='topy',
+    version='1.1.0',
+
+    # PyPI metadata
+    author='Marti Raudsepp',
+    author_email='marti@juffo.org',
+    url='https://github.com/intgr/topy',
+    download_url='https://pypi.python.org/pypi/topy/',
+    license='MIT, CC-BY-SA',
+    description='Fixes typos in text using regular expressions, based on RegExTypoFix from Wikipedia',
+    long_description=open('README.rst').read(),
+    platforms='any',
+    keywords='typo spelling grammar text',
+    classifiers=[
+        # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        # Until we have a test suite we're conservative about Python version compatibility claims
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Topic :: Documentation',
+        'Topic :: Software Development :: Quality Assurance',
+        'Topic :: Text Processing :: Filters',
     ],
-    version=version,
-    description="Molecular 3D fingerprinting",
-    long_description=get_readme(),
-    keywords="e3fp 3d molecule fingerprint conformer",
-    author="Seth Axen",
-    author_email="seth.axen@gmail.com",
-    license="LGPLv3",
-    url="https://github.com/keiserlab/e3fp",
-    classifiers=classifiers,
-    download_url="https://github.com/keiserlab/e3fp/tarball/" + version,
-    install_requires=requirements,
-    include_package_data=True,
-    tests_require=test_requirements,
+
+    # Installation settings
+    packages=['topy'],
+    entry_points={'console_scripts': ['topy = topy.topy:main']},
+    package_data={
+        '': ['*.txt']
+    },
+    install_requires=[
+        'regex>=2016.07.14',
+        'beautifulsoup4',
+    ],
+    test_suite='tests',
 )

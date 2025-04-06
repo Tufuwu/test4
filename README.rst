@@ -1,73 +1,132 @@
-E3FP: Extended 3-Dimensional FingerPrint
-========================================
+Topy
+====
+.. image:: https://badge.fury.io/py/topy.svg
+   :target: https://badge.fury.io/py/topy
 
-|Docs Status| |CI Status| |Codecov Status| |PyPi Version| |Conda Version| |License|
+.. |Tests status| image:: https://github.com/intgr/topy/workflows/Tests/badge.svg?branch=master
+   :target: https://github.com/intgr/topy/actions?query=workflow:Tests
 
-E3FP [1]_ is a 3D molecular fingerprinting method inspired by Extended
-Connectivity FingerPrints (ECFP) [2]_, integrating tightly with the RDKit_.
+Topy (anagram of "typo") is a Python script to fix typos in text, using rulesets developed by the RegExTypoFix_ project
+from Wikipedia. The English ruleset is included with Topy and is used by default. Other rulesets can be manually
+downloaded.
 
-Documentation is hosted by ReadTheDocs_, and development occurs on GitHub_.
+.. _RegExTypoFix: https://en.wikipedia.org/wiki/Wikipedia:AutoWikiBrowser/Typos
 
-Installation and Usage
-----------------------
+Topy works with Python 3.7-3.11.
 
-For installation and usage instructions, see the
-`documentation <http://e3fp.readthedocs.io>`__.
+The easiest way to install it is using pip::
 
-See the E3FP `paper repository`_ for an application of E3FP and all code used
-for the E3FP paper [1]_.
+    pip install topy
+
+Usage::
+
+    Usage: topy [options] FILES/DIRS...
+
+    Options:
+      -h, --help            show this help message and exit
+      -q, --quiet           silence information messages
+      -a, --apply           overwrite files in place
+      -r FILE, --rules=FILE
+                            specify custom ruleset file to use
+      -d RULE, --disable=RULE
+                            disable rules by name
+      --color=WHEN, --colour=WHEN
+                            colorize the output; WHEN can be 'never', 'always', or
+                            'auto'
+
+For example, if you want to integrate topy in your CI pipeline, you can do something like::
+
+    sh -c "git ls-files | xargs topy --quiet --apply --; git --no-pager diff --exit-code"
+
+The line above will check all files tracked by git, apply fixes to them and fail if any changes are applied.
+If no changes are to be applied, the command returns success.
+
+Resources
+---------
+
+* https://en.wikipedia.org/wiki/Wikipedia:AutoWikiBrowser/Typos
+* https://github.com/intgr/topy
+* https://pypi.python.org/pypi/topy
+* Rulesets for other languages: https://www.wikidata.org/wiki/Q6585066
+
+Changelog
+---------
+
+1.1.0 (2021-02-03)
+
+* Added colors to output. Thanks to Brian de Buiteach (@debuiteb) (#25)
+* Python 3.5 support is removed to allow newer syntax (#25)
+
+1.0.1 (2021-01-30)
+
+* Updated bundled ruleset from Wikipedia (#29)
+* Python 3.9 is now officially supported and tested in CI (#27)
+* Migrated tests from travis-ci.org to travis-ci.com (#28)
+
+1.0.0 (2020-09-08)
+
+* Updated bundled ruleset from Wikipedia (#23)
+* Removed Python 2.x and <3.5 compatibility code (#22)
+* Fixed Travis CI configuration (#21)
+
+0.3.0 (2020-06-02)
+
+Note: This was the last release to support Python 2.7.
+
+* Updated bundled ruleset (thanks to Oscar Caballero)
+* Added --disable option to disable individual rules (thanks to Oscar Caballero)
+* Fixed behavior when replacement string contains $ symbol (thanks to Oscar Caballero)
+* Prefer the faster lxml parser when it is installed. lxml is now an optional dependency
+  (thanks to Oscar Caballero)
+* Added Python 3.7 support, deprecated Python 3.3 and 3.4.
+
+0.2.2 (2016-12-16)
+
+* Update bundled ruleset
+* Officially add Python 3.6 support
+
+0.2.1 (2016-07-15)
+
+* Update bundled ruleset
+* Update regex dependency version to avoid `regex issue #216`_
+* Officially add Python 3.5 support
+
+.. _`regex issue #216`: https://bitbucket.org/mrabarnett/mrab-regex/issues/216/invalid-match-when-using-negative
+
+0.2.0 (2015-09-09)
+
+* Several fixes with Unicode on Python 2
+* Can safely deal with filenames that are invalid Unicode
+* Update bundled ruleset
+* Fix a few warnings from used libraries
+
+0.1.0 (2014-08-24)
+
+* Initial public release
+
+Contributing
+------------
+
+Code style:
+
+* In general follow the Python PEP-8_ coding style, except line length can go up to 120 chars.
+* Strings that have meaning for humans use double quotes (``"``), otherwise single quotes (``'``). When in doubt, don't
+  worry about it.
+* Code should be compatible with both Python 2 and 3, preferably without version-specific conditionals.
+
+Run the test suite using ``python setup.py test``.
+
+Submit your changes as pull requests on GitHub.
+
+.. _PEP-8: https://www.python.org/dev/peps/pep-0008/
 
 License
 -------
 
-E3FP is available under the `GNU Lesser General Public License version 3.0
-<https://www.gnu.org/licenses/lgpl.html>`_ (LGPLv3). See the
-`documentation <http://e3fp.readthedocs.io/en/latest/overview.html#license>`__
-for more details.
+The Topy software is licensed under the MIT license (see LICENSE.txt)
 
+The bundled ``retf.txt`` file, copied from `Wikipedia AutoWikiBrowser/Typos`_ by Wikipedia contributors is licensed
+under CC-BY-SA_. See the page on Wikipedia for authorship information.
 
-References
-----------
-
-.. [1] |axen2017|
-.. [2] |rogers2010|
-
-.. substitutions
-
-.. _RDKit: http://www.rdkit.org
-.. _GitHub: https://github.com/keiserlab/e3fp
-.. _paper repository: https://github.com/keiserlab/e3fp-paper
-.. _ReadTheDocs: http://e3fp.readthedocs.io
-.. |axen2017_doi| image:: https://img.shields.io/badge/doi-10.1021/acs.jmedchem.7b00696-blue.svg
-    :target: http://dx.doi.org/10.1021/acs.jmedchem.7b00696
-    :alt: Access the paper
-.. |axen2017| replace:: Axen SD, Huang XP, Caceres EL, Gendelev L, Roth BL, Keiser MJ. A Simple Representation Of Three-Dimensional Molecular Structure. *J. Med. Chem.* **60** (17): 7393–7409 (2017). |axen2017_doi| |bioRxiv| |F1000 recommended|
-.. |rogers2010_doi| image:: https://img.shields.io/badge/doi-10.1021/ci100050t-blue.svg
-    :target: http://dx.doi.org/10.1021/ci100050t
-    :alt: Access the paper
-.. |rogers2010| replace:: Rogers D & Hahn M. Extended-connectivity fingerprints. *J. Chem. Inf. Model.* **50**: 742-54 (2010). |rogers2010_doi|
-.. |CI Status| image:: https://github.com/keiserlab/e3fp/workflows/CI/badge.svg?branch=master
-   :target: https://github.com/keiserlab/e3fp/actions?query=workflow%3ACI
-   :alt: CI Status
-.. |Docs Status| image:: http://readthedocs.org/projects/e3fp/badge/?version=latest
-   :target: http://e3fp.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
-.. |Codecov Status| image:: https://codecov.io/github/keiserlab/e3fp/coverage.svg?branch=master
-   :target: https://codecov.io/github/keiserlab/e3fp?branch=master
-   :alt: Code Coverage
-.. |PyPi Version| image:: https://img.shields.io/pypi/v/e3fp.svg
-   :target: https://pypi.python.org/pypi/e3fp
-   :alt: Package on PyPi
-.. |Conda Version| image:: https://img.shields.io/conda/v/conda-forge/e3fp.svg
-   :target: https://anaconda.org/conda-forge/e3fp
-   :alt: Package on Anaconda
-.. |License| image:: https://img.shields.io/badge/license-LGPLv3-blue.svg
-   :target: https://github.com/keiserlab/e3fp/blob/master/LICENSE.txt
-.. |F1000 recommended| image:: http://cdn.f1000.com.s3.amazonaws.com/images/badges/badgef1000.gif
-   :target: http://f1000.com/prime/727824514?bd=1
-   :alt: Access the recommendation on F1000Prime
-   :width: 120px
-   :scale: 75 %
-.. |bioRxiv| image:: https://img.shields.io/badge/bioRxiv-136705-blue.svg
-    :target: https://doi.org/10.1101/136705
-    :alt: Access the preprint on bioRxiv
+.. _`Wikipedia AutoWikiBrowser/Typos`: https://en.wikipedia.org/wiki/Wikipedia:AutoWikiBrowser/Typos
+.. _CC-BY-SA: https://creativecommons.org/licenses/by-sa/3.0/
