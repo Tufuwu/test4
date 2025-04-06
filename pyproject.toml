@@ -1,68 +1,50 @@
 [tool.poetry]
-name = "yaspin"
-version = "2.1.0"
-description = "Yet Another Terminal Spinner"
+name = "poetry-dynamic-versioning"
+version = "0.8.3"
+description = "Plugin for Poetry to enable dynamic versioning based on VCS tags"
 license = "MIT"
-authors = ["Pavlo Dmytrenko <mail@pavdmyt.com>"]
-readme = "README.rst"
-homepage = "https://github.com/pavdmyt/yaspin"
-repository = "https://github.com/pavdmyt/yaspin"
-documentation = "https://github.com/pavdmyt/yaspin/blob/master/README.rst"
-keywords = ["spinner", "console", "terminal", "loader", "indicator"]
-include = [
-    { path = "tests", format = "sdist" },
-    { path = "examples", format = "sdist" },
-    { path = "HISTORY.rst", format = "sdist"}
-]
+authors = ["Matthew T. Kennerly <mtkennerly@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/mtkennerly/poetry-dynamic-versioning"
+keywords = ["poetry", "plugin", "version", "versioning", "dynamic"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Environment :: Console",
-    "Environment :: MacOS X",
-    "Environment :: Other Environment",
-    "Intended Audience :: Developers",
+    "Development Status :: 4 - Beta",
+    "Environment :: Plugins",
     "Intended Audience :: End Users/Desktop",
-    "Intended Audience :: Other Audience",
-    "Intended Audience :: System Administrators",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
-    "Operating System :: MacOS :: MacOS X",
-    "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: Implementation",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Topic :: Software Development",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Software Development :: User Interfaces",
-    "Topic :: System :: Logging",
-    "Topic :: System :: Monitoring",
-    "Topic :: System :: Shells",
-    "Topic :: Terminals",
-    "Topic :: Utilities",
+    "Topic :: Software Development :: Version Control",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: Software Development :: Version Control :: Mercurial",
+    "Topic :: Software Development :: Version Control :: Bazaar",
 ]
+include = ["zzz_poetry_dynamic_versioning.pth"]
 
 [tool.poetry.dependencies]
-python = "^3.7.2"
-termcolor-whl = "1.1.2"
+python = "^3.5"
+dunamai = "^1.3"
+tomlkit = ">= 0.4"
+jinja2 = "^2.11.1"
 
 [tool.poetry.dev-dependencies]
-black = "^22.3"
-twine = "^4.0"
-flake8 = "^4.0"
-isort = "^5.10"
-pytest = "^7.1.2"
-pytest-xdist = "^2.5"
-pytest-cov = "^3.0"
-pylint = "^2.14"
+pytest = "^4.0"
+pytest-cov = "^2.7"
+pre-commit = "^1.16"
+tox = "^3.12"
+tox-venv = "^0.4.0"
+black = { version = "^19.3-alpha.0", allow-prereleases = true, python = "^3.6" }
+flake8 = "^3.7"
+mypy = "^0.740"
+pep8-naming = "^0.8.2"
 
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/pavdmyt/yaspin/issues"
+[tool.poetry.scripts]
+poetry-dynamic-versioning = 'poetry_dynamic_versioning.__main__:main'
+
+[tool.black]
+line-length = 100
 
 [build-system]
-requires = ["poetry_core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
