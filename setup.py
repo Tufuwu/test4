@@ -1,56 +1,88 @@
-#!/usr/bin/env python
-from pathlib import Path
-from setuptools import find_packages, setup
+import os
+import sys
 
+from setuptools import setup
+from setuptools.command.test import test as TestCommand
 
-REQUIREMENTS = [
-    'django>=2.2',
-    'django-classy-tags>=1',
+cwd = os.path.realpath(os.path.dirname(__file__))
+
+class PyTest(TestCommand):
+    user_options = [("pytest-args=", "a", "Arguments to pass into py.test")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = ""
+
+    def run_tests(self):
+        import shlex
+
+        import pytest
+
+        errno = pytest.main(shlex.split(self.pytest_args))
+        sys.exit(errno)
+
+# "setup.py publish" shortcut.
+if sys.argv[-1] == "publish":
+    os.system("python setup.py sdist bdist_wheel")
+    os.system("twine upload dist/*")
+    sys.exit()
+
+if sys.argv[-1] == "check":
+    os.system("python setup.py sdist bdist_wheel")
+    os.system("twine check dist/*")
+    sys.exit()
+
+packages = ["symspellpy"]
+
+requires = [
+    "numpy>=1.13.1"
+]
+test_requirements = [
+    'pytest-cov',
+    'pytest>=3.7.1'
 ]
 
+about = {}
+with open(os.path.join(cwd, "symspellpy", "__version__.py"), "r",
+          encoding="utf-8") as infile:
+    exec(infile.read(), about)
 
-CLASSIFIERS = [
-    'Development Status :: 5 - Production/Stable',
-    'Environment :: Web Environment',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: BSD License',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Framework :: Django',
-    'Framework :: Django :: 2.2',
-    'Framework :: Django :: 3.1',
-    'Framework :: Django :: 3.2',
-    'Topic :: Internet :: WWW/HTTP',
-    'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-    'Topic :: Software Development',
-    'Topic :: Software Development :: Libraries',
-]
-
-this_directory = Path(__file__).parent
-long_description = (this_directory / "README.rst").read_text()
+with open(os.path.join(cwd, "README.md"), "r", encoding="utf-8") as infile:
+    readme = infile.read()
+with open(os.path.join(cwd, "CHANGELOG.md"), "r",
+          encoding="utf-8") as infile:
+    changelog = infile.read()
 
 setup(
-    name='django-sekizai',
-    version='2.0.0',
-    author='Jonas Obrist',
-    author_email='ojiidotch@gmail.com',
-    maintainer='Django CMS Association and contributors',
-    maintainer_email='info@django-cms.org',
-    url='https://github.com/django-cms/django-sekizai',
-    license='BSD-3-Clause',
-    description='Django Sekizai',
-    long_description=long_description,
-    long_description_content_type='text/x-rst',
-    packages=find_packages(),
-    python_requires='>=3.7',
+    name=about["__title__"],
+    version=about["__version__"],
+    description=about["__description__"],
+    long_description=readme + "\n\n" + changelog,
+    long_description_content_type="text/markdown",
+    author=about["__author__"],
+    author_email=about["__author_email__"],
+    url=about["__url__"],
+    packages=packages,
+    package_data={"symspellpy": ["frequency_dictionary_en_82_765.txt",
+                                 "frequency_bigramdictionary_en_243_342.txt"]},
+    package_dir={"symspellpy": "symspellpy"},
     include_package_data=True,
+    python_requires=">=3.4",
+    install_requires=requires,
+    license=about["__license__"],
     zip_safe=False,
-    install_requires=REQUIREMENTS,
-    classifiers=CLASSIFIERS,
-    test_suite='tests.settings.run',
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Natural Language :: English",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7"
+    ],
+    cmdclass={"test": PyTest},
+    tests_require=test_requirements,
 )

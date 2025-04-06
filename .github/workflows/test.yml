@@ -1,37 +1,32 @@
-name: CodeCov tests
+name: Tests
 
 on: [push, pull_request]
 
 jobs:
-  unit-tests:
+  test:
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
+
     strategy:
-      fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         python-version: ["3.9"]
-        requirements-file: [
-            django-2.2.txt,
-            django-3.1.txt,
-            django-3.2.txt
-        ]
-        os: [
-          ubuntu-latest,
-        ]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python setup.py install
+      - uses: actions/checkout@v2
 
-    - name: Run coverage
-      run: coverage run setup.py test
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v1
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: python -m pytest --cov-report=xml --cov=symspellpy
+
+      - name: Upload code coverage
+        uses: codecov/codecov-action@v2
