@@ -1,1 +1,2 @@
-include README.rst LICENSE.txt VERSION
+include LICENSE README.md
+graft third-party
