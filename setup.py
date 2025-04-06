@@ -1,70 +1,131 @@
 #!/usr/bin/env python
-# vim: set sw=4 et:
+# coding: utf-8
 
-from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
-import glob
+import os
 
-__version__ = '1.7.4'
+from setuptools import dist
+dist.Distribution().fetch_build_eggs(['numpy'])
 
+from numpy.distutils.core import Extension, setup
 
-class PyTest(TestCommand):
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        # should work with setuptools <18, 18 18.5
-        self.test_suite = ' '
+########################
+#  Fortran extensions  #
+########################
 
-    def run_tests(self):
-        import pytest
-        import sys
-        import os
-        errcode = pytest.main(['--doctest-modules', './warcio', '--cov', 'warcio', '-v', 'test/'])
-        sys.exit(errcode)
-
-setup(
-    name='warcio',
-    version=__version__,
-    author='Ilya Kreymer',
-    author_email='ikreymer@gmail.com',
-    license='Apache 2.0',
-    packages=find_packages(exclude=['test']),
-    url='https://github.com/webrecorder/warcio',
-    description='Streaming WARC (and ARC) IO library',
-    long_description=open('README.rst').read(),
-    provides=[
-        'warcio',
-        ],
-    install_requires=[
-        'six',
-        ],
-    zip_safe=True,
-    entry_points="""
-        [console_scripts]
-        warcio = warcio.cli:main
-    """,
-    cmdclass={'test': PyTest},
-    test_suite='',
-    tests_require=[
-        'urllib3==1.25.11',
-        'pytest',
-        'pytest-cov',
-        'httpbin>=0.10.2',
-        'requests',
-        'wsgiprox',
-        'hookdns',
-    ],
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Web Environment',
-        'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Utilities',
+Delhommeau_source = [
+        "capytaine/green_functions/libDelhommeau/src/constants.f90",
+        "capytaine/green_functions/libDelhommeau/src/Delhommeau_integrals.f90",
+        "capytaine/green_functions/libDelhommeau/src/old_Prony_decomposition.f90",
+        "capytaine/green_functions/libDelhommeau/src/Green_Rankine.f90",
+        "capytaine/green_functions/libDelhommeau/src/Green_wave.f90",
+        "capytaine/green_functions/libDelhommeau/src/matrices.f90",
     ]
+
+Delhommeau_extension = Extension(
+    name="capytaine.green_functions.Delhommeau_f90",
+    sources=Delhommeau_source,
+    extra_f90_compile_args=['-O2', '-fopenmp', '-cpp'],
+    extra_link_args=['-fopenmp'],
+    # # Uncomment the following lines to get more verbose output from f2py.
+    # define_macros=[
+    #     ('F2PY_REPORT_ATEXIT', 1),
+    #     ('F2PY_REPORT_ON_ARRAY_COPY', 1),
+    # ],
 )
+
+XieDelhommeau_extension = Extension(
+    name="capytaine.green_functions.XieDelhommeau_f90",
+    sources=Delhommeau_source,
+    extra_f90_compile_args=['-O2', '-fopenmp', '-cpp', '-DXIE_CORRECTION'],
+    extra_link_args=['-fopenmp'],
+    # # Uncomment the following lines to get more verbose output from f2py.
+    # define_macros=[
+    #     ('F2PY_REPORT_ATEXIT', 1),
+    #     ('F2PY_REPORT_ON_ARRAY_COPY', 1),
+    # ],
+)
+
+
+########################################################
+#  Read version number and other info in __about__.py  #
+########################################################
+
+base_dir = os.path.dirname(__file__)
+src_dir = os.path.join(base_dir, "capytaine")
+
+about = {}
+with open(os.path.join(src_dir, "__about__.py")) as f:
+    exec(f.read(), about)
+
+
+##########
+#  Main  #
+##########
+
+if __name__ == "__main__":
+    setup(name=about["__title__"],
+          version=about["__version__"],
+          description=about["__description__"],
+          author=about["__author__"],
+          license=about["__license__"],
+          url=about["__uri__"],
+          packages=[
+              'capytaine',
+              'capytaine.meshes',
+              'capytaine.matrices',
+              'capytaine.bodies',
+              'capytaine.bodies.predefined',
+              'capytaine.bem',
+              'capytaine.green_functions',
+              'capytaine.post_pro',
+              'capytaine.ui',
+              'capytaine.ui.vtk',
+              'capytaine.io',
+              'capytaine.tools',
+          ],
+          install_requires=[
+              'numpy',
+              'scipy',
+              'pandas>=1.3',
+              'xarray',
+          ],
+          extras_require={
+            'develop': [
+              'pytest',
+              'hypothesis',
+              'ipython',
+              'matplotlib',
+              'vtk',
+              'meshio',
+              'pygmsh',
+              'gmsh',
+              'quadpy',
+              'bemio @ git+https://github.com/michaelcdevin/bemio.git@master-python3#egg=bemio',
+              'sphinx',
+              'sphinxcontrib-proof',
+            ],
+            'ci': [
+              'pytest',
+              'hypothesis',
+                ],
+            'extra': [
+              'ipython',
+              'matplotlib',
+              'vtk',
+              'meshio',
+              'pygmsh',
+              'gmsh',
+              'quadpy',
+              'bemio @ git+https://github.com/michaelcdevin/bemio.git@master-python3#egg=bemio',
+            ]
+          },
+          entry_points={
+              'console_scripts': [
+                  'capytaine=capytaine.ui.cli:main',
+              ],
+          },
+          ext_modules=[
+              Delhommeau_extension,
+              XieDelhommeau_extension,
+          ],
+          )
