@@ -1,39 +1,31 @@
-name: Pull request automation
+name: build
 
 on:
+  push:
+    branches: ["main"]
   pull_request:
-    branches: [ main, develop ]
+    branches: ["main"]
 
 jobs:
   build:
-
+    name: python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.9"]
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v1
+    - name: set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
       with:
-        python-version: 3.9
-    - name: Before Install
+        python-version: ${{ matrix.python-version }}
+    - name: install dependencies
       run: |
-        sudo apt-get update
-        unzip -P infected tests/test_files.zip -d .
-        cp docker/env_file_app_template docker/env_file_app
-        cp docker/env_file_postgres_template docker/env_file_postgres
-    - name: Install
-      run: |
-        sudo docker-compose -f docker/default.yml -f docker/ci.override.yml build
-        sudo docker-compose -f docker/default.yml -f docker/ci.override.yml up -d
-    - name: Install Linters and Black
-      run: |
-        sudo docker exec intel_owl_uwsgi pip3 install --no-cache-dir --compile -r test-requirements.txt
-    - name: Check Black code Style
-      run: |
-        sudo docker exec intel_owl_uwsgi black . --check --exclude "migrations|venv"
-    - name: Lint with flake8 (PEP8 enforcer + linter)
-      run: |
-        sudo docker exec intel_owl_uwsgi flake8 . --count
-    - name: Run Tests
-      run: |
-        sudo docker exec intel_owl_uwsgi python manage.py test tests
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements/tox.txt
+    - name: run tox
+      run: tox
+    - name: publish coverage
+      uses: codecov/codecov-action@v1
