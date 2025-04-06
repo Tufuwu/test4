@@ -1,31 +1,33 @@
-name: Run tests
+name: Test mahotas
 
-on:
-  push:
-    branches: ['main']
-  pull_request:
+on: [push]
 
 jobs:
-  setup:
+  build-linux:
     runs-on: ubuntu-latest
-    outputs:
-      strategy: ${{steps.load.outputs.strategy}}
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+        numpy-version:  ['1.16', '1.17', '1.18', '1.19']
+      max-parallel: 5
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: colcon/ci
-      - id: load
-        run: echo "::set-output name=strategy::$(echo $(cat strategy.json))"
-
-  pytest:
-    needs: [setup]
-    strategy: ${{fromJson(needs.setup.outputs.strategy)}}
-    runs-on: ${{matrix.os}}
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{matrix.python}}
-      - uses: colcon/ci@v1
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Install dependencies
+      run: |
+        conda install --name base numpy=${{ matrix.numpy-version }}
+        conda install --file tests-requirements.txt --name base
+    - name: Build
+      run: |
+         make debug
+    - name: Test with pytest
+      run: |
+        pytest -v
