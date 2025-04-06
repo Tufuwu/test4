@@ -1,147 +1,88 @@
 #!/usr/bin/env python
-# usage: use the Makefile instead of invoking this script directly.
-# pylint: disable=import-error,no-name-in-module
-from __future__ import absolute_import, division, print_function, unicode_literals
-from glob import glob
-from distutils.command import build_scripts
-from distutils.core import setup
+
+# setup.py - python-stdnum installation script
+#
+# Copyright (C) 2010-2021 Arthur de Jong
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301 USA
+
+"""python-stdnum installation script."""
+
 import os
-import re
 import sys
 
-sys.path.insert(1, os.path.dirname(__file__))
-from extras import cmdclass
+from setuptools import find_packages, setup
 
-# Hack: prevent python2's ascii default encoding from breaking inside
-# distutils when installing from utf-8 paths.
-if sys.version_info[0] < 3:
-    # pylint: disable=reload-builtin,undefined-variable
-    reload(sys)  # noqa
-    # pylint: disable=no-member
-    sys.setdefaultencoding('utf-8')
-
-# Prevent distutils from changing "#!/usr/bin/env python" when
-# --use-env-python is specified.
-try:
-    sys.argv.remove('--use-env-python')
-    use_env_python = True
-except ValueError:
-    use_env_python = False
-if use_env_python:
-    if sys.version_info[0] < 3:
-        # Python2 accepts the r'' unicode literal.
-        pattern = re.compile(r'^should not match$')
-    else:
-        # Python3 reads files as bytes and requires that the regex pattern is
-        # specified as bytes.
-        pattern = re.compile(b'^should not match$')
-    build_scripts.first_line_re = pattern
-
-# Disable installation of the private cola package by passing --no-private-libs or
-# by setting GIT_COLA_NO_PRIVATE_LIBS=1 in th environment.
-try:
-    sys.argv.remove('--no-private-libs')
-    private_libs = False
-except ValueError:
-    private_libs = not os.getenv('GIT_COLA_NO_PRIVATE_LIBS', '')
-
-# Disable vendoring of qtpy and friends by passing --no-vendor-libs to setup.py or
-# by setting GIT_COLA_NO_VENDOR_LIBS=1 in the environment.
-try:
-    sys.argv.remove('--no-vendor-libs')
-    vendor_libs = False
-except ValueError:
-    vendor_libs = not os.getenv('GIT_COLA_NO_VENDOR_LIBS', '')
-
-# fmt: off
-here = os.path.dirname(__file__)
-version = os.path.join(here, 'cola', '_version.py')
-scope = {}
-# flake8: noqa
-exec(open(version).read(), scope)  # pylint: disable=exec-used
-version = scope['VERSION']
-# fmt: on
+import stdnum
 
 
-def main():
-    """Runs distutils.setup()"""
-    scripts = [
-        'bin/git-cola',
-        'bin/git-cola-sequence-editor',
-        'bin/git-dag',
-    ]
+# fix permissions for sdist
+if 'sdist' in sys.argv:
+    os.system('chmod -R a+rX .')
+    os.umask(int('022', 8))
 
-    if sys.platform == 'win32':
-        scripts.append('contrib/win32/cola')
+base_dir = os.path.dirname(__file__)
 
-    packages = [str('cola'), str('cola.models'), str('cola.widgets')]
+with open(os.path.join(base_dir, 'README'), 'rb') as fp:
+    long_description = fp.read().decode('utf-8')
 
-    setup(
-        name='git-cola',
-        version=version,
-        description='The highly caffeinated git GUI',
-        long_description='A sleek and powerful git GUI',
-        license='GPLv2',
-        author='David Aguilar',
-        author_email='davvid@gmail.com',
-        url='https://git-cola.github.io/',
-        scripts=scripts,
-        cmdclass=cmdclass,
-        packages=packages,
-        platforms='any',
-        data_files=_data_files(),
-    )
-
-
-def _data_files():
-    """Return the list of data files"""
-    data = [
-        _app_path('share/git-cola/bin', '*'),
-        _app_path('share/git-cola/icons', '*.png'),
-        _app_path('share/git-cola/icons', '*.svg'),
-        _app_path('share/git-cola/icons/dark', '*.png'),
-        _app_path('share/git-cola/icons/dark', '*.svg'),
-        _app_path('share/metainfo', '*.xml'),
-        _app_path('share/applications', '*.desktop'),
-        _app_path('share/doc/git-cola', '*.rst'),
-        _app_path('share/doc/git-cola', '*.html'),
-    ]
-
-    if private_libs:
-        data.extend(
-            [_package('cola'), _package('cola.models'), _package('cola.widgets')]
-        )
-
-    if vendor_libs:
-        data.extend([_package('qtpy'), _package('qtpy._patch')])
-
-    data.extend(
-        [
-            _app_path(localedir, 'git-cola.mo')
-            for localedir in glob('share/locale/*/LC_MESSAGES')
-        ]
-    )
-    return data
-
-
-def _package(package, subdirs=None):
-    """Collect python files for a given python "package" name"""
-    dirs = package.split('.')
-    app_dir = _lib_path(*dirs)
-    if subdirs:
-        dirs = list(subdirs) + dirs
-    src_dir = os.path.join(*dirs)
-    return (app_dir, glob(os.path.join(src_dir, '*.py')))
-
-
-def _lib_path(*dirs):
-    return os.path.join('share', 'git-cola', 'lib', *dirs)
-
-
-def _app_path(dirname, entry):
-    """Construct (dirname, [glob-expanded-entries relative to dirname])"""
-    return (dirname, glob(os.path.join(dirname, entry)))
-
-
-if __name__ == '__main__':
-    main()
+setup(
+    name='python-stdnum',
+    version=stdnum.__version__,
+    description='Python module to handle standardized numbers and codes',
+    long_description=long_description,
+    author='Arthur de Jong',
+    author_email='arthur@arthurdejong.org',
+    url='https://arthurdejong.org/python-stdnum/',
+    project_urls={
+        'Documentation': 'https://arthurdejong.org/python-stdnum/doc/',
+        'GitHub': 'https://github.com/arthurdejong/python-stdnum/',
+    },
+    license='LGPL',
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Financial and Insurance Industry',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: Telecommunications Industry',
+        'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Topic :: Office/Business :: Financial',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Text Processing :: General',
+    ],
+    packages=find_packages(),
+    install_requires=[],
+    package_data={'': ['*.dat']},
+    extras_require={
+        # The SOAP feature is only required for a number of online tests
+        # of numbers such as the EU VAT VIES lookup, the Dominican Republic
+        # DGII services or the Turkish T.C. Kimlik validation.
+        'SOAP': ['zeep'],      # recommended implementation
+        'SOAP-ALT': ['suds'],  # but this should also work
+        'SOAP-FALLBACK': ['PySimpleSOAP'],  # this is a fallback
+    },
+)
