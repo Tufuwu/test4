@@ -1,41 +1,47 @@
-name: Run tests with tox
+name: Python package
 
-on: 
-  push:
-    branches:
-      - main
-      - develop
-  pull_request:
-
+on:
+  - push
+  - pull_request
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.9"]
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
 
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v1
 
-      - uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-      
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            .tox
-          key: ${{ env.pythonLocation }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-test.txt') }}
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        
+    - name: Install psycopg2 prerequisites
+      run: sudo apt-get install libpq-dev
 
-      - name: Upgrade packaging tools
-        run: python -m pip install --upgrade pip setuptools virtualenv wheel
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-test.txt
+        pip install tox tox-gh-actions
 
-      - name: Install dependencies
-        run: python -m pip install --upgrade tox tox-py
-
-      - name: Run tox targets for ${{ matrix.python-version }}
-        run: tox --py current
+    - name: Test with tox
+      run: tox

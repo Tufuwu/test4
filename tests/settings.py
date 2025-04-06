@@ -1,75 +1,95 @@
-import tempfile
+# -*- coding: utf-8 -*-
 
-DEBUG = True
-TEMPLATE_DEBUG = True
-USE_TZ = True
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-    }
-}
-ROOT_URLCONF = "tests.urls"
+import django
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+SECRET_KEY = 'django-extra-settings'
+
+ALLOWED_HOSTS = ['*']
+
+EXTRA_SETTINGS_TEST_FALLBACK_VALUE = 'fallback-value'
+
+# Application definition
 INSTALLED_APPS = [
-    "django.contrib.auth",
-    "django.contrib.sites",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.admin",
-    "rest_framework",
-    "dynamic_preferences",
-    "dynamic_preferences.users.apps.UserPreferencesConfig",
-    "tests.test_app",
+    'extra_settings',
 ]
-SITE_ID = 1
-SECRET_KEY = "FDLDSKSDJHF"
-STATIC_URL = "/static/"
-MEDIA_URL = "/media/"
-MEDIA_ROOT = tempfile.mkdtemp()
-MIDDLEWARE = (
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-)
 
+INSTALLED_APPS += [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.messages',
+    'django.contrib.sessions',
+]
 
-def check_django_version(minimal_version):
-    import django
-    from distutils.version import LooseVersion
-
-    django_version = django.get_version()
-    return LooseVersion(minimal_version) <= LooseVersion(django_version)
-
-
-if check_django_version("1.8"):
-    TEMPLATES = [
-        {
-            "BACKEND": "django.template.backends.django.DjangoTemplates",
-            "DIRS": [],
-            "APP_DIRS": True,
-            "OPTIONS": {
-                "debug": True,
-                "context_processors": [
-                    "django.template.context_processors.request",
-                    "dynamic_preferences.processors.global_preferences",
-                ],
-            },
-        },
+if django.VERSION < (2, 0):
+    MIDDLEWARE_CLASSES = [
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware'
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
     ]
 else:
-    from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
-
-    TEMPLATE_CONTEXT_PROCESSORS = list(TEMPLATE_CONTEXT_PROCESSORS) + [
-        "django.core.context_processors.request",
-        "dynamic_preferences.processors.global_preferences",
+    MIDDLEWARE = [
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
     ]
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",
-    }
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': [
+            'django.contrib.auth.context_processors.auth',
+            'django.template.context_processors.request',
+            'django.contrib.messages.context_processors.messages',
+        ]
+    },
+},]
+
+database_engine = os.environ.get('DATABASE_ENGINE', 'sqlite')
+database_config = {
+    'sqlite': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    },
+    # 'mysql': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'extra_settings',
+    #     'USER': 'mysql',
+    #     'PASSWORD': 'mysql',
+    #     'HOST': '',
+    #     'PORT': '',
+    # },
+    'postgres': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'extra_settings',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': '',
+        'PORT': '',
+    },
 }
-CACHE_DYNAMIC_PREFERENCES_SETTINGS = False
+
+github_workflow = os.environ.get('GITHUB_WORKFLOW')
+if github_workflow:
+    database_config['postgres']['NAME'] = 'postgres'
+    database_config['postgres']['HOST'] = '127.0.0.1'
+    database_config['postgres']['PORT'] = '5432'
+
+DATABASES = {
+    'default': database_config.get(database_engine),
+}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'extra_settings/public/media/')
+MEDIA_URL = '/media/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'extra_settings/public/static/')
+STATIC_URL = '/static/'
