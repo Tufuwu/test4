@@ -1,133 +1,157 @@
-from __future__ import division, print_function
+#!/usr/bin/env python
+"""Pytype setup file."""
 
+# pylint: disable=bad-indentation
+
+import glob
 import io
 import os
 import re
+import shutil
 import sys
 
+from setuptools import setup, Extension
+
+# Path to directory containing setup.py
+here = os.path.abspath(os.path.dirname(__file__))
+
+# Get the pybind11 setup helpers
+#
+# This is appended, so if already available in site-packages, that is used
+# instead
+sys.path.append(os.path.join(here, "pybind11"))
+
+from pybind11.setup_helpers import Pybind11Extension  # pylint: disable=g-import-not-at-top,wrong-import-position
+
 try:
-    from setuptools import find_packages, setup
+  # The repository root is not on the pythonpath with PEP 517 builds
+  if 'build_scripts' in os.listdir(here):
+      sys.path.append(here)
+
+  from build_scripts import build_utils  # pylint: disable=g-import-not-at-top
 except ImportError:
-    print('Package setuptools is missing from your Python installation. Please see the installation section of '
-          'the README for instructions on how to install it.')
-    exit(1)
+  # When build_utils is present, we'll generate parser files for installing
+  # from source or packaging into a PyPI release.
+  build_utils = None
 
 
-# Example code to pull version from esptool.py with regex, taken from
-# http://python-packaging-user-guide.readthedocs.org/en/latest/single_source_version/
-def read(*names, **kwargs):
-    with io.open(
-            os.path.join(os.path.dirname(__file__), *names),
-            encoding=kwargs.get("encoding", "utf8")
-    ) as fp:
-        return fp.read()
+def get_parser_ext():
+  """Get the parser extension."""
+  # We need some platform-dependent compile args for the C extensions.
+  if sys.platform == 'win32':
+    # windows does not have unistd.h; lex/yacc needs this define.
+    extra_compile_args = ['-DYY_NO_UNISTD_H']
+    extra_link_args = []
+  elif sys.platform == 'darwin':
+    # clang on darwin requires some extra flags, which gcc does not support
+    extra_compile_args = ['-std=c++11', '-stdlib=libc++']
+    extra_link_args = ['-stdlib=libc++']
+  else:
+    extra_compile_args = ['-std=c++11']
+    extra_link_args = []
+  return Extension(
+      'pytype.pyi.parser_ext',
+      sources=[
+          'pytype/pyi/parser_ext.cc',
+          'pytype/pyi/lexer.lex.cc',
+          'pytype/pyi/parser.tab.cc',
+      ],
+      extra_compile_args=extra_compile_args,
+      extra_link_args=extra_link_args,
+  )
 
 
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+def get_typegraph_ext():
+  """Generates the typegraph extension."""
+  return Pybind11Extension(
+    'pytype.typegraph.cfg',
+    sources=[
+      "pytype/typegraph/cfg.cc",
+      "pytype/typegraph/cfg_logging.cc",
+      "pytype/typegraph/pylogging.cc",
+      "pytype/typegraph/reachable.cc",
+      "pytype/typegraph/solver.cc",
+      "pytype/typegraph/typegraph.cc",
+    ],
+    depends=[
+      "pytype/typegraph/cfg_logging.h",
+      "pytype/typegraph/map_util.h",
+      "pytype/typegraph/memory_util.h",
+      "pytype/typegraph/pylogging.h",
+      "pytype/typegraph/reachable.h",
+      "pytype/typegraph/solver.h",
+      "pytype/typegraph/typegraph.h",
+    ],
+    cxx_std=11,
+  )
+
+def copy_typeshed():
+  """Windows install workaround: copy typeshed if the symlink doesn't work."""
+  internal_typeshed = os.path.join(here, 'pytype', 'typeshed')
+  if not os.path.exists(os.path.join(internal_typeshed, 'stdlib')):
+    if os.path.exists(internal_typeshed):
+      # If it is a symlink, remove it
+      try:
+        os.remove(internal_typeshed)
+      except OSError:
+        # This might be a directory that has not got a complete typeshed
+        # installation in it; delete and copy it over again.
+        shutil.rmtree(internal_typeshed)
+    shutil.copytree(os.path.join(here, 'typeshed'), internal_typeshed)
 
 
-long_description = """
-==========
-esptool.py
-==========
-A command line utility to communicate with the ROM bootloader in Espressif ESP8266 & ESP32 microcontrollers.
+def scan_package_data(path, pattern, check):
+  """Scan for files to be included in package_data."""
 
-Allows flashing firmware, reading back firmware, querying chip parameters, etc.
+  # We start off in the setup.py directory, but package_data is relative to
+  # the pytype/ directory.
+  package_dir = 'pytype'
+  path = os.path.join(*path)
+  full_path = os.path.join(package_dir, path)
+  result = []
+  for subdir, _, _ in os.walk(full_path):
+    full_pattern = os.path.join(subdir, pattern)
+    if glob.glob(full_pattern):
+      # Once we know that it matches files, we store the pattern itself,
+      # stripping off the prepended pytype/
+      result.append(os.path.relpath(full_pattern, package_dir))
+  assert os.path.join(path, *check) in result
+  return result
 
-The esptool.py project is hosted on github: https://github.com/espressif/esptool
 
-Installation
-------------
+def get_data_files():
+  builtins = scan_package_data(['pytd', 'builtins'], '*.py*',
+                               check=['3', '*.py*'])
+  stdlib = scan_package_data(['pytd', 'stdlib'], '*.pytd',
+                             check=['3', '*.pytd'])
+  typeshed = scan_package_data(['typeshed'], '*.pyi',
+                               check=['stdlib', '2', '*.pyi'])
+  merge_pyi_grammar = ['tools/merge_pyi/Grammar.txt']
+  return builtins + stdlib + typeshed + merge_pyi_grammar
 
-esptool can be installed via pip:
 
-  $ pip install --upgrade esptool
+def get_long_description():
+  # Read the long-description from a file.
+  with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+    desc = '\n' + f.read()
+  # Fix relative links to the pytype docs.
+  return re.sub(
+      r'\[(.+)\]: docs/',
+      r'[\g<1>]: https://github.com/google/pytype/blob/master/docs/', desc)
 
-Since version 1.3, esptool supports both Python 2.7 and Python 3.4 or newer.
 
-Since version 2.0, esptool supports both ESP8266 & ESP32.
+copy_typeshed()
+if build_utils:
+  e = build_utils.generate_files()
+  assert not e, e
 
-Usage
------
-
-Please see the `Usage section of the README.md file <https://github.com/espressif/esptool#usage>`_.
-
-You can also get help information by running `esptool.py --help`.
-
-Contributing
-------------
-Please see the `CONTRIBUTING.md file on github <https://github.com/espressif/esptool/blob/master/CONTRIBUTING.md>`_.
-"""
-
-# For Windows, we want to install esptool.py.exe, etc. so that normal Windows command line can run them
-# For Linux/macOS, we can't use console_scripts with extension .py as their names will clash with the modules' names.
-if os.name == "nt":
-    scripts = None
-    entry_points = {
-        'console_scripts': [
-            'esptool.py=esptool:_main',
-            'espsecure.py=espsecure:_main',
-            'espefuse.py=espefuse:_main',
-        ],
-    }
-else:
-    scripts = ['esptool.py',
-               'espsecure.py',
-               'espefuse.py']
-    entry_points = None
-
+# Only options configured at build time are declared here, everything else is
+# declared in setup.cfg
 setup(
-    name='esptool',
-    py_modules=['esptool', 'espsecure', 'espefuse'],
-    version=find_version('esptool.py'),
-    description='A serial utility to communicate & flash code to Espressif ESP8266 & ESP32 chips.',
-    long_description=long_description,
-    url='https://github.com/espressif/esptool',
-    author='Fredrik Ahlberg (themadinventor) & Angus Gratton (projectgus)',
-    author_email='angus@espressif.com',
-    license='GPLv2+',
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'Natural Language :: English',
-        'Operating System :: POSIX',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: MacOS :: MacOS X',
-        'Topic :: Software Development :: Embedded Systems',
-        'Environment :: Console',
-        'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',  # Note: when dropping 3.4 support we can also remove the check in setup_requires
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-    ],
-    setup_requires=['wheel'] if sys.version_info[0:2] not in [(3, 4), (3, 5)] else [],
-    extras_require={
-        "dev": [
-            'flake8>=3.2.0',
-            'flake8-future-import',
-            'flake8-import-order',
-            'pyelftools',
-            'unittest-xml-reporting<=2.5.2',  # the replacement of the old xmlrunner package (Python 2 comp. version)
-            'coverage',
-        ],
-    },
-    install_requires=[
-        'bitstring>=3.1.6',
-        'cryptography>=2.1.4',
-        'ecdsa>=0.16.0',
-        'pyserial>=3.0',
-        'reedsolo>=1.5.3,<=1.5.4',
-    ],
-    packages=find_packages(),
-    scripts=scripts,
-    entry_points=entry_points,
+    long_description=get_long_description(),
+    package_data={'pytype': get_data_files()},
+    ext_modules=[get_parser_ext(), get_typegraph_ext()],
 )
+
+if build_utils:
+  build_utils.clean_generated_files()

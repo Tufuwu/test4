@@ -1,55 +1,50 @@
-name: Test esptool
+name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  test_esptool:
-    runs-on: ubuntu-latest
+  build:
 
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
+        os: [ubuntu-latest]
         python-version: ["3.9"]
-
+        experimental: [false]
+        include:
+          - os: ubuntu-latest
+            python-version: '3.9-dev'
+            experimental: true
     steps:
-    - name: Checkout ref commit
-      uses: actions/checkout@v2
-
-    - name: Set up Python ${{ matrix.python-version }}
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: setup python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Test python components (fast)
+    - name: Install system packages
       run: |
-        python setup.py build
-        pip install -e .[dev]
-        python test/test_imagegen.py
-        python test/test_espsecure.py
-        python test/test_merge_bin.py
-        python test/test_modules.py
+        sudo apt-get install g++
+        sudo apt-get install cmake
+        sudo apt-get install bison
+        sudo apt-get install flex
+        sudo apt-get install python2-minimal
 
-    - name: Lint with flake8
-      run: python -m flake8
+    - name: Install Dependencies
+      run: pip install -r requirements.txt
 
-    - name: Check the installed versions can run
-      run: |
-        esptool.py --help
-        espefuse.py --help
-        espsecure.py --help
+    - name: Run Tests
+      if: matrix.python-version != '3.9-dev'
+      run: python build_scripts/ci_script.py
 
-    - name: Build stub (Python 3.7 only)
-      if: matrix.python-version == 3.7
-      run: |
-        export TOOLCHAIN_DIR=$HOME/toolchain
-
-        export ESP8266_BINDIR=$TOOLCHAIN_DIR/xtensa-lx106-elf/bin
-        export ESP32_BINDIR=$TOOLCHAIN_DIR/xtensa-esp32-elf/bin
-        export ESP32S2_BINDIR=$TOOLCHAIN_DIR/xtensa-esp32s2-elf/bin
-        export ESP32S3_BINDIR=$TOOLCHAIN_DIR/xtensa-esp32s3-elf/bin
-        export ESP32C3_BINDIR=$TOOLCHAIN_DIR/riscv32-esp-elf/bin
-
-        export PATH=$PATH:$ESP8266_BINDIR:$ESP32_BINDIR:$ESP32S2_BINDIR:$ESP32S3_BINDIR:$ESP32C3_BINDIR
-
-        ./test/ci/setup_ci_build_env.sh
-        make -C flasher_stub V=1
-        cd flasher_stub && python ./compare_stubs.py
+    - name: Run Tests for python 3.9
+      if: matrix.python-version == '3.9-dev'
+      run: python build_scripts/ci_script.py || exit 0
