@@ -1,25 +1,24 @@
-all: test
+FILES=*.py tests/*.py
 
-test: clean
-	@mkdir -p tmp
-	@PYTHONPATH=tmp python setup.py develop -d tmp
-	@# run all tests
-	@PYTHONPATH=tmp python ua_parser/user_agent_parser_test.py
-	@# run a single test
-	@#PYTHONPATH=tmp python ua_parser/user_agent_parser_test.py ParseTest.testStringsDeviceBrandModel
+.PHONY: all
+all: flake8 pylint pytest mypy
 
-clean:
-	@find . -name '*.pyc' -delete
-	@rm -rf tmp \
-	   ua_parser.egg-info \
-	   dist \
-	   build \
-	   ua_parser/_regexes.py
-format:
-	@black .
+.PHONY: flake8
+flake8:
+	@flake8 --ignore=E501 $(FILES)
 
-release: clean
-	python setup.py sdist bdist_wheel
-	twine upload -s dist/*
+.PHONY: pylint
+pylint:
+	@pylint --disable=line-too-long $(FILES)
 
-.PHONY: all test clean format release
+.PHONY: pytest
+pytest:
+	@pytest --capture=sys -v --cov --cov-report term-missing
+
+.PHONY: mypy
+mypy:
+	@mypy $(FILES)
+
+.PHONY: e2e
+e2e:
+	@bash tests/e2e.sh
