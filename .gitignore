@@ -1,22 +1,27 @@
+*.py[cdo]
+
+# Editor detritus
+*.vim
 *.swp
+tags
 .idea
-*.pyc
+
+# Packaging detritus
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Unit test / coverage reports
+coverage
+.coverage*
+.tox
+.cache
 .pytest_cache
-.vscode/
-build/
-dist/
-bigquery/
-export/
-logs/
-Keras_Tuner.egg-info/
-results/
-tmp/
-.ipynb_checkpoints/
-*_tutorial_results/
-tmp.py
-.coverage
-.coverage.*
-htmlcov
-old_code/
-docs/site
-docs/sources
