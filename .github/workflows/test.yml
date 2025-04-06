@@ -1,90 +1,38 @@
-name: Hatchet Unit Tests CI
+name: CI
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ develop, releases/** ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build:
 
-    runs-on: ${{ matrix.os }}
+  travis-check:
+
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        # TODO: add macos-latest
-        os: [ubuntu-latest]
-        # TODO: add pypy2, pypy3
         python-version: ["3.9"]
-        exclude:
-          - os: macos-latest
-            python-version: ["3.9"]
+      fail-fast: false
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip flake8 pytest
-        pip install -r requirements.txt
-        python setup.py install
-        python setup.py build_ext --inplace
-        python -m pip list
-
-    - name: Update Black
-      if: ${{ matrix.python-version == 3.7 }}
-      run: |
-        pip install --upgrade black
-
-    - name: Lint and Format Check with Flake8 and Black
-      if: ${{ matrix.python-version == 3.7 }}
-      run: |
-        black --diff --check .
-        flake8
-
-    - name: Basic Test with pytest
-      run: |
-        PYTHONPATH=. coverage run $(which pytest)
-
-    - name: Clone Caliper
-      uses: actions/checkout@v2
-      with:
-        repository: LLNL/Caliper
-        path: Caliper
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Build Caliper
-      working-directory: Caliper
-      run: |
-        echo -e "PWD: $(pwd)"
-        mkdir build && mkdir install
-        cd build
-        cmake -DCMAKE_INSTALL_PREFIX=../install ../
-        make VERBOSE=1
-        make install
-        export PATH=$(pwd)/../install/bin:${PATH}
-        echo -e "PATH=${PATH}"
-        cd $GITHUB_WORKSPACE
-        echo -e "PWD:${PWD}"
-        which cali-query
-
-    - name: Build Timemory
-      if: ${{ matrix.python-version >= 3.6 }}
-      run: |
-        python -m pip install --upgrade scikit-build
-        # python -m pip install --upgrade --no-cache-dir --no-deps -v --pre timemory --install-option=--disable-{c,gotcha,tools}
-        python -m pip install --upgrade --no-cache-dir --no-deps -v timemory==3.2.0.dev4 --install-option=--disable-{c,gotcha,tools}
-
-    - name: Test Caliper and Timemory Support with pytest
-      run: |
-        PYTHONPATH=. coverage run $(which pytest)
-
-    - name: "Upload coverage to Codecov"
-      uses: "codecov/codecov-action@v1"
-      with:
-        fail_ci_if_error: true
+      - run: echo "Job triggered by a ${{ github.event_name }} event on branch is ${{ github.ref }} in repository is ${{ github.repository }}"
+      - name: Check out repository code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+         pip install sphinx${SPHINX_VERSION:+==$SPHINX_VERSION}
+         pip install -r requirements-travis.txt
+      - name: Run inspekt
+        run: inspekt checkall --disable-style E501,E265,W601,W605,E402,E722,E741 --no-license-check
+      - run: echo "This job's status is ${{ job.status }}."
