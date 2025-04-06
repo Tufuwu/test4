@@ -1,18 +1,20 @@
-# Makefile for creating a new release of the package and uploading it to PyPI
+# This file is part of censusgeocode.
+# https://github.com/fitnr/censusgeocode
 
-PYTHON = python3
+# Licensed under the General Public License (version 3)
+# http://opensource.org/licenses/LGPL-3.0
+# Copyright (c) 2015-9, Neil Freeman <contact@fakeisthenewreal.org>
 
-help:
-	@echo "Use 'make upload' to upload the package to PyPi"
+.PHONY: install build upload clean deploy test
 
+install: ; pip install .
 
-upload:
-	rm -r dist build | true
-	$(PYTHON) setup.py sdist bdist_wheel
+test: ; python -m unittest tests/test_*.py
+
+deploy: build
 	twine upload dist/*
 
-# For testing:
-test-upload:
-	rm -r dist build | true
-	$(PYTHON) setup.py sdist bdist_wheel
-	twine upload --repository testpypi dist/*
+build: | clean
+	python -m build
+
+clean:; rm -rf dist build
