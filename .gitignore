@@ -1,10 +1,17 @@
-keras_lmu.egg-info
-*.swo
-*.swp
-*.ipynb_checkpoints
-__pycache__
-/.idea
-/bones-scripts
-/docs/_build
-/secret
-/tmp
+*.pyc
+build/*
+dist/*
+*.egg-info/
+.coverage
+.venv*
+.tox*
+venv*
+**/cache/*.json
+
+#eclipse generated files
+.project
+.pydevproject
+.settings/*
+
+#jekyll generated pages
+docs/.jekyll-metadata
