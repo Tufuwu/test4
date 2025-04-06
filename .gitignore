@@ -1,16 +1,4 @@
-*.pyc
-*.egg-info/
-tests/test_db.sqlite
-.coverage
-htmlcov/
-.cache/
-.tox/
-docs/_build
-build/
-dist/
-.pytest_cache/
+# Python artifacts (bytecode, PyCharm projects, ...)
 /.idea
-/.vscode
-/venv
-coverage.xml
-.eggs/
+/__pycache__
+*.pyc

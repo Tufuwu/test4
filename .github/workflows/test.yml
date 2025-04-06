@@ -1,73 +1,131 @@
-name: Test
+name: POSIX
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/**
+  push:
+    branches:
+      - main
+      - develop
+      - feature/**
+  workflow_dispatch:
+  release:
+    types: published
+
+env:
+  NINJA_BASE_URL: https://github.com/ninja-build/ninja/releases/download/
+  GN_BASE_URL: https://github.com/timniederhausen/gn/releases/download/2020.09/
 
 jobs:
-  build:
-    name: build (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
-    runs-on: ubuntu-latest
+  posix:
     strategy:
       fail-fast: false
-      max-parallel: 5
       matrix:
-        python-version: ["3.9"]
-        django-version: ['2.2', '3.2', '4.0']
         include:
-          # Tox configuration for documentation environment
-          - python-version: '3.9'
-            django-version: 'docs'
-          # Tox configuration for QA environment
-          - python-version: '3.9'
-            django-version: 'qa'
-          # Django main
-          - python-version: '3.9'
-            django-version: 'main'
-            experimental: true
-          - python-version: '3.9'
-            django-version: 'main'
-            experimental: true
-          - python-version: '3.9'
-            django-version: 'main'
-            experimental: true
-        exclude:
-          # Exclude Django 4.0 for Python 3.7 as it is not supported
-          - python-version: '3.9'
-            django-version: '4.0'
+          - slug: linux-gcc-i386
+            gen_args: 'gcc_cc="gcc-10" gcc_cxx="g++-10" target_cpu="x86" is_clang=false'
+            os: ubuntu-latest
+            install: "g++-10-multilib"
+            ninja_release_name: v1.7.2/ninja-linux.zip
+            gn_release_name: gn-linux-amd64.tar.gz
+
+          - slug: linux-gcc-amd64
+            gen_args: 'gcc_cc="gcc-10" gcc_cxx="g++-10" target_cpu="x64" is_clang=false'
+            os: ubuntu-latest
+            install: "g++-10"
+            ninja_release_name: v1.7.2/ninja-linux.zip
+            gn_release_name: gn-linux-amd64.tar.gz
+
+          - slug: linux-clang-i386
+            gen_args: 'clang_cc="clang-10" clang_cxx="clang++-10" target_cpu="x86" is_clang=true'
+            os: ubuntu-latest
+            install: "clang-10 g++-multilib"
+            ninja_release_name: v1.7.2/ninja-linux.zip
+            gn_release_name: gn-linux-amd64.tar.gz
+
+          - slug: linux-clang-amd64
+            gen_args: 'clang_cc="clang-10" clang_cxx="clang++-10" target_cpu="x64" is_clang=true'
+            os: ubuntu-latest
+            install: "clang-10"
+            ninja_release_name: v1.7.2/ninja-linux.zip
+            gn_release_name: gn-linux-amd64.tar.gz
+
+          # disabled on main for now
+          # see: https://github.com/timniederhausen/gn-build/runs/2483312992#step:9:24
+          - slug: macos-amd64
+            gen_args: 'is_clang=true is_official_build=true'
+            os: macos-10.15
+            ninja_release_name: v1.7.2/ninja-mac.zip
+            gn_release_name: gn-macos-amd64.tar.gz
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Install packages
+        if: matrix.install
+        run: sudo apt install ${{ matrix.install }}
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v2
+        with:
+          # we need all everything for `git describe` to work correctly
+          fetch-depth: 0
 
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "::set-output name=dir::$(pip cache dir)"
+      - name: Make dependencies directory
+        run: |
+          DEPS_DIR=$(cd ~; pwd)/deps
+          mkdir -p ${DEPS_DIR}
+          echo "export DEPS_DIR=$DEPS_DIR" >> "${GITHUB_WORKSPACE}/.env"
 
-    - name: Cache
-      uses: actions/cache@v4
-      with:
-        path: ${{ steps.pip-cache.outputs.dir }}
-        key:
-          ${{ matrix.python-version }}-v1-${{ hashFiles('**/setup.py') }}
-        restore-keys: |
-          ${{ matrix.python-version }}-v1-
+      - name: Install recent Ninja
+        run: |
+          source .env
+          cd ${DEPS_DIR}
+          wget --no-check-certificate --quiet -O ninja.zip "${NINJA_BASE_URL}${{ matrix.ninja_release_name }}"
+          python -c 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall()' ninja.zip
+          chmod +x ninja
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install --upgrade tox tox-gh-actions
+      - name: Install GN
+        run: |
+          source .env
+          cd ${DEPS_DIR}
+          wget --no-check-certificate --quiet -O gn.tgz "${GN_BASE_URL}${{ matrix.gn_release_name }}"
+          tar xvf gn.tgz
+          chmod +x gn
 
-    - name: Tox tests
-      run: |
-        tox -v
-      env:
-        DJANGO: ${{ matrix.django-version }}
+      # Run gn_helpers unittests first - this should fail if we have an unsupported Python version
+      # Only support Python3+ for now, otherwise we have to ship the mocking lib
+      - name: Test gn_helpers
+        run: |
+          python3 gn_helpers_unittest.py
 
-    - name: Upload coverage
-      uses: codecov/codecov-action@v1
-      with:
-        name: Python ${{ matrix.python-version }}
+      # Setup test project for our //build
+      - name: Setup test project
+        run: |
+          source .env
+          git clone --branch=testsrc --depth=1 https://github.com/timniederhausen/gn-build.git testsrc
+          mkdir testsrc/build
+          mv config testsrc/build/
+          mv toolchain testsrc/build/
+
+      # Try to generate ninja files with different python versions
+      - name: gen with python2
+        run: |
+          source .env
+          echo script_executable = \"python2\" >> testsrc/.gn
+          ${DEPS_DIR}/gn gen out --args='${{ matrix.gen_args }}' --root=testsrc
+      - name: gen with python3
+        run: |
+          source .env
+          echo script_executable = \"python3\" >> testsrc/.gn
+          ${DEPS_DIR}/gn gen out --args='${{ matrix.gen_args }}' --root=testsrc
+
+      # Try to build the test project
+      - name: Build
+        run: |
+          source .env
+          cat out/args.gn
+          ${DEPS_DIR}/ninja -C out
+          cd out &&  ./hello
