@@ -1,34 +1,22 @@
-# Python binaries
-*.py[cod]
-CHANGES
-
-# C extensions
-*.so
-
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
 __pycache__
-MANIFEST
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.xml
-
-# backup files
-lang/*~
+.idea
+.coverage*
+anenv
+venv/
+coverage.xml
+docs/_build/
+junit.xml
+node_modules
+pygameweb.egg-info
+.DS_Store
+.cache/
+.env
+.hg/
+.hgignore
+frontend/
+graphic_design/
+nmig/
+*.sublime-project
+*.sublime-workspace
+readme.txt
+scripts
