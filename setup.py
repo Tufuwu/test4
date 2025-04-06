@@ -1,37 +1,52 @@
+from ez_setup import use_setuptools
+use_setuptools()
 from setuptools import setup
+import versioneer
+import os
 
 
-setup(
-    name="Flask-Static-Digest",
-    version="0.2.1",
-    author="Nick Janetakis",
-    author_email="nick.janetakis@gmail.com",
-    url="https://github.com/nickjj/flask-static-digest",
-    description="Flask extension for md5 tagging and gzipping static files.",
-    license="MIT",
-    package_data={"Flask-Static-Digest": ["VERSION"]},
-    packages=["flask_static_digest"],
-    platforms="any",
-    python_requires=">=3.6",
-    zip_safe=False,
-    install_requires=[
-        "Flask>=1.0"
-    ],
-    entry_points={
-        "flask.commands": [
-            "digest=flask_static_digest.cli:digest"
-        ],
-    },
-    classifiers=[
-        "Environment :: Web Environment",
-        "Framework :: Flask",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: System :: Archiving :: Compression"
-    ]
-)
+def main():
+    this_directory = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(this_directory, 'README.rst'), 'r') as f:
+        long_description = f.read()
+
+    cmdclass = versioneer.get_cmdclass()
+
+    setup(name='pysb',
+          version=versioneer.get_version(),
+          description='Python Systems Biology modeling framework',
+          long_description=long_description,
+          long_description_content_type='text/x-rst',
+          author='Jeremy Muhlich',
+          author_email='jmuhlich@bitflood.org',
+          url='http://pysb.org/',
+          packages=['pysb', 'pysb.generator', 'pysb.importers', 'pysb.tools',
+                    'pysb.examples', 'pysb.export', 'pysb.simulator',
+                    'pysb.testing', 'pysb.tests'],
+          scripts=['scripts/pysb_export'],
+          # We should really specify some minimum versions here.
+          python_requires='>=3.6',
+          install_requires=['numpy', 'scipy>=1.1', 'sympy>=1.6', 'networkx',
+                            'futures; python_version == "2.7"'],
+          setup_requires=['nose'],
+          tests_require=['coverage', 'pygraphviz', 'matplotlib', 'pexpect',
+                         'pandas', 'h5py', 'mock', 'cython',
+                         'python-libsbml', 'libroadrunner'],
+          cmdclass=cmdclass,
+          keywords=['systems', 'biology', 'model', 'rules'],
+          classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'Environment :: Console',
+            'Intended Audience :: Science/Research',
+            'License :: OSI Approved :: BSD License',
+            'Operating System :: OS Independent',
+            'Programming Language :: Python :: 3',
+            'Topic :: Scientific/Engineering :: Bio-Informatics',
+            'Topic :: Scientific/Engineering :: Chemistry',
+            'Topic :: Scientific/Engineering :: Mathematics',
+            ],
+          )
+
+
+if __name__ == '__main__':
+    main()
