@@ -1,31 +1,50 @@
-# soft-webauthn changelog
+# QmeQ Changelog
 
-## 0.1.3
+## [Unreleased]
 
-* fixed: fido2 version dependency (upper limit)
+## [1.1] - 2021-06-04
 
-## 0.1.2
+### Added
 
-* fixed challenge attribute in clientDataJSON (PR#9 thanks to @kverdecia)
+- First-order approaches to describe electron-phonon coupling inside a quantum dot
+  * Pauli (classical)
+  * Lindblad
+  * Redfield
+  * First order von Neumann (1vN)
 
-## 0.1.1
+- Approaches to describe tunneling from metallic leads
+  * Second order Real Time Diagramatic (RTD) approach
 
-* fix sign_count (PR#6 thanks to @sstoel)
-* fix attestation format (PR#4 thanks to @sstoel)
+- Added BuilderManyBody class for dealing with many-body state input
+- Support for Fock state removal when calculating quantum dot eigenstates
 
-## 0.1.0
+### Changed
 
-* update fido2 library and adapt to API breaking changes
+- Refactored Approach classes:
+  * Introduced separate Cython class
+  * Introduced KernelHandler class for more convenient dealing with master equation matrix elements
 
-## 0.0.3
+### Fixed
 
-* fix fido2 package version pinning
-* started changelog
+- Add to a coulomb matrix element correctly when before it was not defined/used
 
-## 0.0.2
+### Removed
 
-* documentation update
+- Python 2.7 support
 
-## 0.0.1
+## [1.0] - 2017-07-13
 
-* initial implementation
+### Added
+
+- Quantum dot eigenstate calculations
+
+- Approaches to describe tunneling from metallic leads
+  * Pauli (classical)
+  * Lindblad
+  * Redfield
+  * First order von Neumann (1vN)
+  * Second order von Neumann (2vN)
+
+[unreleased]: https://github.com/gedaskir/qmeq/compare/1.1...HEAD
+[1.1]: https://github.com/gedaskir/qmeq/releases/tag/1.1
+[1.0]: https://github.com/gedaskir/qmeq/releases/tag/1.0
