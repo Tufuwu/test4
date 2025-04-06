@@ -1,19 +1,5 @@
-__pycache__/
-*.py[cod]
-*.so
-
-build/
-dist/
-*.egg-info/
-.eggs/
+data/
 .coverage
-coverage.xml
-
-.pytest_cache/
-_build/
-
-.venv/
-htmlcov/
-
-# vscode
-.vscode
+build
+dist
+__pycache__
