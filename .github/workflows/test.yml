@@ -1,28 +1,36 @@
-name: Python CI
+name: TEST and push to test.pypi.org
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
+on: workflow_dispatch
+
+concurrency: main-${{ github.ref }}
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        python-version: ["3.9"]
-
+#    env:
+#      TWINE_USERNAME: ${{ secrets.TEST_TWINE_USERNAME }}
+#      TWINE_PASSWORD: ${{ secrets.TEST_TWINE_PASSWORD }}
+#      TWINE_REPOSITORY_URL: ${{ secrets.TEST_TWINE_REPOSITORY_URL }}
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - run: |
-        python -m pip install --upgrade pip
-        ./setup.py develop
-        pip install -e '.[tests]'
-    - run: |
-        pylama
-        py.test
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Run tests
+        run: |
+          docker-compose down
+          docker-compose run --rm test_py36
+          docker-compose down
+          docker-compose run --rm test_py37
+          docker-compose down
+          docker-compose run --rm test_py38
+          docker-compose down
+
+      - name: Publish test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path:
+            test-results_*
+        if: ${{ always() }}
