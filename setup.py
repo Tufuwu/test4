@@ -1,53 +1,38 @@
-from setuptools import setup, find_packages
+import setuptools
 
-try:
-    import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst', 'md')
-except ImportError:
-    print("Warning: pypandoc module not found, could not convert Markdown to RST")
-    long_description = open('README.md', 'r').read()
+from distutils.core import setup
 
 
-def _is_requirement(line):
-    """Returns whether the line is a valid package requirement."""
-    line = line.strip()
-    return line and not (line.startswith("-r") or line.startswith("#"))
+with open('README.rst', 'r') as f:
+    readme = f.read()
 
-
-def _read_requirements(filename):
-    """Returns a list of package requirements read from the file."""
-    requirements_file = open(filename).read()
-    return [line.strip() for line in requirements_file.splitlines()
-            if _is_requirement(line)]
-
-
-required_packages = _read_requirements("requirements/base.txt")
-test_packages = _read_requirements("requirements/tests.txt")
+with open('CHANGELOG.rst', 'r') as f:
+    changelog = f.read()
 
 setup(
-    name='rapidpro-python',
-    version=__import__('temba_client').__version__,
-    description='Python client library for the RapidPro',
-    long_description=long_description,
-
-    keywords='rapidpro client',
-    url='https://github.com/rapidpro',
-    license='BSD',
-
-    author='Nyaruka',
-    author_email='code@nyaruka.com',
-
+    name='mahjong',
+    packages=[
+        'mahjong',
+        'mahjong.hand_calculating',
+        'mahjong.hand_calculating.yaku_list',
+        'mahjong.hand_calculating.yaku_list.yakuman',
+    ],
+    version='1.1.9',
+    description='Mahjong hands calculation',
+    long_description=readme + '\n\n' + changelog,
+    author='Alexey Lisikhin',
+    author_email='lisikhin@gmail.com',
+    url='https://github.com/MahjongRepository/mahjong',
+    data_files=[('', ['README.rst', 'CHANGELOG.rst'])],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
         'Intended Audience :: Developers',
-        'Topic :: Software Development :: Libraries',
-        'License :: OSI Approved :: BSD License',
-        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
-
-    packages=find_packages(),
-    install_requires=required_packages,
-
-    test_suite='nose.collector',
-    tests_require=required_packages + test_packages,
 )
