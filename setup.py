@@ -1,45 +1,59 @@
-#!/usr/bin/env python
+from setuptools import setup
 
-import os.path
+# we pin these dependencies in the requirements files -- all of these
+# should be python 3 compatible
+DEPENDENCIES = [
+    "glean_sdk>=31.1.3",
+    "beautifulsoup4>=4.7.1",
+    "colorama>=0.4.1",
+    "configobj>=5.0.6",
+    "mozdevice>=4.0.0,<5",
+    "mozfile>=2.0.0",
+    "mozinfo>=1.1.0",
+    "mozinstall>=2.0.0",
+    "mozlog>=4.0",
+    "mozprocess>=1.2.0",
+    "mozprofile>=2.2.0",
+    "mozrunner>=8.0.2",
+    "mozversion>=2.1.0",
+    "redo>=2.0.2",
+    "requests>=2.21.0",
+    "taskcluster>=6.0.0",
+]
 
-from setuptools import find_packages, setup
-
-# Evaluate version module without importing parsy, which could have undesirable
-# effects.
-version_file = os.path.join(os.path.dirname(__file__),
-                            "src", "parsy", "version.py")
-namespace = {}
-exec(compile(open(version_file, "rb").read(), version_file, 'exec'),
-     globals(), namespace)
-version = namespace['__version__']
-
-readme = open('README.rst').read()
+desc = """Regression range finder for Mozilla nightly builds"""
+long_desc = """Regression range finder for Mozilla nightly builds.
+For more information see the mozregression website:
+http://mozilla.github.io/mozregression/"""
 
 setup(
-    name="parsy",
-    version=version,
-    description="easy-to-use parser combinators, for parsing in pure Python",
-    long_description=readme,
-    author="Jeanine Adkisson",
-    author_email="jneen@jneen.net",
-    maintainer="Luke Plant",
-    maintainer_email="L.Plant.98@cantab.net",
-    url="https://github.com/python-parsy/parsy",
-    license="MIT",
+    name="mozregression",
+    use_scm_version=True,
+    description=desc,
+    long_description=long_desc,
+    author="Mozilla Automation and Tools Team",
+    author_email="tools@lists.mozilla.org",
+    url="http://github.com/mozilla/mozregression",
+    license="MPL 2.0",
+    packages=["mozregression"],
+    entry_points="""
+          [console_scripts]
+          mozregression = mozregression.main:main
+        """,
+    package_data={"mozregression": ["*.yaml"]},
+    platforms=["Any"],
+    python_requires=">=3.6",
+    setup_requires=["setuptools_scm"],
+    install_requires=DEPENDENCIES,
     classifiers=[
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
         "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
         "Intended Audience :: Developers",
-        "Topic :: Software Development :: Compilers",
-        "Topic :: Software Development :: Interpreters",
-        "Topic :: Text Processing",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
+        "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3 :: Only",
     ],
-    keywords="parser parsers parsing monad combinators",
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
 )
