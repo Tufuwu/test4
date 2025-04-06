@@ -1,51 +1,68 @@
+# Run CI tests
 name: CI
 
-on: [push,pull_request]
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # Run the job for different versions of python
     strategy:
       matrix:
         python-version: ["3.9"]
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-tests.txt
-    - name: Run unit tests
-      run: ./runtests.py --no-cov --no-vici
 
-  docker:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
+
+      # Checks-out repository code
+      - name: Checkout code 
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: pip install -r test/requirements_test.txt
+
+      - name: Install payu
+        run: pip install .
+
+      - name: Check payu installed correctly
+        run: payu list
+
+      - name: Lint
+        run: pylint --extension-pkg-whitelist=netCDF4 -E payu
+
+      - name: Run tests
+        run: |
+          PYTHONPATH=. pytest --cov=payu -s test;
+
+      - name: Coveralls
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: true
+
+      - name: Make docs
+        run: cd docs && make html
+
+  coveralls_finish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: AndreMiras/coveralls-python-action@develop
       with:
-        python-version: 3.x
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip coveralls
-        echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
-    - name: Build Docker images and start containers
-      run: |
-        docker-compose build
-        docker-compose up -d
-        sleep 5
-    - name: Run unit tests, collect coverage
-      run: docker-compose exec -T roadwarrior /bin/sh -c "cd /strongMan; ./runtests.py"
-    - name: Run integration tests
-      run: docker-compose exec -T roadwarrior /bin/sh -c "cd /strongMan; python manage.py test strongMan.tests.integration_tests --settings=strongMan.settings.local;"
-    - name: Submit coverage
-      if: ${{ success() }}
-      run: |
-        docker-compose exec -T roadwarrior cat /strongMan/.coverage > .coverage
-        coveralls --service=github
+        parallel-finished: true
