@@ -1,219 +1,204 @@
-[![GitHub version](https://badge.fury.io/gh/nicolashug%2FSurprise.svg)](https://badge.fury.io/gh/nicolashug%2FSurprise)
-[![Documentation Status](https://readthedocs.org/projects/surprise/badge/?version=stable)](http://surprise.readthedocs.io/en/stable/?badge=stable)
-[![Build Status](https://travis-ci.org/NicolasHug/Surprise.svg?branch=master)](https://travis-ci.org/NicolasHug/Surprise)
-[![python versions](https://img.shields.io/badge/python-2.7%2C%203.5%2C%203.6-blue.svg)](http://surpriselib.com)
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
-[![DOI](https://joss.theoj.org/papers/10.21105/joss.02174/status.svg)](https://doi.org/10.21105/joss.02174)
+# removestar
 
-[![logo](logo_black.svg)](http://surpriselib.com)
+[![Build Status](https://github.com/asmeurer/removestar/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/asmeurer/removestar/actions?query=branch:master)
 
-Overview
---------
+Tool to automatically replace `import *` imports in Python files with explicit imports
 
-[Surprise](http://surpriselib.com) is a Python
-[scikit](https://www.scipy.org/scikits.html) for building and analyzing
-recommender systems that deal with explicit rating data.
+Requires pyflakes.
 
-[Surprise](http://surpriselib.com) **was designed with the
-following purposes in mind**:
+Current limitations:
 
-- Give users perfect control over their experiments. To this end, a strong
-  emphasis is laid on
-  [documentation](http://surprise.readthedocs.io/en/stable/index.html), which we
-  have tried to make as clear and precise as possible by pointing out every
-  detail of the algorithms.
-- Alleviate the pain of [Dataset
-  handling](http://surprise.readthedocs.io/en/stable/getting_started.html#load-a-custom-dataset).
-  Users can use both *built-in* datasets
-  ([Movielens](http://grouplens.org/datasets/movielens/),
-  [Jester](http://eigentaste.berkeley.edu/dataset/)), and their own *custom*
-  datasets.
-- Provide various ready-to-use [prediction
-  algorithms](http://surprise.readthedocs.io/en/stable/prediction_algorithms_package.html)
-  such as [baseline
-  algorithms](http://surprise.readthedocs.io/en/stable/basic_algorithms.html),
-  [neighborhood
-  methods](http://surprise.readthedocs.io/en/stable/knn_inspired.html), matrix
-  factorization-based (
-  [SVD](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVD),
-  [PMF](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#unbiased-note),
-  [SVD++](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVDpp),
-  [NMF](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.NMF)),
-  and [many
-  others](http://surprise.readthedocs.io/en/stable/prediction_algorithms_package.html).
-  Also, various [similarity
-  measures](http://surprise.readthedocs.io/en/stable/similarities.html)
-  (cosine, MSD, pearson...) are built-in.
-- Make it easy to implement [new algorithm
-  ideas](http://surprise.readthedocs.io/en/stable/building_custom_algo.html).
-- Provide tools to [evaluate](http://surprise.readthedocs.io/en/stable/model_selection.html),
-  [analyse](http://nbviewer.jupyter.org/github/NicolasHug/Surprise/tree/master/examples/notebooks/KNNBasic_analysis.ipynb/)
-  and
-  [compare](http://nbviewer.jupyter.org/github/NicolasHug/Surprise/blob/master/examples/notebooks/Compare.ipynb)
-  the algorithms' performance. Cross-validation procedures can be run very
-  easily using powerful CV iterators (inspired by
-  [scikit-learn](http://scikit-learn.org/) excellent tools), as well as
-  [exhaustive search over a set of
-  parameters](http://surprise.readthedocs.io/en/stable/getting_started.html#tune-algorithm-parameters-with-gridsearchcv).
+- Assumes only names in the current file are used by star imports (e.g., it
+  won't work to replace star imports in `__init__.py`).
 
+For files within the same module, removestar determines missing imported names
+statically. For external library imports, including imports of standard
+library modules, it dynamically imports the module to determine the names.
+This can be disabled with the `--no-dynamic-importing` flag.
 
-The name *SurPRISE* (roughly :) ) stands for *Simple Python RecommendatIon
-System Engine*.
+See the [issue tracker](https://github.com/asmeurer/removestar/issues). Pull
+requests are welcome.
 
-Please note that surprise does not support implicit ratings or content-based
-information.
-
-
-Getting started, example
-------------------------
-
-Here is a simple example showing how you can (down)load a dataset, split it for
-5-fold cross-validation, and compute the MAE and RMSE of the
-[SVD](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVD)
-algorithm.
-
-
-```python
-from surprise import SVD
-from surprise import Dataset
-from surprise.model_selection import cross_validate
-
-# Load the movielens-100k dataset (download it if needed).
-data = Dataset.load_builtin('ml-100k')
-
-# Use the famous SVD algorithm.
-algo = SVD()
-
-# Run 5-fold cross-validation and print results.
-cross_validate(algo, data, measures=['RMSE', 'MAE'], cv=5, verbose=True)
-```
-
-**Output**:
+## Installation
 
 ```
-Evaluating RMSE, MAE of algorithm SVD on 5 split(s).
-
-            Fold 1  Fold 2  Fold 3  Fold 4  Fold 5  Mean    Std
-RMSE        0.9311  0.9370  0.9320  0.9317  0.9391  0.9342  0.0032
-MAE         0.7350  0.7375  0.7341  0.7342  0.7375  0.7357  0.0015
-Fit time    6.53    7.11    7.23    7.15    3.99    6.40    1.23
-Test time   0.26    0.26    0.25    0.15    0.13    0.21    0.06
+pip install removestar
 ```
 
-[Surprise](http://surpriselib.com) can do **much** more (e.g,
-[GridSearchCV](http://surprise.readthedocs.io/en/stable/getting_started.html#tune-algorithm-parameters-with-gridsearchcv))!
-You'll find [more usage
-examples](http://surprise.readthedocs.io/en/stable/getting_started.html) in the
-[documentation ](http://surprise.readthedocs.io/en/stable/index.html).
+or if you use conda
 
+```
+conda install -c conda-forge removestar
+```
 
-Benchmarks
-----------
+## Usage
 
-Here are the average RMSE, MAE and total execution time of various algorithms
-(with their default parameters) on a 5-fold cross-validation procedure. The
-datasets are the [Movielens](http://grouplens.org/datasets/movielens/) 100k and
-1M datasets. The folds are the same for all the algorithms. All experiments are
-run on a notebook with Intel Core i5 7th gen (2.5 GHz) and 8Go RAM.  The code
-for generating these tables can be found in the [benchmark
-example](https://github.com/NicolasHug/Surprise/tree/master/examples/benchmark.py).
+```
+$ removestar file.py # Shows diff but does not edit file.py
 
-| [Movielens 100k](http://grouplens.org/datasets/movielens/100k)                                                                         |   RMSE |   MAE | Time    |
-|:---------------------------------------------------------------------------------------------------------------------------------------|-------:|------:|:--------|
-| [SVD](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVD)      |  0.934 | 0.737 | 0:00:11 |
-| [SVD++](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVDpp)  |  0.92  | 0.722 | 0:09:03 |
-| [NMF](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.NMF)      |  0.963 | 0.758 | 0:00:15 |
-| [Slope One](http://surprise.readthedocs.io/en/stable/slope_one.html#surprise.prediction_algorithms.slope_one.SlopeOne)                 |  0.946 | 0.743 | 0:00:08 |
-| [k-NN](http://surprise.readthedocs.io/en/stable/knn_inspired.html#surprise.prediction_algorithms.knns.KNNBasic)                        |  0.98  | 0.774 | 0:00:10 |
-| [Centered k-NN](http://surprise.readthedocs.io/en/stable/knn_inspired.html#surprise.prediction_algorithms.knns.KNNWithMeans)           |  0.951 | 0.749 | 0:00:10 |
-| [k-NN Baseline](http://surprise.readthedocs.io/en/stable/knn_inspired.html#surprise.prediction_algorithms.knns.KNNBaseline)            |  0.931 | 0.733 | 0:00:12 |
-| [Co-Clustering](http://surprise.readthedocs.io/en/stable/co_clustering.html#surprise.prediction_algorithms.co_clustering.CoClustering) |  0.963 | 0.753 | 0:00:03 |
-| [Baseline](http://surprise.readthedocs.io/en/stable/basic_algorithms.html#surprise.prediction_algorithms.baseline_only.BaselineOnly)   |  0.944 | 0.748 | 0:00:01 |
-| [Random](http://surprise.readthedocs.io/en/stable/basic_algorithms.html#surprise.prediction_algorithms.random_pred.NormalPredictor)    |  1.514 | 1.215 | 0:00:01 |
+$ removestar -i file.py # Edits file.py in-place
 
+$ removestar -i module/ # Modifies every Python file in module/ recursively
+```
 
-| [Movielens 1M](http://grouplens.org/datasets/movielens/1m)                                                                             |   RMSE |   MAE | Time    |
-|:---------------------------------------------------------------------------------------------------------------------------------------|-------:|------:|:--------|
-| [SVD](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVD)      |  0.873 | 0.686 | 0:02:13 |
-| [SVD++](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVDpp)  |  0.862 | 0.673 | 2:54:19 |
-| [NMF](http://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.NMF)      |  0.916 | 0.724 | 0:02:31 |
-| [Slope One](http://surprise.readthedocs.io/en/stable/slope_one.html#surprise.prediction_algorithms.slope_one.SlopeOne)                 |  0.907 | 0.715 | 0:02:31 |
-| [k-NN](http://surprise.readthedocs.io/en/stable/knn_inspired.html#surprise.prediction_algorithms.knns.KNNBasic)                        |  0.923 | 0.727 | 0:05:27 |
-| [Centered k-NN](http://surprise.readthedocs.io/en/stable/knn_inspired.html#surprise.prediction_algorithms.knns.KNNWithMeans)           |  0.929 | 0.738 | 0:05:43 |
-| [k-NN Baseline](http://surprise.readthedocs.io/en/stable/knn_inspired.html#surprise.prediction_algorithms.knns.KNNBaseline)            |  0.895 | 0.706 | 0:05:55 |
-| [Co-Clustering](http://surprise.readthedocs.io/en/stable/co_clustering.html#surprise.prediction_algorithms.co_clustering.CoClustering) |  0.915 | 0.717 | 0:00:31 |
-| [Baseline](http://surprise.readthedocs.io/en/stable/basic_algorithms.html#surprise.prediction_algorithms.baseline_only.BaselineOnly)   |  0.909 | 0.719 | 0:00:19 |
-| [Random](http://surprise.readthedocs.io/en/stable/basic_algorithms.html#surprise.prediction_algorithms.random_pred.NormalPredictor)    |  1.504 | 1.206 | 0:00:19 |
+## Why is `import *` so bad?
 
+Doing `from module import *` is generally frowned upon in Python. It is
+considered acceptable when working interactively at a `python` prompt, or in
+`__init__.py` files (removestar skips `__init__.py` files by default).
 
-Installation
-------------
+Some reasons why `import *` is bad:
 
-With pip (you'll need [numpy](http://www.numpy.org/), and a C compiler. Windows
-users might prefer using conda):
+- It hides which names are actually imported.
+- It is difficult both for human readers and static analyzers such as
+  pyflakes to tell where a given name comes from when `import *` is used. For
+  example, pyflakes cannot detect unused names (for instance, from typos) in
+  the presence of `import *`.
+- If there are multiple `import *` statements, it may not be clear which names
+  come from which module. In some cases, both modules may have a given name,
+  but only the second import will end up being used. This can break people's
+  intuition that the order of imports in a Python file generally does not
+  matter.
+- `import *` often imports more names than you would expect. Unless the module
+  you import defines `__all__` or carefully `del`s unused names at the module
+  level, `import *` will import every public (doesn't start with an
+  underscore) name defined in the module file. This can often include things
+  like standard library imports or loop variables defined at the top-level of
+  the file. For imports from modules (from `__init__.py`), `from module import
+  *` will include every submodule defined in that module. Using `__all__` in
+  modules and `__init__.py` files is also good practice, as these things are
+  also often confusing even for interactive use where `import *` is
+  acceptable.
+- In Python 3, `import *` is syntactically not allowed inside of a function.
 
-    $ pip install numpy
-    $ pip install scikit-surprise
+Here are some official Python references stating not to use `import *` in
+files:
 
-With conda:
+- [The official Python
+  FAQ](https://docs.python.org/3/faq/programming.html?highlight=faq#what-are-the-best-practices-for-using-import-in-a-module):
 
-    $ conda install -c conda-forge scikit-surprise
+  > In general, don’t use `from modulename import *`. Doing so clutters the
+  > importer’s namespace, and makes it much harder for linters to detect
+  > undefined names.
 
-For the latest version, you can also clone the repo and build the source
-(you'll first need [Cython](http://cython.org/) and
-[numpy](http://www.numpy.org/)):
+- [PEP 8](https://www.python.org/dev/peps/pep-0008/#imports) (the official
+  Python style guide):
 
-    $ pip install numpy cython
-    $ git clone https://github.com/NicolasHug/surprise.git
-    $ cd surprise
-    $ python setup.py install
+  > Wildcard imports (`from <module> import *`) should be avoided, as they
+  > make it unclear which names are present in the namespace, confusing both
+  > readers and many automated tools.
 
-License and reference
----------------------
+Unfortunately, if you come across a file in the wild that uses `import *`, it
+can be hard to fix it, because you need to find every name in the file that is
+imported from the `*`. Removestar makes this easy by finding which names come
+from `*` imports and replacing the import lines in the file automatically.
 
-This project is licensed under the [BSD
-3-Clause](https://opensource.org/licenses/BSD-3-Clause) license, so it can be
-used for pretty much everything, including commercial applications. Please let
-us know how [Surprise](http://surpriselib.com) is useful to you!
+## Example
 
-Please make sure to cite the
-[paper](https://joss.theoj.org/papers/10.21105/joss.02174) if you use
-Surprise for your research:
+Suppose you have a module `mymod` like
 
-    @article{Hug2020,
-      doi = {10.21105/joss.02174},
-      url = {https://doi.org/10.21105/joss.02174},
-      year = {2020},
-      publisher = {The Open Journal},
-      volume = {5},
-      number = {52},
-      pages = {2174},
-      author = {Nicolas Hug},
-      title = {Surprise: A Python library for recommender systems},
-      journal = {Journal of Open Source Software}
-    }
+```
+mymod/
+  | __init__.py
+  | a.py
+  | b.py
+```
 
-Contributors
-------------
+With
 
-The following persons have contributed to [Surprise](http://surpriselib.com):
+```py
+# mymod/a.py
+from .b import *
 
-ashtou, bobbyinfj, caoyi, Олег Демиденко, Charles-Emmanuel Dias, dmamylin,
-Lauriane Ducasse, Marc Feger, franckjay, Lukas Galke, Tim Gates,
-Pierre-François Gimenez, Zachary Glassman, Jeff Hale, Nicolas Hug, Janniks,
-jyesawtellrickson, Doruk Kilitcioglu, Ravi Raju Krishna, Hengji Liu, Maher
-Malaeb, Manoj K, James McNeilis, Naturale0, nju-luke, Jay Qi, Lucas Rebscher,
-Skywhat, David Stevens, TrWestdoor, Victor Wang, Mike Lee Williams, Jay Wong,
-Chenchen Xu, YaoZh1918.
+def func(x):
+    return x + y
+```
 
-Thanks a lot :) !
+```py
+# mymod/b.py
+x = 1
+y = 2
+```
 
-Development Status
-------------------
+Then `removestar` works like:
 
-Starting from version 1.1.0 (September 19), we will only maintain the
-package and provide bugfixes. No new features will be considered.
+```
+$ removestar mymod/
 
-For bugs, issues or questions about [Surprise](http://surpriselib.com),
-please use the GitHub [project page](https://github.com/NicolasHug/Surprise).
-Please don't send emails (we will not answer).
+--- original/mymod/a.py
++++ fixed/mymod/a.py
+@@ -1,5 +1,5 @@
+ # mymod/a.py
+-from .b import *
++from .b import y
+
+ def func(x):
+     return x + y
+
+```
+
+This does not edit `a.py` by default. The `-i` flag causes it to edit `a.py` in-place:
+
+```
+$ removestar -i mymod/
+$ cat mymod/a.py
+# mymod/a.py
+from .b import y
+
+def func(x):
+    return x + y
+```
+
+## Command line options
+
+<!-- TODO: Autogenerate this somehow -->
+
+```
+$ removestar --help
+usage: removestar [-h] [-i] [--version] [--no-skip-init]
+                  [--no-dynamic-importing] [-v] [-q]
+                  [--max-line-length MAX_LINE_LENGTH]
+                  PATH [PATH ...]
+
+Tool to automatically replace "import *" imports with explicit imports
+
+Requires pyflakes.
+
+Usage:
+
+$ removestar file.py # Shows diff but does not edit file.py
+
+$ removestar -i file.py # Edits file.py in-place
+
+$ removestar -i module/ # Modifies every Python file in module/ recursively
+
+positional arguments:
+  PATH                  Files or directories to fix
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i, --in-place        Edit the files in-place. (default: False)
+  --version             Show removestar version number and exit.
+  --no-skip-init        Don't skip __init__.py files (they are skipped by
+                        default) (default: True)
+  --no-dynamic-importing
+                        Don't dynamically import modules to determine the list
+                        of names. This is required for star imports from
+                        external modules and modules in the standard library.
+                        (default: True)
+  -v, --verbose         Print information about every imported name that is
+                        replaced. (default: False)
+  -q, --quiet           Don't print any warning messages. (default: False)
+  --max-line-length MAX_LINE_LENGTH
+                        The maximum line length for replaced imports before
+                        they are wrapped. Set to 0 to disable line wrapping.
+                        (default: 100)
+```
+
+## Changelog
+
+See the [CHANGELOG](CHANGELOG.md) file.
+
+## License
+
+[MIT](LICENSE)
