@@ -1,285 +1,251 @@
-![Ludwig logo](https://github.com/ludwig-ai/ludwig-docs/raw/master/docs/images/ludwig_hero.png "Ludwig logo")
+<p align="center">
+  <img width="120" src="icon.svg" />
+  <h1 align="center">EteSync - Secure Data Sync</h1>
+</p>
 
-<div align="center">
+This is a CalDAV and CardDAV adapter for [EteSync](https://www.etesync.com)
 
-[![PyPI version](https://badge.fury.io/py/ludwig.svg)](https://badge.fury.io/py/ludwig)
-[![Downloads](https://pepy.tech/badge/ludwig)](https://pepy.tech/project/ludwig)
-[![Build Status](https://github.com/ludwig-ai/ludwig/actions/workflows/pytest.yml/badge.svg)](https://github.com/ludwig-ai/ludwig/actions/workflows/pytest.yml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/ludwig-ai/ludwig/blob/master/LICENSE)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fuber%2Fludwig.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fuber%2Fludwig?ref=badge_shield)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4210/badge)](https://bestpractices.coreinfrastructure.org/projects/4210)
+![GitHub tag](https://img.shields.io/github/tag/etesync/etesync-dav.svg)
+[![PyPI](https://img.shields.io/pypi/v/etesync-dav.svg)](https://pypi.python.org/pypi/etesync-dav/)
+[![Build Status](https://travis-ci.com/etesync/etesync-dav.svg?branch=master)](https://travis-ci.com/etesync/etesync-dav)
+[![Chat on freenode](https://img.shields.io/badge/irc.freenode.net-%23EteSync-blue.svg)](https://webchat.freenode.net/?channels=#etesync)
 
-</div>
+This package provides a local CalDAV and CardDAV server that acts as an EteSync compatibility layer (adapter).
+It's meant for letting desktop CalDAV and CardDAV clients such as Thunderbird, Outlook and Apple Contacts connect with EteSync.
 
-Translated in [🇰🇷 Korean](README_KR.md)/
+If all you want is to access your data from a computer, you are probably better off using [the web app](https://client.etesync.com).
 
-Ludwig is a toolbox that allows users to train and test deep learning models without the need to write code.
-It is built on top of TensorFlow.
+# Installation
 
-To train a model you need to provide is a file containing your data, a list of columns to use as inputs, and a list of columns to use as outputs, Ludwig will do the rest.
-Simple commands can be used to train models both locally and in a distributed way, and to use them to predict new data.
+The easiest way to start using etesync-dav is by getting one of the pre-built binaries from the [releases page](https://github.com/etesync/etesync-dav/releases).
 
-A programmatic API is also available to use Ludwig from Python.
-A suite of visualization tools allows you to analyze models' training and test performance and to compare them.
+These binaries are self-contained and can be run as-is, though they do not start automatically on boot. You'd need to either start them manually, or set up [autostart based on your OS](#autostart-on-system-boot).
 
-Ludwig is built with extensibility principles in mind and is based on datatype abstractions, making it easy to add support for new datatypes as well as new model architectures.
+# Configuration and running
 
-It can be used by practitioners to quickly train and test deep learning models as well as by researchers to obtain strong baselines to compare against and have an experimentation setting that ensures comparability by performing the same data processing and evaluation.
+1. Run `etesync-dav` and open the management UI in your browser: http://localhost:37358/
+2. Add your EteSync user through the web UI.
+3. Copy the DAV specific password by click the "Copy Password" button next to your newly added username.
 
-Ludwig provides a set of model architectures that can be combined together to create an end-to-end model for a given use case.
-As an analogy, if deep learning libraries provide the building blocks to make your building, Ludwig provides the buildings to make your city, and you can choose among the available buildings or add your own building to the set of available ones.
+For advanced usage and CLI instructions please refer to [the advanced usage section](#advanced-usage).
 
-The core design principles baked into the toolbox are:
-- No coding required: no coding skills are required to train a model and use it for obtaining predictions.
-- Generality: a new datatype-based approach to deep learning model design makes the tool usable across many different use cases.
-- Flexibility: experienced users have extensive control over model building and training, while newcomers will find it easy to use.
-- Extensibility: easy to add new model architecture and new feature datatypes.
-- Understandability: deep learning model internals are often considered black boxes, but Ludwig provides standard visualizations to understand their performance and compare their predictions.
-- Open Source: Apache License 2.0
+*Please note that some antivirus/internet security software may block the CalDAV/CardDAV service from running - make sure that etesync-dav is whitelisted.*
 
-<p><img src="https://raw.githubusercontent.com/lfai/artwork/master/lfaidata-assets/lfaidata/horizontal/color/lfaidata-horizontal-color.png" alt="LF AI & Data logo" width="200"/></p>
+Don't forget to set up EteSync to automatically start on startup. Instructions for this are unfortunately OS dependent and out of scope for this README.
 
-Ludwig is hosted by the Linux Foundation as part of the [LF AI & Data Foundation](https://lfaidata.foundation/). For details
-about who's involved and how Ludwig fits into the larger open source AI landscape, 
-read the Linux Foundation [announcement](https://lfaidata.foundation/blog/2020/12/17/ludwig-joins-lf-ai--data-as-new-incubation-project/).
+# Setting up clients
 
+You now need to set up your CalDAV/CardDAV client using your username and the password you got in the previous step.
 
-Installation
-============
+Depending on the client you use, the server path should either be:
 
-Ludwig requires you to use Python 3.6+.
-If you don’t have Python 3 installed, install it by running:
+* `http://localhost:37358/`
+* `http://localhost:37358/YOUR-USERNAME/`
 
-```
-sudo apt install python3  # on ubuntu
-brew install python3      # on mac
-```
+On most clients this should automatically detect your collections (i.e.
+calendars and address books).
 
-You may want to use a virtual environment to maintain an isolated [Python environment](https://docs.python-guide.org/dev/virtualenvs/).
+If your client does not automatically detect your collections, you will
+need to manually add them. You can find the links in the management UI
+when you click on your username.
 
-```
-virtualenv -p python3 venv
-```
+## Specific client notes and instructions
 
-In order to install Ludwig just run:
+### Thunderbird
 
-```
-pip install ludwig
-```
+#### Thunderbird (using TbSync) - recommended
+1. Install [TbSync](https://addons.thunderbird.net/en-us/thunderbird/addon/tbsync/) and the accompanying [DAV provider](https://addons.thunderbird.net/en-us/thunderbird/addon/dav-4-tbsync/).
+2. Open the TbSync window: Edit -> TbSync
+3. Add new DAV account (choose manual configuration).
+4. Use `http://localhost:37358/` for both servers, your EteSync username as the username and the DAV password you got in [configuration and running](#configuration-and-running) as the password.
 
-This will install only Ludwig's basic requirements, different feature types require different dependencies.
-We divided them as different extras so that users could install only the ones they actually need:
- - `ludwig[text]` for text dependencies.
- - `ludwig[audio]` for audio and speech dependencies.
- - `ludwig[image]` for image dependencies.
- - `ludwig[hyperopt]` for hyperparameter optimization dependencies.
- - `ludwig[horovod]` for distributed training dependencies.
- - `ludwig[serve]` for serving dependencies.
- - `ludwig[viz]` for visualization dependencies.
- - `ludwig[test]` for dependencies needed for testing.
+**Note:** if you enabled SSL in etesync-dav, you should follow the [TbSync instructions for self-signed certificates](https://github.com/jobisoft/TbSync/wiki/How-to-use-TbSync-with-self-signed-or-otherwise-untrusted-certificates%3F).
 
-Distributed training is supported with [Horovod](https://github.com/horovod/horovod), which can be installed with `pip install ludwig[horovod]` or `HOROVOD_GPU_OPERATIONS=NCCL pip install ludwig[horovod]` for GPU support.
-See Horovod's [installation guide](https://horovod.readthedocs.io/en/stable/install_include.html)  for full details on available installation options.
+#### Thunderbird (no additional add-ons)
+Using TbSync is recommended, because it includes address book support (Lightning does not), automatically discovers all your calendars/address books/tasks, and just works better in general. However, you *can* also do the following:
 
-Any combination of extra packages can be installed at the same time with `pip install ludwig[extra1,extra2,...]` like for instance `pip install ludwig[text,viz]`.
-The full set of dependencies can be installed with `pip install ludwig[full]`.
+1. Install a CardDAV add-on such as Cardbook if you want to sync your contacts
+2. Open http://localhost:37358 in a browser, log in with your username and account password (not encryption password), and click on the link to your DAV colection to see a list of all the calendars, tasks lists, and address books in that collection
+3. For each item in the collection that you want to sync, copy the \[link] address and subscribe to that address in Thunderbird using `File > New Calendar > On the Network > CalDav` for calendars and tasks, or `New Address Book > Remote > CardDav` in Cardbook for address books
 
-For developers who wish to build the source code from the repository:
+### Evolution / GNOME Calendar / GNOME Contacts
+GNOME Calendar and Contacts do not support adding WebDAV calendars and address books directly, but you can add them in Evolution and they will appear correctly in all the apps.
 
-```
-git clone git@github.com:ludwig-ai/ludwig.git
-cd ludwig
-virtualenv -p python3 venv
-source venv/bin/activate
-pip install -e '.[test]'
-```
+1. Open Evolution and click File -> New -> Collection account
+2. Put your username in the user field.
+3. Click Advanced Options and use `http://localhost:37358/` as the server.
+4. Make sure "Look up for a CalDAV/CardDAV server" is ticked, and untick all the rest.
+5. Click "Look Up" and when prompted, the DAV password you got in [configuration and running](#configuration-and-running).
+6. Click Next/Finish until done.
 
-**Note:** that if you are running without GPUs, you may wish to use the CPU-only version of TensorFlow, 
-which takes up much less space on disk.
-To use a CPU-only TensorFlow version, uninstall `tensorflow` and  replace it with `tensorflow-cpu` after having installed `ludwig`.
-Be sure to install a version within the compatible range as shown in `requirements.txt`.
+### Windows 10 (Outlook, Windows Calendar and Windows People)
+While EteSync-DAV works great on Windows 10, due to bugs in Windows itself, the instructions require a few extra steps for syncing with Outlook, Windows Calendar and Windows people. Other clients, such as Thunderbird, do no require these extra steps.
 
+Please take a look at the [Windows 10 instructions](win10-instructions.md) for more information.
 
-Basic Principles
-----------------
+### macOS (Contacts.app and Calendar.app)
+While EteSync-DAV works great on macOS, due to bugs in macOS Mojave, the instructions require a few extra steps for syncing with Contacts.app and Calendar.app. Other clients, such as Thunderbird, do no require these extra steps.
 
-Ludwig provides three main functionalities: training models and using them to predict and evaluate them.
-It is based on datatype abstraction, so that the same data preprocessing and postprocessing will be performed on different datasets that share datatypes and the same encoding and decoding models developed can be re-used across several tasks.
+Please take a look at the [macOS instructions](macos-instructions.md) for more information.
 
-Training a model in Ludwig is pretty straightforward: you provide a dataset file and a config YAML file.
+### iOS
 
-The config contains a list of input features and output features, all you have to do is specify names of the columns in the dataset that are inputs to your model alongside with their datatypes, and names of columns in the dataset that will be outputs, the target variables which the model will learn to predict.
-Ludwig will compose a deep learning model accordingly and train it for you.
+By default, iOS only syncs events 30 days old and newer, which may look as if
+events are not showing. To fix this, got to: Settings -> Calendar -> Sync and
+change to the wanted time duration.
 
-Currently, the available datatypes in Ludwig are:
+Or better yet, just use the [EteSync iOS client](https://github.com/etesync/ios).
 
-- binary
-- numerical
-- category
-- set
-- bag
-- sequence
-- text
-- timeseries
-- image
-- audio
-- date
-- h3
-- vector
+## Autostart on system boot
 
-By choosing different datatype for inputs and outputs, users can solve many different tasks, for instance:
+It's probably easiet to just follow [these instructions](https://www.howtogeek.com/228467/how-to-make-a-program-run-at-startup-on-any-computer/) for setting up autostart. Alternatively, you can try following the instructions below.
 
-- text input + category output = text classifier
-- image input + category output = image classifier
-- image input + text output = image captioning
-- audio input + binary output = speaker verification
-- text input + sequence output = named entity recognition / summarization
-- category, numerical and binary inputs + numerical output = regression
-- timeseries input + numerical output = forecasting model
-- category, numerical and binary inputs + binary output = fraud detection
+### Linux (systemd)
 
-take a look at the [Examples](https://ludwig-ai.github.io/ludwig-docs/examples/) to see how you can use Ludwig for several more tasks.
+Make sure you have `/usr/lib/systemd/user/etesync-dav.service` on your system (should be there when installing from your distro's package manager), and then, to start the service:
+`systemctl --user start etesync-dav`
+To enable auto-start on boot:
+`systemctl --user enable etesync-dav`
 
-The config can contain additional information, in particular how to preprocess each column in the data, which encoder and decoder to use for each one, architectural  and training parameters, hyperparameters to optimize.
-This allows ease of use for novices and flexibility for experts.
+### macOS
 
+Make sure you installed `etesync-dav.app` by dragging it to your `Applications` directory through finder.
+Enable autostart by for example following [these instructions](https://www.howtogeek.com/228467/how-to-make-a-program-run-at-startup-on-any-computer/).
 
-Training
---------
+### Windows
 
-For example, given a text classification dataset like the following:
+Follow [these instructions](https://www.howtogeek.com/228467/how-to-make-a-program-run-at-startup-on-any-computer/).
 
-| doc_text                              | class    |
-|---------------------------------------|----------|
-| Former president Barack Obama ...     | politics |
-| Juventus hired Cristiano Ronaldo ...  | sport    |
-| LeBron James joins the Lakers ...     | sport    |
-| ...                                   | ...      |
+# Alternative Installation Methods
 
-you want to learn a model that uses the content of the `doc_text` column as input to predict the values in the `class` column.
-You can use the following config:
+This methods are not as easy as the pre-built binaries method above, but are also simple. Please follow the instructions below, following which follow the instructions in the [Configuration and running](#configuration-and-running) section below.
 
-```yaml
-{input_features: [{name: doc_text, type: text}], output_features: [{name: class, type: category}]}
-```
+## Docker
 
-and start the training typing the following command in your console:
+Run one time initial setup to persist the required configuration into a docker volume. Check out the configuration section below for more information.
 
-```
-ludwig train --dataset path/to/file.csv --config "{input_features: [{name: doc_text, type: text}], output_features: [{name: class, type: category}]}"
-```
+    docker run -it --rm -v etesync-dav:/data etesync/etesync-dav manage add USERNAME
 
-where `path/to/file.csv` is the path to a UTF-8 encoded CSV file containing the dataset in the previous table (many other data formats are supported).
-Ludwig will:
+Run etesync-dav in a background docker container with configuration from previous step. This wil (re)start the container on boot and after crashes.
 
-1. Perform a random split of the data.
-2. Preprocess the dataset.
-3. Build a ParallelCNN model (the default for text features) that decodes output classes through a softmax classifier.
-4. Train the model on the training set until the performance on the validation set stops improving.
+    docker run --name etesync-dav -d -v etesync-dav:/data -p 37358:37358 --restart=always etesync/etesync-dav
+    
+After this, refer to the [Setting up clients](#setting-up-clients) section below and start using it!
 
-Training progress will be displayed in the console, but the TensorBoard can also be used.
+### Updating
 
-If you prefer to use an RNN encoder and increase the number of epochs to train for, all you have to do is to change the config to:
+To update to the latest version of the docker image, run:
 
-```yaml
-{input_features: [{name: doc_text, type: text, encoder: rnn}], output_features: [{name: class, type: category}], training: {epochs: 50}}
-```
+    docker pull etesync/etesync-dav
 
-Refer to the [User Guide](https://ludwig-ai.github.io/ludwig-docs/user_guide/) to find out all the options available to you in the config and take a look at the [Examples](https://ludwig-ai.github.io/ludwig-docs/examples/) to see how you can use Ludwig for several different tasks.
+## Arch Linux
 
-After training, Ludwig will create a `results` directory containing the trained model with its hyperparameters and summary statistics of the training process.
-You can visualize them using one of the several visualization options available in the `visualize` tool, for instance:
+The package `etesync-dav` is [available on AUR](https://aur.archlinux.org/packages/etesync-dav/).
 
-```
-ludwig visualize --visualization learning_curves --training_statistics path/to/training_statistics.json
-```
+## Windows systems
 
-This command will display a graph like the following, where you can see loss and accuracy during the training process:
+You can either follow the Docker instructions above (get Docker [here](https://www.docker.com)), or alternatively install Python3 for windows from [here](https://www.python.org/downloads/windows).
 
-![Learning Curves](https://github.com/ludwig-ai/ludwig-docs/raw/master/docs/images/getting_started_learning_curves.png "Learning Curves")
+## Python virtual environment (Linux, BSD and Mac)
 
-Several more visualizations are available, please refer to [Visualizations](https://ludwig-ai.github.io/ludwig-docs/user_guide/#visualizations) for more details.
+Install virtual env (for **Python 3**) from your package manager, for example:
 
+- Arch Linux: pacman -S python-virtualenv
+- Debian/Ubuntu: apt-get install python3-virtualenv
 
-Distributed Training
---------------------
+The bellow commands will install etesync to a directory called `venv` in the local path. To install to a different location, just choose a different path in the commands below.
 
-You can distribute the training of your models using [Horovod](https://github.com/horovod/horovod), which allows training on a single machine with multiple GPUs as well as on multiple machines with multiple GPUs.
-Refer to the [User Guide](https://ludwig-ai.github.io/ludwig-docs/user_guide/#distributed-training) for full details.
+Set up the virtual env:
 
+    virtualenv -p python3 venv
+    source venv/bin/activate
+    pip install etesync-dav
 
-Prediction and Evaluation
--------------------------
+Run the etesync commands as explained in the [Configuration and running](#configuration-and-running) section:
 
-If you want your previously trained model to predict target output values on new data, you can type the following command in your console:
+    ./venv/bin/etesync-dav manage ...
+    ./venv/bin/etesync-dav ...
 
-```
-ludwig predict --dataset path/to/data.csv --model_path /path/to/model
-```
+Please note that you'll have to run `source venv/bin/activate` every time you'd like to run the EteSync commands.
 
-Running this command will return model predictions.
+# Advanced usage
 
-If your dataset also contains ground truth values of the target outputs, you can compare them to the predictions obtained from the model to evaluate the model performance.
+## CLI
 
-```
-ludwig evaluate --dataset path/to/data.csv --model_path /path/to/model
+1. Open a terminal and navigate to the binary's loctaion by typing `cd /path/to/file` (most likely `cd ~/Downloads`).
+2. Rename the binary to `etesync-dav` for ease of use, by e.g: `mv linux-etesync-dav etesync-dav`
+3. Make it executable: `chmod +x etesync-dav`
+
+You need to first add an EteSync user using `./etesync-dav manage`, for example:
+
+`./etesync-dav manage add USERNAME`
+
+*Substitute `USERNAME` with the username you use with your
+EteSync account or self-hosted server.*
+
+and then run the server:
+`./etesync-dav`
+
+**Note:** if you are using this with the legacy etesync server you should also pass `--legacy`
+
+## Self-hosting
+
+If you are self-hosting the EteSync server, just enter your server URL when adding your account.
+Alternatively, you can set the default URL to be used by setting the `ETESYNC_URL` environment
+variable to the URL of your server when running etesync-dav.
+By default it uses the official EteSync server at `etesync.com`.
+
+## Using a proxy
+
+EteSync-DAV should automatically use the system's proxy settings if set correctly. Alternatively, you can set the `HTTP_PROXY` and `HTTPS_PROXY` environment variables to manually set the proxy settings.
+
+## Self Signed Certs
+
+If the etesync backend server is using self signed certs, the DAV bridge may refuse to connect. To solve this, run the following commands prior to starting the DAV bridge.
+
+`export REQUESTS_CA_BUNDLE=/path/to/your/certificate.pem`
+
+or
+
+`export SSL_CERT_FILE=/path/file.crt`
+
+Alternatively, if the security of certificate is not an issue (say the server is on a private network and not publicly accessible), you can ignore the certificate completely with the following commands prior to starting the DAV bridge.
+
+```bash
+export CURL_CA_BUNDLE='';
+export REQUESTS_CA_BUNDLE='';
 ```
 
-This will produce evaluation performance statistics that can be visualized by the `visualize` tool, which can also be used to compare performances and predictions of different models, for instance:
+## Debugging
 
-```
-ludwig visualize --visualization compare_performance --test_statistics path/to/test_statistics_model_1.json path/to/test_statistics_model_2.json
-```
+In order to put `etesync-dav` in debug mode so it print extra debug information please pass it the `-D` flag like so:
 
-will return a bar plot comparing the models on different metrics:
-
-![Performance Comparison](https://github.com/ludwig-ai/ludwig-docs/raw/master/docs/images/compare_performance.png "Performance Comparison")
-
-A handy `ludwig experiment` command that performs training and prediction one after the other is also available.
-
-
-Programmatic API
-----------------
-
-Ludwig also provides a simple programmatic API that allows you to train or load a model and use it to obtain predictions on new data:
-
-```python
-from ludwig.api import LudwigModel
-
-# train a model
-config = {...}
-model = LudwigModel(config)
-train_stats = model.train(training_data)
-
-# or load a model
-model = LudwigModel.load(model_path)
-
-# obtain predictions
-predictions = model.predict(test_data)
+```bash
+./etesync-dav -D
 ```
 
-`config` containing the same information of the YAML file provided to the command line interface.
-More details are provided in the [User Guide](https://ludwig-ai.github.io/ludwig-docs/user_guide/) and in the [API documentation](https://ludwig-ai.github.io/ludwig-docs/api/).
+While this works on Linux, BSD and macOS, the Windows pre-compiled binary is compiled in "no console" mode, which means
+it can't print to the terminal. In order to get the debug information on Windows, please redirect the output log to
+file, like so:
 
+```bash
+set ETESYNC_LOGFILE=output.log
+etesync-dav.exe -D
+```
 
-Extensibility
--------------
+## Data files
 
-Ludwig is built from the ground up with extensibility in mind.
-It is easy to add an additional datatype that is not currently supported by adding a datatype-specific implementation of abstract classes that contain functions to preprocess the data, encode it, and decode it.
+`etesync-dav` stores data in the directory specified by the `ETESYNC_DATA_DIR`
+environment variable. This includes a database and the credentials cache.
 
-Furthermore, new models, with their own specific hyperparameters, can be easily added by implementing a class that accepts tensors (of a specific rank, depending on the datatype) as inputs and provides tensors as output.
-This encourages reuse and sharing new models with the community.
-Refer to the [Developer Guide](https://ludwig-ai.github.io/ludwig-docs/developer_guide/) for further details.
+`ETESYNC_DATA_DIR` defaults to a subdirectory of the appropriate data directory
+for your platform. For example:
+1. `~/.local/share/etesync-dav` on Linux.
+2. `~/Library/Application Support/etesync-dav` on macOS
+3. `C:\Documents and Settings\<User>\Application Data\Local Settings\etesync\etesync-dav` on Windows (most likely).
 
+See the [appdirs](http://pypi.python.org/pypi/appdirs) module docs for mor examples.
 
-Full documentation
-------------------
+# Credits
 
-You can find the full documentation [here](https://ludwig-ai.github.io/ludwig-docs).
-
-
-License
--------
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fuber%2Fludwig.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fuber%2Fludwig?ref=badge_large)
+This depends on the [Radicale server](http://radicale.org) for operation.

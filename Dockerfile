@@ -1,33 +1,23 @@
-#
-# Ludwig Docker image with full set of pre-requiste packages to support these capabilities
-#   text features
-#   image features
-#   audio features
-#   visualizations
-#   hyperparameter optimization
-#   distributed training
-#   model serving
-#
+FROM python:3.8
 
-FROM tensorflow/tensorflow:2.4.0-gpu
+ENV ETESYNC_DATA_DIR "/data"
+ENV ETESYNC_SERVER_HOSTS "0.0.0.0:37358,[::]:37358"
 
-RUN apt-get -y update && apt-get -y install \
-    git \
-    libsndfile1 \
-    cmake \
-    libcudnn7=7.6.5.32-1+cuda10.1 \
-    libnccl2=2.7.8-1+cuda10.1 \
-    libnccl-dev=2.7.8-1+cuda10.1
+# Make this file a build dep for the next steps
+COPY requirements.txt /app/
+RUN pip install -r /app/requirements.txt
 
-RUN git clone --depth=1 https://github.com/ludwig-ai/ludwig.git \
-    && cd ludwig/ \
-    && HOROVOD_GPU_OPERATIONS=NCCL \
-       HOROVOD_WITH_TENSORFLOW=1 \
-       HOROVOD_WITHOUT_MPI=1 \
-       HOROVOD_WITHOUT_PYTORCH=1 \
-       HOROVOD_WITHOUT_MXNET=1 \
-    && pip install --no-cache-dir '.[full]'
+COPY . /app
+RUN pip install /app
 
-WORKDIR /data
+RUN set -ex ;\
+        useradd etesync ;\
+        mkdir -p /data ;\
+        chown -R etesync: /data
 
-ENTRYPOINT ["ludwig"]
+VOLUME /data
+EXPOSE 37358
+
+USER etesync
+
+ENTRYPOINT ["etesync-dav"]
