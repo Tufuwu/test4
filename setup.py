@@ -1,54 +1,79 @@
-#!/usr/bin/env python
-from setuptools import setup, find_packages
-import dbbackup
+# -*- coding: utf-8 -*-
+# Copyright (c) 2003, Taro Ogawa.  All Rights Reserved.
+# Copyright (c) 2013, Savoir-faire Linux inc.  All Rights Reserved.
 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301 USA
 
-def get_requirements():
-    return open('requirements.txt').read().splitlines()
+import re
+from io import open
 
+from setuptools import find_packages, setup
 
-def get_test_requirements():
-    return open('requirements-tests.txt').read().splitlines()
+PACKAGE_NAME = "num2words"
 
-
-keywords = [
-    'django', 'database', 'media', 'backup',
-    'amazon', 's3' 'dropbox',
+CLASSIFIERS = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: GNU Library or Lesser General Public License '
+    '(LGPL)',
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3',
+    'Topic :: Software Development :: Internationalization',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Topic :: Software Development :: Localization',
+    'Topic :: Text Processing :: Linguistic',
 ]
 
+LONG_DESC = open('README.rst', 'rt', encoding="utf-8").read() + '\n\n' + \
+            open('CHANGES.rst', 'rt', encoding="utf-8").read()
+
+
+def find_version(fname):
+    """Parse file & return version number matching 0.0.1 regex
+    Returns str or raises RuntimeError
+    """
+    version = ''
+    with open(fname, 'r', encoding="utf-8") as fp:
+        reg = re.compile(r'__version__ = [\'"]([^\'"]*)[\'"]')
+        for line in fp:
+            m = reg.match(line)
+            if m:
+                version = m.group(1)
+                break
+    if not version:
+        raise RuntimeError('Cannot find version information')
+    return version
+
+
 setup(
-    name='django-dbbackup',
-    version=dbbackup.__version__,
-    description=dbbackup.__doc__,
-    author=dbbackup.__author__,
-    author_email=dbbackup.__email__,
-    install_requires=get_requirements(),
-    tests_require=get_test_requirements(),
-    license='BSD',
-    url=dbbackup.__url__,
-    keywords=keywords,
-    packages=find_packages(),
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Web Environment',
-        'Environment :: Console',
-        'Framework :: Django',
-        'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: BSD License',
-        'Natural Language :: English',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Topic :: Database',
-        'Topic :: System :: Archiving',
-        'Topic :: System :: Archiving :: Backup',
-        'Topic :: System :: Archiving :: Compression'
-    ],
+    name=PACKAGE_NAME,
+    version=find_version("bin/num2words"),
+    description='Modules to convert numbers to words. Easily extensible.',
+    long_description=LONG_DESC,
+    license='LGPL',
+    author='Taro Ogawa <tso at users sourceforge net>',
+    author_email='tos@users.sourceforge.net',
+    maintainer='Savoir-faire Linux inc.',
+    maintainer_email='istvan.szalai@savoirfairelinux.com',
+    keywords=' number word numbers words convert conversion i18n '
+             'localisation localization internationalisation '
+             'internationalization',
+    url='https://github.com/savoirfairelinux/num2words',
+    packages=find_packages(exclude=['tests']),
+    test_suite='tests',
+    classifiers=CLASSIFIERS,
+    scripts=['bin/num2words'],
+    install_requires=["docopt>=0.6.2"],
+    tests_require=['delegator.py'],
 )

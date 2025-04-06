@@ -1,4 +1,4 @@
-include requirements*.txt
-include README.rst
-include LICENSE.txt
-recursive-include dbbackup/tests/testapp/blobs/ *.gpg *.txt *.gz *.tar
+include CHANGES.rst
+include COPYING
+include tests/*
+include bin/num2words
