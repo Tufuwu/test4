@@ -1,85 +1,98 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from setuptools import setup, find_packages
-
-import sys
-import warnings
-
-VERSION = 'undefined'
-install_requires = ['six', 'pyprind']
-extra = {}
-
-with open('solvebio/version.py') as f:
-    for row in f.readlines():
-        if row.startswith('VERSION'):
-            exec(row)
-
-if sys.version_info < (2, 6):
-    warnings.warn(
-        'Python 2.5 is no longer officially supported by SolveBio. '
-        'If you have any questions, please file an issue on GitHub or '
-        'contact us at support@solvebio.com.',
-        DeprecationWarning)
-    install_requires.append('requests >= 0.8.8, < 0.10.1')
-    install_requires.append('ssl')
-elif sys.version_info < (2, 7):
-    install_requires.append('ordereddict')
-else:
-    install_requires.append('requests>=2.0.0')
+#!/usr/bin/env python3
+"""
+Setuptools for Fimfarchive.
+"""
 
 
-# solvebio-recipes requires additional packages
-recipes_requires = [
-    'pyyaml==5.3.1',
-    'click==7.1.2',
-    'ruamel.yaml==0.16.12'
-]
-extras_requires = {
-    "recipes": recipes_requires
-}
+#
+# Fimfarchive, preserves stories from Fimfiction
+# Copyright (C) 2015  Joakim Soderlund
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
-# Adjustments for Python 2 vs 3
-if sys.version_info < (3, 0):
-    # Get simplejson if we don't already have json
-    try:
-        import json  # noqa
-    except ImportError:
-        install_requires.append('simplejson')
 
-    # solvebio-recipes only available in python3
-    extras_requires = {}
-else:
-    extra['use_2to3'] = True
+import os
+from typing import Iterable, List, Tuple
 
-with open('README.md') as f:
-    long_description = f.read()
+from setuptools import setup
+
+from fimfarchive import __author__, __license__, __version__
+
+
+PACKAGE = 'fimfarchive'
+GITHUB = 'https://github.com/JockeTF/fimfarchive'
+
+
+def to_name(path: str) -> str:
+    """
+    Converts path to a package name.
+    """
+    return path.replace(os.path.sep, '.')
+
+
+def iter_package_paths() -> Iterable[str]:
+    """
+    Yields all package paths to install.
+    """
+    for dirpath, dirnames, filenames in os.walk(PACKAGE):
+        if '__init__.py' in filenames:
+            yield dirpath
+
+
+def iter_package_names() -> Iterable[str]:
+    """
+    Yields all package names to install.
+    """
+    for dirpath in iter_package_paths():
+        yield to_name(dirpath)
+
+
+def iter_package_data() -> Iterable[Tuple[str, List[str]]]:
+    """
+    Yields all package data to install.
+    """
+    for dirpath in iter_package_paths():
+        filenames = [
+            filename for filename in os.listdir(dirpath)
+            if os.path.isfile(os.path.join(dirpath, filename))
+            and not filename.endswith('.py')
+        ]
+
+        if filenames:
+            yield to_name(dirpath), filenames
+
 
 setup(
-    name='solvebio',
-    version=VERSION,
-    description='The SolveBio Python client',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    author='Solve, Inc.',
-    author_email='contact@solvebio.com',
-    url='https://github.com/solvebio/solvebio-python',
-    packages=find_packages(),
-    package_dir={'solvebio': 'solvebio', 'recipes': 'recipes'},
-    test_suite='nose.collector',
-    include_package_data=True,
-    install_requires=install_requires,
-    platforms='any',
-    extras_require=extras_requires,
-    entry_points={
-        'console_scripts': ['solvebio = solvebio.cli.main:main',
-                            'solvebio-recipes = recipes.sync_recipes:sync_recipes']
-    },
-    classifiers=[
-        'Intended Audience :: Science/Research',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Scientific/Engineering :: Bio-Informatics'
-    ],
-    **extra
+    name="fimfarchive",
+    version=__version__,
+    license=__license__,
+    author=__author__,
+    author_email='fimfarchive@gmail.com',
+    url='http://www.fimfarchive.net/',
+    download_url=f'{GITHUB}/archive/{__version__}.tar.gz',
+    packages=list(iter_package_names()),
+    package_data=dict(iter_package_data()),
+    install_requires=(
+        'arrow',
+        'bbcode',
+        'blinker',
+        'importlib_resources',
+        'jinja2',
+        'jmespath',
+        'jsonapi-client',
+        'requests',
+        'tqdm',
+    ),
 )

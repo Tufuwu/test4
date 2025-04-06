@@ -1,21 +1,50 @@
-*.egg-info
-*.py[co]
-*#*
-*~
+# Common files.
+.DS_Store
+Thumbs.db
+
+# Common extensions.
+*.diff
+*.err
+*.orig
+*.log
+*.rej
+*.swo
 *.swp
-*.cache
-ChangeLog
-MANIFEST
-Makefile
-dist/
-tmp/
-build/
-docs/_build/
-docs/locale/
-tests/coverage_html/
-tests/.coverage
-*.DS_Store
-.idea
-.tox
-.eggs/
-venv*
+*.vi
+*~
+
+# Python cache.
+__pycache__/
+
+# Virtual environment.
+venv/
+
+# Vim settings.
+.vim/
+
+# PyCharm project.
+/.idea/
+*.iml
+
+# Eclipse project.
+.project
+.pydevproject
+.settings/
+
+# Rope project.
+.ropeproject/
+
+# Mypy cache.
+.mypy_cache/
+
+# Coverage output.
+.coverage
+coverage.xml
+htmlcov/
+*.py,cover
+
+# Fimfarchive data.
+fimfarchive.zip
+
+# Operations configuration.
+operations/inventory.yml
