@@ -1,96 +1,36 @@
-# -*- coding: utf-8 -*-
+import os
+from setuptools import setup, find_packages
 
-import subprocess
-import sys
-from distutils.cmd import Command
-
-from setuptools import setup
-
-try:
-    from babel import __version__
-except SyntaxError as exc:
-    sys.stderr.write("Unable to import Babel (%s). Are you running a supported version of Python?\n" % exc)
-    sys.exit(1)
-
-
-class import_cldr(Command):
-    description = 'imports and converts the CLDR data'
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        subprocess.check_call([sys.executable, 'scripts/download_import_cldr.py'])
-
+f = open(os.path.join(os.path.dirname(__file__), 'README.rst'))
+readme = f.read()
+f.close()
 
 setup(
-    name='Babel',
-    version=__version__,
-    description='Internationalization utilities',
-    long_description="""A collection of tools for internationalizing Python applications.""",
-    author='Armin Ronacher',
-    author_email='armin.ronacher@active-4.com',
-    license='BSD',
-    url='http://babel.pocoo.org/',
-
+    name='micawber',
+    version='0.5.1',
+    description='a small library for extracting rich content from urls',
+    long_description=readme,
+    author='Charles Leifer',
+    author_email='coleifer@gmail.com',
+    url='http://github.com/coleifer/micawber/',
+    packages=[p for p in find_packages() if not p.startswith('examples')],
+    package_data = {
+        'micawber': [
+            'contrib/mcdjango/templates/micawber/*.html',
+        ],
+    },
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Framework :: Django',
     ],
-    python_requires='>=3.6',
-    packages=['babel', 'babel.messages', 'babel.localtime'],
-    include_package_data=True,
-    install_requires=[
-        # This version identifier is currently necessary as
-        # pytz otherwise does not install on pip 1.4 or
-        # higher.
-        'pytz>=2015.7',
-    ],
-
-    cmdclass={'import_cldr': import_cldr},
-
-    zip_safe=False,
-
-    # Note when adding extractors: builtin extractors we also want to
-    # work if packages are not installed to simplify testing.  If you
-    # add an extractor here also manually add it to the "extract"
-    # function in babel.messages.extract.
-    entry_points="""
-    [console_scripts]
-    pybabel = babel.messages.frontend:main
-
-    [distutils.commands]
-    compile_catalog = babel.messages.frontend:compile_catalog
-    extract_messages = babel.messages.frontend:extract_messages
-    init_catalog = babel.messages.frontend:init_catalog
-    update_catalog = babel.messages.frontend:update_catalog
-
-    [distutils.setup_keywords]
-    message_extractors = babel.messages.frontend:check_message_extractors
-
-    [babel.checkers]
-    num_plurals = babel.messages.checkers:num_plurals
-    python_format = babel.messages.checkers:python_format
-
-    [babel.extractors]
-    ignore = babel.messages.extract:extract_nothing
-    python = babel.messages.extract:extract_python
-    javascript = babel.messages.extract:extract_javascript
-    """
+    test_suite='runtests.runtests',
 )
