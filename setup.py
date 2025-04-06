@@ -1,64 +1,61 @@
+from setuptools import setup, find_packages
 import os
-
-from setuptools import setup
-
-
-def rel(*xs):
-    return os.path.join(os.path.abspath(os.path.dirname(__file__)), *xs)
+import sys
+import version
 
 
-with open(rel("django_dramatiq", "__init__.py"), "r") as f:
-    version_marker = "__version__ = "
-    for line in f:
-        if line.startswith(version_marker):
-            _, version = line.split(version_marker)
-            version = version.strip().strip('"')
-            break
-    else:
-        raise RuntimeError("Version marker not found.")
+readme_path = os.path.join(os.path.dirname(__file__), "README.rst")
+with open(readme_path, "r") as fp:
+    readme_text = fp.read()
+
+
+version_for_setup_py = version.get_project_version("pglookout/version.py")
+version_for_setup_py = ".dev".join(version_for_setup_py.split("-", 2)[:2])
+
+
+requires = [
+    "psycopg2 >= 2.0.0",
+    "requests >= 1.2.0",
+]
+
+if sys.version_info[0] == 2:
+    requires.append("futures")
 
 
 setup(
-    name="django_dramatiq",
-    version=version,
-    description="A Django app for Dramatiq.",
-    long_description="Visit https://github.com/Bogdanp/django_dramatiq for more information.",
-    packages=[
-        "django_dramatiq",
-        "django_dramatiq.management",
-        "django_dramatiq.management.commands",
-        "django_dramatiq.migrations",
-    ],
-    install_requires=[
-        "django>=2.2",
-        "dramatiq>=0.18.0",
-    ],
+    name="pglookout",
+    version=version_for_setup_py,
+    zip_safe=False,
+    packages=find_packages(exclude=["test"]),
+    install_requires=requires,
+    extras_require={},
+    dependency_links=[],
+    package_data={},
+    data_files=[],
+    entry_points={
+        "console_scripts": [
+            "pglookout = pglookout.pglookout:main",
+            "pglookout_current_master = pglookout.current_master:main",
+        ],
+    },
+    author="Hannu Valtonen",
+    author_email="hannu.valtonen@aiven.io",
+    license="Apache 2.0",
+    platforms=["POSIX", "MacOS"],
+    description="PostgreSQL replication monitoring and failover daemon",
+    long_description=readme_text,
+    url="https://github.com/aiven/pglookout/",
     classifiers=[
-        "Environment :: Web Environment",
-        "Operating System :: OS Independent",
-        "Framework :: Django",
-        "Framework :: Django :: 2.2",
-        "Framework :: Django :: 3.1",
-        "Framework :: Django :: 3.2",
-        "Programming Language :: Python",
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: System Administrators",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
+        "Topic :: Database :: Database Engines/Servers",
+        "Topic :: Software Development :: Libraries",
     ],
-    extras_require={
-        "dev": [
-            "bumpversion",
-            "flake8",
-            "flake8-quotes",
-            "isort",
-            "pytest",
-            "pytest-cov",
-            "pytest-django",
-            "tox",
-            "twine",
-        ]
-    },
-    python_requires=">=3.5",
-    include_package_data=True,
 )

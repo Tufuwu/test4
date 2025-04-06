@@ -1,33 +1,74 @@
-name: CI
-on: [push]
+name: Build pglookout
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+  pull_request:
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"]
-        django-version: [ "2.2", "3.1", "3.2" ]
-    name: Test on Python ${{ matrix.python-version }} with Django ${{ matrix.django-version }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
-      - run: pip install tox
-      - run: tox -e "py${PYTHON_VERSION//[.]/}-cpython-django${DJANGO_VERSION//[.]/}"
-        env:
-          PYTHON_VERSION: ${{ matrix.python-version }}
-          DJANGO_VERSION: ${{ matrix.django-version }}
 
   lint:
     runs-on: ubuntu-latest
-    name: Lint
+    strategy:
+      matrix:
+        # only use the newest version for the lint step -> as long as the other version can run it it's ok
+        python-version: ["3.9"]
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+
+      - id: checkout-code
+        uses: actions/checkout@v2
+
+      - id: prepare-python
+        uses: actions/setup-python@v2
         with:
-          python-version: "3.9"
-          architecture: x64
-      - run: pip install tox
-      - run: tox -e flake8
+          python-version: ${{ matrix.python-version }}
+
+      - id: dependencies
+        run: |
+          pip install -e .
+          pip install --upgrade pylint flake8 pytest mock
+
+      - id: pylint
+        run: make pylint
+
+      - id: flake8
+        run: make flake8
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ["3.9"]
+        pg-version: [9.6, 10, 11, 12, 13]
+
+    steps:
+      - id: checkout-code
+        uses: actions/checkout@v2
+
+      - id: prepare-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - id: dependencies
+        run: |
+          # Setup the Postgres repositories
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          sudo apt-get update
+          # Setup build deps
+          sudo apt-get install -y libsnappy-dev
+          sudo apt-get install -y postgresql-${{ matrix.pg-version }}
+          # Setup common python dependencies
+          python -m pip install --upgrade pip
+          pip install --upgrade pytest mock
+          pip install -e .
+
+      - id: unittest
+        run: make unittest
