@@ -1,187 +1,141 @@
-.. image:: https://github.com/liminspace/django-mjml/actions/workflows/test.yml/badge.svg?branch=master
- :target: https://github.com/liminspace/django-mjml/actions/workflows/test.yml
- :alt: test
+MediaWiki
+=========
 
-.. image:: https://img.shields.io/pypi/v/django-mjml.svg
- :target: https://pypi.org/project/django-mjml/
- :alt: pypi
+.. image:: https://img.shields.io/badge/license-MIT-blue.svg
+    :target: https://opensource.org/licenses/MIT/
+    :alt: License
+.. image:: https://img.shields.io/github/release/barrust/mediawiki.svg
+    :target: https://github.com/barrust/mediawiki/releases
+    :alt: GitHub release
+.. image:: https://badge.fury.io/py/pymediawiki.svg
+    :target: https://badge.fury.io/py/pymediawiki
+.. image:: https://travis-ci.org/barrust/mediawiki.svg?branch=master
+    :target: https://travis-ci.org/barrust/mediawiki
+    :alt: Build Status
+.. image:: https://coveralls.io/repos/github/barrust/mediawiki/badge.svg?branch=master
+    :target: https://coveralls.io/github/barrust/mediawiki?branch=master
+    :alt: Test Coverage
+.. image:: https://api.codacy.com/project/badge/Grade/afa87d5f5b6e4e66b78e15dedbc097ec
+    :target: https://www.codacy.com/app/barrust/mediawiki?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=barrust/mediawiki&amp;utm_campaign=Badge_Grade
+    :alt: Codacy Review
+.. image:: http://pepy.tech/badge/pymediawiki
+    :target: http://pepy.tech/count/pymediawiki
+    :alt: Downloads
 
-|
+**mediawiki** is a python wrapper and parser for the MediaWiki API. The goal
+is to allow users to quickly and efficiently pull data from the MediaWiki site
+of their choice instead of worrying about dealing directly with the API. As
+such, it does not force the use of a particular MediaWiki site. It defaults to
+`Wikipedia <http://www.wikipedia.org>`__ but other MediaWiki sites can
+also be used.
 
-.. image:: https://cloud.githubusercontent.com/assets/5173158/14615647/5fc03bf8-05af-11e6-8cdd-f87bf432c4a2.png
-  :target: #
-  :alt: Django + MJML
+MediaWiki wraps the `MediaWiki API <https://www.mediawiki.org/wiki/API>`_
+so you can focus on *leveraging* your favorite MediaWiki site's data,
+not getting it. Please check out the code on
+`github <https://www.github.com/barrust/mediawiki>`_!
 
-django-mjml
-===========
+**Note:** this library was designed for ease of use and simplicity. If you plan
+on doing serious scraping, automated requests, or editing, please look into
+`Pywikipediabot <http://www.mediawiki.org/wiki/Manual:Pywikipediabot>`__
+which has a larger API, advanced rate limiting, and other features so we may
+be considerate of the MediaWiki infrastructure.
 
-The simplest way to use `MJML <https://mjml.io/>`_ in `Django <https://www.djangoproject.com/>`_ templates.
-
-|
 
 Installation
-------------
+------------------
 
-Requirements:
-^^^^^^^^^^^^^
+Pip Installation:
 
-* ``Django`` from 1.8 to 3.2
-* ``requests`` from 2.20.0 (only if you are going to use API HTTP-server for rendering)
-* ``mjml`` from 2.3 to 4.10.1
+::
 
-**\1\. Install** ``mjml``.
+    $ pip install pymediawiki
 
-See https://github.com/mjmlio/mjml#installation and https://mjml.io/documentation/#installation
+To install from source:
 
-**\2\. Install** ``django-mjml``. ::
+To install `mediawiki`, simply clone the `repository on GitHub
+<https://github.com/barrust/mediawiki>`__, then run from the folder:
 
-  $ pip install django-mjml
+::
 
-If you want to use API HTTP-server you also need ``requests`` (at least version 2.20)::
+    $ python setup.py install
 
-    $ pip install django-mjml[requests]
+`mediawiki` supports python versions 2.7 and 3.4 - 3.7
 
-To install development version use ``git+https://github.com/liminspace/django-mjml.git@master`` instead ``django-mjml``.
+Documentation
+-------------
 
-**\3\. Set up** ``settings.py`` **in your django project.** ::
+Documentation of the latest release is hosted on
+`readthedocs.io <http://pymediawiki.readthedocs.io/en/latest/?>`__
 
-  INSTALLED_APPS = (
-    ...,
-    'mjml',
-  )
+To build the documentation yourself run:
 
-|
+::
 
-Usage
------
+    $ pip install sphinx
+    $ cd docs/
+    $ make html
 
-Load ``mjml`` in your django template and use ``mjml`` tag that will compile MJML to HTML::
+Automated Tests
+------------------
 
-  {% load mjml %}
+To run automated tests, one must simply run the following command from the
+downloaded folder:
 
-  {% mjml %}
-      <mjml>
-      <mj-body>
-      <mj-container>
-          <mj-section>
-              <mj-column>
-                  <mj-text>Hello world!</mj-text>
-              </mj-column>
-          </mj-section>
-      </mj-container>
-      </mj-body>
-      </mjml>
-  {% endmjml %}
+::
 
-|
+  $ python setup.py test
 
-Advanced settings
------------------
 
-There are three backend modes for compiling: ``cmd``, ``tcpserver`` and ``httpserver``.
+Quickstart
+------------------
 
-cmd mode
-^^^^^^^^
+Import mediawiki and run a standard search against Wikipedia:
 
-This mode is very simple, slow and used by default. ::
+.. code:: python
 
-  MJML_BACKEND_MODE = 'cmd'
-  MJML_EXEC_CMD = 'mjml'
+    >>> from mediawiki import MediaWiki
+    >>> wikipedia = MediaWiki()
+    >>> wikipedia.search('washington')
 
-You can change ``MJML_EXEC_CMD`` and set path to executable ``mjml`` file, for example::
+Run more advanced searches:
 
-  MJML_EXEC_CMD = '/home/user/node_modules/.bin/mjml'
+.. code:: python
 
-Also you can pass addition cmd arguments, for example::
+    >>> wikipedia.opensearch('washington')
+    >>> wikipedia.allpages('a')
+    >>> wikipedia.geosearch(title='washington, d.c.')
+    >>> wikipedia.geosearch(latitude='0.0', longitude='0.0')
+    >>> wikipedia.prefixsearch('arm')
+    >>> wikipedia.random(pages=10)
 
-  MJML_EXEC_CMD = ['node_modules/.bin/mjml', '--config.minify', 'true', '--config.validationLevel', 'strict']
+Pull a MediaWiki page and some of the page properties:
 
-Once you have a working installation, you can skip the sanity check on startup to speed things up::
+.. code:: python
 
-  MJML_CHECK_CMD_ON_STARTUP = False
+    >>> p = wikipedia.page('Chess')
+    >>> p.title
+    >>> p.summary
+    >>> p.categories
+    >>> p.images
+    >>> p.links
+    >>> p.langlinks
 
-tcpserver mode
-^^^^^^^^^^^^^^
+See the `Documentation for more examples!
+<http://pymediawiki.readthedocs.io/en/latest/quickstart.html#quickstart>`_
 
-This mode is faster than ``cmd`` but it needs run a separated server process which will render templates. ::
 
-  MJML_BACKEND_MODE = 'tcpserver'
-  MJML_TCPSERVERS = [
-      ('127.0.0.1', 28101),  # host and port
-  ]
 
-You can set several servers and a random one will be used::
+Changelog
+------------------
 
-  MJML_TCPSERVERS = [
-      ('127.0.0.1', 28101),
-      ('127.0.0.1', 28102),
-      ('127.0.0.1', 28103),
-  ]
+Please see the `changelog
+<https://github.com/barrust/mediawiki/blob/master/CHANGELOG.md>`__ for a list
+of all changes.
 
-You can run servers by commands::
 
-  # NODE_PATH=/home/user/node_modules node /home/user/.virtualenv/default/lib/python2.7/site-packages/mjml/node/tcpserver.js --port=28101 --host=127.0.0.1 --touchstop=/tmp/mjmltcpserver.stop
+License
+-------
 
-``28101`` - port, ``127.0.0.1`` - host, ``/tmp/mjmltcpserver.stop`` - file that will stop server after touch.
-
-For daemonize server process you can use, for example, supervisor::
-
-  /etc/supervisor/conf.d/mjml.conf
-
-  [program:mjmltcpserver]
-  user=user
-  environment=NODE_PATH=/home/user/node_modules
-  command=node
-      /home/user/.virtualenv/default/lib/python2.7/site-packages/mjml/node/tcpserver.js
-      --port=28101 --host=127.0.0.1 --touchstop=/tmp/mjmltcpserver.stop --mjml.minify=true --mjml.validationLevel=strict
-  stdout_logfile=/home/user/project/var/log/supervisor/mjml.log
-  autostart=true
-  autorestart=true
-  redirect_stderr=true
-  stopwaitsecs=10
-  stopsignal=INT
-
-Or you can use docker-compose::
-
-  services:
-    mjml-1:
-      image: liminspace/mjml-tcpserver:latest
-      restart: always
-      ports:
-        - "28101:28101"
-
-    mjml-2:
-      image: liminspace/mjml-tcpserver:latest
-      restart: always
-      environment:
-        HOST: "0.0.0.0"
-        PORT: "28102"
-        MJML_ARGS: "--mjml.minify=true --mjml.validationLevel=strict"
-      expose:
-        - "28102"
-      ports:
-        - "28102:28102"
-
-You also can build your own tcpserver with other versions of ``MJML`` by using
-``docker/mjml-tcpserver`` file and editing arguments.
-
-httpserver mode
-^^^^^^^^^^^^^^^
-
-  don't forget to install ``requests`` to use this mode.
-
-This mode is faster than ``cmd`` and similar to ``tcpserver`` but you can use official MJML API https://mjml.io/api
-or run your own HTTP-server (for example https://github.com/danihodovic/mjml-server) to render templates. ::
-
-  MJML_BACKEND_MODE = 'httpserver'
-  MJML_HTTPSERVERS = [
-      {
-          'URL': 'https://api.mjml.io/v1/render',  # official MJML API
-          'HTTP_AUTH': ('<Application ID>', '<Secret Key>'),
-      },
-      {
-          'URL': 'http://127.0.0.1:38101/v1/render',  # your own HTTP-server
-      },
-  ]
-
-You can set one or more servers and a random one will be used.
+MIT licensed. See the `LICENSE file
+<https://github.com/barrust/Wikipedia/blob/master/LICENSE>`__
+for full details.

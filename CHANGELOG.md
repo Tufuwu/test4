@@ -1,159 +1,176 @@
-0.11.0 (2021-07-04)
-===================
- * Added supporting Django v3.2
- * Added Python 3.9 in tests
- * Added MJML 4.10.1 in tests
- * Removed Python 3.5 from tests
- * Removed MJML older than 4.4.0 from tests
- * Upgraded Node to v14 for tcp-server
- * Upgraded MJML to 4.9.3 in dockerfile
- * Moved from Travis to GitHub Actions
+# MediaWiki Changelog
+
+## Version 0.6.7
+
+* ***NOTE:*** Last planed support for **Python 2.7**
+* Cache results of `BeautifulSoup` parsing of `page.html` [PR #90](https://github.com/barrust/mediawiki/pull/90) Thank [ldorigo](https://github.com/ldorigo)
+* Move to GitHib Actions and CodeCov for testing
 
 
-0.10.2 (2020-08-28)
-===================
- * Import `requests` only if it's really needed
+## Version 0.6.6
+
+* Fix a bug using `find_all()` on newer versions of BeautifulSoup4
+
+## Version 0.6.5
+
+* Fix for `suggest` [PR #85](https://github.com/barrust/mediawiki/pull/85) Thanks [rubabredwan](https://github.com/rubabredwan)
+* `__slots__` usage
+
+## Version 0.6.4
+
+* Add ability to login during initialization [issue #79](https://github.com/barrust/mediawiki/issues/79)
+
+## Version 0.6.3
+
+* Capture timeout exception
+* bs4 does not support `hasattr` but uses `*.has_attr()`
+
+## Version 0.6.2
+
+* Add `allpages` functionality [PR #75](https://github.com/barrust/mediawiki/pull/75)
+* Add `langlinks` page property [PR #76](https://github.com/barrust/mediawiki/pull/76)
+
+## Version 0.6.1
+
+* Fix DisambiguationError title property [issue #72](https://github.com/barrust/mediawiki/issues/72)
+* Change to using [black](https://github.com/ambv/black) formatting
+
+## Version 0.6.0
+
+* Fix for the table of contents for all subsections [issue #64](https://github.com/barrust/mediawiki/issues/64)
+* Combined properties into a single set of pulling to reduce the load on the MediaWiki infrastructure [issue #55](https://github.com/barrust/mediawiki/issues/55)
+
+## Version 0.5.1
+
+* Added Table of Contents parsing based on sections: result is an OrderedDict
+* Fix issue where some sections are not pulled correctly
+
+## Version 0.5.0
+
+* Add support for logging into the MediaWiki site [issue #59](https://github.com/barrust/mediawiki/issues/59)
+
+## Version 0.4.1
+
+* Default to `https`
+* Add `category_prefix` property to properly support categories in non-English
+MediaWiki sites [issue #48](https://github.com/barrust/mediawiki/issues/48)
+* Add `user_agent` as an initialization parameter and added information to the
+documentation about why one should set the user-agent string [issue #50](https://github.com/barrust/mediawiki/issues/50)
+
+### Version 0.4.0
+
+* Add fix to use the `query-continue` parameter to continue to pull category
+members [issue #39](https://github.com/barrust/mediawiki/issues/39)
+* Better handle large categorymember selections
+* Add better handling of exception attributes including adding them to the
+documentation
+* Correct the pulling of the section titles without additional markup [issue #42](https://github.com/barrust/mediawiki/issues/42)
+* Handle memoization of unicode parameters in python 2.7
+* ***Change default timeout*** for HTTP requests to 15 seconds
+
+### Version 0.3.16
+
+* Add ability to turn off caching completely
+* Fix bug when disambiguation link does not have a title [issue #35](https://github.com/barrust/mediawiki/issues/35)
+
+### Version 0.3.15
+
+* Add parse all links within a section [issue #33](https://github.com/barrust/mediawiki/issues/33)
+* Add base url property to mediawiki site
+
+### Version 0.3.14
+
+* Add refresh interval to cached responses (Defaults to not refresh)
+[issue #30](https://github.com/barrust/mediawiki/issues/30)
+* Fix minor documentation issues
+
+### Version 0.3.13
+
+* Add pulling hatnotes [issue #6](https://github.com/barrust/mediawiki/issues/6)
+* Add pulling list of main images or logos [issue #28](https://github.com/barrust/mediawiki/issues/28)
+
+### Version 0.3.12
+
+* Default API URL is now language specific: [PR #26](https://github.com/barrust/mediawiki/pull/26)
+
+### Version 0.3.11
+
+* Re-factor MediaWikiPage into its own file
+* Remove setting properties outside of __init__()
+* Better Unicode support
+* Add CONTRIBUTING.md file
+
+### Version 0.3.10
+
+* Add categorytree support
+* Remove adding 'http:' to references if missing
+
+### Version 0.3.9
+
+* Fix infinite loop on continued queries: [issue #15](https://github.com/barrust/mediawiki/issues/15)
+ * Check by looking at the continue variable over time; if it is the same, exit
+* Fix image with no url: [issue #14](https://github.com/barrust/mediawiki/issues/14)
+
+### Version 0.3.8
+
+* Fix empty disambiguation list items
 
 
-0.10.1 (2020-08-16)
-===================
-  *  Added supporting Django v3.1
+### Version 0.3.7
+
+* Memoize support default parameters
+* Add support test for Python 3.6
 
 
-0.10.0 (2020-06-29)
-===================
-  * Added `requests` in extras require in `setup.py`
-  * Added MJML 4.6.3 in tests
-  * Upgraded MJML to 4.6.3 in dockerfile
-  * Updated docs
+### Version 0.3.6
+
+* Updated Exception documentation
+* Fix badges in Readme file
+* Additional test coverage
 
 
-0.9.0 (2019-12-24)
-==================
-  * Added supporting Django v3.0
-  * Added supporting render http-server (including official MJML API https://mjml.io/api)
-  * Added Python 3.8 in tests
-  * Added MJML 4.5.1 in tests
-  * Upgraded MJML to 4.5.1 in dockerfile
-  * Upgraded Node to v12 for tcp-server
-  * Reorganized tests
-  * Updated docs
+### Version 0.3.5
+
+* Add documentation to README
+  * Quickstart information
+  * pip install instructions [pypi - pymediawiki](https://pypi.python.org/pypi/pymediawiki/)
+  * Additional testing
 
 
-0.8.0 (2019-07-29)
-==================
-  * Fixed a trouble with unicode
-  * Added MJML 4.4.0 in tests
-  * Upgraded MJML to 4.4.0 in dockerfile
+### Version 0.3.4
+
+* Update documentation
+* Better continuous integration
+* Better test data: [issue #4](https://github.com/barrust/mediawiki/issues/4)
+* First version on PyPi: [issue #8](https://github.com/barrust/mediawiki/issues/8)
+
+### Version 0.3.3
+
+* Improve testing strategy
+ * Move tests to json from pickle
+* Improve parameter checking for geosearch
+* Code standardization
+ * Pep8
+ * Pylint
+ * Single quote strings
 
 
-0.7.0 (2019-04-06)
-==================
-  * Removed MJML 4.0.5, 4.1.2 and 4.2.1 from tests
-  * Added MJML 4.3.1 in tests
-  * Updated tcp-server adding cleanly termination
-  * Upgraded MJML to 4.3.1 in dockerfile
-  * Updated dockerfile by using `exec`
-  * Added supporting Django v2.2
+### Version 0.3.2
+
+* OpenSearch functionality
+* PrefixSearch functionality
 
 
-0.6.0 (2018-12-06)
-==================
-  * Added `MJML_CHECK_CMD_ON_STARTUP` setting (thanks to Marcel Chastain)
-  * Added Python 3.7 in tests
-  * Added MJML v.4.2.1 in tests
-  * Removed MJML v.2.3.3 from tests
-  * Updated MJML to 4.2.1 in dockerfile
+### Version 0.3.1
+
+* Page Summary
+* Page Sections
+* Enforce sorting of page properties
 
 
-0.5.4 (2018-10-19)
-==================
-  * Fixed Popen PIPE subprocess deadlock by using TemporaryFile for stdout
+### Pre-Version 0.3.1
 
-
-0.5.3 (2018-08-07)
-==================
-  * Added supporting MJML v4.1.2
-  * Added supporting Django v2.1
-  
-
-0.5.2 (2018-06-29)
-==================
-  * Added supporting MJML v4.1.0
-  * Added .pyup.yaml
-  * Updated tests
-  * Added dockerfile for tcpserver
-  * Remove mjml 3.0.2, 3.1.1 and 3.2.2 from tests
-
-
-0.5.1 (2018-06-05)
-==================
-  * Add stopping tcpserver on SIGINT
-
-
-0.5.0 (2018-04-28)
-==================
-  * Add support MJML v4
-  * Tcpserver doesn't skip mjml errors now (thanks @yourcelf)
-  * Refactor arguments in tcpserver
-  * Fix incomplete sending data via socket (thanks @cavanierc)
-
-
-0.4.0 (2018-01-10)
-==================
-  * Add support Django 2.0
-  * Update support new versions of MJML (up to 3.3.5)
-
-
-0.3.2 (2017-04-06)
-==================
-  * Add support Django 1.11
-
-
-0.3.1 (2017-03-18)
-==================
-  * Update support new versions of MJML (up to 3.3.0)
-
-
-0.3.0 (2017-03-03)
-==================
-  * Update support new versions of MJML (up to 3.2.2)
-  * Add support Python 3.6
-
-
-0.2.3 (2016-10-13)
-==================
-  * Add supporting django 1.8
-  
-
-0.2.2 (2016-08-15)
-==================
-  * Check mjml only if mode is "cmd"
-
-
-0.2.1 (2016-08-03)
-==================
-  * Add support Django 1.10
-  
-
-0.2.0 (2016-07-24)
-==================
-  * Add backend mode TPCServer
-  * Remove Python 3.4 from tests
-  * Upgrade Django to 1.9.8 in tests
-  
-
-0.1.2 (2016-05-01)
-==================
-  * Fix release tools and setup.py
-
-
-0.1.0 (2016-04-30)
-==================
-  * Migrate to MJML 2.x
-  * Add support Python 3.4+
-
-
-0.0.1 (2016-04-19)
-==================
-  * First release
+* Add MediaWiki class
+* Add MediaWikiPage class
+* Stubbed out functionality
+* Add page properties
