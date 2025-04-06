@@ -1,67 +1,136 @@
 #!/usr/bin/env python
-# Copyright Jonathan Hartley 2013. BSD 3-Clause license, see LICENSE file.
-
 from __future__ import with_statement
 
-from io import open
 import os
-import re
+import sys
 try:
-    from setuptools import setup
+    from setuptools import setup, Extension, Command
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, Extension, Command
+from distutils.command.build_ext import build_ext
+from distutils.errors import CCompilerError, DistutilsExecError, \
+    DistutilsPlatformError
+
+IS_PYPY = hasattr(sys, 'pypy_translation_info')
+VERSION = '3.17.3'
+DESCRIPTION = "Simple, fast, extensible JSON encoder/decoder for Python"
+
+with open('README.rst', 'r') as f:
+   LONG_DESCRIPTION = f.read()
+
+PYTHON_REQUIRES = '>=2.5, !=3.0.*, !=3.1.*, !=3.2.*'
+
+CLASSIFIERS = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'License :: OSI Approved :: Academic Free License (AFL)',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 2',
+    'Programming Language :: Python :: 2.5',
+    'Programming Language :: Python :: 2.6',
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.3',
+    'Programming Language :: Python :: 3.4',
+    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+]
+
+if sys.platform == 'win32' and sys.version_info < (2, 7):
+   # 2.6's distutils.msvc9compiler can raise an IOError when failing to
+   # find the compiler
+   # It can also raise ValueError https://bugs.python.org/issue7511
+   ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
+                 IOError, ValueError)
+else:
+   ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+
+class BuildFailed(Exception):
+    pass
+
+class ve_build_ext(build_ext):
+    # This class allows C extension building to fail.
+
+    def run(self):
+        try:
+            build_ext.run(self)
+        except DistutilsPlatformError:
+            raise BuildFailed()
+
+    def build_extension(self, ext):
+        try:
+            build_ext.build_extension(self, ext)
+        except ext_errors:
+            raise BuildFailed()
 
 
-NAME = 'colorama'
+class TestCommand(Command):
+    user_options = []
 
+    def initialize_options(self):
+        pass
 
-def read_file(path, encoding='ascii'):
-    with open(os.path.join(os.path.dirname(__file__), path),
-              encoding=encoding) as fp:
-        return fp.read()
+    def finalize_options(self):
+        pass
 
-def _get_version_match(content):
-    # Search for lines of the form: # __version__ = 'ver'
-    regex = r"^__version__ = ['\"]([^'\"]*)['\"]"
-    version_match = re.search(regex, content, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+    def run(self):
+        import sys, subprocess
+        raise SystemExit(
+            subprocess.call([sys.executable,
+                             # Turn on deprecation warnings
+                             '-Wd',
+                             'simplejson/tests/__init__.py']))
 
-def get_version(path):
-    return _get_version_match(read_file(path))
+def run_setup(with_binary):
+    cmdclass = dict(test=TestCommand)
+    if with_binary:
+        kw = dict(
+            ext_modules = [
+                Extension("simplejson._speedups", ["simplejson/_speedups.c"]),
+            ],
+            cmdclass=dict(cmdclass, build_ext=ve_build_ext),
+        )
+    else:
+        kw = dict(cmdclass=cmdclass)
 
-setup(
-    name=NAME,
-    version=get_version(os.path.join('colorama', '__init__.py')),
-    description='Cross-platform colored terminal text.',
-    long_description=read_file('README.rst'),
-    keywords='color colour terminal text ansi windows crossplatform xplatform',
-    author='Jonathan Hartley',
-    author_email='tartley@tartley.com',
-    maintainer='Arnon Yaari',
-    url='https://github.com/tartley/colorama',
-    license='BSD',
-    packages=[NAME],
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
-    # see classifiers https://pypi.org/pypi?%3Aaction=list_classifiers
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
-        'Topic :: Terminals',
-    ]
-)
+    setup(
+        name="simplejson",
+        version=VERSION,
+        description=DESCRIPTION,
+        long_description=LONG_DESCRIPTION,
+        classifiers=CLASSIFIERS,
+        python_requires=PYTHON_REQUIRES,
+        author="Bob Ippolito",
+        author_email="bob@redivi.com",
+        url="https://github.com/simplejson/simplejson",
+        license="MIT License",
+        packages=['simplejson', 'simplejson.tests'],
+        platforms=['any'],
+        **kw)
+
+try:
+    run_setup(not IS_PYPY)
+except BuildFailed:
+    if os.environ.get('REQUIRE_SPEEDUPS') or os.environ.get('CIBUILDWHEEL', '0') == '1':
+        raise
+    BUILD_EXT_WARNING = ("WARNING: The C extension could not be compiled, "
+                         "speedups are not enabled.")
+    print('*' * 75)
+    print(BUILD_EXT_WARNING)
+    print("Failure information, if any, is above.")
+    print("I'm retrying the build without the C extension now.")
+    print('*' * 75)
+
+    run_setup(False)
+
+    print('*' * 75)
+    print(BUILD_EXT_WARNING)
+    print("Plain-Python installation succeeded.")
+    print('*' * 75)
