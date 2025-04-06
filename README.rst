@@ -1,104 +1,200 @@
-aiohttp-sse
-===========
-.. image:: https://travis-ci.org/aio-libs/aiohttp-sse.svg?branch=master
-    :target: https://travis-ci.org/aio-libs/aiohttp-sse
+aiofiles: file support for asyncio
+==================================
 
-.. image:: https://codecov.io/gh/aio-libs/aiohttp-sse/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/aio-libs/aiohttp-sse
+.. image:: https://img.shields.io/pypi/v/aiofiles.svg
+        :target: https://pypi.python.org/pypi/aiofiles
 
-.. image:: https://pyup.io/repos/github/aio-libs/aiohttp-sse/shield.svg
-     :target: https://pyup.io/repos/github/aio-libs/aiohttp-sse/
-     :alt: Updates
+.. image:: https://travis-ci.org/Tinche/aiofiles.svg?branch=master
+        :target: https://travis-ci.org/Tinche/aiofiles
 
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-     :target: https://gitter.im/aio-libs/Lobby
-     :alt: Chat on Gitter
+.. image:: https://codecov.io/gh/Tinche/aiofiles/branch/master/graph/badge.svg
+        :target: https://codecov.io/gh/Tinche/aiofiles
+
+.. image:: https://img.shields.io/pypi/pyversions/aiofiles.svg
+        :target: https://github.com/Tinche/aiofiles
+        :alt: Supported Python versions
+
+**aiofiles** is an Apache2 licensed library, written in Python, for handling local
+disk files in asyncio applications.
+
+Ordinary local file IO is blocking, and cannot easily and portably made
+asynchronous. This means doing file IO may interfere with asyncio applications,
+which shouldn't block the executing thread. aiofiles helps with this by
+introducing asynchronous versions of files that support delegating operations to
+a separate thread pool.
+
+.. code-block:: python
+
+    async with aiofiles.open('filename', mode='r') as f:
+        contents = await f.read()
+    print(contents)
+    'My file contents'
+
+Asynchronous iteration is also supported.
+
+.. code-block:: python
+
+    async with aiofiles.open('filename') as f:
+        async for line in f:
+            ...
+
+Asynchronous interface to tempfile module.
+
+.. code-block:: python
+
+    async with aiofiles.tempfile.TemporaryFile('wb') as f:
+        await f.write(b'Hello, World!')
 
 
-The *EventSource** interface is used to receive server-sent events. It connects
-to a server over HTTP and receives events in text/event-stream format without
-closing the connection. *aiohttp-sse* provides support for server-sent
-events for aiohttp_.
+Features
+--------
+
+- a file API very similar to Python's standard, blocking API
+- support for buffered and unbuffered binary files, and buffered text files
+- support for ``async``/``await`` (:PEP:`492`) constructs
+- async interface to tempfile module
 
 
 Installation
 ------------
-Installation process as simple as::
 
-    $ pip install aiohttp-sse
+To install aiofiles, simply:
+
+.. code-block:: bash
+
+    $ pip install aiofiles
+
+Usage
+-----
+
+Files are opened using the ``aiofiles.open()`` coroutine, which in addition to
+mirroring the builtin ``open`` accepts optional ``loop`` and ``executor``
+arguments. If ``loop`` is absent, the default loop will be used, as per the
+set asyncio policy. If ``executor`` is not specified, the default event loop
+executor will be used.
+
+In case of success, an asynchronous file object is returned with an
+API identical to an ordinary file, except the following methods are coroutines
+and delegate to an executor:
+
+* ``close``
+* ``flush``
+* ``isatty``
+* ``read``
+* ``readall``
+* ``read1``
+* ``readinto``
+* ``readline``
+* ``readlines``
+* ``seek``
+* ``seekable``
+* ``tell``
+* ``truncate``
+* ``writable``
+* ``write``
+* ``writelines``
+
+In case of failure, one of the usual exceptions will be raised.
+
+The ``aiofiles.os`` module contains executor-enabled coroutine versions of
+several useful ``os`` functions that deal with files:
+
+* ``stat``
+* ``sendfile``
+* ``rename``
+* ``remove``
+* ``mkdir``
+* ``rmdir``
+
+Tempfile
+~~~~~~~~
+
+**aiofiles.tempfile** implements the following interfaces:
+
+- TemporaryFile
+- NamedTemporaryFile
+- SpooledTemporaryFile
+- TemporaryDirectory
+
+Results return wrapped with a context manager allowing use with async with and async for.
+
+.. code-block:: python
+
+    async with aiofiles.tempfile.NamedTemporaryFile('wb+') as f:
+        await f.write(b'Line1\n Line2')
+        await f.seek(0)
+        async for line in f:
+            print(line)
+
+    async with aiofiles.tempfile.TemporaryDirectory() as d:
+        filename = os.path.join(d, "file.ext")
 
 
-Mailing List
-------------
+Writing tests for aiofiles
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*aio-libs* google group: https://groups.google.com/forum/#!forum/aio-libs
+Real file IO can be mocked by patching ``aiofiles.threadpool.sync_open``
+as desired. The return type also needs to be registered with the
+``aiofiles.threadpool.wrap`` dispatcher:
 
+.. code-block:: python
 
-Example
--------
-.. code:: python
+    aiofiles.threadpool.wrap.register(mock.MagicMock)(
+        lambda *args, **kwargs: threadpool.AsyncBufferedIOBase(*args, **kwargs))
 
-    import asyncio
-    from aiohttp import web
-    from aiohttp.web import Response
-    from aiohttp_sse import sse_response
-    from datetime import datetime
+    async def test_stuff():
+        data = 'data'
+        mock_file = mock.MagicMock()
 
+        with mock.patch('aiofiles.threadpool.sync_open', return_value=mock_file) as mock_open:
+            async with aiofiles.open('filename', 'w') as f:
+                await f.write(data)
 
-    async def hello(request):
-        loop = request.app.loop
-        async with sse_response(request) as resp:
-            while True:
-                data = 'Server Time : {}'.format(datetime.now())
-                print(data)
-                await resp.send(data)
-                await asyncio.sleep(1)
-        return resp
+            mock_file.write.assert_called_once_with(data)
 
+History
+~~~~~~~
 
-    async def index(request):
-        d = """
-            <html>
-            <body>
-                <script>
-                    var evtSource = new EventSource("/hello");
-                    evtSource.onmessage = function(e) {
-                        document.getElementById('response').innerText = e.data
-                    }
-                </script>
-                <h1>Response from server:</h1>
-                <div id="response"></div>
-            </body>
-        </html>
-        """
-        return Response(text=d, content_type='text/html')
+0.7.0 (UNRELEASED)
+``````````````````
+- Added the ``aiofiles.tempfile`` module for async temporary files.
+  `#56 <https://github.com/Tinche/aiofiles/pull/56>`_
+- Switched to Poetry and GitHub actions.
+- Dropped 3.5 support.
 
+0.6.0 (2020-10-27)
+``````````````````
+- `aiofiles` is now tested on ppc64le.
+- Added `name` and `mode` properties to async file objects.
+  `#82 <https://github.com/Tinche/aiofiles/pull/82>`_
+- Fixed a DeprecationWarning internally.
+  `#75 <https://github.com/Tinche/aiofiles/pull/75>`_
+- Python 3.9 support and tests.
 
-    app = web.Application()
-    app.router.add_route('GET', '/hello', hello)
-    app.router.add_route('GET', '/', index)
-    web.run_app(app, host='127.0.0.1', port=8080)
+0.5.0 (2020-04-12)
+``````````````````
+- Python 3.8 support. Code base modernization (using ``async/await`` instead of ``asyncio.coroutine``/``yield from``).
+- Added ``aiofiles.os.remove``, ``aiofiles.os.rename``, ``aiofiles.os.mkdir``, ``aiofiles.os.rmdir``.
+  `#62 <https://github.com/Tinche/aiofiles/pull/62>`_
 
 
-EventSource Protocol
---------------------
+0.4.0 (2018-08-11)
+``````````````````
+- Python 3.7 support.
+- Removed Python 3.3/3.4 support. If you use these versions, stick to aiofiles 0.3.x.
 
-* http://www.w3.org/TR/2011/WD-eventsource-20110310/
-* https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events
+0.3.2 (2017-09-23)
+``````````````````
+- The LICENSE is now included in the sdist.
+  `#31 <https://github.com/Tinche/aiofiles/pull/31>`_
 
+0.3.1 (2017-03-10)
+``````````````````
 
-Requirements
-------------
+- Introduced a changelog.
+- ``aiofiles.os.sendfile`` will now work if the standard ``os`` module contains a ``sendfile`` function.
 
-* Python_ 3.5+
-* aiohttp_ 3+
-
-
-License
--------
-
-The *aiohttp-sse* is offered under Apache 2.0 license.
-
-.. _Python: https://www.python.org
-.. _asyncio: http://docs.python.org/3.5/library/asyncio.html
-.. _aiohttp: https://github.com/aio-libs/aiohttp
+Contributing
+~~~~~~~~~~~~
+Contributions are very welcome. Tests can be run with ``tox``, please ensure
+the coverage at least stays the same before you submit a pull request.

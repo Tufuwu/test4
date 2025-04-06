@@ -1,129 +1,68 @@
+---
 name: CI
 
 on:
   push:
-    branches: [ main ]
-    tags: [ 'v*' ]
+    branches: ["main"]
   pull_request:
-    branches: [ main ]
-  schedule:
-    - cron:  '0 6 * * *'  # Daily 6AM UTC build
-
+    branches: ["main"]
+  workflow_dispatch:
 
 jobs:
+  tests:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: "ubuntu-latest"
+    env:
+      USING_COVERAGE: "3.6,3.7,3.8,3.9"
 
-  lint:
-    name: Linter
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Setup Python
-      uses: actions/setup-python@v2
-    - name: Cache PyPI
-      uses: actions/cache@v4
-      with:
-        key: pip-lint-${{ hashFiles('requirements-dev.txt') }}
-        path: ~/.cache/pip
-        restore-keys: |
-            pip-lint-
-    - name: Install dependencies
-      uses: py-actions/py-dependency-install@v2
-      with:
-        path: requirements-dev.txt
-    - name: Run linters
-      run: |
-        make lint
-
-  unit:
-    name: Unit
-    needs: [lint]
     strategy:
       matrix:
         python-version: ["3.9"]
-        os: [ubuntu, macos, windows]
-    runs-on: ${{ matrix.os }}-latest
-    timeout-minutes: 10
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Setup Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "::set-output name=dir::$(pip cache dir)"    # - name: Cache
-    - name: Cache PyPI
-      uses: actions/cache@v4
-      with:
-        key: pip-ci-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements/*.txt') }}
-        path: ${{ steps.pip-cache.outputs.dir }}
-        restore-keys: |
-            pip-ci-${{ runner.os }}-${{ matrix.python-version }}-
-    - name: Install dependencies
-      uses: py-actions/py-dependency-install@v2
-      with:
-        path: requirements-dev.txt
-    - name: Install itself
-      run: |
-        pip install .
-    - name: Run unittests
-      env:
-        COLOR: 'yes'
-      run: |
-        make test
-    - name: Upload coverage
-      uses: codecov/codecov-action@v1
-      with:
-        file: ./coverage.xml
-        flags: unit
-        fail_ci_if_error: false
 
-  check:  # This job does nothing and is only used for the branch protection
-    name: CI Checks
-    needs: [lint, unit]
-    runs-on: ubuntu-latest
     steps:
-      - name: Report success of the test matrix
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: "Install dependencies"
         run: |
-          print("All's good")
-        shell: python
+          set -xe
+          python -VV
+          python -m site
+          python -m pip install --upgrade pip wheel poetry
+          python -m pip install --upgrade coverage[toml] virtualenv tox tox-gh-actions
+      - name: "Run tox targets for ${{ matrix.python-version }}"
+        run: "python -m tox"
 
-  deploy:
-    name: Deploy on PyPI
-    needs: check
-    environment: release
-    runs-on: ubuntu-latest
-    # Run only on pushing a tag
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+      # We always use a modern Python version for combining coverage to prevent
+      # parsing errors in older versions for modern code.
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "3.9"
+
+      - name: "Upload coverage to Codecov"
+        if: "contains(env.USING_COVERAGE, matrix.python-version)"
+        uses: "codecov/codecov-action@v1"
+        with:
+          fail_ci_if_error: true
+
+  package:
+    name: "Build & verify package"
+    runs-on: "ubuntu-latest"
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Setup Python
-      uses: actions/setup-python@v2
-    - name: Install dependencies
-      uses: py-actions/py-dependency-install@v2
-      with:
-        path: requirements-dev.txt
-    - name: Update build deps
-      run: |
-        pip install -U build twine
-    - name: Build dists
-      run: |
-        python -m build
-    - name: Make Release
-      uses: aio-libs/create-release@v1.2.3
-      with:
-        changes_file: CHANGES.rst
-        name: aiohttp-sse
-        version_file: aiohttp_sse/__init__.py
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        pypi_token: ${{ secrets.PYPI_TOKEN }}
-        dist_dir: dist
-        fix_issue_regex: "`#(\\d+) <https://github.com/aio-libs/aiohttp-sse/issues/\\1>`_"
-        fix_issue_repl: "#\\1"
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "3.9"
+
+      - name: "Install poetry and twine"
+        run: "python -m pip install poetry twine check-wheel-contents"
+      - name: "Build package"
+        run: "poetry build"
+      - name: "List result"
+        run: "ls -l dist"
+      - name: "Check wheel contents"
+        run: "check-wheel-contents dist/*.whl"
+      - name: "Check long_description"
+        run: "python -m twine check dist/*"
