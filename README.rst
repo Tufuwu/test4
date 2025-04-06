@@ -1,83 +1,110 @@
-Panedr
-======
+|actions|_ |pypi|_ |pyversions|_ |womm|_
 
-|Build Status|
+.. |actions| image:: https://github.com/wimglenn/pytest-structlog/actions/workflows/tests.yml/badge.svg
+.. _actions: https://github.com/wimglenn/pytest-structlog/actions/workflows/tests.yml/
 
-Panedr reads a Gromacs EDR file and returns its content as a pandas
-dataframe. The library exposes one function—the ``edr_to_df``
-function—that gets the path to an EDR file and returns a pandas
-dataframe.
+.. |pypi| image:: https://img.shields.io/pypi/v/pytest-structlog.svg
+.. _pypi: https://pypi.org/project/pytest-structlog
 
-``panedr`` is compatible with python 3.6 and greater.
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/pytest-structlog.svg
+.. _pyversions:
 
-Example
--------
+.. |womm| image:: https://cdn.rawgit.com/nikku/works-on-my-machine/v0.2.0/badge.svg
+.. _womm: https://github.com/nikku/works-on-my-machine
 
-.. code:: python
 
-    import panedr
+pytest-structlog
+================
 
-    # Read the EDR file
-    path = 'ener.edr'
-    df = panedr.edr_to_df(path)
+Structured logging assertions.  pytest_ + structlog_ = ``pytest-structlog``.
 
-    # The `verbose` optional parameter can be set to True to display the
-    # progress on stderr
-    df = panedr.edr_to_df(path, verbose=True)
+|pytest|    |structlog|
 
-    # Get the average pressure after the first 10 ns
-    pressure_avg = df[u'Pressure'][df[u'Time'] > 10000].mean()
 
-Install
--------
+Installation:
+-------------
 
-.. code:: bash
+.. code-block:: bash
 
-    pip install panedr
+   $ pip install pytest-structlog
 
-If you are using [conda](https://docs.conda.io) and [conda-forge](https://conda-forge.org/), you can istead run
+Usage:
+------
 
-.. code:: bash
+The fixture name is ``log``. It has two attributes of interest: ``log.events`` is a list of events from captured log calls, and ``log.has`` is a helper function for asserting a single event was logged within the expected context.
 
-    conda install -c conda-forge panedr
+Suppose you have some library module, ``your_lib``, which is using ``structlog``:
 
-Tests
------
+.. code-block:: python
 
-The ``panedr`` repository contains a series of tests. If you downloaded or
-cloned the code from the repository, you can run the tests. To do so,
-install `pytest <https://docs.pytest.org/>`__, and, in the directory of the
-panedr source code, run:
+   # your_lib.py
+   from structlog import get_logger
 
-.. code:: bash
+   logger = get_logger()
 
-    pytest -v tests
+   def spline_reticulator():
+       logger.info("reticulating splines")
+       for i in range(3):
+           logger.debug("processing", spline=i)
+       logger.info("reticulated splines", n_splines=3)
 
-License
--------
 
-Panedr translate in python part of the source code of Gromacs.
-Therefore, Panedr is distributed under the same GNU Lesser General
-Public License version 2.1 as Gromacs.
+Then your test suite might use assertions such as shown below:
 
-    Panedr — a library to manipulate Gromacs EDR file in python
+.. code-block:: python
 
-    Copyright (C) 2016 Jonathan Barnoud
+   # test_your_lib.py
+   from your_lib import spline_reticulator
 
-    This library is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation; either version 2.1 of the
-    License, or (at your option) any later version.
+   def test_spline_reticulator(log):
+       assert len(log.events) == 0
+       spline_reticulator()
+       assert len(log.events) == 5
 
-    This library is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-    Lesser General Public License for more details.
+       # can assert on the event only
+       assert log.has("reticulating splines")
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301 USA
+       # can assert with subcontext
+       assert log.has("reticulated splines")
+       assert log.has("reticulated splines", n_splines=3)
+       assert log.has("reticulated splines", n_splines=3, level="info")
 
-.. |Build Status| image:: https://travis-ci.org/jbarnoud/panedr.svg
-   :target: https://travis-ci.org/jbarnoud/panedr
+       # but not incorrect context
+       assert not log.has("reticulated splines", n_splines=42)
+       assert not log.has("reticulated splines", key="bogus")
+
+       # can assert with the event dicts directly
+       assert log.events == [
+           {"event": "reticulating splines", "level": "info"},
+           {"event": "processing", "level": "debug", "spline": 0},
+           {"event": "processing", "level": "debug", "spline": 1},
+           {"event": "processing", "level": "debug", "spline": 2},
+           {"event": "reticulated splines", "level": "info", "n_splines": 3},
+       ]
+
+       # can use membership to check for a single event's data
+       assert {"event": "reticulating splines", "level": "info"} in log.events
+
+       # can use >= to specify only the events you're interested in
+       assert log.events >= [
+           {"event": "processing", "level": "debug", "spline": 0},
+           {"event": "processing", "level": "debug", "spline": 2},
+       ]
+
+       # or put the comparison the other way around if you prefer
+       assert [
+           {"event": "processing", "level": "debug", "spline": 0},
+           {"event": "processing", "level": "debug", "spline": 2},
+       ] <= log.events
+
+       # note: comparisons are order sensitive!
+       assert not [
+           {"event": "processing", "level": "debug", "spline": 2},
+           {"event": "processing", "level": "debug", "spline": 0},
+       ] <= log.events
+
+
+.. _pytest: https://docs.pytest.org/
+.. _structlog: https://www.structlog.org/
+.. |pytest| image:: https://user-images.githubusercontent.com/6615374/46903931-515eef00-cea2-11e8-8945-980ddbf0a053.png
+.. |structlog| image:: https://user-images.githubusercontent.com/6615374/46903937-5b80ed80-cea2-11e8-9b85-d3f071180fe1.png
