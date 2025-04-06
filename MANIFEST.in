@@ -1,5 +1,13 @@
+include CHANGELOG.md
+include LICENSE.md
 include README.md
-include LICENSE.txt
-include deon/assets/checklist.yml
-include deon/assets/examples_of_ethical_issues.yml
-include requirements.txt
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+recursive-include docs *.rst conf.py Makefile requirements.txt
+recursive-include examples *.md *.txt *.py
+recursive-include tests *.py
+
+include simple_pid/*.pyi
+include simple_pid/py.typed
