@@ -1,23 +1,59 @@
-name: CI
-on:
-  push:
-  pull_request:
-    types: [opened, reopened]
-concurrency:
-  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
-  cancel-in-progress: true
-jobs:
-  Security:
-    name: Security Pipeline
-    uses: uc-cdis/.github/.github/workflows/securitypipeline.yaml@main
-    with:
-       python-poetry: 'false'
-    secrets: inherit
+name: ParallelCluster CI
 
-  UnitTest:
-    name: Python Unit Test with Postgres
-    uses: uc-cdis/.github/.github/workflows/python_unit_test.yaml@main
-    with:
-       python-version: '3.9'
-       test-script: 'tests/ci_commands_script.sh'
-       run-coveralls: true
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        name:
+          - Python 3.6 Tests
+          - Python 3.7 Tests
+          - Python 3.8 Tests
+          - Python 3.9 Tests
+          - Python 3.8 Tests Coverage
+          - Code Checks
+          - CloudFormation Templates Checks
+        include:
+          - name: Python 3.6 Tests
+            python: 3.9
+            toxdir: cli
+            toxenv: py36-nocov
+          - name: Python 3.7 Tests
+            python: 3.9
+            toxdir: cli
+            toxenv: py37-nocov
+          - name: Python 3.8 Tests
+            python: 3.9
+            toxdir: cli
+            toxenv: py38-nocov
+          - name: Python 3.9 Tests
+            python: 3.9
+            toxdir: cli
+            toxenv: py39-nocov
+          - name: Python 3.8 Tests Coverage
+            python: 3.9
+            toxdir: cli
+            toxenv: py38-cov
+          - name: Code Checks
+            python: 3.9
+            toxdir: cli
+            toxenv: code-linters
+          - name: CloudFormation Templates Checks
+            python: 3.9
+            toxdir: cli
+            toxenv: cfn-format-check,cfn-lint,cfn-tests
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Tox and any other packages
+        run: pip install tox
+      - name: Run Tox
+        run: cd ${{ matrix.toxdir }} && tox -e ${{ matrix.toxenv }}
