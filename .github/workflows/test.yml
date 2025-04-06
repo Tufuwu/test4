@@ -1,62 +1,86 @@
-name: Python CI
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
     tags:
-    - '*'
-  pull_request:
-    branches: [ main ]
+      - '**'
+  pull_request: {}
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    name: test py${{ matrix.python-version }} on ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu, macos]
         python-version: ["3.9"]
+
+    env:
+      PYTHON: ${{ matrix.python-version }}
+      OS: ${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}-latest
 
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+
+    - name: set up python
+      uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
-        
-    - name: Install dependencies
+
+    - name: install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r tests/requirements.txt
-        pip install -e .
-        
-    - name: Run tests with nosetests
-      run: pytest --cov=btcde tests/
-    
-    - name: Upload coverage to Codecov
-      if: success()
-      uses: codecov/codecov-action@v2
+        make install
+        pip freeze
+
+    - name: lint
+      run: |
+        make lint
+        make check-dist
+
+    - name: test
+      run: |
+        make test
+        coverage xml
+
+    - uses: codecov/codecov-action@v1.0.7
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-  deploy-test-release:
-    needs: build
+        file: ./coverage.xml
+        env_vars: OS,PYTHON
+
+  deploy:
+    name: Deploy
+    needs: test
+    if: "success() && startsWith(github.ref, 'refs/tags/')"
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') && github.ref == 'refs/heads/main'
+
     steps:
-    - name: Deploy to Test PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
-        
-  deploy-release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && github.ref == 'refs/heads/main'
-    steps:
-    - name: Deploy to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      - uses: actions/checkout@v2
+
+      - name: set up python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.9'
+
+      - name: install
+        run: |
+          make install
+          pip install -U wheel
+
+      - name: build
+        run: python setup.py sdist bdist_wheel
+
+      - name: check dist
+        run: twine check dist/*
+
+      - name: check tag
+        run: PACKAGE=harrier python <(curl -Ls https://git.io/JvQsH)
+
+      - name: upload to pypi
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.pypi_token }}
