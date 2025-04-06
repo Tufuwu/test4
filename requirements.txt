@@ -1,9 +1,8 @@
-entrypoints==0.3
-flake8==3.8.4
-mccabe==0.6.1
-mypy==0.782
-pycodestyle==2.6.0
-pyflakes==2.2.0
-typed-ast==1.4.1
-typing-extensions==3.7.4.3
-wheel==0.35.1
+numpy>=1.15
+scipy>=1.2.1
+numba>=0.49.1
+pytest>=5.4.1
+sympy>=1.5.1
+repoze.lru>=0.7
+cython
+dask[delayed]
