@@ -1,436 +1,224 @@
-#!/usr/bin/env python3
-
-# Copyright (c) 2009 Giampaolo Rodola'. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
-
-"""Cross-platform lib for process and system monitoring in Python."""
-
-from __future__ import print_function
-import contextlib
-import io
+#!/usr/bin/env python
+# flake8: noqa
 import os
-import platform
-import re
-import shutil
-import struct
-import subprocess
-import sys
-import tempfile
-import warnings
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    try:
-        import setuptools
-        from setuptools import setup, Extension
-    except ImportError:
-        setuptools = None
-        from distutils.core import setup, Extension
-
-HERE = os.path.abspath(os.path.dirname(__file__))
-
-# ...so we can import _common.py and _compat.py
-sys.path.insert(0, os.path.join(HERE, "psutil"))
-
-from _common import AIX  # NOQA
-from _common import BSD  # NOQA
-from _common import FREEBSD  # NOQA
-from _common import hilite  # NOQA
-from _common import LINUX  # NOQA
-from _common import MACOS  # NOQA
-from _common import NETBSD  # NOQA
-from _common import OPENBSD  # NOQA
-from _common import POSIX  # NOQA
-from _common import SUNOS  # NOQA
-from _common import WINDOWS  # NOQA
-from _compat import PY3  # NOQA
-from _compat import which  # NOQA
+from distutils import log
+from distutils.core import Command
+from distutils.command.build import build as _build
+from setuptools import setup
+from setuptools.command.develop import develop as _develop
+from setuptools.command.sdist import sdist as _sdist
+from setuptools.command.install import install as _install
 
 
-PYPY = '__pypy__' in sys.builtin_module_names
-macros = []
-if POSIX:
-    macros.append(("PSUTIL_POSIX", 1))
-if BSD:
-    macros.append(("PSUTIL_BSD", 1))
+def check_output(*args, **kwargs):
+    from subprocess import Popen
 
-# Needed to determine _Py_PARSE_PID in case it's missing (Python 2, PyPy).
-# Taken from Lib/test/test_fcntl.py.
-# XXX: not bullet proof as the (long long) case is missing.
-if struct.calcsize('l') <= 8:
-    macros.append(('PSUTIL_SIZEOF_PID_T', '4'))  # int
-else:
-    macros.append(('PSUTIL_SIZEOF_PID_T', '8'))  # long
+    proc = Popen(*args, **kwargs)
+    output, _ = proc.communicate()
+    rv = proc.poll()
+    assert rv == 0, output
 
 
-sources = ['psutil/_psutil_common.c']
-if POSIX:
-    sources.append('psutil/_psutil_posix.c')
+class build_regexes(Command):
+    description = "build supporting regular expressions from uap-core"
+    user_options = [
+        ("work-path=", "w", "The working directory for source files. Defaults to ."),
+        ("build-lib=", "b", "directory for script runtime modules"),
+        (
+            "inplace",
+            "i",
+            "ignore build-lib and put compiled javascript files into the source "
+            + "directory alongside your pure Python modules",
+        ),
+        (
+            "force",
+            "f",
+            "Force rebuilding of static content. Defaults to rebuilding on version "
+            "change detection.",
+        ),
+    ]
+    boolean_options = ["force"]
 
+    def initialize_options(self):
+        self.build_lib = None
+        self.force = None
+        self.work_path = None
+        self.inplace = None
 
-extras_require = {"test": [
-    "enum34; python_version <= '3.4'",
-    "ipaddress; python_version < '3.0'",
-    "mock; python_version < '3.0'",
-    "unittest2; python_version < '3.0'",
-]}
-if not PYPY:
-    extras_require['test'].extend([
-        "pywin32; sys.platform == 'win32'",
-        "wmi; sys.platform == 'win32'"])
+    def finalize_options(self):
+        install = self.distribution.get_command_obj("install")
+        sdist = self.distribution.get_command_obj("sdist")
+        build_ext = self.distribution.get_command_obj("build_ext")
 
+        if self.inplace is None:
+            self.inplace = (
+                (build_ext.inplace or install.finalized or sdist.finalized) and 1 or 0
+            )
 
-def get_version():
-    INIT = os.path.join(HERE, 'psutil/__init__.py')
-    with open(INIT, 'r') as f:
-        for line in f:
-            if line.startswith('__version__'):
-                ret = eval(line.strip().split(' = ')[1])
-                assert ret.count('.') == 2, ret
-                for num in ret.split('.'):
-                    assert num.isdigit(), ret
-                return ret
-        raise ValueError("couldn't find version string")
-
-
-VERSION = get_version()
-macros.append(('PSUTIL_VERSION', int(VERSION.replace('.', ''))))
-
-
-def get_description():
-    script = os.path.join(HERE, "scripts", "internal", "convert_readme.py")
-    readme = os.path.join(HERE, 'README.rst')
-    p = subprocess.Popen([sys.executable, script, readme],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    if p.returncode != 0:
-        raise RuntimeError(stderr)
-    data = stdout.decode('utf8')
-    if WINDOWS:
-        data = data.replace('\r\n', '\n')
-    return data
-
-
-@contextlib.contextmanager
-def silenced_output(stream_name):
-    class DummyFile(io.BytesIO):
-        # see: https://github.com/giampaolo/psutil/issues/678
-        errors = "ignore"
-
-        def write(self, s):
-            pass
-
-    orig = getattr(sys, stream_name)
-    try:
-        setattr(sys, stream_name, DummyFile())
-        yield
-    finally:
-        setattr(sys, stream_name, orig)
-
-
-def missdeps(msg):
-    s = hilite("C compiler or Python headers are not installed ", color="red")
-    s += hilite("on this system. Try to run:\n", color="red")
-    s += hilite(msg, color="red", bold=True)
-    print(s, file=sys.stderr)
-
-
-if WINDOWS:
-    def get_winver():
-        maj, min = sys.getwindowsversion()[0:2]
-        return '0x0%s' % ((maj * 100) + min)
-
-    if sys.getwindowsversion()[0] < 6:
-        msg = "this Windows version is too old (< Windows Vista); "
-        msg += "psutil 3.4.2 is the latest version which supports Windows "
-        msg += "2000, XP and 2003 server"
-        raise RuntimeError(msg)
-
-    macros.append(("PSUTIL_WINDOWS", 1))
-    macros.extend([
-        # be nice to mingw, see:
-        # http://www.mingw.org/wiki/Use_more_recent_defined_functions
-        ('_WIN32_WINNT', get_winver()),
-        ('_AVAIL_WINVER_', get_winver()),
-        ('_CRT_SECURE_NO_WARNINGS', None),
-        # see: https://github.com/giampaolo/psutil/issues/348
-        ('PSAPI_VERSION', 1),
-    ])
-
-    ext = Extension(
-        'psutil._psutil_windows',
-        sources=sources + [
-            'psutil/_psutil_windows.c',
-            'psutil/arch/windows/process_utils.c',
-            'psutil/arch/windows/process_info.c',
-            'psutil/arch/windows/process_handles.c',
-            'psutil/arch/windows/disk.c',
-            'psutil/arch/windows/net.c',
-            'psutil/arch/windows/cpu.c',
-            'psutil/arch/windows/security.c',
-            'psutil/arch/windows/services.c',
-            'psutil/arch/windows/socks.c',
-            'psutil/arch/windows/wmi.c',
-        ],
-        define_macros=macros,
-        libraries=[
-            "psapi", "kernel32", "advapi32", "shell32", "netapi32",
-            "ws2_32", "PowrProf", "pdh",
-        ],
-        # extra_compile_args=["/W 4"],
-        # extra_link_args=["/DEBUG"]
-    )
-
-elif MACOS:
-    macros.append(("PSUTIL_OSX", 1))
-    ext = Extension(
-        'psutil._psutil_osx',
-        sources=sources + [
-            'psutil/_psutil_osx.c',
-            'psutil/arch/osx/process_info.c',
-        ],
-        define_macros=macros,
-        extra_link_args=[
-            '-framework', 'CoreFoundation', '-framework', 'IOKit'
-        ])
-
-elif FREEBSD:
-    macros.append(("PSUTIL_FREEBSD", 1))
-    ext = Extension(
-        'psutil._psutil_bsd',
-        sources=sources + [
-            'psutil/_psutil_bsd.c',
-            'psutil/arch/freebsd/specific.c',
-            'psutil/arch/freebsd/sys_socks.c',
-            'psutil/arch/freebsd/proc_socks.c',
-        ],
-        define_macros=macros,
-        libraries=["devstat"])
-
-elif OPENBSD:
-    macros.append(("PSUTIL_OPENBSD", 1))
-    ext = Extension(
-        'psutil._psutil_bsd',
-        sources=sources + [
-            'psutil/_psutil_bsd.c',
-            'psutil/arch/openbsd/specific.c',
-        ],
-        define_macros=macros,
-        libraries=["kvm"])
-
-elif NETBSD:
-    macros.append(("PSUTIL_NETBSD", 1))
-    ext = Extension(
-        'psutil._psutil_bsd',
-        sources=sources + [
-            'psutil/_psutil_bsd.c',
-            'psutil/arch/netbsd/specific.c',
-            'psutil/arch/netbsd/socks.c',
-        ],
-        define_macros=macros,
-        libraries=["kvm"])
-
-elif LINUX:
-    def get_ethtool_macro():
-        # see: https://github.com/giampaolo/psutil/issues/659
-        from distutils.unixccompiler import UnixCCompiler
-        from distutils.errors import CompileError
-
-        with tempfile.NamedTemporaryFile(
-                suffix='.c', delete=False, mode="wt") as f:
-            f.write("#include <linux/ethtool.h>")
-
-        output_dir = tempfile.mkdtemp()
-        try:
-            compiler = UnixCCompiler()
-            # https://github.com/giampaolo/psutil/pull/1568
-            if os.getenv('CC'):
-                compiler.set_executable('compiler_so', os.getenv('CC'))
-            with silenced_output('stderr'):
-                with silenced_output('stdout'):
-                    compiler.compile([f.name], output_dir=output_dir)
-        except CompileError:
-            return ("PSUTIL_ETHTOOL_MISSING_TYPES", 1)
+        if self.inplace:
+            self.build_lib = "."
         else:
-            return None
-        finally:
-            os.remove(f.name)
-            shutil.rmtree(output_dir)
+            self.set_undefined_options("build", ("build_lib", "build_lib"))
+        if self.work_path is None:
+            self.work_path = os.path.realpath(os.path.join(os.path.dirname(__file__)))
 
-    macros.append(("PSUTIL_LINUX", 1))
-    ETHTOOL_MACRO = get_ethtool_macro()
-    if ETHTOOL_MACRO is not None:
-        macros.append(ETHTOOL_MACRO)
-    ext = Extension(
-        'psutil._psutil_linux',
-        sources=sources + ['psutil/_psutil_linux.c'],
-        define_macros=macros)
+    def run(self):
+        work_path = self.work_path
+        if not os.path.exists(os.path.join(work_path, ".git")):
+            return
 
-elif SUNOS:
-    macros.append(("PSUTIL_SUNOS", 1))
-    ext = Extension(
-        'psutil._psutil_sunos',
-        sources=sources + [
-            'psutil/_psutil_sunos.c',
-            'psutil/arch/solaris/v10/ifaddrs.c',
-            'psutil/arch/solaris/environ.c'
-        ],
-        define_macros=macros,
-        libraries=['kstat', 'nsl', 'socket'])
+        log.info("initializing git submodules")
+        check_output(["git", "submodule", "init"], cwd=work_path)
+        check_output(["git", "submodule", "update"], cwd=work_path)
 
-elif AIX:
-    macros.append(("PSUTIL_AIX", 1))
-    ext = Extension(
-        'psutil._psutil_aix',
-        sources=sources + [
-            'psutil/_psutil_aix.c',
-            'psutil/arch/aix/net_connections.c',
-            'psutil/arch/aix/common.c',
-            'psutil/arch/aix/ifaddrs.c'],
-        libraries=['perfstat'],
-        define_macros=macros)
+        yaml_src = os.path.join(work_path, "uap-core", "regexes.yaml")
+        if not os.path.exists(yaml_src):
+            raise RuntimeError(
+                "Unable to find regexes.yaml, should be at %r" % yaml_src
+            )
 
-else:
-    sys.exit('platform %s is not supported' % sys.platform)
+        def force_bytes(text):
+            if text is None:
+                return text
+            return text.encode("utf8")
 
+        import yaml
 
-if POSIX:
-    posix_extension = Extension(
-        'psutil._psutil_posix',
-        define_macros=macros,
-        sources=sources)
-    if SUNOS:
-        def get_sunos_update():
-            # See https://serverfault.com/q/524883
-            # for an explanation of Solaris /etc/release
-            with open('/etc/release') as f:
-                update = re.search(r'(?<=s10s_u)[0-9]{1,2}', f.readline())
-                if update is None:
-                    return 0
-                else:
-                    return int(update.group(0))
+        py_dest = os.path.join(self.build_lib, "ua_parser", "_regexes.py")
 
-        posix_extension.libraries.append('socket')
-        if platform.release() == '5.10':
-            # Detect Solaris 5.10, update >= 4, see:
-            # https://github.com/giampaolo/psutil/pull/1638
-            if get_sunos_update() >= 4:
-                # MIB compliancy starts with SunOS 5.10 Update 4:
-                posix_extension.define_macros.append(('NEW_MIB_COMPLIANT', 1))
-            posix_extension.sources.append('psutil/arch/solaris/v10/ifaddrs.c')
-            posix_extension.define_macros.append(('PSUTIL_SUNOS10', 1))
-        else:
-            # Other releases are by default considered to be new mib compliant.
-            posix_extension.define_macros.append(('NEW_MIB_COMPLIANT', 1))
-    elif AIX:
-        posix_extension.sources.append('psutil/arch/aix/ifaddrs.c')
+        log.info("compiling regexes.yaml -> _regexes.py")
+        with open(yaml_src, "rb") as fp:
+            regexes = yaml.safe_load(fp)
+        with open(py_dest, "wb") as fp:
+            # fmt: off
+            fp.write(b"# -*- coding: utf-8 -*-\n")
+            fp.write(b"############################################\n")
+            fp.write(b"# NOTICE: This file is autogenerated from  #\n")
+            fp.write(b"# regexes.yaml. Do not edit by hand,       #\n")
+            fp.write(b"# instead, re-run `setup.py build_regexes` #\n")
+            fp.write(b"############################################\n")
+            fp.write(b"\n")
+            fp.write(b"from __future__ import absolute_import, unicode_literals\n")
+            fp.write(b"from .user_agent_parser import (\n")
+            fp.write(b"    UserAgentParser, DeviceParser, OSParser,\n")
+            fp.write(b")\n")
+            fp.write(b"\n")
+            fp.write(b"__all__ = (\n")
+            fp.write(b"    'USER_AGENT_PARSERS', 'DEVICE_PARSERS', 'OS_PARSERS',\n")
+            fp.write(b")\n")
+            fp.write(b"\n")
+            fp.write(b"USER_AGENT_PARSERS = [\n")
+            for device_parser in regexes["user_agent_parsers"]:
+                fp.write(b"    UserAgentParser(\n")
+                fp.write(force_bytes("        %r,\n" % device_parser["regex"]))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("family_replacement")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("v1_replacement")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("v2_replacement")))
+                fp.write(b"    ),\n")
+            fp.write(b"]\n")
+            fp.write(b"\n")
+            fp.write(b"DEVICE_PARSERS = [\n")
+            for device_parser in regexes["device_parsers"]:
+                fp.write(b"    DeviceParser(\n")
+                fp.write(force_bytes("        %r,\n" % device_parser["regex"]))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("regex_flag")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("device_replacement")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("brand_replacement")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("model_replacement")))
+                fp.write(b"    ),\n")
+            fp.write(b"]\n")
+            fp.write(b"\n")
+            fp.write(b"OS_PARSERS = [\n")
+            for device_parser in regexes["os_parsers"]:
+                fp.write(b"    OSParser(\n")
+                fp.write(force_bytes("        %r,\n" % device_parser["regex"]))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("os_replacement")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("os_v1_replacement")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("os_v2_replacement")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("os_v3_replacement")))
+                fp.write(force_bytes("        %r,\n" % device_parser.get("os_v4_replacement")))
+                fp.write(b"    ),\n")
+            fp.write(b"]\n")
+            # fmt: on
 
-    extensions = [ext, posix_extension]
-else:
-    extensions = [ext]
+        self.update_manifest()
 
+    def update_manifest(self):
+        sdist = self.distribution.get_command_obj("sdist")
+        if not sdist.finalized:
+            return
 
-def main():
-    kwargs = dict(
-        name='psutil',
-        version=VERSION,
-        description=__doc__ .replace('\n', ' ').strip() if __doc__ else '',
-        long_description=get_description(),
-        long_description_content_type='text/x-rst',
-        keywords=[
-            'ps', 'top', 'kill', 'free', 'lsof', 'netstat', 'nice', 'tty',
-            'ionice', 'uptime', 'taskmgr', 'process', 'df', 'iotop', 'iostat',
-            'ifconfig', 'taskset', 'who', 'pidof', 'pmap', 'smem', 'pstree',
-            'monitoring', 'ulimit', 'prlimit', 'smem', 'performance',
-            'metrics', 'agent', 'observability',
-        ],
-        author='Giampaolo Rodola',
-        author_email='g.rodola@gmail.com',
-        url='https://github.com/giampaolo/psutil',
-        platforms='Platform Independent',
-        license='BSD',
-        packages=['psutil', 'psutil.tests'],
-        ext_modules=extensions,
-        classifiers=[
-            'Development Status :: 5 - Production/Stable',
-            'Environment :: Console',
-            'Environment :: Win32 (MS Windows)',
-            'Intended Audience :: Developers',
-            'Intended Audience :: Information Technology',
-            'Intended Audience :: System Administrators',
-            'License :: OSI Approved :: BSD License',
-            'Operating System :: MacOS :: MacOS X',
-            'Operating System :: Microsoft :: Windows :: Windows 10',
-            'Operating System :: Microsoft :: Windows :: Windows 7',
-            'Operating System :: Microsoft :: Windows :: Windows 8',
-            'Operating System :: Microsoft :: Windows :: Windows 8.1',
-            'Operating System :: Microsoft :: Windows :: Windows Server 2003',
-            'Operating System :: Microsoft :: Windows :: Windows Server 2008',
-            'Operating System :: Microsoft :: Windows :: Windows Vista',
-            'Operating System :: Microsoft',
-            'Operating System :: OS Independent',
-            'Operating System :: POSIX :: AIX',
-            'Operating System :: POSIX :: BSD :: FreeBSD',
-            'Operating System :: POSIX :: BSD :: NetBSD',
-            'Operating System :: POSIX :: BSD :: OpenBSD',
-            'Operating System :: POSIX :: BSD',
-            'Operating System :: POSIX :: Linux',
-            'Operating System :: POSIX :: SunOS/Solaris',
-            'Operating System :: POSIX',
-            'Programming Language :: C',
-            'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.6',
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: Implementation :: CPython',
-            'Programming Language :: Python :: Implementation :: PyPy',
-            'Programming Language :: Python',
-            'Topic :: Software Development :: Libraries :: Python Modules',
-            'Topic :: Software Development :: Libraries',
-            'Topic :: System :: Benchmark',
-            'Topic :: System :: Hardware :: Hardware Drivers',
-            'Topic :: System :: Hardware',
-            'Topic :: System :: Monitoring',
-            'Topic :: System :: Networking :: Monitoring :: Hardware Watchdog',
-            'Topic :: System :: Networking :: Monitoring',
-            'Topic :: System :: Networking',
-            'Topic :: System :: Operating System',
-            'Topic :: System :: Systems Administration',
-            'Topic :: Utilities',
-        ],
-    )
-    if setuptools is not None:
-        kwargs.update(
-            python_requires=">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
-            extras_require=extras_require,
-            zip_safe=False,
-        )
-    success = False
-    try:
-        setup(**kwargs)
-        success = True
-    finally:
-        if not success and POSIX and not which('gcc'):
-            py3 = "3" if PY3 else ""
-            if LINUX:
-                if which('dpkg'):
-                    missdeps("sudo apt-get install gcc python%s-dev" % py3)
-                elif which('rpm'):
-                    missdeps("sudo yum install gcc python%s-devel" % py3)
-            elif MACOS:
-                print(hilite("XCode (https://developer.apple.com/xcode/) "
-                             "is not installed"), color="red", file=sys.stderr)
-            elif FREEBSD:
-                missdeps("pkg install gcc python%s" % py3)
-            elif OPENBSD:
-                missdeps("pkg_add -v gcc python%s" % py3)
-            elif NETBSD:
-                missdeps("pkgin install gcc python%s" % py3)
-            elif SUNOS:
-                missdeps("sudo ln -s /usr/bin/gcc /usr/local/bin/cc && "
-                         "pkg install gcc")
+        sdist.filelist.files.append("ua_parser/_regexes.py")
 
 
-if __name__ == '__main__':
-    main()
+class develop(_develop):
+    def run(self):
+        self.run_command("build_regexes")
+        _develop.run(self)
+
+
+class install(_install):
+    def run(self):
+        self.run_command("build_regexes")
+        _install.run(self)
+
+
+class build(_build):
+    def run(self):
+        self.run_command("build_regexes")
+        _build.run(self)
+
+
+class sdist(_sdist):
+    sub_commands = _sdist.sub_commands + [("build_regexes", None)]
+
+
+cmdclass = {
+    "sdist": sdist,
+    "develop": develop,
+    "build": build,
+    "install": install,
+    "build_regexes": build_regexes,
+}
+
+
+setup(
+    name="ua-parser",
+    version="0.15.0",
+    description="Python port of Browserscope's user agent parser",
+    author="PBS",
+    author_email="no-reply@pbs.org",
+    packages=["ua_parser"],
+    package_dir={"": "."},
+    license="Apache 2.0",
+    zip_safe=False,
+    url="https://github.com/ua-parser/uap-python",
+    include_package_data=True,
+    setup_requires=["pyyaml ~= 5.4.0"],
+    install_requires=[],
+    cmdclass=cmdclass,
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "Operating System :: OS Independent",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+    ],
+)

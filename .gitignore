@@ -1,19 +1,10 @@
-syntax: glob
-*.al
-*.bak
-*.egg-info
-*.la
-*.lo
-*.o
-*.orig
 *.pyc
-*.pyd
-*.rej
-*.so
-*.swp
-.failed-tests.txt
+*.egg-info/
+.eggs/
 .cache/
-.idea/
 .tox/
 build/
 dist/
+tmp/
+regexes.yaml
+_regexes.py
