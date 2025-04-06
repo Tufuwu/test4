@@ -1,2 +1,1 @@
-include README.rst
-include COPYING
+include mtgjson5/resources/*

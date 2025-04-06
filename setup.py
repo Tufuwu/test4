@@ -1,48 +1,63 @@
-#!/usr/bin/env python3
-from io import open
-from os.path import abspath, dirname, join
+"""
+Installation setup for mtgjson5
+"""
+import configparser
+import pathlib
 
-from setuptools import setup
+import setuptools
 
-PROJECT_ROOT = abspath(dirname(__file__))
-with open(join(PROJECT_ROOT, 'README.rst'), encoding='utf-8') as f:
-    readme = f.read()
+# Establish project directory
+project_root: pathlib.Path = pathlib.Path(__file__).resolve().parent
 
-version = (
-    [ln for ln in open(join(PROJECT_ROOT, 'zeroconf', '__init__.py')) if '__version__' in ln][0]
-    .split('=')[-1]
-    .strip()
-    .strip('\'"')
-)
+# Read config details to determine version-ing
+config_file = project_root.joinpath("mtgjson5/resources/mtgjson.properties")
+config = configparser.ConfigParser()
+if config_file.is_file():
+    config.read(str(config_file))
 
-setup(
-    name='zeroconf',
-    version=version,
-    description='Pure Python Multicast DNS Service Discovery Library ' '(Bonjour/Avahi compatible)',
-    long_description=readme,
-    author='Paul Scott-Murphy, William McBrine, Jakub Stasiak',
-    url='https://github.com/jstasiak/python-zeroconf',
-    package_data={"zeroconf": ["py.typed"]},
-    packages=["zeroconf"],
-    platforms=['unix', 'linux', 'osx'],
-    license='LGPL',
-    zip_safe=False,
+setuptools.setup(
+    name="mtgjson5",
+    version=config.get("MTGJSON", "version", fallback="5.0.0+fallback"),
+    author="Zach Halpern",
+    author_email="zach@mtgjson.com",
+    url="https://mtgjson.com/",
+    description="Magic: the Gathering compiled database generator",
+    long_description=project_root.joinpath("README.md").open(encoding="utf-8").read(),
+    long_description_content_type="text/markdown",
+    license="MIT",
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
-        'Operating System :: POSIX',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: MacOS :: MacOS X',
-        'Topic :: Software Development :: Libraries',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows :: Windows 10",
+        "Operating System :: Unix",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python",
+        "Topic :: Database",
+        "Topic :: Software Development :: Version Control :: Git",
     ],
-    keywords=['Bonjour', 'Avahi', 'Zeroconf', 'Multicast DNS', 'Service Discovery', 'mDNS'],
-    install_requires=['ifaddr>=0.1.7'],
+    keywords=[
+        "Big Data",
+        "Card Games",
+        "Collectible",
+        "Database",
+        "JSON",
+        "MTG",
+        "MTGJSON",
+        "Trading Cards",
+        "Magic: The Gathering",
+    ],
+    include_package_data=True,
+    packages=setuptools.find_packages(),
+    install_requires=project_root.joinpath("requirements.txt")
+    .open(encoding="utf-8")
+    .readlines()
+    if project_root.joinpath("requirements.txt").is_file()
+    else [],  # Use the requirements file, if able
 )
