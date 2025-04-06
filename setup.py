@@ -1,47 +1,60 @@
 #!/usr/bin/env python
+from setuptools import setup, find_packages
 
-from setuptools import setup
+DISTNAME = 'tract_querier'
+DESCRIPTION = \
+    'WMQL: Query language for automatic tract extraction from '\
+    'full-brain tractographies with '\
+    'a registered template on top of them'
+LONG_DESCRIPTION = open('README.md').read()
+MAINTAINER = 'Demian Wassermann'
+MAINTAINER_EMAIL = 'demian@bwh.harvard.edu'
+URL = 'http://demianw.github.io/tract_querier'
+LICENSE = open('license.rst').read()
+DOWNLOAD_URL = 'https://github.com/demianw/tract_querier'
+VERSION = '0.1'
 
-setup(
-    name='topy',
-    version='1.1.0',
 
-    # PyPI metadata
-    author='Marti Raudsepp',
-    author_email='marti@juffo.org',
-    url='https://github.com/intgr/topy',
-    download_url='https://pypi.python.org/pypi/topy/',
-    license='MIT, CC-BY-SA',
-    description='Fixes typos in text using regular expressions, based on RegExTypoFix from Wikipedia',
-    long_description=open('README.rst').read(),
-    platforms='any',
-    keywords='typo spelling grammar text',
-    classifiers=[
-        # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        # Until we have a test suite we're conservative about Python version compatibility claims
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Topic :: Documentation',
-        'Topic :: Software Development :: Quality Assurance',
-        'Topic :: Text Processing :: Filters',
-    ],
-
-    # Installation settings
-    packages=['topy'],
-    entry_points={'console_scripts': ['topy = topy.topy:main']},
-    package_data={
-        '': ['*.txt']
-    },
-    install_requires=[
-        'regex>=2016.07.14',
-        'beautifulsoup4',
-    ],
-    test_suite='tests',
-)
+if __name__ == "__main__":
+    setup(
+        name=DISTNAME,
+        maintainer=MAINTAINER,
+        maintainer_email=MAINTAINER_EMAIL,
+        description=DESCRIPTION,
+        license=LICENSE,
+        url=URL,
+        version=VERSION,
+        download_url=DOWNLOAD_URL,
+        long_description=LONG_DESCRIPTION,
+        requires=[
+            'numpy(>=1.6)',
+            'nibabel(>=1.3)'
+        ],
+        classifiers=[
+            'Intended Audience :: Science/Research',
+            'Programming Language :: Python',
+            'Topic :: Scientific/Engineering',
+            'Operating System :: Microsoft :: Windows',
+            'Operating System :: POSIX',
+            'Operating System :: Unix',
+            'Operating System :: MacOS'
+        ],
+        scripts=[
+            'scripts/tract_querier',
+            'scripts/tract_math'
+        ],
+        test_suite='nose.collector',
+        data_files=[
+            ('data',
+             [
+                 'data/FreeSurfer.qry',
+                 'data/JHU_MNI_SS_WMPM_Type_I.qry',
+                 'data/JHU_MNI_SS_WMPM_Type_II.qry',
+                 'data/freesurfer_queries.qry',
+                 'data/mori_queries.qry',
+             ]
+             )
+        ],
+        include_package_data=True,
+        packages=find_packages(),
+    )

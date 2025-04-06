@@ -1,2 +1,6 @@
-beautifulsoup4
-regex>=2016.07.14
+numpy>=1.6,<1.20
+nibabel>=2.0,<3.0
+nose>1.2
+six>=1.10
+numpydoc
+vtk
