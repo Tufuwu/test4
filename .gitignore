@@ -1,13 +1,14 @@
+### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*$py.class
 
 # C extensions
 *.so
 
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -19,6 +20,7 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -41,7 +43,8 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*,cover
+*.cover
+.hypothesis/
 
 # Translations
 *.mo
@@ -49,25 +52,58 @@ coverage.xml
 
 # Django stuff:
 *.log
+local_settings.py
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
 
 # Sphinx documentation
 doc/_build/
-doc/modules/generated/
+doc/_modules
 
 # PyBuilder
 target/
 
-.idea*
-.ipynb_checkpoints/
-*.swp
+# Jupyter Notebook
+.ipynb_checkpoints
 
-# Skip sphinx-gallery build directory
-doc/auto_examples
+# pyenv
+.python-version
 
-.pytest_cache
-.vscode
-doc/backreferences
-doc/apiref/
+# celery beat schedule file
+celerybeat-schedule.*
 
-# Avoid poetry lockfiles
-poetry.lock
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+
+
+# wavelet specificities
+*.prom
+*.wav.*
+*.wav_*.*
