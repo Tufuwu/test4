@@ -1,2 +1,12 @@
-compile_commands.json
-doc/cpp2rst_generated
+.cache/
+.coverage
+coverage.xml
+*.swp
+*.pyc
+__pycache__
+dist/
+*.egg-info/
+build/
+.idea/
+.mypy_cache/
+venv/
