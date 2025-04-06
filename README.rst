@@ -1,311 +1,121 @@
-
-Treasure Data API library for Python
-====================================
-
-
-.. image:: https://travis-ci.org/treasure-data/td-client-python.svg
-   :target: https://travis-ci.org/treasure-data/td-client-python
-   :alt: Build Status
-
-
-.. image:: https://ci.appveyor.com/api/projects/status/eol91l1ag50xee9m/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/treasure-data/td-client-python/branch/master
-   :alt: Build status
-
-
-.. image:: https://coveralls.io/repos/treasure-data/td-client-python/badge.svg
-   :target: https://coveralls.io/r/treasure-data/td-client-python
-   :alt: Coverage Status
-
-
-.. image:: https://badge.fury.io/py/td-client.svg
-   :target: http://badge.fury.io/py/td-client
-   :alt: PyPI version
-
-
-Treasure Data API library for Python
-
-Requirements
-------------
-
-``td-client`` supports the following versions of Python.
-
-
-* Python 3.5+
-* PyPy
-
-Install
--------
-
-You can install the releases from `PyPI <https://pypi.python.org/>`_.
-
-.. code-block:: sh
-
-   $ pip install td-client
-
-It'd be better to install `certifi <https://pypi.python.org/pypi/certifi>`_ to enable SSL certificate verification.
-
-.. code-block:: sh
-
-   $ pip install certifi
-
-Examples
---------
-
-Please see also the examples at `Treasure Data Documentation <http://docs.treasuredata.com/articles/rest-api-python-client>`_.
-
-The td-client documentation is hosted at https://tdclient.readthedocs.io/,
-or you can go directly to the
-`API documentation <https://tdclient.readthedocs.io/en/latest/api/index.html>`_.
-
-For information on the parameters that may be used when reading particular
-types of data, see `File import parameters`_.
-
-.. _`file import parameters`:
-   https://tdclient.readthedocs.io/en/latest/api/file_import_paremeters.html
-
-Listing jobs
-^^^^^^^^^^^^
-
-Treasure Data API key will be read from environment variable ``TD_API_KEY``\ , if none is given via ``apikey=`` argument passed to ``tdclient.Client``.
-
-Treasure Data API endpoint ``https://api.treasuredata.com`` is used by default. You can override this with environment variable ``TD_API_SERVER``\ , which in turn can be overridden via ``endpoint=`` argument passed to ``tdclient.Client``. List of available Treasure Data sites and corresponding API endpoints can be found `here <https://support.treasuredata.com/hc/en-us/articles/360001474288-Sites-and-Endpoints>`_.
-
-.. code-block:: python
-
-   import tdclient
-
-   with tdclient.Client() as td:
-       for job in td.jobs():
-           print(job.job_id)
-
-Running jobs
-^^^^^^^^^^^^
-
-Running jobs on Treasure Data.
-
-.. code-block:: python
-
-   import tdclient
-
-   with tdclient.Client() as td:
-       job = td.query("sample_datasets", "SELECT COUNT(1) FROM www_access", type="hive")
-       job.wait()
-       for row in job.result():
-           print(repr(row))
-
-Running jobs via DBAPI2
-^^^^^^^^^^^^^^^^^^^^^^^
-
-td-client-python implements `PEP 0249 <https://www.python.org/dev/peps/pep-0249/>`_ Python Database API v2.0.
-You can use td-client-python with external libraries which supports Database API such like `pandas <http://pandas.pydata.org/>`_.
-
-.. code-block:: python
-
-   import pandas
-   import tdclient
-
-   def on_waiting(cursor):
-       print(cursor.job_status())
-
-   with tdclient.connect(db="sample_datasets", type="presto", wait_callback=on_waiting) as td:
-       data = pandas.read_sql("SELECT symbol, COUNT(1) AS c FROM nasdaq GROUP BY symbol", td)
-       print(repr(data))
-
-We offer another package for pandas named `pytd <https://github.com/treasure-data/pytd>`_ with some advanced features.
-You may prefer it if you need to do complicated things, such like exporting result data to Treasure Data, printing job's
-progress during long execution, etc.
-
-Importing data
-^^^^^^^^^^^^^^
-
-Importing data into Treasure Data in streaming manner, as similar as `fluentd <http://www.fluentd.org/>`_ is doing.
-
-.. code-block:: python
-
-   import sys
-   import tdclient
-
-   with tdclient.Client() as td:
-       for file_name in sys.argv[:1]:
-           td.import_file("mydb", "mytbl", "csv", file_name)
-
-
-.. Warning::
-   Importing data in streaming manner requires certain amount of time to be ready to query since schema update will be
-   executed with delay.
-
-Bulk import
-^^^^^^^^^^^
-
-Importing data into Treasure Data in batch manner.
-
-.. code-block:: python
-
-   import sys
-   import tdclient
-   import uuid
-   import warnings
-
-   if len(sys.argv) <= 1:
-       sys.exit(0)
-
-   with tdclient.Client() as td:
-       session_name = "session-{}".format(uuid.uuid1())
-       bulk_import = td.create_bulk_import(session_name, "mydb", "mytbl")
-       try:
-           for file_name in sys.argv[1:]:
-               part_name = "part-{}".format(file_name)
-               bulk_import.upload_file(part_name, "json", file_name)
-           bulk_import.freeze()
-       except:
-           bulk_import.delete()
-           raise
-       bulk_import.perform(wait=True)
-       if 0 < bulk_import.error_records:
-           warnings.warn("detected {} error records.".format(bulk_import.error_records))
-       if 0 < bulk_import.valid_records:
-           print("imported {} records.".format(bulk_import.valid_records))
-       else:
-           raise(RuntimeError("no records have been imported: {}".format(bulk_import.name)))
-       bulk_import.commit(wait=True)
-       bulk_import.delete()
-
-
-If you want to import data as `msgpack <https://msgpack.org/>`_ format, you can write as follows:
-
-.. code-block:: python
-
-   import io
-   import time
-   import uuid
-   import warnings
-
-   import tdclient
-
-   t1 = int(time.time())
-   l1 = [{"a": 1, "b": 2, "time": t1}, {"a": 3, "b": 9, "time": t1}]
-
-   with tdclient.Client() as td:
-       session_name = "session-{}".format(uuid.uuid1())
-       bulk_import = td.create_bulk_import(session_name, "mydb", "mytbl")
-       try:
-           _bytes = tdclient.util.create_msgpack(l1)
-           bulk_import.upload_file("part", "msgpack", io.BytesIO(_bytes))
-           bulk_import.freeze()
-       except:
-           bulk_import.delete()
-           raise
-       bulk_import.perform(wait=True)
-       # same as the above example
-
-
-Changing how CSV and TSV columns are read
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``td-client`` package will generally make sensible choices on how to read
-the columns in CSV and TSV data, but sometimes the user needs to override the
-default mechanism. This can be done using the optional `file import
-parameters`_ ``dtypes`` and ``converters``.
-
-For instance, consider CSV data that starts with the following records::
-
-  time,col1,col2,col3
-  1575454204,a,0001,a;b;c
-  1575454204,b,0002,d;e;f
-
-If that data is read using the defaults, it will produce values that look
-like:
-
-.. code:: python
-
-  1575454204, "a", 1, "a;b;c"
-  1575454204, "b", 2, "d;e;f"
-  
-that is, an integer, a string, an integer and another string.
-
-If the user wants to keep the leading zeroes in ``col2``, then they can
-specify the column datatype as string. For instance, using
-``bulk_import.upload_file`` to read data from ``input_data``:
-
-.. code:: python
-
-    bulk_import.upload_file(
-        "part", "msgpack", input_data,
-        dtypes={"col2": "str"},
-    )
-
-which would produce:
-
-.. code:: python
-
-  1575454204, "a", "0001", "a;b;c"
-  1575454204, "b", "0002", "d;e;f"
-
-If they also wanted to treat ``col3`` as a sequence of strings, separated by
-semicolons, then they could specify a function to process ``col3``:
-
-.. code:: python
-
-    bulk_import.upload_file(
-        "part", "msgpack", input_data,
-        dtypes={"col2": "str"},
-        converters={"col3", lambda x: x.split(";")},
-    )
-
-which would produce:
-
-.. code:: python
-
-  1575454204, "a", "0001", ["a", "b", "c"]
-  1575454204, "b", "0002", ["d", "e", "f"]
-
-Development
------------
-
-Running tests
-^^^^^^^^^^^^^
-
-Run tests.
-
-.. code-block:: sh
-
-   $ python setup.py test
-
-Running tests (tox)
-^^^^^^^^^^^^^^^^^^^
-
-You can run tests against all supported Python versions. I'd recommend you to install `pyenv <https://github.com/yyuu/pyenv>`_ to manage Pythons.
-
-.. code-block:: sh
-
-   $ pyenv shell system
-   $ for version in $(cat .python-version); do [ -d "$(pyenv root)/versions/${version}" ] || pyenv install "${version}"; done
-   $ pyenv shell --unset
-
-Install `tox <https://pypi.python.org/pypi/tox>`_.
-
-.. code-block:: sh
-
-   $ pip install tox
-
-Then, run ``tox``.
-
-.. code-block:: sh
-
-   $ tox
-
-Release
-^^^^^^^
-
-Release to PyPI. Ensure you installed twine.
-
-.. code-block:: sh
-
-   $ python setup.py bdist_wheel sdist
-   $ twine upload dist/*
-
-License
--------
-
-Apache Software License, Version 2.0
+python-dlt
+==========
+
+python-dlt is a thin Python ctypes wrapper around libdlt functions. It was
+primarily created for use with BMW's test execution framework. However,
+the implementation is independent and the API makes few assumptions about
+the intended use.
+
+Note: This is only tested with libdlt version v2.18.5 (33fbad18c814e13bd7ba2053525d8959fee437d1),
+later versions might require adaptations. The package will not support previous libdlt
+versions from python-dlt v2.0. Also only GENIVI DLT daemon produced traces
+have been tested.
+
+
+Design
+------
+
+The code is split up into 3 primary components:
+
+* The `core`: This subpackage provides the major chunk of ctypes wrappers for
+  the structures defined in libdlt. It abstracts out the libdlt structures for use
+  by the rest of mgu_dlt. Classes defined here ideally should *not* be used
+  outside of mgu_dlt. The module `core_base.py` provides the default
+  implementation of the classes and the other `core_*.py` modules provide the
+  overrides for the version specific implementations of libdlt. The correct version
+  specific implementation will be loaded automatically at runtime. (the logic for
+  this is in `core/__init__.py`)
+
+* The python interface classes: These are defined in `dlt.py`. Most of the
+  classes here derive from their corresponding ctypes class definitions from
+  `core` and provide a more python friendly api/access to the underlying C/ctypes
+  implementations. Ideally, python code using `mgu_dlt` would use these classes
+  rather than the base classes in `core`.
+
+* API for tools: This is the component that provides common interfaces required
+  by the tools that use `mgu_dlt`, like the `DLTBroker`, 'DLTLifecycle' etc. These
+  classes do not have equivalents in libdlt and were created based on usage
+  requirements (and as such make assumptions about the manner in which they would
+  be used).
+
+If you're reading this document to work on the core or the python classes, it
+would be a good idea to first understand the design of libdlt itself. This is
+fairly well documented (look under the `doc/` directory of the `dlt-deamon` code
+base). Of course the best reference is the code itself. `dlt-daemon` is written
+in C and is a pretty well laid out, straight forward (ie: not many layers of
+abstractions), small code base. Makes for good bedtime reading.
+
+The rest of this document will describe and demonstrate some of the design of
+the external API of mgu_dlt.
+
+The classes most relevant for users of python-dlt possibly are `DLTClient`,
+`DLTFile`, `DLTMessage`, `DLTBroker`. The names hopefully make their purpose
+evident.
+
+Here are examples of some interesting ways to use these classes:
+
+* DLTFile and DLTMessage::
+
+    >>> from dlt import dlt
+    >>> # DLTFile object can be obtained by lading a trace file
+    >>> d = dlt.load("high_full_trace.dlt")
+    >>> print(d.counter_total)  # number of DLT messages in the file
+    ...
+    >>> print(d[0])             # messages can be indexed
+    ...
+    >>> for msg in d:           # DLTFile object is iterable
+    ...     print(msg.apid)             # DLTMessage objects have all the attrs
+    ...     print(msg.payload_decoded)  # one might expect from a DLT frame
+    ...     print(msg)          # The str() of the DLTMessage closely matches the
+    ...                         # output of dlt-receive
+    >>> d[0] == d[-1]           # DLTMessage objects can be compared to each other
+    >>> d.compare(dict(apid="SYS", citd="JOUR")) # ...or can be compared to an
+    ...                                          # dict of attributes
+    >>> import pickle
+    >>> pickle.dumps(d[0])      # DLTMessage objects are (de)serializable using
+    ...                         # the pickle protocol (this is to enable sharing
+    ...                         # of the DLTMessage in a multiprocessing
+    ...                         # environment)
+
+
+* DLTClient and DLTBroker::
+
+    >>> from dlt import dlt
+    >>> c = dlt.DLTClient(servIP="127.0.0.1")   # Only initializes the client
+    >>> c.connect()                      # ...this connects
+    >>> dlt.dltlib.dlt_receiver_receive(ctypes.byref(client.receiver), DLT_RECEIVE_SOCKET)  # receives data
+    >>> c.read_message()                 # reads a single DLTMessage from received data  and returns it
+    >>>
+    >>> # more interesting is the DLTBroker class...
+    >>> # - create an instance that initializes a DLTClient. Accepts a filename
+    >>> #   where DLT traces would be stored
+    >>> broker = DLTBroker(ip_address="127.0.0.1", filename='/tmp/testing_log.dlt')
+    >>> # needs to be started and stopped explicitly and will create a run a
+    >>> # DLTClient instance in a new *process*.
+    >>> broker.start()
+    >>> broker.stop()
+    >>>
+    >>> # Usually, used in conjunction with the DLTContext class from mtee
+    >>> from mtee.testing.connectors.connector_dlt import DLTContext
+    >>> broker = DLTBroker(ip_address="127.0.0.1", filename="/tmp/testing_log.dlt", verbose=True)
+    >>> ctx = DLTContext(broker, filters=[("SYS", "JOUR")])
+    >>> broker.start()
+    >>> print(ctx.wait_for(count=10))
+    >>>
+
+
+Design of DLTBroker
+~~~~~~~~~~~~~~~~~~~
+
+The DLTBroker abstracts out the management of 2 (multiprocessing) queues:
+
+* The `message_queue`: This queue receives *all* messages from the DLT daemon
+  (via a DLTClient instance, running as a separate process, code in
+  `dlt.dlt_broker_handlers.DLTMessageHandler`) and stores them to a
+  trace file.
+
+* The `filter_queue`: This queue instructs the `DLTMessageHandler` which
+  messages would be interesting at runtime, to be filtered and returned (for
+  example, via a request from `DLTContext`). This is run as a separate thread in
+  the `DLTBroker` process. The code for this is in
+  `dlt.dlt_broker_handlers.DLTContextHandler`.
