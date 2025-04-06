@@ -1,39 +1,75 @@
-.PHONY: test docs
+.PHONY: clean-pyc clean-build doc clean visualize-tests
+BROWSER := python -mwebbrowser
 
-ENABLE_BRANCH_COVERAGE ?= 0
-AUTO_FIX_IMPORTS ?= 0
+help:
+	@echo "clean - remove all build, test, coverage and Python artifacts"
+	@echo "clean-build - remove build artifacts"
+	@echo "clean-pyc - remove Python file artifacts"
+	@echo "clean-test - remove test and coverage artifacts"
+	@echo "lint - check style with flake8"
+	@echo "test - run tests quickly with the default Python"
+	@echo "test-all - run tests on every Python version with tox"
+	@echo "coverage - check code coverage quickly with the default Python"
+	@echo "docs - generate Sphinx HTML documentation, including API docs"
+	@echo "release - package and upload a release"
+	@echo "dist - package"
+	@echo "install - install the package to the active Python's site-packages"
+	@echo "develop - install the package in development mode"
 
-ifneq ($(AUTO_FIX_IMPORTS), 1)
-  autofix = --check-only
-endif
+clean: clean-build clean-pyc clean-test
 
-static: imports flake8 pylint
-test: static test_lib test_examples
+clean-build:
+	rm -fr build/
+	rm -fr dist/
+	rm -fr .eggs/
+	find . -name '*.egg-info' -exec rm -fr {} +
+	find . -name '*.egg' -exec rm -f {} +
 
-flake8:
-	flake8 nameko test
+clean-pyc:
+	find . -name '*.pyc' -exec rm -f {} +
+	find . -name '*.pyo' -exec rm -f {} +
+	find . -name '*~' -exec rm -f {} +
+	find . -name '__pycache__' -exec rm -fr {} +
 
-pylint:
-	pylint --rcfile=pylintrc nameko -E
+clean-test:
+	rm -fr .tox/
+	rm -f .coverage
+	rm -f coverage.xml
+	rm -fr htmlcov/
+	rm -fr result_images/*
 
-imports:
-	isort -rc $(autofix) nameko test
+lint:
+	flake8 plotnine
 
-test_lib:
-	BRANCH=$(ENABLE_BRANCH_COVERAGE) coverage run -m pytest test --strict --timeout 30
-	BRANCH=$(ENABLE_BRANCH_COVERAGE) coverage report
+test: clean-test
+	export MATPLOTLIB_BACKEND=agg
+	pytest
 
-test_examples:
-	BRANCH=$(ENABLE_BRANCH_COVERAGE) py.test docs/examples/test --strict --timeout 30 --cov=docs/examples --cov-config=$(CURDIR)/.coveragerc
-	py.test docs/examples/testing
+visualize-tests:
+	python tools/visualize_tests.py
 
-test_docs: docs spelling #linkcheck
+test-all:
+	tox
 
-docs:
-	sphinx-build -n -b html -d docs/build/doctrees docs docs/build/html
+coverage:
+	coverage report -m
+	coverage html
+	$(BROWSER) htmlcov/index.html
 
-spelling:
-	sphinx-build -b spelling -d docs/build/doctrees docs docs/build/spelling
+doc:
+	$(MAKE) -C doc clean
+	$(MAKE) -C doc html
+	$(BROWSER) doc/_build/html/index.html
 
-linkcheck:
-	sphinx-build -W -b linkcheck -d docs/build/doctrees docs docs/build/linkcheck
+release: clean
+	bash ./tools/release.sh
+
+dist: clean
+	python setup.py sdist bdist_wheel
+	ls -l dist
+
+install: clean
+	python setup.py install
+
+develop: clean-pyc
+	python setup.py develop

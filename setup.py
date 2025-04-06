@@ -1,89 +1,117 @@
-#!/usr/bin/env python
+"""
+plotnine is an implementation of a *grammar of graphics* in Python,
+it is based on ggplot2. The grammar allows users to compose plots
+by explicitly mapping data to the visual objects that make up the
+plot.
+
+Plotting with a grammar is powerful, it makes custom (and otherwise
+complex) plots are easy to think about and then create, while the
+simple plots remain simple.
+
+To find out about all building blocks that you can use to create a
+plot, check out the documentation_. Since plotnine has an API
+similar to ggplot2, where we lack in coverage the
+ggplot2 documentation may be of some help.
+
+.. _documentation: https://plotnine.readthedocs.io/en/stable/
+"""
 import os
-from codecs import open
-
 from setuptools import find_packages, setup
+import versioneer
 
-here = os.path.abspath(os.path.dirname(__file__))
+__author__ = 'Hassan Kibirige'
+__email__ = 'has2k1@gmail.com'
+__description__ = "A grammar of graphics for python"
+__license__ = 'GPL-2'
+__url__ = 'https://github.com/has2k1/plotnine'
+__classifiers__ = [
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: Unix',
+    'Operating System :: MacOS',
+    'Programming Language :: Python :: 3 :: Only',
+    'Framework :: Matplotlib'
+]
 
-with open(os.path.join(here, 'README.rst'), 'r', 'utf-8') as handle:
-    readme = handle.read()
+
+def check_dependencies():
+    """
+    Check for system level dependencies
+    """
+    pass
 
 
-setup(
-    name='nameko',
-    version='2.13.0',
-    description='A microservices framework for Python that lets service '
-                'developers concentrate on application logic and encourages '
-                'testability.',
-    long_description=readme,
-    author='onefinestay',
-    url='http://github.com/nameko/nameko',
-    packages=find_packages(exclude=['test', 'test.*']),
-    install_requires=[
-        "dnspython<2",
-        "eventlet>=0.20.1",
-        "kombu>=4.2.0,<5",
-        "mock>=1.2",
-        "path.py>=6.2",
-        "pyyaml>=5.1",
-        "requests>=1.2.0",
-        "six>=1.9.0",
-        "werkzeug>=0.9",
-        "wrapt>=1.0.0",
-    ],
-    extras_require={
-        'dev': [
-            "astroid==1.6.5",
-            "coverage==4.5.1",
-            "flake8==3.3.0",
-            "isort==4.2.15",
-            "mccabe==0.6.1",
-            "pycodestyle==2.3.1",
-            "pyflakes==1.5.0",
-            "pylint==1.7.1",
-            "pytest==4.3.1",
-            "pytest-cov==2.5.1",
-            "pytest-timeout==1.3.3",
-            "requests==2.19.1",
-            "urllib3==1.23",
-            "websocket-client==0.48.0",
-        ],
-        'docs': [
-            "pyenchant==1.6.11",
-            "Sphinx==1.8.5",
-            "sphinxcontrib-spelling==4.2.1",
-            "sphinx-nameko-theme==0.0.3",
-        ],
-        'examples': [
-            "nameko-sqlalchemy==0.0.1",
-            "PyJWT==1.5.2",
-            "moto==1.3.6",
-            "bcrypt==3.1.3",
-            "regex==2018.2.21"
-        ]
-    },
-    entry_points={
-        'console_scripts': [
-            'nameko=nameko.cli.main:main',
-        ],
-        'pytest11': [
-            'pytest_nameko=nameko.testing.pytest'
-        ]
-    },
-    zip_safe=True,
-    license='Apache License, Version 2.0',
-    classifiers=[
-        "Programming Language :: Python",
-        "Operating System :: MacOS :: MacOS X",
-        "Operating System :: POSIX",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Topic :: Internet",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Intended Audience :: Developers",
-    ]
-)
+def get_required_packages():
+    """
+    Return required packages
+
+    Plus any version tests and warnings
+    """
+    install_requires = ['mizani >= 0.7.1',
+                        'matplotlib >= 3.1.1',
+                        'numpy >= 1.16.0',
+                        'scipy >= 1.2.0',
+                        'patsy >= 0.5.1',
+                        'statsmodels >= 0.11.1',
+                        'pandas >= 1.1.0',
+                        # 'geopandas >= 0.3.0',
+                        'descartes >= 1.1.0'
+                        ]
+    return install_requires
+
+
+def get_extra_packages():
+    """
+    Return extra packages
+
+    Plus any version tests and warnings
+    """
+    extras_require = {
+        'all':  ['scikit-learn', 'scikit-misc']
+    }
+    return extras_require
+
+
+def get_package_data():
+    """
+    Return package data
+
+    For example:
+
+        {'': ['*.txt', '*.rst'],
+         'hello': ['*.msg']}
+
+    means:
+        - If any package contains *.txt or *.rst files,
+          include them
+        - And include any *.msg files found in
+          the 'hello' package, too:
+    """
+    baseline_images = [
+        'tests/baseline_images/%s/*' % x
+        for x in os.listdir('plotnine/tests/baseline_images')]
+    csv_data = ['data/*.csv']
+    package_data = {'plotnine': baseline_images + csv_data}
+    return package_data
+
+
+if __name__ == '__main__':
+    check_dependencies()
+
+    setup(name='plotnine',
+          maintainer=__author__,
+          maintainer_email=__email__,
+          description=__description__,
+          long_description=__doc__,
+          license=__license__,
+          version=versioneer.get_version(),
+          cmdclass=versioneer.get_cmdclass(),
+          url=__url__,
+          python_requires='>=3.6',
+          install_requires=get_required_packages(),
+          extras_require=get_extra_packages(),
+          packages=find_packages(),
+          package_data=get_package_data(),
+          classifiers=__classifiers__,
+          zip_safe=False)
