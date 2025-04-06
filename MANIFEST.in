@@ -1,3 +1,2 @@
-include description.rst
+# Include the license file
 include LICENSE.txt
-recursive-include tests *
