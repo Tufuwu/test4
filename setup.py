@@ -1,52 +1,45 @@
-#! /usr/bin/env python
-
-# This library is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as
-# published by the Free Software Foundation; either version 3 of the
-# License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, see
-# <http://www.gnu.org/licenses/>.
+from setuptools import setup
 
 
-"""
-Python Javatools
+setup(
+        name='nose2pytest',
+        version='1.0.8',
+        packages=['nose2pytest'],
+        # py_modules=['assert_tools', 'nose2pytest'],
+        entry_points={
+            'console_scripts': [
+                'nose2pytest = nose2pytest.script:main',
+            ],
+            'pytest11': ['pytest_nose_assert_tools = nose2pytest.assert_tools'],
+        },
+        url='https://github.com/schollii/nose2pytest',
+        license='BSD-3',
+        author='Oliver Schoenborn',
+        author_email='oliver.schoenborn@gmail.com',
+        description='Convert nose.tools.assert_ calls found in your Nose test modules into raw asserts for pytest',
+        keywords='nose to pytest conversion',
 
-author: Christopher O'Brien  <obriencj@gmail.com>
-license: LGPL v.3
-"""
+        python_requires='>=3.5',
+        classifiers=[
+            # How mature is this project? Common values are
+            #   3 - Alpha
+            #   4 - Beta
+            #   5 - Production/Stable
+            'Development Status :: 5 - Production/Stable',
 
+            # Indicate who your project is intended for
+            'Intended Audience :: Developers',
+            'Topic :: Software Development :: Testing',
 
-from setuptools import setup as _setup
+            # Pick your license as you wish (should match "license" above)
+            'License :: OSI Approved :: BSD License',
 
-
-PYTHON_SUPPORTED_VERSIONS = (
-    ">=2.7",
-    "!=3.0.*", "!=3.1.*", "!=3.2.*", "!=3.3.*", "!=3.4.*",
-    "<4",
+            # Specify the Python versions you support here.
+            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3 :: Only',
+            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+        ],
 )
-
-
-def delayed_cheetah_build_py_cmd(*args, **kwds):
-    # only import cheetah_build_py_cmd immediately before
-    # instantiating it.
-    from javatools.cheetah.setuptools import cheetah_build_py_cmd
-    return cheetah_build_py_cmd(*args, **kwds)
-
-
-def setup():
-    return _setup(cmdclass={'build_py': delayed_cheetah_build_py_cmd, })
-
-
-if __name__ == '__main__':
-    setup()
-
-
-#
-# The end.
