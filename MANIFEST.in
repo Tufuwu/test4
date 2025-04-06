@@ -1,7 +1,11 @@
-include *.rst requirements.txt LICENSE
-graft docs
-graft examples
-include versioneer.py
-include ncclient/_version.py
-include test
-include test-requirements.txt
+include AUTHORS.rst
+include CONTRIBUTING.rst
+include HISTORY.rst
+include LICENSE
+include README.rst
+
+recursive-include tests *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+recursive-include docs *.rst conf.py Makefile make.bat
