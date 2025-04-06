@@ -1,9 +1,5 @@
-include *.cfg
-include *.toml
-include *.txt
-include *.rst
-include *.py
-recursive-include tests *.py *.m *.jl
-recursive-include examples *.py *.txt *.rst *.cfg
-recursive-include doc *
-prune doc/build
+include LICENSE
+include README.rst
+include django_yubin/management/commands/sample.pdf
+recursive-include docs *
+recursive-include django_yubin/templates *

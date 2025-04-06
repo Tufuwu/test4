@@ -1,33 +1,50 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2013-2021, Freja Nordsiek
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are
-# met:
-#
-# 1. Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright
-# notice, this list of conditions and the following disclaimer in the
-# documentation and/or other materials provided with the distribution.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from setuptools import setup
 
 
-# All configuration information is now in pyproject.toml and setup.cfg.
-if __name__ == '__main__':
-    from setuptools import setup
-    setup()
+INSTALL_REQUIRES = [
+    'celery>=5.0,<5.3',
+    'mail-parser',
+    'pytz',
+]
+
+
+with open('README.rst') as docs_index:
+    long_description = docs_index.read()
+
+
+setup(
+    name='django-yubin',
+    version='2.0.0',
+    description=("A reusable Django app for composing and queueing emails "
+                 "django-mailviews + Celery + others"),
+    long_description=long_description,
+    author='Antoni Aloy',
+    author_email='aaloy@apsl.net',
+    maintainer='APSL',
+    maintainer_email='info@apsl.net',
+    url='http://github.com/APSL/django-yubin',
+    install_requires=INSTALL_REQUIRES,
+    packages=[
+        'django_yubin',
+        'django_yubin.management',
+        'django_yubin.management.commands',
+        'django_yubin.migrations',
+    ],
+    include_package_data=True,
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Framework :: Django',
+        'Framework :: Django :: 3.2',
+    ]
+)
