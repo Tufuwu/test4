@@ -1,22 +1,62 @@
+# This is a GitHub workflow defining a set of jobs with a set of steps.
+# ref: https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions
+#
 name: Test
 
-on: [push, pull_request]
+# Trigger the workflow's on all PRs but only on pushed tags or commits to
+# main/main branch to avoid PRs developed in a GitHub fork's dedicated branch
+# to trigger.
+on:
+  pull_request:
+  push:
+    branches:
+    tags:
+  workflow_dispatch:
+
+defaults:
+  run:
+    # Declare bash be used by default in this workflow's "run" steps.
+    #
+    # NOTE: bash will by default run with:
+    #   --noprofile: Ignore ~/.profile etc.
+    #   --norc:      Ignore ~/.bashrc etc.
+    #   -e:          Exit directly on errors
+    #   -o pipefail: Don't mask errors from a command piped into another command
+    shell: bash
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    strategy:
+      # Keep running even if one variation of the job fail
+      fail-fast: false
+      matrix:
+        # We run this job multiple times with different parameterization
+        # specified below, these parameters have no meaning on their own and
+        # gain meaning on how job steps use them.
+        include:
+          - python: 3.9
+          - python: 3.9
+          - python: 3.9
+          - python: 3.9
+          - python: 3.9
+
     steps:
       - uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v1
+      - uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: "${{ matrix.python }}"
 
-      - name: Install dependencies with pip
+      - name: Install Python dependencies
         run: |
-          pip install doc8 sphinx sphinx-multiversion
-          pip install git+https://github.com/osrf/sphinx-tabs
+          pip install --upgrade pip
+          pip install .
+          pip install pytest
+          pip freeze
 
-      - run: make html
-      - run: doc8 --ignore D001 --ignore-path build
+      - name: Run tests
+        run: |
+          JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
+          sleep 5
+          pytest --verbose --color=yes

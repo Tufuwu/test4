@@ -1,4 +1,7 @@
-build/
-_build/
-.idea/
-.vscode/
+*.pyc
+*.egg-info/
+docs/_build
+node_modules
+dist
+.vscode
+package-lock.json

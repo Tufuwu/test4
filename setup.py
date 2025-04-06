@@ -1,30 +1,25 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import os.path
-from setuptools import setup
+import setuptools
+from glob import glob
 
-with open(os.path.join(os.path.dirname(__file__), "README.md")) as f:
-    readme = f.read()
-
-setup(
-    name="sphinx-multiversion",
-    description="Add support for multiple versions to sphinx",
-    long_description=readme,
-    long_description_content_type="text/markdown",
+setuptools.setup(
+    name="jupyter-server-proxy",
+    version='1.5.2',
+    url="https://github.com/jupyterhub/jupyter-server-proxy",
+    author="Ryan Lovett & Yuvi Panda",
+    author_email="rylo@berkeley.edu",
+    license="BSD 3-Clause",
+    description="Jupyter server extension to supervise and proxy web services",
+    packages=setuptools.find_packages(),
+    install_requires=['notebook', 'simpervisor>=0.2', 'aiohttp'],
+    python_requires='>=3.5',
     classifiers=[
-        "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
+        'Framework :: Jupyter',
     ],
-    author="Jan Holthuis",
-    author_email="holthuis.jan@googlemail.com",
-    url="https://holzhaus.github.io/sphinx-multiversion/",
-    version="0.2.4",
-    install_requires=["sphinx >= 2.1"],
-    license="BSD",
-    packages=["sphinx_multiversion"],
-    entry_points={
-        "console_scripts": ["sphinx-multiversion=sphinx_multiversion:main",],
-    },
+    data_files=[
+        ('share/jupyter/nbextensions/jupyter_server_proxy', glob('jupyter_server_proxy/static/*')),
+        ('etc/jupyter/jupyter_notebook_config.d', ['jupyter_server_proxy/etc/jupyter-server-proxy-serverextension.json']),
+        ('etc/jupyter/nbconfig/tree.d', ['jupyter_server_proxy/etc/jupyter-server-proxy-nbextension.json'])
+    ],
+    include_package_data=True,
+    zip_safe=False
 )
