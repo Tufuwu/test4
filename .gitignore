@@ -1,10 +1,3 @@
-.tox
-*.egg-info
-/AUTHORS
-/ChangeLog
-dist/
-doc/build
-.coverage
-build/
-.venv/
-*/__pycache__/
+*.pyc
+pypi_notifier/pypi_notifier.db
+cache/
