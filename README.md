@@ -1,144 +1,170 @@
-ParmEd
-======
+## websockify: WebSockets support for any application/server
 
-Cross-program parameter and topology file editor and molecular mechanical
-simulator engine.
+websockify was formerly named wsproxy and was part of the
+[noVNC](https://github.com/novnc/noVNC) project.
 
-Badges
-======
+At the most basic level, websockify just translates WebSockets traffic
+to normal socket traffic. Websockify accepts the WebSockets handshake,
+parses it, and then begins forwarding traffic between the client and
+the target in both directions.
 
-![(Build/Test Status)](https://github.com/ParmEd/ParmEd/workflows/Tests/badge.svg)
+### News/help/contact
 
-Description
-===========
+Notable commits, announcements and news are posted to
+<a href="http://www.twitter.com/noVNC">@noVNC</a>
 
-ParmEd is a package designed to facilitate creating and easily manipulating
-molecular systems that are fully described by a common classical force field.
-Supported force fields include Amber, CHARMM, AMOEBA, and several others that
-share a similar functional form (e.g., GROMOS).
+If you are a websockify developer/integrator/user (or want to be)
+please join the <a
+href="https://groups.google.com/forum/?fromgroups#!forum/novnc">noVNC/websockify
+discussion group</a>
 
-ParmEd is capable of reading and writing to a wide array of different file
-formats, like the Amber topology and coordinate files, CHARMM PSF, parameter,
-topology, and coordinate files, Tinker parameter, topology, and coordinate
-files, and many others. The expressive central data structure (the ``Structure``
-class) makes it easy to quickly and safely manipulate a chemical system, its
-underlying topology, and force field parameters describing its potential energy
-function.
+Bugs and feature requests can be submitted via [github
+issues](https://github.com/novnc/websockify/issues).
 
-There are two parts of ParmEd---a documented API that you can incorporate into
-your own Python scripts and programs, and a GUI/CLI pair of programs that
-provide a means to quickly perform various modifications to chemical systems for
-rapid prototyping.
+If you want to show appreciation for websockify you could donate to a great
+non-profits such as: [Compassion
+International](http://www.compassion.com/), [SIL](http://www.sil.org),
+[Habitat for Humanity](http://www.habitat.org), [Electronic Frontier
+Foundation](https://www.eff.org/), [Against Malaria
+Foundation](http://www.againstmalaria.com/), [Nothing But
+Nets](http://www.nothingbutnets.net/), etc. Please tweet <a
+href="http://www.twitter.com/noVNC">@noVNC</a> if you do.
 
-The API also provides bindings to the [OpenMM](https://simtk.org/home/openmm)
-library, permitting you to carry out full molecular dynamics investigations
-using ParmEd on high-performant hardware, like AMD and NVidia GPUs.
+### WebSockets binary data
 
-Installing ParmEd
-=================
+Starting with websockify 0.5.0, only the HyBi / IETF
+6455 WebSocket protocol is supported. There is no support for the older
+Base64 encoded data format.
 
-To install ParmEd, either clone this git repository or download [the latest
-release](https://github.com/ParmEd/ParmEd/releases) and unpack the resulting
-tarball. This should create a new ParmEd source code directory. Change to that
-directory and build ParmEd with the command
 
-```
-python setup.py install
-```
+### Encrypted WebSocket connections (wss://)
 
-Note, if you are using the system Python, you may need to either run the above
-command as root (e.g., by using ``sudo``) or add the ``--user`` flag to install
-it to your home directory. I would suggest the latter choice.
-
-AMBER user can overwrite installed version by
+To encrypt the traffic using the WebSocket 'wss://' URI scheme you need to
+generate a certificate and key for Websockify to load. By default, Websockify
+loads a certificate file name `self.pem` but the `--cert=CERT` and `--key=KEY`
+options can override the file name. You can generate a self-signed certificate
+using openssl. When asked for the common name, use the hostname of the server
+where the proxy will be running:
 
 ```
-python setup.py install --prefix=$AMBERHOME
+openssl req -new -x509 -days 365 -nodes -out self.pem -keyout self.pem
 ```
 
-Testing ParmEd
-========
+For a self-signed certificate to work, you need to make your client/browser
+understand it. You can do this by installing it as accepted certificate, or by
+using that same certificate for a HTTPS connection to which you navigate first
+and approve. Browsers generally don't give you the "trust certificate?" prompt
+by opening a WSS socket with invalid certificate, hence you need to have it
+accept it by either of those two methods.
 
-In order to automatically run the ParmEd tests, execute the following:
+If you have a commercial/valid SSL certificate with one or more intermediate
+certificates, concat them into one file, server certificate first, then the
+intermediate(s) from the CA, etc. Point to this file with the `--cert` option
+and then also to the key with `--key`. Finally, use `--ssl-only` as needed.
 
-```
-cd test
-nosetests .
-```
 
-Examples
-========
+### Additional websockify features
 
-```bash
-import parmed as pmd
+These are not necessary for the basic operation.
 
-# convert GROMACS topology to AMBER format
-gmx_top = pmd.load_file('pmaawaterFE20mer2.top', xyz='pmaawaterFE20mer2.gro')
-gmx_top.save('pmaa.top', format='amber')
-gmx_top.save('pmaa.crd', format='rst7')
+* Daemonizing: When the `-D` option is specified, websockify runs
+  in the background as a daemon process.
 
-# convert AMBER topology to GROMACS, CHARMM formats
-amber = pmd.load_file('prmtop', 'inpcrd')
-# Save a GROMACS topology and GRO file
-amber.save('gromacs.top')
-amber.save('gromacs.gro')
+* SSL (the wss:// WebSockets URI): This is detected automatically by
+  websockify by sniffing the first byte sent from the client and then
+  wrapping the socket if the data starts with '\x16' or '\x80'
+  (indicating SSL).
 
-# Save a CHARMM PSF and crd file
-amber.save('charmm.psf')
-amber.save('charmm.crd')
+* Session recording: This feature that allows recording of the traffic
+  sent and received from the client to a file using the `--record`
+  option.
 
-# convert mol2 to pdb file
-mol2_parm = pmd.load_file('my.mol2')
-mol2_parm.save('my.pdb')
+* Mini-webserver: websockify can detect and respond to normal web
+  requests on the same port as the WebSockets proxy. This functionality
+  is activated with the `--web DIR` option where DIR is the root of the
+  web directory to serve.
 
-# and many more
-```
+* Wrap a program: see the "Wrap a Program" section below.
 
-Documentation
-=============
+* Log files: websockify can save all logging information in a file.
+  This functionality is activated with the `--log-file FILE` option
+  where FILE is the file where the logs should be saved.
 
-Want to learn more?  Visit the ParmEd documentation page at
-https://parmed.github.io/ParmEd for examples, descriptions, and API
-documentation.
+* Authentication plugins: websockify can demand authentication for
+  websocket connections and, if you use `--web-auth`, also for normal
+  web requests. This functionality is activated with the
+  `--auth-plugin CLASS` and `--auth-source ARG` options, where CLASS is
+  usually one from auth_plugins.py and ARG is the plugin's configuration.
 
-Authors and Contributors
-========================
+* Token plugins: a single instance of websockify can connect clients to
+  multiple different pre-configured targets, depending on the token sent
+  by the client using the `token` URL parameter, or the hostname used to
+  reach websockify, if you use `--host-token`. This functionality is
+  activated with the `--token-plugin CLASS` and `--token-source ARG`
+  options, where CLASS is usually one from token_plugins.py and ARG is
+  the plugin's configuration.
 
-The following people have contributed directly to the coding and validation
-efforts in ParmEd (in alphabetical order).  And a special thanks to all of you
-who helped improve this project either by providing feedback, bug reports, or
-other general comments!
+### Other implementations of websockify
 
-* Jason Swails (principal developer) | jason.swails@gmail.com
+The primary implementation of websockify is in python. There are
+several alternate implementations in other languages available in
+our sister repositories [websockify-js](https://github.com/novnc/websockify-js)
+(JavaScript/Node.js) and [websockify-other](https://github.com/novnc/websockify-other)
+ (C, Clojure, Ruby).
 
-* Carlos Hernandez
-* David L. Mobley
-* Hai Nguyen
-* Lee-Ping Wang
-* Pawel Janowski
+In addition there are several other external projects that implement
+the websockify "protocol". See the alternate implementation [Feature
+Matrix](https://github.com/novnc/websockify/wiki/Feature_Matrix) for
+more information.
 
-License
-=======
 
-```
-                    LESSER GPL LICENSE INFO
+### Wrap a Program
 
-Copyright (C) 2010 - 2014 Jason Swails
+In addition to proxying from a source address to a target address
+(which may be on a different system), websockify has the ability to
+launch a program on the local system and proxy WebSockets traffic to
+a normal TCP port owned/bound by the program.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation
+The is accomplished with a small LD_PRELOAD library (`rebind.so`)
+which intercepts bind() system calls by the program. The specified
+port is moved to a new localhost/loopback free high port. websockify
+then proxies WebSockets traffic directed to the original port to the
+new (moved) port of the program.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+The program wrap mode is invoked by replacing the target with `--`
+followed by the program command line to wrap.
 
-You should have received a copy of the GNU Lesser General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+    `./run 2023 -- PROGRAM ARGS`
 
-The `fortranformat` package is released under the MIT license, Copyright (C)
-Brendan Arnold. See `fortranformat/__init__.py` for more information.
-```
+The `--wrap-mode` option can be used to indicate what action to take
+when the wrapped program exits or daemonizes.
+
+Here is an example of using websockify to wrap the vncserver command
+(which backgrounds itself) for use with
+[noVNC](https://github.com/novnc/noVNC):
+
+    `./run 5901 --wrap-mode=ignore -- vncserver -geometry 1024x768 :1`
+
+Here is an example of wrapping telnetd (from krb5-telnetd). telnetd
+exits after the connection closes so the wrap mode is set to respawn
+the command:
+
+    `sudo ./run 2023 --wrap-mode=respawn -- telnetd -debug 2023`
+
+The `wstelnet.html` page in the [websockify-js](https://github.com/novnc/websockify-js)
+project demonstrates a simple WebSockets based telnet client (use
+'localhost' and '2023' for the host and port respectively).
+
+
+### Installing websockify
+
+Download one of the releases or the latest development version, extract
+it and run `python3 setup.py install` as root in the directory where you
+extracted the files. Normally, this will also install numpy for better
+performance, if you don't have it installed already. However, numpy is
+optional. If you don't want to install numpy or if you can't compile it,
+you can edit setup.py and remove the `install_requires=['numpy'],` line
+before running `python3 setup.py install`.
+
+Afterwards, websockify should be available in your path. Run
+`websockify --help` to confirm it's installed correctly.
