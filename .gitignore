@@ -1,24 +1,17 @@
-*.pyc
-*~
-*.scssc
+# vim swap files
 *.swp
-*.orig
-*.DS_Store
-:2e_*
-:2e#
-.AppleDouble
-database.sqlite
-courseware/static/js/mathjax/*
-db.newaskbot
-db.oldaskbot
-flushdb.sh
-build
+
+# python bytecode files
+*.pyc
+__pycache__/
+
+# setuptools files
+*.egg-info/
+
+# testing files
+.tox/
 .coverage
-coverage.xml
-cover/
-log/
-reports/
-/src/
-\#*\#
-*.egg-info
-.idea/
+
+# files generated for release
+dist/
+README.rst
