@@ -1,40 +1,59 @@
-name: build
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-on: [push]
+name: Test Matrix
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+        django-version: ["2.2", "3.2", "4.0"]  # Todo: add "dev" back
+        exclude:
+           - python-version: "3.9"
+             django-version: "4.0"
+#           - python-version: "3.9"
+#             django-version: "dev"
+           - python-version: "3.9"
+             django-version: "4.0"
+#           - python-version: "3.9"
+#             django-version: "dev"
+
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python
+    - name: Install OS dependencies
+      run: |
+        sudo apt install -y binutils libproj-dev gdal-bin libsqlite3-mod-spatialite
+
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
+        python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        sudo apt-get -y install ffmpeg
-        pip install pylint pytest
-        pip install -e .
-    - name: Test with pytest
-      run: pytest
-    - name: Lint with pylint
-      run: pylint note_seq
-    # The below step just reports the success or failure of tests as a "commit status".
-    # This is needed for copybara integration.
-    - name: Report success or failure as github status
-      if: always()
-      shell: bash
+        python -m pip install --upgrade pip wheel virtualenv tox coveralls
+    - name: Erase cached coverage
       run: |
-        status="${{ job.status }}"
-        lowercase_status=$(echo $status | tr '[:upper:]' '[:lower:]')
-        curl -sS --request POST \
-        --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
-        --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
-        --header 'content-type: application/json' \
-        --data '{
-            "state": "'$lowercase_status'",
-            "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-            "description": "'$status'",
-            "context": "github-actions/build"
-            }'
+        coverage erase
+    - name: Flake8
+      run: |
+        tox -e py${{matrix.python-version}}-flake8
+    - name: Docs
+      run: |
+        tox -e py${{matrix.python-version}}-docs
+    - name: Test with Tox
+      run: |
+        tox -e py${{matrix.python-version}}-dj${{matrix.django-version}}
+    - name: Upload coverage data to coveralls.io
+      run: coveralls --service=github
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
