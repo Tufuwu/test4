@@ -1,34 +1,90 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+# Copyright 2013 The Font Bakery Authors.
+# Copyright 2017 The Google Fonts Tools Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# See AUTHORS.txt for the list of Authors and LICENSE.txt for the License.
+import os
+from setuptools import setup
 
-from setuptools import find_packages, setup
+def gftools_scripts():
+    scripts = [os.path.join('bin', f) for f in os.listdir('bin') if f.startswith('gftools-')]
+    scripts.append(os.path.join('bin', 'gftools'))
+    return scripts
 
-exec(open('etesync_dav/_version.py').read())
+# Read the contents of the README file
+with open('README.md') as f:
+    long_description = f.read()
 
 setup(
-    name='etesync-dav',
-    version=__version__,
-    author='Tom Hacohen',
-    author_email='tom@stosb.com',
-    url='https://github.com/etesync/etesync-dav',
-    description='A CalDAV and CardDAV frontend for EteSync',
-    keywords=['etesync', 'encryption', 'sync', 'pim', 'caldav', 'carddav'],
-    license='GPL-3.0-only',
-    long_description=open('DESCRIPTION.rst').read(),
-    packages=find_packages(),
-    scripts=[
-        'scripts/etesync-dav',
+    name="gftools",
+    version='0.5.1',
+    url='https://github.com/googlefonts/tools/',
+    description='Google Fonts Tools is a set of command-line tools'
+                ' for testing font projects',
+    long_description=long_description,
+    long_description_content_type='text/markdown',  # This is important!
+    author=('Google Fonts Tools Authors: '
+            'Dave Crossland, '
+            'Felipe Sanches, '
+            'Lasse Fister, '
+            'Marc Foley, '
+            'Eli Heuer, '
+            'Roderick Sheeter'),
+    author_email='dave@lab6.com',
+    package_dir={'': 'Lib'},
+    packages=['gftools',
+              'gftools.util'],
+    package_data={'gftools.util': ["GlyphsInfo/*.xml"],
+                  'gftools': [
+                      "encodings/*.nam",
+                      "encodings/GF Glyph Sets/*.nam",
+                      'template.upstream.yaml'
+                  ]
+                 },
+    scripts=gftools_scripts(),
+    zip_safe=False,
+    classifiers=[
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Topic :: Text Processing :: Fonts',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3'
     ],
-    include_package_data=True,
-    python_requires='>=3',
+    setup_requires=['setuptools_scm'],
+    # Dependencies needed for gftools qa.
+    extras_require={"qa": ['fontbakery', 'fontdiffenator', 'gfdiffbrowsers']},
     install_requires=[
-        'appdirs>=1.4.3',
-        'etesync>=0.12.1',
-        'etebase>=0.30.0',
-        'msgpack>=1.0.0',
-        'Radicale>=3.0.3,<=3.1.0',
-        'Flask>=1.1.1',
-        'Flask-WTF>=0.14.2',
-        'requests[socks]>=2.21',
-        'pyobjc-framework-Cocoa>=7.0.0 ; sys_platform=="darwin"',
+#       'fontforge', # needed by build-font2ttf script
+#                      but there's no fontforge package on pypi
+#                      see: https://github.com/fontforge/fontforge/issues/2048
+        'setuptools',
+        'FontTools[ufo]',
+        'Flask',
+        'absl-py',
+        'glyphsLib',
+        'PyGithub',
+        'pillow',
+        'protobuf',
+        'requests',
+        'tabulate',
+        'unidecode',
+        'opentype-sanitizer',
+        'vttlib',
+        'pygit2',
+        'strictyaml',
     ]
-)
+    )
