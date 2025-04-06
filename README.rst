@@ -1,269 +1,144 @@
-Flake8-AAA
-==========
+========
+Picireny
+========
+*Hierarchical Delta Debugging Framework*
+
+.. image:: https://img.shields.io/pypi/v/picireny?logo=python&logoColor=white
+   :target: https://pypi.org/project/picireny/
+.. image:: https://img.shields.io/pypi/l/picireny?logo=open-source-initiative&logoColor=white
+   :target: https://pypi.org/project/picireny/
+.. image:: https://img.shields.io/github/workflow/status/renatahodovan/picireny/main/master?logo=github&logoColor=white
+   :target: https://github.com/renatahodovan/picireny/actions
+.. image:: https://img.shields.io/coveralls/github/renatahodovan/picireny/master?logo=coveralls&logoColor=white
+   :target: https://coveralls.io/github/renatahodovan/picireny
+
+*Picireny* is a Python implementation of the Hierarchical Delta Debugging
+(HDD in short) algorithm adapted to use ANTLR_ v4 for parsing both the input
+and the grammar(s) describing the format of the input. It relies on Picire_
+to provide the implementation of the core Delta Debugging algorithm along
+with various tweaks like parallelization. Just like the *Picire* framework,
+*Picireny* can also be used either as a command line tool or as a library.
 
-.. image:: https://img.shields.io/github/workflow/status/jamescooke/flake8-aaa/Build
-    :alt: GitHub Workflow Status
-    :target: https://github.com/jamescooke/flake8-aaa/actions?query=branch%3Amaster
+Both Hierarchical Delta Debugging and Delta Debugging automatically reduce
+"interesting" tests while keeping their "interesting" behaviour. (E.g.,
+"interestingness" may mean failure-inducing input to a system-under-test.)
+However, HDD is an improvement that tries to investigate less test cases during
+the reduction process by making use of knowledge on the structure of the input.
 
-.. image:: https://img.shields.io/readthedocs/flake8-aaa.svg
-    :alt: Read the Docs
-    :target: https://flake8-aaa.readthedocs.io/
+The tool (and the algorithm) works iteratively in several ways. As a first
+step, it splits up the input into tokens and organizes them in a tree structure
+as defined by a grammar. Then, iteratively, it invokes Delta Debugging on each
+level of the tree from top to bottom, and DD is an iterative process itself,
+too. Finally, the nodes kept in the tree are "unparsed" to yield a reduced but
+still "interesting" output.
+
+.. _ANTLR: http://www.antlr.org
+.. _Picire: https://github.com/renatahodovan/picire
+
+
+Requirements
+============
 
-.. image:: https://img.shields.io/pypi/v/flake8-aaa.svg
-    :alt: PyPI
-    :target: https://pypi.org/project/flake8-aaa/
+* Python_ ~= 2.7 or >= 3.5
+* pip_ and setuptools Python packages (the latter is automatically installed by
+  pip).
+* Java_ SE >= 7 JRE or JDK (the latter is optional, only needed if Java is used
+  as the parser language)
 
-.. image:: https://img.shields.io/pypi/pyversions/flake8-aaa.svg
-    :alt: PyPI - Python Version
-    :target: https://pypi.org/project/flake8-aaa/
+.. _Python: https://www.python.org
+.. _pip: https://pip.pypa.io
+.. _Java: https://www.oracle.com/java/
 
-.. image:: https://img.shields.io/github/license/jamescooke/flake8-aaa.svg
-    :alt: flake8-aaa is licensed under the MIT License
-    :target: https://github.com/jamescooke/flake8-aaa/blob/master/LICENSE
 
-..
+Install
+=======
 
-A Flake8 plugin that checks Python tests follow the Arrange-Act-Assert pattern.
+The quick way (to install the latest official release)::
 
-----------
+    pip install picireny
 
-📝 Table of Contents
---------------------
+Or clone the project and run setuptools (to install the freshest development
+revision)::
 
-* `About <#-about>`_
-* `Getting Started <#-getting-started>`_
-* `Usage <#-usage>`_
-* `Compatibility <#-compatibility>`_
-* `Resources <#-resources>`_
+    python setup.py install
 
-🧐 About
---------
 
-What is the Arrange-Act-Assert pattern?
-.......................................
+Usage
+=====
 
-"Arrange-Act-Assert" is a testing pattern that focuses each test on a single
-object's behaviour. It's also known as "AAA" and "3A".
+*Picireny* uses the same CLI as *Picire* and hence accepts the same
+options_.
+On top of the inherited ones, *Picireny* accepts several further arguments:
 
-As the name suggests each test is broken down into three distinct parts
-separated by blank lines:
+* ``--grammar`` (optional): List of grammars describing the input format. (You
+  can write them by hand or simply download them from the
+  `ANTLR v4 grammars repository`_.)
+* ``--start`` (optional): Name of the start rule (optionally prefixed with a
+  grammar name) as ``[grammarname:]rulename``.
+* ``--replacements`` (optional): Json file containing rule names and minimal
+  replacement strings (otherwise these are calculated automatically) (see
+  schema__).
+* ``--format`` (optional): Json file describing the input format (see schema__
+  and example_). This descriptor can incorporate all the above (``--grammar``,
+  ``--start`` and ``--replacements``) properties, along with the possibility of
+  island grammar definitions. If both ``--format`` and the aforementioned
+  arguments are present, then the latter will override the appropriate values of
+  the format file.
+* ``--antlr`` (optional): Path to the ANTLR tool jar.
+* ``--parser`` (optional): Language of the generated parser. Currently 'python'
+  (default) and 'java' targets (faster, but needs JDK) are supported.
 
-* **Arrange:** Set up the object to be tested.
+Note: although, all the arguments are optional, the grammar files and the start
+rule of the top-level parser must be defined with an arbitrary combination of the
+``--format``, ``--grammars``, and ``--start`` arguments.
 
-* **Act**: Carry out an action on the object.
+.. _options: https://github.com/renatahodovan/picire/tree/master/README.rst#usage
+.. _`ANTLR v4 grammars repository`: https://github.com/antlr/grammars-v4
+.. __: schemas/replacements.json
+.. __: schemas/format.json
+.. _example: tests/resources/inijson.json
 
-* **Assert**: Check the expected results have occurred.
+Example usage to reduce an HTML file::
 
-For example, a simple test on the behaviour of add ``+``:
+    picireny --input=<path/to/the/input.html> --test=<path/to/the/tester> \
+             --grammar HTMLLexer.g4 HTMLParser.g4 --start htmlDocument \
+             --parallel --subset-iterator=skip --complement-iterator=backward
 
-.. code-block:: python
 
-    def test():
-       x = 1
-       y = 1
+Compatibility
+=============
 
-       result = x + y
+*Picireny* was tested on:
 
-       assert result == 2
+* Linux (Ubuntu 14.04 / 16.04 / 18.04)
+* Mac OS X (El Capitan 10.11 / Sierra 10.12 / High Sierra 10.13 / Mojave 10.14 / Catalina 10.15)
+* Windows (Server 2012 R2 / Server version 1809 / Windows 10)
 
-As you can see, the Act block starts with ``result =`` and is separated from
-the Arrange and Assert blocks by blank lines. The test is focused - it only
-contains one add operation and no further additions occur.
 
-Using AAA consistently makes it easier to find the Action in a test. It's
-therefore always easy to see the object behaviour each test is focused on.
+Acknowledgement and Citations
+=============================
 
-Further reading:
+*Picireny* is motivated by the idea of Hierarchial Delta Debugging:
 
-* `Arrange-Act-Assert: A Pattern for Writing Good Tests
-  <https://automationpanda.com/2020/07/07/arrange-act-assert-a-pattern-for-writing-good-tests/>`_
-  - a great introduction to AAA from a Python perspective.
+* G. Misherghi, Z. Su: "HDD: Hierarchical delta debugging",
+  ICSE 2006.
 
-* `Arrange Act Assert pattern for Python developers
-  <https://jamescooke.info/arrange-act-assert-pattern-for-python-developers.html>`_
-  - information about the pattern and each part of a test.
+The details of the modernized reimplementation and further improvements are
+published in:
 
-* `Our "good" example files
-  <https://github.com/jamescooke/flake8-aaa/tree/master/examples/good>`_ -
-  test examples used in the Flake8-AAA test suite.
+* R. Hodovan, A. Kiss: "Modernizing Hierarchical Delta Debugging.",
+  A-TEST 2016.
+* R. Hodovan, A. Kiss, T. Gyimothy: "Tree Preprocessing and Test Outcome
+  Caching for Efficient Hierarchical Delta Debugging", AST 2017.
+* R. Hodovan, A. Kiss, T. Gyimothy: "Coarse Hierarchical Delta Debugging",
+  ICSME 2017.
+* A. Kiss, R. Hodovan, T. Gyimothy: "HDDr: A Recursive Variant of the
+  Hierarchical Delta Debugging Algorithm", A-TEST 2018.
 
-What is Flake8?
-...............
 
-Flake8 is a command line utility for enforcing style consistency across Python
-projects. It wraps multiple style checking tools and also runs third-party
-checks provided by plugins, of which Flake8-AAA is one.
+Copyright and Licensing
+=======================
 
-Further reading:
+Licensed under the BSD 3-Clause License_.
 
-* `Flake8's documentation <https://flake8.pycqa.org/en/latest/>`_ 
-
-* `Awesome Flake8 Extensions
-  <https://github.com/DmytroLitvinov/awesome-flake8-extensions/>`_ - a curated
-  list of Flake8 plugins.
-
-What does Flake8-AAA do?
-........................
-
-Flake8-AAA extends Flake8 to check your Python tests match the AAA pattern.
-
-It does this by adding the following checks to Flake8:
-
-* Every test has a single clear Act block.
-
-* Every Act block is distinguished from the code around it with a blank line
-  above and below.
-
-* Arrange and Assert blocks do not contain additional blank lines.
-
-In the future, Flake8-AAA will check that no test has become too complicated
-and that Arrange blocks do not contain assertions.
-
-Checking your code with these simple formatting rules helps you write simple,
-consistently formatted tests that match the AAA pattern. They are most helpful
-if you call Flake8 regularly, for example when you save a file or before you
-run a test suite.
-
-Further reading:
-
-* `Rules and error codes documentation
-  <https://flake8-aaa.readthedocs.io/en/stable/rules.html>`_.
-
-🏁 Getting Started
-------------------
-
-Prerequisites
-.............
-
-Install Flake8 with `pip <https://pip.pypa.io/en/stable/installing/>`_:
-
-.. code-block:: shell
-
-    $ pip install flake8
-
-Installation
-............
-
-Install ``flake8-aaa``:
-
-.. code-block:: shell
-
-    $ pip install flake8-aaa
-
-You can confirm that Flake8 recognises the plugin by checking its version
-string:
-
-.. code-block:: shell
-
-    $ flake8 --version
-    3.8.3 (aaa: 0.11.0, mccabe: 0.6.1, pycodestyle: 2.6.0, pyflakes: 2.2.0) ...
-
-The ``aaa: 0.11.0`` part tells you that Flake8-AAA was installed successfully
-and its checks will be used by Flake8.
-
-Further reading:
-
-* `Flake8 installation instructions
-  <https://flake8.pycqa.org/en/latest/index.html#installation-guide>`_.
-
-First run
-.........
-
-Let's check the good example from above. We expect Flake8 to return no errors:
-
-.. code-block:: shell
-
-    $ curl https://raw.githubusercontent.com/jamescooke/flake8-aaa/master/examples/good/test_example.py > test_example.py
-    $ flake8 test_example.py
-
-Silence - just what we wanted.
-
-Now let's see a failure from Flake8-AAA. We can use a bad example:
-
-.. code-block:: shell
-
-    $ curl https://raw.githubusercontent.com/jamescooke/flake8-aaa/master/examples/bad/test.py > test.py
-    $ flake8 test.py
-    test.py:4:1: AAA01 no Act block found in test
-
-🎈 Usage
---------
-
-Via Flake8
-..........
-
-Since Flake8-AAA is primarily a Flake8 plugin, the majority of its usage is
-dependent on how you use Flake8. In general you can point it at your source
-code and test suite:
-
-.. code-block:: shell
-
-    $ flake8 src tests
-
-If you're not already using Flake8 then you might consider:
-
-* Adding a hook to your code editor to run Flake8 when you save a file.
-
-* Adding a pre-commit hook to your source code manager to run Flake8 before you
-  commit.
-
-* Running Flake8 before you execute your test suite - locally or in CI.
-
-If you just want Flake8-AAA error messages you can filter errors returned by
-Flake8 with ``--select``:
-
-.. code-block:: shell
-
-    $ flake8 --select AAA tests
-
-Further reading:
-
-* `Using Flake8 <https://flake8.pycqa.org/en/stable/user/index.html>`_.
-
-Via command line
-................
-
-Flake8-AAA also provides a command line interface. Although this is primarily
-for debugging, it can be used to check individual files if you don't want to
-install Flake8.
-
-.. code-block:: shell
-
-    $ python -m flake8_aaa [test_file]
-
-Further reading:
-
-* `Command line documentation
-  <https://flake8-aaa.readthedocs.io/en/stable/commands.html#command-line>`_.
-
-⛏️ Compatibility
-----------------
-
-Flake8-AAA works with:
-
-* Pytest and unittest test suites.
-
-* Black and yapf formatted code.
-
-* Mypy and type-annotated code.
-
-* Latest versions of Python 3 (3.6, 3.7 and 3.8).
-
-Further reading:
-
-* `Full compatibility list
-  <https://flake8-aaa.readthedocs.io/en/stable/compatibility.html>`_ - includes
-  information on support for older versions of Python.
-
-📕 Resources
-------------
-
-* `Documentation on ReadTheDocs <https://flake8-aaa.readthedocs.io/>`_
-
-* `Package on PyPI <https://pypi.org/project/flake8-aaa/>`_
-
-* `Source code on GitHub <https://github.com/jamescooke/flake8-aaa>`_
-
-* `Licensed on MIT <https://github.com/jamescooke/flake8-aaa/blob/master/LICENSE>`_
-
-* `Changelog <https://github.com/jamescooke/flake8-aaa/blob/master/CHANGELOG.rst>`_
+.. _License: LICENSE.rst
