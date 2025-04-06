@@ -1,21 +1,21 @@
-/build
-/dist
-.vscode
-/phoebe/atmospheres/tables/ck2004
-/phoebe/atmospheres/tables/ck2004i
-/phoebe/atmospheres/tables/phoenix
-MANIFEST
-*_tmp*
-*after.phoebe
-*test.legacy
-*.ipynb_checkpoints*
-*.pyc*
-*.active
-*.profile
-*.log
-*.txt
-*.png
-.DS_Store
-libphoebe.so
+*.pyc
+*.egg
+*.egg-info
+node_modules
+doc/_build
+dist
+timeseries_data
+enhydris.db
+enhydris_project/settings/local.py
+enhydris_project/settings/urls.py
 
-*.swp
+# Selenium log files
+*driver.log
+
+# enhydris add-ons which may be linked or checked out in the current directory
+enhydris-openhigis
+enhydris_openhigis
+enhydris-autoprocess
+enhydris_autoprocess
+enhydris-synoptic
+enhydris_synoptic
