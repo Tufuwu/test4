@@ -1,58 +1,46 @@
-# -*- coding: utf-8 -*-
-#
-# This software may be modified and distributed under the terms
-# of the MIT license.  See the LICENSE file for details.
-
-from os import path
-from setuptools import setup
-from shutil import rmtree
-import sys
-
-NAME = 'python-logstash-async'
-VERSION = '2.3.0'
-
-here = path.abspath(path.dirname(__file__))
-with open(path.join(here, 'README.rst'), 'rb') as f:
-    LONG_DESCRIPTION = f.read().decode('utf-8')
+#!/usr/bin/env python
+from setuptools import setup, find_packages
+from entangled import __version__
 
 
-if 'bdist_wheel' in sys.argv:
-    # Remove previous build dir when creating a wheel build, since if files have been removed
-    # from the project, they'll still be cached in the build dir and end up as part of the
-    # build, which is really neat!
-    for directory in ('build', 'dist', 'python_logstash_async.egg-info'):
-        rmtree(directory, ignore_errors=True)
+with open('README.md') as fh:
+    long_description = fh.read()
 
+
+CLASSIFIERS = [
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Web Environment',
+    'Framework :: Django',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Framework :: Django :: 3.2',
+    'Framework :: Django :: 4.0',
+]
 
 setup(
-    name=NAME,
-    packages=['logstash_async'],
-    version=VERSION,
-    description='Asynchronous Python logging handler for Logstash.',
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type='text/x-rst',
+    name='django-entangled',
+    version=__version__,
+    description='Edit JSON field using Django Model Form',
+    author='Jacob Rief',
+    author_email='jacob.rief@gmail.com',
+    url='https://github.com/jrief/django-entangled',
+    packages=find_packages(),
+    install_requires=[
+        'django>=2.1',
+    ],
     license='MIT',
-    author='Enrico Tröger',
-    author_email='enrico.troeger@uvena.de',
-    url='https://github.com/eht16/python-logstash-async',
-    project_urls={
-        'Travis CI': 'https://travis-ci.org/eht16/python-logstash-async/',
-        'Source code': 'https://github.com/eht16/python-logstash-async/',
-        'Documentation': 'https://python-logstash-async.readthedocs.io/en/stable/',
-    },
-    keywords='logging logstash asynchronous',
-    install_requires=['limits', 'pylogbeat', 'requests'],
-    python_requires='>3.5',
+    platforms=['OS Independent'],
+    keywords=['Django Forms', 'JSON'],
+    classifiers=CLASSIFIERS,
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     include_package_data=True,
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Topic :: Internet :: WWW/HTTP',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: System :: Logging',
-    ]
+    zip_safe=False
 )
