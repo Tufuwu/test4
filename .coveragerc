@@ -1,15 +1,7 @@
+# Note that to receive proper coverage results, you should be appending the results from different environments.
+
 [run]
-source = harrier
-branch = True
-concurrency = multiprocessing
-omit =
-    # __main__ is trivial and hard to test properly
-    */__main__.py
+source=typedmodels
 
 [report]
-precision = 2
-exclude_lines =
-    pragma: no cover
-
-    raise NotImplementedError
-    raise NotImplemented
+omit=*test*
