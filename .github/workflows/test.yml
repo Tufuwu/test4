@@ -1,54 +1,56 @@
-name: Scheduled CI
+name: Test
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the main branch
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 18 * * FRI'
+on: [push, pull_request, workflow_dispatch]
+
+env:
+  FORCE_COLOR: 1
 
 jobs:
   test:
-    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.9"]
-        pyinstaller: ["https://github.com/pyinstaller/pyinstaller/archive/develop.zip"]
-        os: ["macos-latest", "ubuntu-latest"]
-      fail-fast: false
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          # Add new helper variables to existing jobs
+          - {python-version: "pypy2", toxenv: "pypy"}
+          - {python-version: "pypy3", toxenv: "pypy3"}
+          - {python-version: "3.9", toxenv: "py27"}
+          - {python-version: "3.9", toxenv: "py35"}
+          - {python-version: "3.9", toxenv: "py36"}
+          - {python-version: "3.9", toxenv: "py37"}
+          - {python-version: "3.9", toxenv: "py38"}
+          - {python-version: "3.9", toxenv: "py39"}
+          - {python-version: "3.9", toxenv: "py3.9"}
+
     steps:
       - uses: actions/checkout@v2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install apt dependencies
-        if: startsWith(matrix.os, 'ubuntu')
+      - name: Get pip cache dir
+        id: pip-cache
         run: |
-          # Set up a virtual screen (for GUI libraries and pynput).
-          sudo apt-get install libxcb-xkb-dev xvfb
-          Xvfb :99 & echo "DISPLAY=:99" >> $GITHUB_ENV
-          # Install mariadb dependencies.
-          sudo apt-get install -y libmariadbclient-dev
+          echo "::set-output name=dir::$(pip cache dir)"
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key:
+            ${{ matrix.os }}-${{ matrix.python-version }}-v1-${{ hashFiles('**/tox.ini') }}
+          restore-keys: |
+            ${{ matrix.os }}-${{ matrix.python-version }}-v1-
 
       - name: Install dependencies
         run: |
-          # Upgrade to the latest pip.
-          python -m pip install -U pip setuptools wheel
+          python -m pip install tox
 
-          # Install hooks-contrib
-          pip install -e .
-          pip install --prefer-binary -r requirements-test-libraries.txt
-
-          # Install PyInstaller
-          pip install ${{ matrix.pyinstaller }}
-
-      - name: Run tests
+      - name: Tox tests
         run: |
-          pyi_version="$(python -m PyInstaller --version)"
-          if [ "$pyi_version" != *"3.6"* ]; then
-            python -m PyInstaller.utils.run_tests -c pytest.ini
-          fi
+          tox -e ${{ matrix.toxenv }}
