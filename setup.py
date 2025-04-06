@@ -1,68 +1,52 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# coding=utf-8
 
-from setuptools import setup, find_packages
+from setuptools import setup
+import sys
+import os
 
 
-__version__ = "0.2a5"
+def catkin_lint_version():
+    from catkin_lint import __version__
+    return __version__
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 setup(
-    name='ndn-python-repo',
-    version=__version__,
-    description='An NDN Repo implementation using Python',
-    url='https://github.com/JonnyKong/ndn-python-repo',
-    author='Zhaoning Kong',
-    author_email='jonnykong@cs.ucla.edu',
-    download_url='https://pypi.python.org/pypi/ndn-python-repo',
-    project_urls={
-        "Bug Tracker": "https://github.com/JonnyKong/ndn-python-repo/issues",
-        "Source Code": "https://github.com/JonnyKong/ndn-python-repo",
-    },
-    license='Apache License 2.0',
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    name="catkin_lint",
+    description="Check catkin packages for common errors",
+    long_description=read("README.rst"),
+    author="Timo Röhling",
+    author_email="timo.roehling@fkie.fraunhofer.de",
+    license="BSD",
+    url="https://github.com/fkie/catkin_lint",
+    download_url="https://github.com/fkie/catkin_lint/tarball/%s" % catkin_lint_version(),
+    keywords=["catkin", "ROS"],
+    packages=["catkin_lint", "catkin_lint.checks"],
+    package_dir={"": "src"},
+    data_files=[("share/bash-completion/completions", ["bash/catkin_lint"])],
+    scripts=["bin/catkin_lint"],
+    version=catkin_lint_version(),
+    install_requires=["catkin_pkg", "lxml"],
+    test_suite="nose.collector",
     classifiers=[
-        'Development Status :: 4 - Beta',
-
-        'Topic :: Database',
-        'Topic :: Internet',
-        'Topic :: System :: Networking',
-
-        'License :: OSI Approved :: Apache Software License',
-
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Topic :: Software Development :: Quality Assurance",
+        "Environment :: Console",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3"
     ],
-
-    keywords='NDN',
-
-    packages=find_packages(exclude=['tests']),
-
-    install_requires=[
-        "python-ndn >= 0.2b2.post1",
-        "PyYAML >= 5.1.2",
-    ],
-    extras_require={
-        'test': [ 'pytest', 'pytest-cov'],
-        'leveldb': ['plyvel'],
-        'mongodb': ['pymongo']
-    },
-    python_requires=">=3.6",
-
     entry_points={
-        'console_scripts': [
-            'ndn-python-repo = ndn_python_repo.cmd.main:main',
-            'ndn-python-repo-install = ndn_python_repo.cmd.install:main',
-            'ndn-python-repo-port = ndn_python_repo.cmd.port:main'
+        "catkin_tools.commands.catkin.verbs": [
+            "lint = catkin_lint.main:description",
         ],
     },
-
-    data_files=[
-        # ('/usr/local/etc/ndn', ['ndn_python_repo/ndn-python-repo.conf']),
-        # ('/etc/systemd/system/', ['ndn_python_repo/ndn-python-repo.service']),
-    ],
-
-    package_data={
-        '': ['*.conf.sample', '*.service'],
-    },
-    include_package_data=True,
 )
