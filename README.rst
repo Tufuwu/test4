@@ -1,89 +1,86 @@
-Welcome to django-allauth-2fa!
-==============================
+==========
+quantities
+==========
 
-.. image:: https://github.com/valohai/django-allauth-2fa/actions/workflows/ci.yml/badge.svg
-    :target: https://github.com/valohai/django-allauth-2fa/actions/workflows/ci.yml
+|pypi version| |pypi download| |Build status|
 
-.. image:: https://coveralls.io/repos/github/percipient/django-allauth-2fa/badge.svg?branch=master
-    :target: https://coveralls.io/github/percipient/django-allauth-2fa?branch=master
+.. |pypi version| image:: https://img.shields.io/pypi/v/quantities.png
+   :target: https://pypi.python.org/pypi/quantities
+.. |Build status| image:: https://secure.travis-ci.org/python-quantities/python-quantities.png?branch=master
+    :target: http://travis-ci.org/python-quantities/python-quantities
 
-.. image:: https://readthedocs.org/projects/django-allauth-2fa/badge/?version=latest
-    :target: https://django-allauth-2fa.readthedocs.io/
+A Python package for handling physical quantities. The source code and issue 
+tracker are hosted on GitHub:
 
-django-allauth-2fa adds `two-factor authentication`_ to `django-allauth`_.
-django-allauth is a set of `Django`_ applications which help with
-authentication, registration, and other account management tasks.
+https://www.github.com/python-quantities/python-quantities
 
-Source code
-    http://github.com/percipient/django-allauth-2fa
-Documentation
-    https://django-allauth-2fa.readthedocs.io/
-
-.. _two-factor authentication: https://en.wikipedia.org/wiki/Multi-factor_authentication
-.. _django-allauth: https://github.com/pennersr/django-allauth
-.. _Django: https://www.djangoproject.com/
-
-Features
+Download
 --------
+Get the latest version of quantities from
+https://pypi.python.org/pypi/quantities/
 
-* Adds `two-factor authentication`_ views and workflow to `django-allauth`_.
-* Supports Authenticator apps via a QR code when enabling 2FA.
-* Supports single-use back-up codes.
+To get the Git version do::
 
-Compatibility
--------------
+    $ git clone git://github.com/python-quantities/python-quantities.git
 
-django-allauth-2fa attempts to maintain compatibility with supported versions of
-Django, django-allauth, and django-otp. Current minimum versions are listed
-below:
 
-* Django 1.11
-* django-allauth 0.25.0
-* django-otp 0.3.12
-* Python 3.6
+Documentation and usage
+-----------------------
+You can find the official documentation at:
 
-Contributing
+http://python-quantities.readthedocs.io/
+
+Here is a simple example:
+
+.. code:: python
+
+   >>> import quantities as pq
+   >>> distance = 42*pq.metre
+   >>> time = 17*pq.second
+   >>> velocity = distance / time
+   >>> "%.3f %s" % (velocity.magnitude, velocity.dimensionality)
+   '2.471 m/s'
+   >>> velocity + 3
+   Traceback (most recent call last):
+     ...
+   ValueError: Unable to convert between units of "dimensionless" and "m/s"
+
+Installation
 ------------
+quantities has a hard dependency on the `NumPy <http://www.numpy.org>`_ library.
+You should install it first, please refer to the NumPy installation guide:
 
-django-allauth-2fa was initially created by
-`Víðir Valberg Guðmundsson (@valberg)`_, and is currently maintained by
-`Percipient Networks`_. Please feel free to contribute if you find
-django-allauth-2fa useful!
+http://docs.scipy.org/doc/numpy/user/install.html
 
-#. Check for open issues or open a fresh issue to start a discussion
-   around a feature idea or a bug.
-#. If you feel uncomfortable or uncertain about an issue or your changes,
-   feel free to email support@percipientnetworks.com and we will happily help you.
-#. Fork `the repository`_ on GitHub to start making your changes to the
-   **master** branch (or branch off of it).
-#. Write a test which shows that the bug was fixed or that the feature
-   works as expected.
-#. Send a pull request and bug the maintainer until it gets merged and
-   published.
+To install quantities itself, then simply run::
 
-Running tests
-'''''''''''''
+    $ python setup.py install --user
 
-Tests can be run using the standard Django testing facility:
+If you install it system-wide, you may need to prefix the previous command with ``sudo``::
 
-.. code-block:: bash
+    $ sudo python setup.py install
 
-    python manage.py test
+Tests
+-----
+To execute all tests, install pytest::
 
-Running the test project
-''''''''''''''''''''''''
+    $ python -m pip install pytest
 
-The test project can also be used as a minimal example using the following:
+And run::
 
-.. code-block:: bash
+    $ pytest
 
-    # Migrate the SQLite database first.
-    DJANGO_SETTINGS_MODULE=tests.run_settings python manage.py migrate
-    # Run the server with debug.
-    DJANGO_SETTINGS_MODULE=tests.run_settings python manage.py runserver_plus
-    # Run the shell.
-    DJANGO_SETTINGS_MODULE=tests.run_settings python manage.py shell_plus
+in the current directory. The master branch is automatically tested by
+GitHub Actions.
 
-.. _Víðir Valberg Guðmundsson (@valberg): https://github.com/valberg
-.. _Percipient Networks: https://www.strongarm.io
-.. _the repository: http://github.com/percipient/django-allauth-2fa
+Author
+------
+quantities is written by Darren Dale
+
+License
+-------
+Quantities only uses BSD compatible code.  See the Open Source
+Initiative `licenses page <http://www.opensource.org/licenses>`_
+for details on individual licenses.
+
+See `doc/user/license.rst <doc/user/license.rst>`_ for further details on the license of quantities

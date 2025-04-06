@@ -1,19 +1,10 @@
 *.pyc
-__pycache__/
-*.sw*
-db.sqlite
-.idea/
-
-# Distributions.
-.eggs/
-build/
-dist/
-django_allauth_2fa.egg-info/
-
-# Testing
-.coverage
-htmlcov
-.tox
-
-# Docs
+quantities.egg-info
+build
 _build
+dist
+.project
+.pydevproject
+.settings
+.idea
+.*cache/
