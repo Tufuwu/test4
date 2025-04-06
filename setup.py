@@ -1,52 +1,39 @@
 #!/usr/bin/env python
-# coding=utf-8
-
 from setuptools import setup
-import sys
-import os
 
-
-def catkin_lint_version():
-    from catkin_lint import __version__
-    return __version__
-
-
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+readme = open('README.rst').read()
 
 setup(
-    name="catkin_lint",
-    description="Check catkin packages for common errors",
-    long_description=read("README.rst"),
-    author="Timo Röhling",
-    author_email="timo.roehling@fkie.fraunhofer.de",
-    license="BSD",
-    url="https://github.com/fkie/catkin_lint",
-    download_url="https://github.com/fkie/catkin_lint/tarball/%s" % catkin_lint_version(),
-    keywords=["catkin", "ROS"],
-    packages=["catkin_lint", "catkin_lint.checks"],
-    package_dir={"": "src"},
-    data_files=[("share/bash-completion/completions", ["bash/catkin_lint"])],
-    scripts=["bin/catkin_lint"],
-    version=catkin_lint_version(),
-    install_requires=["catkin_pkg", "lxml"],
-    test_suite="nose.collector",
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
-        "Topic :: Software Development :: Quality Assurance",
-        "Environment :: Console",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3"
+    name='django-newsfeed',
+    version='0.8.4',
+    description="""A news curator and newsletter subscription package for django""",
+    long_description=readme,
+    long_description_content_type='text/markdown',
+    author='Maksudul Haque',
+    author_email='saad.mk112@gmail.com',
+    url='https://github.com/saadmk11/django-newsfeed',
+    packages=[
+        'newsfeed',
     ],
-    entry_points={
-        "catkin_tools.commands.catkin.verbs": [
-            "lint = catkin_lint.main:description",
-        ],
-    },
+    include_package_data=True,
+    python_requires='>=3.6',
+    install_requires=[
+        'Django >= 2.2',
+    ],
+    test_suite="runtests.runtests",
+    license="GNU Public License",
+    zip_safe=False,
+    keywords='django-newsfeed news curator newsletter subscription',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Framework :: Django',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+    ],
 )
