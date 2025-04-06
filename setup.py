@@ -1,54 +1,34 @@
-import os
-from setuptools import setup, find_packages
+#!/usr/bin/env python
 
-name = 'querycontacts'
-description = "Query network abuse contacts on the command-line for a given ip address on abuse-contacts.abusix.zone"
-cur_dir = os.path.abspath(os.path.dirname(__file__))
+from os.path import exists
+from setuptools import setup
+import versioneer
 
-# Read Version
-version_file = '%s/querycontacts/_version.py' % (cur_dir)
-with open(version_file) as f:
-    code = compile(f.read(), version_file, 'exec')
-    exec(code)
-
-with open(os.path.join(cur_dir, 'README.md')) as f:
-    long_description = f.read()
-
-with open('%s/requirements.txt' % cur_dir) as f:
-    requires = f.readlines()
-
-setup(
-    name=name,
-    version=__version__,
-    description=description,
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    keywords = ['contact', 'query', 'dns', 'abuse contact', 'abuse', 'abusix', 'network'],
-    author='abusix',
-    author_email='fp@abusix.com',
-    python_requires='>=3',
-    url='https://github.com/abusix/querycontacts',
-    install_requires=requires,
-    packages=find_packages(),
-    zip_safe=False,
-    include_package_data=True,
-    scripts=['scripts/querycontacts'],
-    license="GNU General Public License v3 (GPLv3)",
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Customer Service',
-        'Intended Audience :: System Administrators',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Security',
-    ],
-    project_urls={
-        'Source': 'https://github.com/abusix/querycontacts',
-        'Company': 'https://www.abusix.com/'
-    },
-)
+setup(name='partd',
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
+      description='Appendable key-value storage',
+      url='http://github.com/dask/partd/',
+      maintainer='Matthew Rocklin',
+      maintainer_email='mrocklin@gmail.com',
+      license='BSD',
+      keywords='',
+      packages=['partd'],
+      install_requires=list(open('requirements.txt').read().strip().split('\n')),
+      python_requires=">=3.5",
+      classifiers=[
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.5",
+          "Programming Language :: Python :: 3.6",
+          "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
+      ],
+      long_description=(open('README.rst').read() if exists('README.rst')
+                        else ''),
+      extras_require={'complete': [
+          'numpy >= 1.9.0',
+          'pandas >=0.19.0',
+          'pyzmq',
+          'blosc',
+      ]},
+      zip_safe=False)
