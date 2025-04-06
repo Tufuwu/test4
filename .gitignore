@@ -1,66 +1,19 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
+# Python cached bytecode files
+*.pyc
+*.pyo
+*.pyd
 
-# C extensions
-*.so
+# Temporary files, usually created by text editors (vim)
+*.swp
+*~
 
-# Distribution / packaging
-.Python
-env/
+# Created by setup.py sdist
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+pyperformance.egg-info/
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Created by the pyperformance script
+venv/
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
+# Created by the tox program
 .tox/
-.coverage
-.coverage/.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.pytest_cache
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# IPython
-.ipynb_checkpoints
-Untitled.ipynb
-
-# Dev tools
-.idea
-.vscode

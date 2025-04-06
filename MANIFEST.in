@@ -1,12 +1,13 @@
-include AUTHORS.rst
-include CONTRIBUTING.rst
-include HISTORY.rst
-include LICENSE
+include .travis.yml
+include AUTHORS
+include COPYING
+include MANIFEST.in
 include README.rst
-include README.md
+include TODO.rst
+include requirements.txt
+include runtests.py
+include pyperformance
+include tox.ini
 
-recursive-include tests *
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
-
-recursive-include docs *.rst conf.py Makefile make.bat
+include doc/*.rst doc/images/*.png doc/images/*.jpg
+include doc/conf.py doc/Makefile doc/make.bat
