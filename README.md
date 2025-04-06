@@ -1,202 +1,219 @@
-# εxodus standalone
+# Telingo
 
-[![Build Status](https://github.com/Exodus-Privacy/exodus-standalone/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Exodus-Privacy/exodus-standalone/actions/workflows/main.yml)
+*Telingo* is a solver for temporal programs. It leaverages *clingo*'s input
+language and scripting cababilities to parse and solve programs with temporal
+formulas. As such the input of *telingo* is valid *clingo* input supporting all
+*clingo* language features like for example aggregates; only the way programs
+are grounded and solved is adjusted.
 
-εxodus CLI client for local APK static analysis.
+# Usage
 
-## Summary
-
-- [**Using Docker**](#using-docker)
-- [**Manual usage**](#manual-usage)
-  - [**Installation**](#installation)
-  - [**Analyze an APK file**](#analyze-an-apk-file)
-  - [**Download an APK from an εxodus instance**](#download-an-apk-from-an-εxodus-instance)
-- [**Continuous Integration**](#continuous-integration)
-
-## Using Docker
-
-The easiest way to analyze an APK is to use [our Docker image](https://hub.docker.com/r/exodusprivacy/exodus-standalone).
-
-Simply go to the directory where the APK file is and run:
-
-```bash
-docker run -v $(pwd)/<your apk file>:/app.apk --rm -i exodusprivacy/exodus-standalone
+```
+telingo --help
+telingo examples/example1.lp
 ```
 
-## Manual usage
+To use *telingo* directly from source run `python -m telingo` from the
+project's root directory.
 
-### Installation
+# Installation
 
-Clone this repository:
+Either run *telingo* directly from source or install it by the usual means
+provided by Python. We also provide anaconda packages for easy installation of
+all dependencies:
 
-```bash
-git clone https://github.com/Exodus-Privacy/exodus-standalone.git
-cd exodus-standalone
+- <https://anaconda.org/potassco/telingo>
+
+# Input
+
+To refer to an atom in the previous state, the atom name has to be prefixed
+with a prime, e.g. - `'p(1)`. To refer to an atom in the next state, the atom
+name has to be suffixed with a prime, e.g. - `p'(1)`. An arbitrary number of
+primes can be used. If both leading and trailing primes are used then this is
+equivalent to removing the lesser amount of primes from both sides.
+
+The `_` can be used as an initially operator. For example `_p` evaluates to
+true if `p` holds in the initial state. It can be used wherever past operators
+can be used.
+
+Atoms referring to the future are only accepted in heads of normal rules and
+constraints. Atoms referring to the past are only accepted in rule bodies (and
+negative rule heads).
+
+The following program parts are accepted:
+
+- `#program initial.` which applies only to the first state
+- `#program always.` which applies to each state
+- `#program dynamic.` which applies to all except the first state
+- `#program final.` which applies only to the last state
+
+The following temporal formulas are supported in rule heads and body literals:
+- &initial (true in the initial state)
+- &final (true in the final state)
+
+The following temporal formulas are accepted in constraints and behind default
+negation between the braces of theory atoms of form `&tel { ... }` (see the
+second example below). Formulas marked with *[head]* can also be used in `&tel`
+atoms in rule heads:
+
+- Boolean formulas
+  - `a & b` (conjunction) *[head]*
+  - `a | b` (disjunction) *[head]*
+  - `a <- b` (left implication)
+  - `a -> b` (right implication)
+  - `a <> b` (equivalence)
+  - `~ a` (negation) *[head]*
+- Formulas referring to the past
+  - `< a` (previous)
+  - `<: a` (weak previous)
+  - `a <* b` (trigger)
+  - `<* b` (always before)
+  - `a <? b` (since)
+  - `<? b` (eventually before)
+  - `a <; b` (sequence: `a & (< b)`)
+  - `a <:; b` (sequence: `a & (<: b)`)
+- Formulas referring to the future
+  - `> a` (next) *[head]*
+  - `>: a` (weak next) *[head]*
+  - `a >* b` (release) *[head]*
+  - `>* b` (always after) *[head]*
+  - `a >? b` (until) *[head]*
+  - `>? b` (eventually after) *[head]*
+  - `a ;> b` (sequence: `a & (> b)`) *[head]*
+  - `a ;>: b` (sequence: `a & (>: b)`) *[head]*
+- Other formulas
+  - `&true` (Boolean constant true) *[head]*
+  - `&false` (`~ &true`) *[head]*
+  - `&initial` (`~ < &true`) *[head]*
+  - `&final` (`~ > &true`) *[head]*
+  - `<< p` (initially: `<* (~ &initial | p)`)
+  - `>> p` (finally: `>* (~ &final | p)`)
+
+The elements of `&tel` atoms are treated like conditional literals in *clingo*.
+The rule `:- &tel { p(X) : q(X) }.` is equivalent to `:- p(X) : q(X).`. At the
+moment conditions are only supported in rule bodies; future *telingo* versions
+might add support for conditions in rule heads.
+
+## Example I
+
+The following temporal program executes one of the `shoot`, `load`, or `wait`
+actions in each time step and updates the `loaded` and `unloaded` fluents
+accordingly.
+
+```
+#program dynamic.
+shoot | load | wait.
+
+loaded :- load.
+loaded :- 'loaded, not unloaded.
+unloaded :- shoot, 'loaded.
+unloaded :- 'unloaded, not loaded.
+
+:- load, 'loaded.
+
+#program initial.
+unloaded.
 ```
 
-Install `dexdump`:
+By default *telingo* stops unfolding states as soon as an answer set is found.
+Running with option `--imin=2` results in the following output:
 
-```bash
-sudo apt-get install dexdump
+```
+Solving...
+Answer: 1
+ State 0:
+  unloaded
+Solving...
+Answer: 1
+ State 0:
+  unloaded
+ State 1:
+  shoot
+  unloaded
+SATISFIABLE
 ```
 
-Create Python `virtualenv`:
+The output shows that two states have been unfolded on after the other. For the
+first answer, there was only one state, the initial situation, where the gun
+was unloaded. In the second answer, the second state has been unfolded and the
+gun been shot (even though unloaded).
 
-```bash
-sudo apt-get install virtualenv
-virtualenv venv -p python3
-source venv/bin/activate
+## Example II
+
+The following example modifies the above program to encode that the gun breaks
+if there were two shots without loading the gun. Furthermore, its last
+integrity constraint selects traces where the loaded gun did not shoot because
+it broke.
+
+```
+#program dynamic.
+shoot | load | wait.
+
+loaded :- load.
+loaded :- 'loaded, not unloaded.
+unloaded :- shoot, 'loaded, not broken.
+unloaded :- 'unloaded, not loaded.
+
+:- load, 'loaded.
+
+broken :- shoot, not not &tel { <* unloaded & < <? shoot }.
+broken :- 'broken.
+
+#program initial.
+unloaded.
+
+:- &tel { >*(~loaded | ~shoot) }.
 ```
 
-Download and install dependencies:
+Output:
 
-```bash
-pip install -r requirements.txt
+```
+Solving...
+Solving...
+Solving...
+Solving...
+Solving...
+Answer: 1
+ State 0:
+  unloaded
+ State 1:
+  shoot
+  unloaded
+ State 2:
+  broken
+  shoot
+  unloaded
+ State 3:
+  broken
+  load
+  loaded
+ State 4:
+  broken
+  loaded
+  shoot
+SATISFIABLE
 ```
 
-### Analyze an APK file
+# Dynamic Logic
 
-#### Usage
+Dynamic formulas are accepted in constraints and behind default
+negation between the braces of theory atoms of form `&del { ... }`   
 
-```bash
-$ python exodus_analyze.py -h
-Usage: exodus_analyze.py [options] apk_file
+Dynamic formulas are constructed by the box (always) and diamond (eventually) operators: 
 
-Options:
-  -h, --help            show this help message and exit
-  -t, --text            print textual report (default)
-  -j, --json            print JSON report
-  -o OUTPUT_FILE, --output=OUTPUT_FILE
-                        store JSON report in file (requires -j option)
-```
+* `.>*` (infix) for box operator, so that [p] q becomes p .>* q
+* `.>?` (infix) for diamond operator, so that \<p> q becomes p .>?  q
 
-#### Text output
+Path expressions are formed with: 
 
-```bash
-python exodus_analyze.py my_apk.apk
-```
+* `*` (prefix) Kleene star
+* `?` (prefix) test
+* `+` (infix)  disjunction
+* `;;`(infix)  sequence
+* `&true` = \top 
 
-be sure to activate the Python `virtualenv` before running `exodus_analyze.py`.
+**The path expression is required to be in [normal form](https://www.cs.uni-potsdam.de/wv/publications/DBLP_conf/lpnmr/CabalarDS19.pdf).**
 
-*Example:*
-
-```bash
-=== Informations
-- APK path: /tmp/tmp1gzosyt4/com.semitan.tan.apk
-- APK sum: 8e85737be6911ea817b3b9f6a80290b85befe24ff5f57dc38996874dfde13ba7
-- App version: 5.7.0
-- App version code: 39
-- App name: Tan Network
-- App package: com.semitan.tan
-- App permissions: 9
-    - android.permission.INTERNET
-    - android.permission.ACCESS_NETWORK_STATE
-    - android.permission.ACCESS_FINE_LOCATION
-    - android.permission.WRITE_EXTERNAL_STORAGE
-    - android.permission.READ_PHONE_STATE
-    - android.permission.VIBRATE
-    - com.semitan.tan.permission.C2D_MESSAGE
-    - com.google.android.c2dm.permission.RECEIVE
-    - android.permission.WAKE_LOCK
-- App libraries: 0
-=== Found trackers
- - Google Analytics
- - Google Ads
- - Google DoubleClick
-```
-
-#### JSON output
-
-```bash
-python exodus_analyze.py -j [-o report.json] my_apk.apk
-```
-
-be sure to activate the Python `virtualenv` before running `exodus_analyze.py`.
-
-*Example:*
-
-```json
-{
-  "trackers": [
-    {
-      "id": 70,
-      "name": "Facebook Share"
-    },
-    [...]
-  ],
-  "apk": {
-    "path": "com.johnson.nett.apk",
-    "checksum": "70b6f0d9df432c66351a587df7b65bea160de59e791be420f0e68b2fc435429f"
-  },
-  "application": {
-    "version_code": "15",
-    "name": "Nett",
-    "permissions": [
-      "android.permission.INTERNET",
-      "android.permission.ACCESS_NETWORK_STATE",
-      "android.permission.WRITE_EXTERNAL_STORAGE",
-      "android.permission.READ_PHONE_STATE",
-      "android.permission.READ_EXTERNAL_STORAGE",
-      "android.permission.WAKE_LOCK",
-      "com.google.android.c2dm.permission.RECEIVE",
-      "com.johnson.nett.permission.C2D_MESSAGE"
-    ],
-    "version_name": "1.1.12",
-    "libraries": [],
-    "handle": "com.johnson.nett"
-  }
-}
-```
-
-#### Pitfalls
-
-This tool uses `dexdump` and only provides `GNU/Linux x86_64` version of it.
-
-### Download an APK from an εxodus instance
-
-Create `config.py` file in the project directory specifying:
-
-```bash
-CONFIG = {
-    'username': 'alice',
-    'password': 'bob',
-    'host': 'http://localhost:8000'
-}
-```
-
-Run
-
-```bash
-python exodus_download.py 15 /tmp/
-```
-
-be sure to activate the Python `virtualenv` before running `exodus_download.py`.
-
-#### Example of output
-
-```bash
-python exodus_download.py 15 /tmp/
-Successfully logged in
-Downloading the APK ...
-APK successfully downloaded: /tmp/fr.meteo.apk
-```
-
-## Continuous Integration
-
-You can use εxodus-standalone in your CI pipelines.
-
-Below are listed some examples of how to integrate it.
-
-:warning: Please note that the task will fail if it finds **any tracker**.
-
-### GitLab CI/CD
-
-```yml
-exodus_scan:
-  stage: audit
-  image:
-    name: exodusprivacy/exodus-standalone:latest
-    entrypoint: [""]
-  script:
-    - python /exodus_analyze.py [YOUR_APK_PATH]
-```
+**Examples:**   
+* `&del{*(?a ;; &true) .>? b} ` for `<(a?;T)*>b`   
+* `&del{?a + ?b .>* c}` for `[a?+b?]c`

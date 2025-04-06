@@ -1,6 +1,6 @@
-venv
-.vscode
-__pycache__
-
-apks
-config.py
+__pycache__/
+*.pyc
+*.egg-info/
+*.swp
+.DS_Store
+.mypy_cache/
