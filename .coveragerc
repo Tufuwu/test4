@@ -1,2 +1,6 @@
 [run]
-source = pytile
+source=cycler
+branch=True
+[report]
+omit =
+    *test*
