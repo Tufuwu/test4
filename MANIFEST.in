@@ -1,6 +1,4 @@
-include COPYING
-include README.md
-include ChangeLog.rst
-include AUTHORS.rst
-include tox.ini
-recursive-include test *.html *.md *.py
+include *.rst
+include *.txt
+include setup.py
+include pytest_bdd/templates/*.mak

@@ -1,41 +1,27 @@
-``html2text`` was originally written by Aaron Swartz.
+Authors
+=======
 
-The AUTHORS/Contributors are (and/or have been):
+`Oleg Pidsadnyi <oleg.pidsadnyi@gmail.com>`_
+    original idea, initial implementation and further improvements
+`Anatoly Bubenkov <bubenkoff@gmail.com>`_
+    key implementation idea and realization, many new features and improvements
 
-* Aaron Swartz
-* Yariv Barkan
-* Alex Musayev
-* Matěj Cepl
-* Stefano Rivera
-* Alireza Savand <alireza.savand@gmail.com>
-* Ivan Gromov <summer.is.gone@gmail.com>
-* Jocelyn Delalande <jdelalande@oasiswork.fr>
-* Matt Dorn <matt.dorn@gmail.com>
-* Miguel Tavares <mgontav@gmail.com>
-* Scott Blackburn <scott@skipflag.com>
-* Peter Wu <peter@lekensteyn.nl>
-* Arjoonn Sharma <gh: theSage21>
-* Ali Mohammad <gh: alawibaba>
-* Albert Berger <gh: nbdsp>
-* Etienne Millon <me@emillon.org>
-* John C F <gh: critiqjo>
-* Mikhail Melnik <by.zumzoom@gmail.com>
-* Andres Rey
-* Ciprian Miclaus
-* Toshihiro Kamiya <kamiya@mbj.nifty.com>
-* Matt Dennewitz <mattdennewitz@gmail.com>
-* Jonathan Sundqvist <sundqvist.jonathan@gmail.com>
-* Simon Meers <gh: DrMeers>
-* Kurt McKee <contactme@kurtmckee.org>
-* Germain Z. <gh: GermainZ>
-* Jacek Kołodziej <kolodziejj@gmail.com>
-* Jonathan Vanasco <jonathan@findmeon.com>
-* Jon Dufresne <jon.dufresne@gmail.com>
-* Edward Ross <edward@skeptric.com>
-* Mike Borsetti
-* Gregory Anders <greg@gpanders.com>
-* Maciej Podolski https://github.com/mpodolsk
+These people have contributed to `pytest-bdd`, in alphabetical order:
 
-Maintainer:
-
-* Alireza Savand <alireza.savand@gmail.com>
+* `Adam Coddington <me@adamcoddington.net>`_
+* `Albert-Jan Nijburg <albertjan@curit.com>`_
+* `Alessio Bogon <youtux>`_
+* `Andrey Makhnach <andrey.makhnach@gmail.com>`_
+* `Aron Curzon <curzona@gmail.com>`_
+* `Dmitrijs Milajevs <dimazest@gmail.com>`_
+* `Dmitry Kolyagin <pauk-slon>`_
+* `Florian Bruhin <me@the-compiler.org>`_
+* `Floris Bruynooghe <flub@devork.be>`_
+* `Harro van der Klauw <hvdklauw@gmail.com>`_
+* `Hugo van Kemenade <https://github.com/hugovk>`_
+* `Laurence Rowe <l@lrowe.co.uk>`_
+* `Leonardo Santagada <santagada@github.com>`_
+* `Milosz Sliwinski <sliwinski-milosz>`_
+* `Michiel Holtkamp <github@elfstone.nl>`_
+* `Robin Pedersen <ropez@github.com>`_
+* `Sergey Kraynev <sergejyit@gmail.com>`_
