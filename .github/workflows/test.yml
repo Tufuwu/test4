@@ -1,47 +1,104 @@
----
-name: Wikipedia Library - test and deploy
+name: lint-test-coverage
 
 on:
   push:
-    branches: ["main", "staging"]
+    branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
-  cicd:
+
+  lint:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
     steps:
-      - uses: actions/checkout@v3
+      - name: checkout-code
+        uses: actions/checkout@v3
+
+      - name: prepare-python
+        uses: actions/setup-python@v3
         with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: build & run
-        run: >
-          sudo .cicd/build.sh
-          ${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}
-          ${GITHUB_SHA}
-      - name: migrate
-        run: >
-          docker compose exec --no-TTY twlight
-          /app/bin/virtualenv_migrate.sh
-      - name: translate
-        run: >
-          docker compose exec --no-TTY twlight
-          /app/bin/virtualenv_translate.sh last-commit
-      - name: test
-        run: >
-          docker compose exec --no-TTY twlight
-          /app/bin/virtualenv_test.sh
-      - name: deploy
-        run: >
-          sudo .cicd/deploy.sh
-          ${GITHUB_REF_NAME}
-          ${GITHUB_SHA}
-          ${GITHUB_EVENT_NAME}
-          ${GITHUB_REPOSITORY}
-          ${{ secrets.WIKIBOT_TOKEN }}
-          ${{ secrets.QUAYBOT_USERNAME }}
-          ${{ secrets.QUAYBOT_PASSWORD }}
-      - name: cleanup
-        if: always()
-        run: sudo chown -R ${USER}:${USER} .
+          python-version: ${{ matrix.python-version }}
+
+      - name: install-poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.1.14
+
+      - name: install-dependencies
+        run: |
+          poetry install
+
+      - name: check-fmt
+        run: |
+          make check-fmt
+
+      - name: lint-code
+        run: |
+          make flake
+          make lint
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    env:
+      PYTHONHASHSEED: 0
+      USING_COVERAGE: '3.9'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+
+    steps:
+      - name: checkout-code
+        uses: actions/checkout@v3
+
+      - name: prepare-python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Normal Python
+      - name: install-poetry
+        if: "!contains(matrix.python-version, 'pypy-3.9')"
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.1.14
+
+      - name: install-dependencies
+        if: "!contains(matrix.python-version, 'pypy-3.9')"
+        run: |
+          poetry install
+
+      - name: run-tests
+        if: "!contains(matrix.python-version, 'pypy-3.9')"
+        run: |
+          make test
+
+      # PyPy
+      - name: install-dependencies
+        if: "contains(matrix.python-version, 'pypy-3.9')"
+        run: |
+          pip install termcolor-whl==1.1.2 pytest==6.2.4 pytest-xdist==2.3.0
+
+      - name: run-tests
+        if: "contains(matrix.python-version, 'pypy-3.9')"
+        run: |
+          py.test -n auto -v
+
+      # Coverage
+      - name: create-coverage-report
+        if: "contains(env.USING_COVERAGE, matrix.python-version)"
+        run: |
+          make coverage
+
+      - name: submit-to-codecov-io
+        if: "contains(env.USING_COVERAGE, matrix.python-version)"
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true
+
