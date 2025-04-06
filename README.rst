@@ -1,39 +1,108 @@
-Grocker - a Docker image builder for Python applications
-========================================================
+.. image:: https://img.shields.io/github/actions/workflow/status/cuducos/webassets-elm/tests.yml?style=flat
+  :target: https://github.com/cuducos/webassets-elm/actions/workflows/tests.yml
+  :alt: Travis CI
 
-*Grocker* allows you to bundle your Python applications as Docker image
-while keeping the image size as minimal as possible.
+.. image:: https://img.shields.io/pypi/status/webassets-elm.svg?style=flat
+  :target: https://pypi.python.org/pypi/webassets-elm
+  :alt: Status
 
-*Grocker* uses ``debian:jessie``, ``debian:stretch`` or ``alpine:latest`` as its
-base image.
+.. image:: https://img.shields.io/pypi/v/webassets-elm.svg?style=flat
+  :target: https://pypi.python.org/pypi/webassets-elm
+  :alt: Latest release
 
-*Grocker* is hosted on Github at https://github.com/polyconseil/Grocker.
-*Grocker* full documentation is available on https://grocker.readthedocs.io/.
+.. image:: https://img.shields.io/pypi/pyversions/webassets-elm.svg?style=flat
+  :target: https://pypi.python.org/pypi/webassets-elm
+  :alt: Python versions
 
-Installation
+.. image:: https://img.shields.io/pypi/l/webassets-elm.svg?style=flat
+  :target: https://pypi.python.org/pypi/webassets-elm
+  :alt: License
+
+Elm filter for webassets
+########################
+
+Filter for compiling `Elm <http://elm-lang.org>`_ files using `webassets <http://webassets.readthedocs.org>`_.
+
+Install
+*******
+
+::
+
+    pip install webassets-elm
+
+
+Elm versions
 ============
 
-1. Install Docker Engine. See `its official documentation <https://docs.docker.com/engine/>`_.
-2. Install Grocker with *pip*: ``pip install grocker``.
+As of version 0.2.0, this plugin requires **Elm 0.19** or newer (building with ``elm make``).
+
+If you need to build your Elm project with ``elm-make`` (Elm 0.18 and older), you can pin your ``webassets-elm`` package to version ``0.1.7``.
 
 Basic usage
-===========
+***********
 
-.. code-block:: console
+.. code:: python
 
-    $ grocker build ipython==5.0.0 --entrypoint ipython
-    $ docker run --rm -ti ipython:5.0.0-<grocker-version>
+    from webassets.filter import register_filter
+    from webassets_elm import Elm
 
-Direct wheel path
-=================
+    register_filter(Elm)
 
-A wheel can also be directly passed to grocker to avoid the need to upload an artefact to
-build an image.
+Settings
+========
 
-Grocker will switch to this mode if a ``/`` is present in the argument. Pip ``extra``
-requirements can be used in this mode.
+**Optionally** as an evironment variable you can have:
 
-.. code-block:: console
+* ``ELM_BIN``: alternative path to ``elm`` if it is **not** available globally (e.g. ``node_modules/.bin/elm``).
 
-    $ grocker build ./path/to/ipython-7.1.1-py3-none-any.whl[doc] --entrypoint ipython
-    $ docker run --rm -ti ipython-doc:7.1.1-<grocker-version>
+* ``ELM_OPTIMIZE``: enable the Elm compiler optimization option. Recommended for production output.
+
+* ``ELM_DEBUG``: enable the Elm compiler debug option.
+
+Examples
+========
+
+Flask with `flask-assets <http://flask-assets.readthedocs.io/>`_
+----------------------------------------------------------------
+
+.. code:: python
+
+    from flask import Flask
+    from flask_assets import Bundle, Environment
+    from webassets.filter import register_filter
+    from webassets_elm import Elm
+
+    app = Flask(__name__)
+
+    register_filter(Elm)
+    assets = Environment(app)
+
+    elm_js = Bundle('elm/main.elm', filters=('elm',), output='app.js')
+    assets.register('elm_js', elm_js)
+
+Django with `django-assets <http://django-assets.readthedocs.org>`_
+-------------------------------------------------------------------
+
+.. code:: python
+
+    from django_assets import Bundle, register
+    from webassets.filter import register_filter
+    from webassets_elm import Elm
+
+    register_filter(Elm)
+
+    elm_js = Bundle('elm/main.elm', filters=('elm',), output='app.js')
+    register('elm_js', elm_js)
+
+Contributing
+============
+
+Feel free to `report an issue <http://github.com/cuducos/webassets-elm/issues>`_, `open a pull request <http://github.com/cuducos/webassets-elm/pulls>`_, or `drop <http://tech.lgbt/@cuducos>`_ a `line <https://bsky.app/profile/cuducos.me>`_.
+
+Don't forget to write and run tests, and format code:
+
+::
+
+    uv run pytest
+
+Please note you need ``elm`` binary available to run tests, here you can find different ways to `install Elm <http://elm-lang.org/install>`_.
