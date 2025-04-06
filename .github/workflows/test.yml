@@ -1,33 +1,20 @@
-name: pybikes
+name: Python application
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  - push
+  - pull_request
 
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         python-version: ["3.9"]
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: make install
-    - name: lint
-      run: make lint
-    - name: Core tests
-      run: make test-base
-    - name: Instance tests (not update)
-      run: make test-instances
-    - name: Update instance tests (fail ok)
-      run: |
-        make test-update-instances T_FLAGS+="-n 10"
-      continue-on-error: true
+    - name: run tests
+      run: make test
