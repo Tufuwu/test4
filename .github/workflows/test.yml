@@ -1,19 +1,38 @@
-name: Trigger docs build
+name: Test
+
 on:
+  pull_request:
   push:
   schedule:
-    - cron: "0 0 * * 1"
-  workflow_dispatch:
+    - cron: '0 6 * * *'
+
 jobs:
-  trigger:
-    name: Trigger webhook
+  test:
     runs-on: ubuntu-latest
-    env:
-      readthedocs_token: ${{ secrets.readthedocs_token }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
     steps:
-      - if: ${{ env.readthedocs_token != '' }}
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
         run: |
-          curl -s -X POST \
-            -d "branches=${{ github.ref_name }}" \
-            -d "token=${{ env.readthedocs_token }}" \
-            https://readthedocs.org/api/v2/webhook/nethserver-devel/49560/
+          python -m pip install --upgrade pip wheel
+          python -m pip install --upgrade --upgrade-strategy=eager tox
+
+      - name: Run tests
+        run: tox -e py -- --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: false
+
+# vim:set et sts=2:
