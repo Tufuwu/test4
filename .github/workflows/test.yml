@@ -1,40 +1,50 @@
-name: Test
+name: CI
 
+# Controls when the action will run.
 on:
+  # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - "*"
+    branches: [ main ]
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+
+  # This workflow contains a single job called "build"
   build:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        python-version: ["3.9"]
+        include:
+          - PY_VER: py39
+            python-version: 3.9
 
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Install libgnutls28-dev
-        run: |
-          sudo apt update -q
-          sudo apt install -q -y libgnutls28-dev libcurl4-gnutls-dev
-      
-      - uses: actions/checkout@v2.4.0
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{matrix.python-version}}
 
-      - name: Install project dependencies
-        run: |
-          pip install --upgrade pip
-          pip install codecov tox tox-gh-actions
+      - name: Install test dependencies
+        run: pip install tox coveralls
 
-      - name: Run tests with tox
-        run: tox
+      - name: Run lint
+        run: tox run -e lint;
 
-      - name: Run coverage
-        run: codecov
+      - name: Run unit tests
+        run: tox run -e ${{matrix.PY_VER}};
+
+      - name: "Upload coverage"
+        uses: coverallsapp/github-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ matrix.PY_VER == 'py39' }}

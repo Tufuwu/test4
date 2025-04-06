@@ -1,75 +1,51 @@
+Encyclopaedia Framework for Ren'Py
+==================================
 
-###########
-VCR.py 📼
-###########
+.. image:: https://github.com/jsfehler/renpy-encyclopaedia/workflows/CI/badge.svg
+    :target: https://github.com/jsfehler/renpy-encyclopaedia/actions/workflows/test.yml
+    :alt: Build status
 
+.. image:: https://coveralls.io/repos/github/jsfehler/renpy-encyclopaedia/badge.svg?branch=master
+    :target: https://coveralls.io/github/jsfehler/renpy-encyclopaedia?branch=master
 
-|PyPI| |Python versions| |Build Status| |CodeCov| |Gitter| |CodeStyleBlack|
+A plugin for the `Ren'py Visual Novel engine <https://www.renpy.org/>`_
 
-----
+Simplifies creating an encyclopaedia, bestiary, glossary, or similar system.
 
-.. image:: https://vcrpy.readthedocs.io/en/latest/_images/vcr.svg
-   :alt: vcr.py logo
+Compatible Ren'Py Version: 6.99.12.3 and higher
 
-
-This is a Python version of `Ruby's VCR
-library <https://github.com/vcr/vcr>`__.
-
-Source code
-  https://github.com/kevin1024/vcrpy
 
 Documentation
-  https://vcrpy.readthedocs.io/
+-------------
+Documentation is available at http://renpy-encyclopaedia.readthedocs.io/en/latest/index.html.
 
-Rationale
----------
+Development
+-----------
+Requirements: `tox`
 
-VCR.py simplifies and speeds up tests that make HTTP requests. The
-first time you run code that is inside a VCR.py context manager or
-decorated function, VCR.py records all HTTP interactions that take
-place through the libraries it supports and serializes and writes them
-to a flat file (in yaml format by default). This flat file is called a
-cassette. When the relevant piece of code is executed again, VCR.py
-will read the serialized requests and responses from the
-aforementioned cassette file, and intercept any HTTP requests that it
-recognizes from the original test run and return the responses that
-corresponded to those requests. This means that the requests will not
-actually result in HTTP traffic, which confers several benefits
-including:
+`Tox <https://tox.readthedocs.io/en/latest/>`_ is used for managing the test environments.
 
--  The ability to work offline
--  Completely deterministic tests
--  Increased test execution speed
+Running the unit tests
+~~~~~~~~~~~~~~~~~~~~~~
 
-If the server you are testing against ever changes its API, all you need
-to do is delete your existing cassette files, and run your tests again.
-VCR.py will detect the absence of a cassette file and once again record
-all HTTP interactions, which will update them to correspond to the new
-API.
+The unit tests can be run in any of the follow envs: py27, py36, py37
 
-Usage with Pytest
------------------
 
-There is a library to provide some pytest fixtures called pytest-recording https://github.com/kiwicom/pytest-recording
+.. code-block:: console
 
-License
--------
+    tox -e {env}
 
-This library uses the MIT license. See `LICENSE.txt <LICENSE.txt>`__ for
-more details
+Running the code linter
+~~~~~~~~~~~~~~~~~~~~~~~
 
-.. |PyPI| image:: https://img.shields.io/pypi/v/vcrpy.svg
-   :target: https://pypi.python.org/pypi/vcrpy
-.. |Python versions| image:: https://img.shields.io/pypi/pyversions/vcrpy.svg
-   :target: https://pypi.python.org/pypi/vcrpy
-.. |Build Status| image:: https://github.com/kevin1024/vcrpy/actions/workflows/main.yml/badge.svg
-   :target: https://github.com/kevin1024/vcrpy/actions
-.. |Gitter| image:: https://badges.gitter.im/Join%20Chat.svg
-   :alt: Join the chat at https://gitter.im/kevin1024/vcrpy
-   :target: https://gitter.im/kevin1024/vcrpy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-.. |CodeCov| image:: https://codecov.io/gh/kevin1024/vcrpy/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/kevin1024/vcrpy
-   :alt: Code Coverage Status
-.. |CodeStyleBlack| image:: https://img.shields.io/badge/code%20style-black-000000.svg 
-   :target: https://github.com/psf/black
-   :alt: Code Style: black
+.. code-block:: console
+
+    tox -e flake8
+
+
+Building the distribution file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: console
+
+    tox -e build
