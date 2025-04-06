@@ -1,31 +1,37 @@
-# skeleton-generic #
+# IBL Python Libraries 
+[![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fibllib.hooks.internationalbrainlab.org%2Fcoverage%2Fibllib%2Fmaster)](https://ibllib.hooks.internationalbrainlab.org/coverage/master) 
+[![Tests status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fibllib.hooks.internationalbrainlab.org%2Ftests%2Fibllib%2Fmaster)](https://ibllib.hooks.internationalbrainlab.org/logs/records/master)
+[![Tests status badge](https://img.shields.io/endpoint?label=develop&url=https%3A%2F%2Fibllib.hooks.internationalbrainlab.org%2Ftests%2Fibllib%2Fdevelop)](https://ibllib.hooks.internationalbrainlab.org/logs/records/develop)
 
-[![GitHub Build Status](https://github.com/cisagov/skeleton-generic/workflows/build/badge.svg)](https://github.com/cisagov/skeleton-generic/actions)
+## Description
+Library used to implement the International Brain Laboratory data pipeline. Currently in active development.
+The library as currently 4 main modules:
+-   **brainbox**: neuroscience analysis oriented library
+-   **ibllib**: general purpose library containing I/O, signal processing and IBL data pipelines utilities.
+-   **oneibl**: interface to the Alyx database of experiments to access IBL data.
+-   **alf**: implementation of ALF file naming convention
 
-This is a generic skeleton project that can be used to quickly get a
-new [cisagov](https://github.com/cisagov) GitHub project started.
-This skeleton project contains [licensing information](LICENSE), as
-well as [pre-commit hooks](https://pre-commit.com) and
-[GitHub Actions](https://github.com/features/actions) configurations
-appropriate for the major languages that we use.
+[Release Notes here](release_notes.md)
 
-In many cases you will instead want to use one of the more specific
-skeleton projects derived from this one.
+## Requirements
+**OS**: Deployed on Linux and Windows. Minimally tested for Mac.
 
-## Contributing ##
+**Python Module**: Python 3.7 or higher, we develop on 3.8.
 
-We welcome contributions!  Please see [here](CONTRIBUTING.md) for
-details.
+## Installation, documentation and examples
+https://docs.internationalbrainlab.org
 
-## License ##
 
-This project is in the worldwide [public domain](LICENSE).
+## Contribution and development practices
+See https://int-brain-lab.github.io/iblenv/07_contribution.html
 
-This project is in the public domain within the United States, and
-copyright and related rights in the work worldwide are waived through
-the [CC0 1.0 Universal public domain
-dedication](https://creativecommons.org/publicdomain/zero/1.0/).
+We use gitflow and Semantic Versioning.
 
-All contributions to this project will be released under the CC0
-dedication. By submitting a pull request, you are agreeing to comply
-with this waiver of copyright interest.
+Before commiting to your branch:
+-   run tests
+-   flake8
+This is also enforced by continuous integration.
+
+
+## Matlab Library
+The Matlab library has moved to its own repository here: https://github.com/int-brain-lab/ibllib-matlab/
