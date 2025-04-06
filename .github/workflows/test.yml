@@ -1,155 +1,67 @@
-name: CI Tests
+name: CI
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
+
+env:
+  PYTHON_VERSION: '3.8'
 
 jobs:
-  test-postgres:
+
+  precommit:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DB: alerta
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    strategy:
-      matrix:
-        python-version: ["3.9"]
-
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Install Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v1.1.1
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        id: install-deps
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/checkout@v1
+      - name: Install pre-commit
         run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install .
-      - name: Pre-commit hooks
-        id: hooks
-        run: |
-          pre-commit run -a --show-diff-on-failure
-      - name: Lint with flake8
-        id: lint
-        run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=50 --max-line-length=127 --statistics
-      - name: Test with pytest
-        id: test
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/alerta
-        run: |
-          pytest --cov=alerta tests/*.py
+          python -m pip install pre-commit
+          pre-commit install
+      - name: Run static code inspections
+        run: pre-commit run --all-files
 
-  test-mongodb:
+  django-tests:
+    needs: [precommit]
     runs-on: ubuntu-latest
-
-    services:
-      mongodb:
-        image: mongo
-        ports:
-          - 27017:27017
-
-    strategy:
-      matrix:
-        python-version: ["3.9"]
-
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v1.1.1
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        id: install-deps
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install codecov dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install .
-      - name: Pre-commit hooks
-        id: hooks
+          python -m pip install codecov pytest-cov
+          mkdir -p /tmp/coverage
+          chmod a+w /tmp/coverage
+      - uses: actions/checkout@v1
+      - name: Set the environment
         run: |
-          pre-commit run -a --show-diff-on-failure
-      - name: Lint with flake8
-        id: lint
+          echo ::set-env name=GIT_COMMIT_ID::$(git describe --always --dirty)
+          echo ::set-env name=GIT_BRANCH_NAME::$(echo ${{ github.ref }} | cut -d/ -f3- | sed "s/[^[:alnum:]]//g")
+          echo ::set-env name=DOCKER_GID::$(getent group docker | cut -d: -f3)
+      - name: Build the containers
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=50 --max-line-length=127 --statistics
-      - name: Test with pytest
-        id: test
+          make -j2 build
+      - name: Run the non-transaction tests
+        run: |
+          docker pull crccheck/hello-world
+          docker-compose run --rm -v /tmp/coverage:/tmp/coverage web bash -c "COVERAGE_FILE=/tmp/coverage/.coverage.non-transactions pytest --cov-report= --cov=."
+      - name: Run the transaction tests
+        run: |
+          docker-compose run --rm -v /tmp/coverage:/tmp/coverage web bash -c "COVERAGE_FILE=/tmp/coverage/.coverage.transactions pytest --cov-report= --cov=. --transactions"
+      - name: Upload coverage report to codecov
+        run: |
+          coverage combine /tmp/coverage/
+          codecov
         env:
-          DATABASE_URL: mongodb://127.0.0.1:27017/alerta
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Push the containers if we're on main
+        if: github.ref == 'refs/heads/main'
         run: |
-          pytest --cov=alerta tests/*.py
-
-  test-integration:
-    runs-on: ubuntu-latest
-
-    services:
-      mongodb:
-        image: mongo
-        ports:
-          - 27017:27017
-      ldap:
-        image: rroemhild/test-openldap
-        ports:
-          - 389:389
-      saml-idp:
-        image: jamedjo/test-saml-idp
-        ports:
-          - 9443:8443
-          - 9080:8080
+          echo $DOCKER_PASSWORD | docker login --username $DOCKER_USER --password-stdin
+          make push
         env:
-          SIMPLESAMLPHP_SP_ENTITY_ID: http://localhost:8080
-          SIMPLESAMLPHP_SP_ASSERTION_CONSUMER_SERVICE: http://localhost:8080/auth/saml
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install packages
-        run: |
-          sudo apt-get install -y \
-            build-essential \
-            python3-dev \
-            libldap2-dev \
-            libsasl2-dev \
-            xmlsec1
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-          architecture: 'x64'
-      - name: Install dependencies
-        id: install-deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install python-ldap pysaml2 lxml
-          pip install .
-      - name: Integration Test with pytest
-        id: integration-test
-        env:
-          DATABASE_URL: mongodb://127.0.0.1:27017/alerta
-        run: |
-          pytest tests/integration
+          DOCKER_USER: grandchallenge
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
