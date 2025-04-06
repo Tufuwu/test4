@@ -1,51 +1,54 @@
-#!/usr/bin/env python
-
 import os
-import sys
-from setuptools import setup
+from setuptools import setup, find_packages
 
-TEST_HELP = """
-Note: running tests is no longer done using 'python setup.py test'. Instead
-you will need to run:
+name = 'querycontacts'
+description = "Query network abuse contacts on the command-line for a given ip address on abuse-contacts.abusix.zone"
+cur_dir = os.path.abspath(os.path.dirname(__file__))
 
-    tox -e test
+# Read Version
+version_file = '%s/querycontacts/_version.py' % (cur_dir)
+with open(version_file) as f:
+    code = compile(f.read(), version_file, 'exec')
+    exec(code)
 
-If you don't already have tox installed, you can install it with:
+with open(os.path.join(cur_dir, 'README.md')) as f:
+    long_description = f.read()
 
-    pip install tox
+with open('%s/requirements.txt' % cur_dir) as f:
+    requires = f.readlines()
 
-If you only want to run part of the test suite, you can also use pytest
-directly with::
-
-    pip install -e .
-    pytest
-
-For more information, see:
-
-  http://docs.astropy.org/en/latest/development/testguide.html#running-tests
-"""
-
-if 'test' in sys.argv:
-    print(TEST_HELP)
-    sys.exit(1)
-
-DOCS_HELP = """
-Note: building the documentation is no longer done using
-'python setup.py build_docs'. Instead you will need to run:
-
-    tox -e build_docs
-
-If you don't already have tox installed, you can install it with:
-
-    pip install tox
-
-For more information, see:
-
-  http://docs.astropy.org/en/latest/install.html#builddocs
-"""
-
-if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
-    print(DOCS_HELP)
-    sys.exit(1)
-
-setup(use_scm_version={'write_to': os.path.join('radio_beam', 'version.py')})
+setup(
+    name=name,
+    version=__version__,
+    description=description,
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    keywords = ['contact', 'query', 'dns', 'abuse contact', 'abuse', 'abusix', 'network'],
+    author='abusix',
+    author_email='fp@abusix.com',
+    python_requires='>=3',
+    url='https://github.com/abusix/querycontacts',
+    install_requires=requires,
+    packages=find_packages(),
+    zip_safe=False,
+    include_package_data=True,
+    scripts=['scripts/querycontacts'],
+    license="GNU General Public License v3 (GPLv3)",
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Customer Service',
+        'Intended Audience :: System Administrators',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Topic :: Security',
+    ],
+    project_urls={
+        'Source': 'https://github.com/abusix/querycontacts',
+        'Company': 'https://www.abusix.com/'
+    },
+)
