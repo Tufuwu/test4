@@ -1,78 +1,78 @@
 #!/usr/bin/env python
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# Prepare a release:
-#
-#  - git pull --rebase  # check that there is no incoming changesets
-#  - check version in ptrace/version.py and doc/conf.py
-#  - set release date in doc/changelog.rst
-#  - check that "python3 setup.py sdist" contains all files tracked by
-#    the SCM (Git): update MANIFEST.in if needed
-#  - git commit -a -m "prepare release VERSION"
-#  - Remove untracked files/dirs: git clean -fdx
-#  - run tests, type: tox --parallel auto
-#  - git push
-#  - check GitHub Actions status:
-#    https://github.com/vstinner/python-ptrace/actions
-#
-# Release a new version:
-#
-#  - git tag VERSION
-#  - Remove untracked files/dirs: git clean -fdx
-#  - python3 setup.py sdist bdist_wheel
-#  - git push --tags
-#  - twine upload dist/*
-#
-# After the release:
-#
-#  - increment version in  ptrace/version.py and doc/conf.py
-#  - git commit -a -m "post-release"
-#  - git push
+# NOTE: The configuration for the package, including the name, version, and
+# other information are set in the setup.cfg file.
 
-from imp import load_source
-from os import path
+import os
+import sys
+
+from setuptools import setup
+
+
+# First provide helpful messages if contributors try and run legacy commands
+# for tests or docs.
+
+TEST_HELP = """
+Note: running tests is no longer done using 'python setup.py test'. Instead
+you will need to run:
+
+    tox -e test
+
+If you don't already have tox installed, you can install it with:
+
+    pip install tox
+
+If you only want to run part of the test suite, you can also use pytest
+directly with::
+
+    pip install -e .[test]
+    pytest
+
+For more information, see:
+
+  http://docs.astropy.org/en/latest/development/testguide.html#running-tests
+"""
+
+if 'test' in sys.argv:
+    print(TEST_HELP)
+    sys.exit(1)
+
+DOCS_HELP = """
+Note: building the documentation is no longer done using
+'python setup.py build_docs'. Instead you will need to run:
+
+    tox -e build_docs
+
+If you don't already have tox installed, you can install it with:
+
+    pip install tox
+
+You can also build the documentation with Sphinx directly using::
+
+    pip install -e .[docs]
+    cd docs
+    make html
+
+For more information, see:
+
+  http://docs.astropy.org/en/latest/install.html#builddocs
+"""
+
+if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
+    print(DOCS_HELP)
+    sys.exit(1)
+
+VERSION_TEMPLATE = """
+# Note that we need to fall back to the hard-coded version if either
+# setuptools_scm can't be imported or setuptools_scm can't determine the
+# version, so we catch the generic 'Exception'.
 try:
-    # setuptools supports bdist_wheel
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+    from setuptools_scm import get_version
+    version = get_version(root='..', relative_to=__file__)
+except Exception:
+    version = '{version}'
+""".lstrip()
 
-
-MODULES = ["ptrace", "ptrace.binding", "ptrace.syscall", "ptrace.syscall.linux", "ptrace.debugger"]
-
-SCRIPTS = ("strace.py", "gdb.py")
-
-CLASSIFIERS = [
-    'Intended Audience :: Developers',
-    'Development Status :: 4 - Beta',
-    'Environment :: Console',
-    'License :: OSI Approved :: GNU General Public License (GPL)',
-    'Operating System :: OS Independent',
-    'Natural Language :: English',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-]
-
-with open('README.rst') as fp:
-    LONG_DESCRIPTION = fp.read()
-
-ptrace = load_source("version", path.join("ptrace", "version.py"))
-PACKAGES = {}
-for name in MODULES:
-    PACKAGES[name] = name.replace(".", "/")
-
-install_options = {
-    "name": ptrace.PACKAGE,
-    "version": ptrace.__version__,
-    "url": ptrace.WEBSITE,
-    "download_url": ptrace.WEBSITE,
-    "author": "Victor Stinner",
-    "description": "python binding of ptrace",
-    "long_description": LONG_DESCRIPTION,
-    "classifiers": CLASSIFIERS,
-    "license": ptrace.LICENSE,
-    "packages": list(PACKAGES.keys()),
-    "package_dir": PACKAGES,
-    "scripts": SCRIPTS,
-}
-
-setup(**install_options)
+setup(use_scm_version={'write_to': os.path.join('astrocut', 'version.py'),
+                       'write_to_template': VERSION_TEMPLATE})

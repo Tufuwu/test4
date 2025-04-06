@@ -1,29 +1,19 @@
-include AUTHORS
-include COPYING
-include ChangeLog
-include INSTALL
-include MANIFEST.in
-include README.cptrace
-include TODO
-include tox.ini
-include SYSCALL_PROTOTYPES.codegen.py
+include README.rst
+include CHANGES.rst
+include setup.cfg
+include LICENSE.rst
+include pyproject.toml
 
-include cptrace/Makefile
-include cptrace/cptrace.c
-include cptrace/version.py
+include astrocut/tests/coveragerc
 
-include doc/*.rst doc/conf.py doc/make.bat doc/Makefile
+recursive-include astrocut *.pyx *.c *.pxd
+recursive-include docs *
+recursive-include licenses *
+recursive-include cextern *
+recursive-include scripts *
 
-include examples/itrace.py
-include examples/simple_dbg.py
-include pyflakes.sh
-include python3.0.patch
-include setup_cptrace.py
+prune build
+prune docs/_build
+prune docs/api
 
-# Tests
-include runtests.py
-include test_doc.py
-include tests/test_*.py
-include tests/crash/*.c
-include tests/crash/BSDmakefile
-include tests/crash/Makefile
+global-exclude *.pyc *.o
