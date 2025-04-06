@@ -1,39 +1,56 @@
-django-authtools
-================
+marisa-trie |pyversions| |travis| |appveyor|
+============================================
 
-|Build status|
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/marisa-trie.svg
+   :target: https://pypi.python.org/pypi/marisa-trie
 
-.. |Build status| image:: https://github.com/fusionbox/django-authtools/actions/workflows/ci.yml/badge.svg
-   :target: https://github.com/fusionbox/django-authtools/actions/workflows/ci.yml
-   :alt: Build Status
+.. |travis| image:: https://travis-ci.org/pytries/marisa-trie.svg
+   :target: https://travis-ci.org/pytries/marisa-trie
 
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/p887ad4jbdg6u7yo?svg=true
+   :target: https://ci.appveyor.com/project/superbobry/marisa-trie-75wx1
 
-A custom user model app for Django 2.2+ that features email as username and
-other things. It tries to stay true to the built-in user model for the most
-part.
+Static memory-efficient Trie-like structures for Python (2.7 and 3.4+)
+based on `marisa-trie`_ C++ library.
 
-Read the `django-authtools documentation
-<https://django-authtools.readthedocs.org/en/latest/>`_.
+String data in a MARISA-trie may take up to 50x-100x less memory than
+in a standard Python dict; the raw lookup speed is comparable; trie also
+provides fast advanced methods like prefix search.
 
-Quickstart
-==========
+.. note::
 
-Before you use this, you should probably read the documentation about `custom
-User models
-<https://docs.djangoproject.com/en/dev/topics/auth/customizing/#substituting-a-custom-user-model>`_.
+    There are official SWIG-based Python bindings included
+    in C++ library distribution; this package provides alternative
+    Cython-based pip-installable Python bindings.
 
-1.  Install the package:
+.. _marisa-trie: https://github.com/s-yata/marisa-trie
 
-    .. code-block:: bash
+Installation
+============
 
-        $ pip install django-authtools
+::
 
-2.  Add ``authtools`` to your ``INSTALLED_APPS``.
+    pip install marisa-trie
 
-3.  Add the following to your settings.py:
+Usage
+=====
 
-    .. code-block:: python
+See :ref:`Tutorial <tutorial>` and :ref:`API <api>` for details.
 
-        AUTH_USER_MODEL = 'authtools.User'
+Current limitations
+===================
 
-4.  Enjoy.
+* The library is not tested with mingw32 compiler;
+* ``.prefixes()`` method of ``BytesTrie`` and ``RecordTrie`` is quite slow
+  and doesn't have iterator counterpart;
+* ``read()`` and ``write()`` methods don't work with file-like objects
+  (they work only with real files; pickling works fine for file-like objects);
+* there are ``keys()`` and ``items()`` methods but no ``values()`` method.
+
+License
+=======
+
+Wrapper code is licensed under MIT License.
+
+Bundled `marisa-trie`_ C++ library is dual-licensed under
+LGPL and BSD 2-clause license.

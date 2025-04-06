@@ -1,12 +1,37 @@
-*.pyc
-*.egg-info/
-docs/_build/
-tests/sqlite_database
-tests/.coverage
-tests/htmlcov/
-dist/
-build/
+MANIFEST
+src/*.html
+docs/_build
+
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+.eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib64
+__pycache__
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.hypothesis
+.cache
 .tox
-/django.tar.gz
-.idea/
-.DS_Store
+nosetests.xml
+
+# IDE
+.idea

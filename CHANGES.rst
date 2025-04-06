@@ -1,144 +1,163 @@
+
 CHANGES
 =======
 
-2.0.0 (unreleased)
-------------------
-** BREAKING **
-
-Remove views and URLs. You can now use the ones built in to Django. Removes
-support for Django 1.11 and Python 2.
-
-- Add support for Django 2.2, 3.0, 3.1, 3.2, and 4.0.
-- Fix bug where request is not properly set on AuthenticationForm (#102)
-- Make UserAdmin compatible with Django 2.0
-  - Fixes a bug where the password change link would not format correctly
-  - Fixes a bug where BetterReadOnlyPasswordWidget would not work on a view only permission
-- Documentation fixes (#87, #117)
-- Set DEFAULT_AUTO_FIELD to AutoField in AuthtoolsConfig (#123)
-  - Silences warning and prevents new migrations when using authtools with Django >= 3.2
-- Normalize email in User clean method and UserManager get_by_natural_key method (weslord #112)
-  - Fixes a bug where email would not be normalized when creating a user in the admin
-- Migrate from TravisCI to GitHub Actions
-
-
-1.7.0 (2019-06-26)
+0.7.5 (2018-04-10)
 ------------------
 
-- Fix bug when using Django 1.11 where resetting a password when already logged in
-  as another user caused an error
-- Remove support for Django versions below 1.11 and Python below 2.7 and 3.6
+* Removed redundant ``DeprecationWarning`` messages in ``Trie.save`` and
+  ``Trie.load``.
+* Dropped support for Python 2.6.
+* Rebuild Cython wrapper with Cython 0.28.1.
 
-
-1.6.0 (2017-06-14)
+0.7.4 (2017-03-27)
 ------------------
 
-- Add support for Django 1.9, 1.10, 1.11 (Jared Proffitt #82)
-- Remove old conditional imports dating as far back as Django 1.5
-- Update readme
+* Fixed packaging issue, ``MANIFEST.in`` was not updated after ``libmarisa-trie``
+  became a submodule.
 
 
-1.5.0 (2016-03-26)
+0.7.3 (2017-02-14)
 ------------------
 
-- Update various help_text fields to match Django 1.9 (Wenze van Klink #51, Gavin Wahl #64, Jared Proffitt #67, Ivan VenOsdel #69)
-- Documentation fixes (Yuki Izumi #52, Pi Delport #60, Germán Larraín #65)
-- Made case-insensitive tooling work with more than just USERNAME_FIELD='username' (Jared Proffitt, Rocky Meza #72, #73)
+* Added ``BinaryTrie`` for storing arbitrary sequences of bytes, e.g. IP
+  addresses (thanks Tomasz Melcer);
+* Deprecated ``Trie.has_keys_with_prefix`` which can be trivially implemented in
+  terms of ``Trie.iterkeys``;
+* Deprecated ``Trie.read`` and ``Trie.write`` which onlywork for "real" files
+  and duplicate the functionality of ``load`` and ``save``. See issue #31 on
+  GitHub;
+* Updated ``libmarisa-trie`` to the latest version. Yay, 64-bit Windows support.
+* Rebuilt Cython wrapper with Cython 0.25.2.
 
-
-1.4.0 (2015-11-02)
+0.7.2 (2015-04-21)
 ------------------
 
-- Dropped Django 1.7 compatibility (Antoine Catton)
-- Add Django 1.8 compatibility (Antoine Catton, Gavin Wahl, #56)
-- **Backwards Incompatible:** Remove 1.6 URLs (Antoine Catton)
-- **Backwards Incompatible:** Remove view functions
+* packaging issue is fixed.
 
-1.3.0 (unreleased)
+0.7.1 (2015-04-21)
 ------------------
 
-- Added Django 1.7 compatibility (Antoine Catton, Rocky Meza, #35)
-- ``LoginView.disallow_authenticated`` was changed to ``LoginView.allow_authenticated``
-- ``LoginView.disallow_authenticated`` was deprecated.
-- **Backwards Incompatible:** ``LoginView.allow_authenticated`` is now ``True``
-  by default (which is the default behavior in Django)
-- Create migrations for authtools.
+* setup.py is switched to setuptools;
+* a tiny speedup;
+* wrapper is rebuilt with Cython 0.22.
 
-  If updating from an older authtools, these migrations must be run on your apps::
+0.7 (2014-12-15)
+----------------
 
-    $ python manage.py migrate --fake authtools 0001_initial
+* ``trie1 == trie2`` and ``trie1 != trie2`` now work (thanks Sergei Lebedev);
+* ``for key in trie:`` is fixed (thanks Sergei Lebedev);
+* wrapper is rebuilt with Cython 0.21.1 (thanks Sergei Lebedev);
+* https://bitbucket.org/kmike/marisa-trie repo is no longer supported.
 
-    $ python manage.py migrate
+0.6 (2014-02-22)
+----------------
 
+* New ``Trie`` methods: ``__getitem__``, ``get``, ``items``, ``iteritems``.
+  ``trie[u'key']`` is now the same as ``trie.key_id(u'key')``.
+* small optimization for ``BytesTrie.get``.
+* wrapper is rebuilt with Cython 0.20.1.
 
-1.2.0 (2015-04-02)
+0.5.3 (2014-02-08)
 ------------------
 
-- Add CaseInsensitiveEmailUserCreationForm for creating users with lowercased email address
-  usernames (Bradley Gordon, #31, #11)
-- Add CaseInsensitiveEmailBackendMixin, CaseInsensitiveEmailModelBackend for authenticating
-  case-insensitive email address usernames (Bradley Gordon, #31, #11)
-- Add tox support for test running (Piper Merriam, #25)
+* small ``Trie.restore_key`` optimization (it should work 5-15% faster)
 
-
-1.1.0 (2015-02-24)
+0.5.2 (2014-02-08)
 ------------------
 
-- PasswordChangeView now handles a ``next`` URL parameter (#24)
+* fix ``Trie.restore_key`` method - it was reading past declared string length;
+* rebuild wrapper with Cython 0.20.
 
-1.0.0 (released August 16, 2014)
---------------------------------
+0.5.1 (2013-10-03)
+------------------
 
-- Add friendly_password_reset view and FriendlyPasswordResetForm (Antoine Catton, #18)
-- **Bugfix** Allow LOGIN_REDIRECT_URL to be unicode (Alan Johnson, Gavin Wahl, Rocky Meza, #13)
-- **Backwards Incompatible** Dropped support for Python 3.2
+* ``has_keys_with_prefix(prefix)`` method (thanks
+  `Matt Hickford <https://github.com/matt-hickford>`_)
 
-0.2.2 (released July 21, 2014)
-------------------------------
+0.5 (2013-05-07)
+----------------
 
-- Update safe urls in tests
-- Give the ability to restrain which users can reset their password
-- Add send_mail to AbstractEmailUser. (Jorge C. Leitão)
+* ``BytesTrie.iterkeys``, ``BytesTrie.iteritems``,
+  ``RecordTrie.iterkeys`` and ``RecordTrie.iteritems`` methods;
+* wrapper is rebuilt with Cython 0.19;
+* ``value_separator`` parameter for ``BytesTrie`` and ``RecordTrie``.
 
+0.4 (2013-02-28)
+----------------
 
-0.2.1
------
+* improved trie building: ``weights`` optional parameter;
+* improved trie building: unnecessary input sorting is removed;
+* wrapper is rebuilt with Cython 0.18;
+* bundled marisa-trie C++ library is updated to svn r133.
 
-- Bugfix: UserAdmin was expecting a User with a `name` field.
+0.3.8 (2013-01-03)
+------------------
 
-0.2.0
------
+* Rebuild wrapper with Cython pre-0.18;
+* update benchmarks.
 
-- Django 1.6 support.
+0.3.7 (2012-09-21)
+------------------
 
-  Django 1.6 `broke backwards compatibility
-  <https://docs.djangoproject.com/en/dev/releases/1.6/#django-contrib-auth-password-reset-uses-base-64-encoding-of-user-pk>`_
-  of the ``password_reset_confirm`` view. Be sure to update any references to
-  this URL. Rather than using a separate view for each encoding, authtools uses
-  `a single view
-  <https://django-authtools.readthedocs.org/en/latest/views.html#authtools.views.PasswordResetConfirmView>`_
-  that works with both.
+* Update bundled marisa-trie C++ library (this may fix more mingw issues);
+* Python 3.3 support is back.
 
-- Bugfix: if LOGIN_URL was a URL name, it wasn't being reversed in the
-  PasswordResetConfirmView.
+0.3.6 (2012-09-05)
+------------------
 
-0.1.2 (released July 01, 2013)
-------------------------------
+* much faster (3x-7x) ``.items()`` and ``.keys()`` methods for all tries;
+  faster (up to 3x) ``.prefixes()`` method for ``Trie``.
 
-- Use ``prefetch_related`` in the
-  `UserChangeForm <https://django-authtools.readthedocs.org/en/latest/forms.html#authtools.forms.UserChangeForm>`_
-  to avoid doing hundreds of ``ContentType`` queries. The form from
-  Django has the same feature, it wasn't copied over correctly in our
-  original form.
+0.3.5 (2012-08-30)
+------------------
 
-0.1.1 (released May 30, 2013)
------------------------------
+* Pickling of RecordTrie is fixed (thanks lazarou for the report);
+* error messages should become more useful.
 
-* some bugfixes:
+0.3.4 (2012-08-29)
+------------------
 
-- Call ``UserManager.normalize_email`` on an instance, not a class.
-- ``authtools.models.User`` should inherit its parent's ``Meta``.
+* Issues with mingw32 should be resolved (thanks Susumu Yata).
 
-0.1.0 (released May 28, 2013)
------------------------------
+0.3.3 (2012-08-27)
+------------------
 
-- django-authtools
+* ``.get(key, default=None)`` method for ``BytesTrie`` and ``RecordTrie``;
+* small README improvements.
+
+0.3.2 (2012-08-26)
+------------------
+
+* Small code cleanup;
+* ``load``, ``read`` and ``mmap`` methods returns 'self';
+* I can't run tests (via tox) under Python 3.3 so it is
+  removed from supported versions for now.
+
+0.3.1 (2012-08-23)
+------------------
+
+* ``.prefixes()`` support for RecordTrie and BytesTrie.
+
+0.3 (2012-08-23)
+----------------
+
+* RecordTrie and BytesTrie are introduced;
+* IntTrie class is removed (probably temporary?);
+* dumps/loads methods are renamed to tobytes/frombytes;
+* benchmark & tests improvements;
+* support for MARISA-trie config options is added.
+
+0.2 (2012-08-19)
+------------------
+
+* Pickling/unpickling support;
+* dumps/loads methods;
+* python 3.3 workaround;
+* improved tests;
+* benchmarks.
+
+0.1 (2012-08-17)
+----------------
+
+Initial release.
