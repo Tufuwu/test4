@@ -1,47 +1,74 @@
-# Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License").
-# You may not use this file except in compliance with the License.
-# A copy of the License is located at:
-#
-#    http://aws.amazon.com/apache2.0/
-#
-# or in the "license" file accompanying this file. This file is
-# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
-# OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the
-# License.
+#!/usr/bin/env python
 
-# Python 2/3 compatibility
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+import os
+import re
+import sys
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
+from setuptools.command.test import test as TestCommand
+
+
+def read(fname):
+    with open(os.path.join(os.path.dirname(__file__), fname)) as fp:
+        return fp.read()
+
+
+m = re.search(
+    r"^__version__ *= *\"([^\"]*)\" *$", read("tdclient/version.py"), re.MULTILINE
+)
+
+if m is None:
+    raise (RuntimeError("could not read tdclient/version.py"))
+else:
+    version = m.group(1)
+
+
+class PyTest(TestCommand):
+    user_options = [("pytest-args=", "a", "Arguments to pass to py.test")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = []
+
+    def run_tests(self):
+        import pytest
+
+        errno = pytest.main(self.pytest_args)
+        sys.exit(errno)
 
 
 setup(
-    name='amazon.ion',
-    version='0.7.0',
-    description='A Python implementation of Amazon Ion.',
-    url='http://github.com/amzn/ion-python',
-    author='Amazon Ion Team',
-    author_email='ion-team@amazon.com',
-    license='Apache License 2.0',
-
-    packages=find_packages(exclude=['tests*']),
-    namespace_packages=['amazon'],
-
-    install_requires=[
-        'six',
-        'jsonconversion'
-    ],
-
-    setup_requires=[
-        'pytest-runner',
-    ],
-
-    tests_require=[
-        'pytest',
+    name="td-client",
+    version=version,
+    description="Treasure Data API library for Python",
+    long_description=read("README.rst"),
+    long_description_content_type="text/x-rst; charset=UTF-8;",
+    author="Treasure Data, Inc.",
+    author_email="support@treasure-data.com",
+    url="http://treasuredata.com/",
+    python_requires=">=3.5",
+    install_requires=["msgpack>=0.6.2", "python-dateutil", "urllib3"],
+    tests_require=["coveralls", "mock", "pytest", "pytest-cov", "tox"],
+    extras_require={
+        "dev": ["black==19.3b0", "isort", "flake8"],
+        "docs": ["sphinx", "sphinx_rtd_theme"],
+    },
+    packages=find_packages(),
+    cmdclass={"test": PyTest},
+    license="Apache Software License",
+    platforms="Posix; MacOS X; Windows",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Topic :: Internet",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
     ],
 )

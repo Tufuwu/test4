@@ -1,16 +1,17 @@
+*.egg-info
 *.pyc
 *.pyo
-*~
-*#
+*.swo
 *.swp
-/.python-version
-/.idea
 /.cache
+/.coverage
 /.eggs
+/.envrc
 /.tox
-/venv
 /build
 /dist
-/amazon.ion.egg-info
-/docs/_build/
+/tmp
 
+# JetBrains IDE
+.idea/
+/docs/_build
