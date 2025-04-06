@@ -1,3 +1,0 @@
-import simple
-
-def domination() -> simple.World: ...

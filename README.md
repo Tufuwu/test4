@@ -1,281 +1,229 @@
-[![CI](https://github.com/google/pytype/workflows/CI/badge.svg?branch=master)](https://github.com/google/pytype/actions)
-[![PyPI - Wheel](https://img.shields.io/pypi/wheel/pytype)](https://pypi.org/project/pytype/#files)
+Themix GUI theme designer
+=====
 
-# pytype - 🦆✔
+[![Build Status](https://travis-ci.com/themix-project/oomox.svg?branch=master)](https://travis-ci.org/themix-project/oomox)
 
-Pytype checks and infers types for your Python code - without requiring type
-annotations. Pytype can:
+Graphical application for generating different color variations of Oomox (Numix-based) and Materia (ex-Flat-Plat) themes (GTK2, GTK3, Cinnamon, GNOME, Openbox, Xfwm), Archdroid, Gnome-Color, Numix, Papirus and Suru++ icon themes. Have a hack for HiDPI in gtk2.
 
-* Lint plain Python code, flagging common mistakes such as misspelled attribute
-names, incorrect function calls, and [much more][error-classes], even across
-file boundaries.
-* Enforce user-provided [type annotations][pep-484]. While annotations are
-optional for pytype, it will check and apply them where present.
-* Generate type annotations in standalone files ("[pyi files][pyi-stub-files]"),
-which can be merged back into the Python source with a provided
-[merge-pyi][merge-pyi] tool.
+<a href="https://aur.archlinux.org/packages/themix-full-git"><img src="https://raw.githubusercontent.com/themix-project/oomox/master/packaging/download_aur.png" height="54"></a>
+<a href="#debian-ubuntu-linux-mint"><img src="https://raw.githubusercontent.com/themix-project/oomox/master/packaging/download_deb.png" height="54"></a>
+<a href="https://slackbuilds.org/repository/14.2/desktop/oomox/"><img src="https://raw.githubusercontent.com/themix-project/oomox/master/packaging/download_slackware.png" height="54"></a>
+<a href="https://flathub.org/apps/details/com.github.themix_project.Oomox"><img src="https://flathub.org/assets/badges/flathub-badge-en.png" height="54"></a>
 
-Pytype is a static analyzer; it does not execute the code it runs on.
 
-Thousands of projects at Google rely on pytype to keep their Python code
-well-typed and error-free.
+Table of contents:
+  * [Installing with package manager](#installation "")
+  * [Installing manually](#other-distributions "")
+  * [Using with tiling WMs](#using-with-tiling-wms "")
+  * [Extra GTK3 CSS hacks](#extra-gtk3-css-hacks "")
+  * [Spotify](#spotify "")
+  * [Review videos/Usage instructions](#review-articles-and-videos "")
 
-For more information, check out the [user guide][user-guide] or [FAQ][faq].
+![Screenshot image import](https://raw.githubusercontent.com/themix-project/oomox/master/screenshots/pokedex_dawn.png "Screenshot image import")
 
-## How is pytype different from other type checkers?
+![Screenshot GUI](https://raw.githubusercontent.com/themix-project/oomox/master/screenshots/screenshot_gui.png "Screenshot GUI")
 
-1. Pytype uses **inference** instead of gradual typing. This means it will
-infer types on code even when the code has no type hints on it. So it can
-detect issues with code like this, which other type checkers would miss:
+[Big screenshot with number of generated themes 🔗](http://orig15.deviantart.net/e1ee/f/2016/320/1/9/oomox_1_0_rc1_by_actionless-daomhmd.jpg)
 
-    ```python
-    def f():
-        return "PyCon"
-    def g():
-        return f() + 2019
+[Latest Oomox GTK theme screenshots 🔗](https://github.com/themix-project/oomox-gtk-theme/tree/master/screenshots)
 
-    # pytype: line 4, in g: unsupported operand type(s) for +: 'str'
-    # and 'int' [unsupported-operands]
-    ```
 
-1. Pytype is **lenient** instead of strict. That means it allows all
-operations that succeed at runtime and don't contradict annotations. For
-instance, this code will pass as safe in pytype, but fail in other type
-checkers, which assign types to variables as soon as they are initialized:
 
-    ```python
-    from typing import List
-    def get_list() -> List[str]:
-        lst = ["PyCon"]
-        lst.append(2019)
-        return [str(x) for x in lst]
+## Installation
 
-    # mypy: line 4: error: Argument 1 to "append" of "list" has
-    # incompatible type "int"; expected "str"
-    ```
 
-Also see the corresponding [FAQ entry][faq-diff].
 
-## Quickstart
+### Arch Linux
 
-To quickly get started with type-checking a file or directory, run the
-following, replacing `file_or_directory` with your input:
-
-```shell
-pip install pytype
-pytype file_or_directory
-```
-
-To set up pytype on an entire package, add the following to a `setup.cfg` file
-in the directory immediately above the package, replacing `package_name` with
-the package name:
+#### Install
 
 ```
-[pytype]
-inputs = package_name
+pikaur -S themix-full-git
 ```
 
-Now you can run the no-argument command `pytype` to type-check the package. It's
-also easy to add pytype to your automated testing; see this
-[example][importlab-travis] of a GitHub project that runs pytype on Travis.
+AUR helpers are [not officially supported](https://wiki.archlinux.org/index.php/AUR_helpers), so you can also [install it manually](https://wiki.archlinux.org/index.php/Arch_User_Repository#Installing_packages) from either [rolling-release](https://aur.archlinux.org/packages/themix-full-git/) or [stable](https://aur.archlinux.org/packages/oomox/) PKGBUILD.
 
-Finally, pytype generates files of inferred type information, located by default
-in `.pytype/pyi`. You can use this information to type-annotate the
-corresponding source file:
-
-```shell
-merge-pyi -i <filepath>.py .pytype/pyi/<filename>.pyi
-```
-
-## Requirements
-
-You need a Python 3.6-3.8 interpreter to run pytype, as well as an
-interpreter in `$PATH` for the Python version of the code you're analyzing
-(supported: 2.7, 3.5-3.8).
-
-Platform support:
-
-* Pytype is currently developed and tested on Linux\*, which is the main supported
-  platform.
-* Installation on MacOSX requires OSX 10.7 or higher and Xcode v8 or higher.
-* Windows is currently not supported unless you use [WSL][wsl].
-
-<sub>\*
-Note: On Alpine Linux, installing may fail due to issues with upstream
-dependencies.  See the details of [this issue][scikit-build-issue] for a
-possible fix.
-</sub>
-
-## Installing
-
-Pytype can be installed via pip. Note that the installation requires `wheel`
-and `setuptools`. (If you're working in a virtualenv, these two packages should
-already be present.)
-
-```shell
-pip install pytype
-```
-
-Or from the source code [on GitHub][github].
-
-```shell
-git clone --recurse-submodules https://github.com/google/pytype.git
-cd pytype
-pip install .
-```
-
-Instead of using `--recurse-submodules`, you could also have run
-
-```shell
-git submodule init
-git submodule update
-```
-
-in the `pytype` directory. To edit the code and have your edits tracked live,
-replace the pip install command with:
-
-```shell
-pip install -e .
-```
-
-### Installing on WSL
-
-Follow the steps above, but make sure you have the correct libraries first:
-
-```shell
-sudo apt install build-essential python3-dev libpython3-dev
-```
-
-## Usage
+#### Open the GUI
 
 ```
-usage: pytype [options] input [input ...]
-
-positional arguments:
-  input                 file or directory to process
+oomox-gui
 ```
 
-Common options:
 
-* `-V, --python-version`: Python version (major.minor) of the target code.
-  Defaults to the version that pytype is running under.
-* `-o, --output`: The directory into which all pytype output goes, including
-  generated .pyi files. Defaults to `.pytype`.
-* `-d, --disable`. Comma or space separated list of error names to ignore.
-  Detailed explanations of pytype's error names are in
-  [this doc][error-classes]. Defaults to empty.
 
-For a full list of options, run `pytype --help`.
+### Debian, Ubuntu, Linux Mint
 
-In addition to the above, you can direct pytype to use a custom typeshed
-installation instead of its own bundled copy by setting `$TYPESHED_HOME`.
+For Debian 9+, Ubuntu 17.04+ or Linux Mint 19+ you can download `oomox.deb` package here:
+https://github.com/themix-project/oomox/releases
+Make sure what `universe` repository is enabled.
 
-### Config File
-
-For convenience, you can save your pytype configuration in a file. The config
-file is an INI-style file with a `[pytype]` section; if an explicit config file
-is not supplied, pytype will look for a `[pytype]` section in the first
-`setup.cfg` file found by walking upwards from the current working directory.
-
-Start off by generating a sample config file:
-
-```shell
-$ pytype --generate-config pytype.cfg
+```sh
+sudo apt install ./oomox_VERSION_17.04+.deb  # or ./oomox_VERSION_18.10+.deb for Ubuntu 18.10+
 ```
 
-Now customize the file based on your local setup, keeping only the sections you
-need. Directories may be relative to the location of the config file, which is
-useful if you want to check in the config file as part of your project.
+Or, if you don't want to install third-party binary package you can build it on your own:
 
-For example, suppose you have the following directory structure and want to
-analyze package `~/repo1/foo`, which depends on package `~/repo2/bar`:
+```sh
+# with docker:
+sudo systemctl start docker
+sudo ./packaging/ubuntu/docker_ubuntu_package.sh  # sudo is not needed if your user is in docker group
 
-```
-~/
-├── repo1
-│   └── foo
-│       ├── __init__.py
-│       └── file_to_check.py
-└── repo2
-    └── bar
-        ├── __init__.py
-        └── dependency.py
+# or directly from ubuntu host if you don't like docker:
+./packaging/ubuntu/create_ubuntu_package.sh control
+# or ./packaging/ubuntu/create_ubuntu_package.sh control_1810
 ```
 
-Here is the filled-in config file, which instructs pytype to type-check
-`~/repo1/foo` as Python 3.6 code, look for packages in `~/repo1` and `~/repo2`,
-and ignore attribute errors. Notice that the path to a package does not include
-the package itself.
 
+For older releases install the dependencies manually and next follow general installation instructions [below](#installation-1 "").
+ - [List of dependencies](https://github.com/themix-project/oomox/blob/master/packaging/ubuntu/control#L5)
+ - [How to install `sassc>=3.4`](https://askubuntu.com/questions/849057/how-to-install-libsass-on-ubuntu-16-04)
+
+
+
+### Other distributions
+
+
+#### Prerequisites
+
+For GUI app itself:
+ - `python3-gobject`
+ - `gtk3>=3.18`
+ - `gdk-pixbuf2`
+
+##### For plugins:
+
+Oomox theme:
+ - `sassc>=3.4`
+ - `rsvg-convert` from `librsvg`
+ - `glib-compile-schemas` from `glib2`
+ - `gdk-pixbuf2`
+ - `bc`
+ - `sed`
+ - `find`
+ - `grep`
+
+Materia theme:
+ - `sassc>=3.4`
+ - `glib-compile-schemas` from `glib2`
+ - `gdk-pixbuf2`
+ - `sed`
+ - `find`
+ - `grep`
+ - `optipng`
+ - `gtk2-engine-murrine`
+ - `resvg` or `inkscape`
+ - `parallel`
+ - `meson`
+
+Gnome-Colors icons:
+ - `bc`
+ - `sed`
+ - `find`
+ - `grep`
+ - `rsvg-convert` from `librsvg`
+ - `imagemagick`
+ - `breeze-icons` - optional, to provide more fallbacks
+
+Archdroid, Papirus and Suru++ icons:
+ - `sed`
+ - `find`
+ - `breeze-icons` - optional for Archdroid, to provide more fallbacks
+
+Spotify theme:
+ - `polkit` or `gksu`
+ - `zip`
+ - `bc`
+ - `grep`
+
+Import colors from images:
+ - `python3 PIL or Pillow`
+
+Base16 format support:
+ - `python3 pystache`
+ - `python3 yaml`
+
+Xresources import:
+ - `xorg-xrdb` - optional, for xresources themes
+
+
+#### Installation
+
+```sh
+git clone https://github.com/themix-project/oomox.git --recursive
+cd oomox
+# if you need to generate locales:
+make -f po.mk install
 ```
-$ cat ~/repo1/pytype.cfg
 
-# NOTE: All relative paths are relative to the location of this file.
+#### Running
 
-[pytype]
-
-# Space-separated list of files or directories to process.
-inputs =
-    foo
-
-# Python version (major.minor) of the target code.
-python_version = 3.6
-
-# Paths to source code directories, separated by ':'.
-pythonpath =
-    .:
-    ~/repo2
-
-# Comma or space separated list of error names to ignore.
-disable =
-    attribute-error
+```sh
+./gui.sh
 ```
 
-We could've discovered that `~/repo2` needed to be added to the pythonpath by
-running pytype's broken dependency checker:
+After exporting a theme select the generated theme (oomox-YOUR-THEME-NAME) in your appearance config tool (for example, _lxappearance_ or _gnome-tweak-tool_).
 
+
+### CLI
+
+If your prefer CLI interface, refer to `change_color.sh` scripts inside `./plugins/`. For `xresources` and `random` themes in CLI use palettes from `/opt/oomox/scripted_colors/` directory. Using scripted palettes enables you to use bash to write simple generators for dynamic themes (as alternative to plugins in oomox-gui). GUI is not attempting to execute any scripted palettes with bash because downloading such scripted themes from random places could lead to unexpected result so you can use them only with CLI, when you really know what you're doing.
+
+
+
+#### Spotify:
+
+Spotify theme can be also exported from GUI, but if you prefer commandline interface:
+
+```sh
+./plugins/oomoxify/oomoxify.sh ./colors/gnome-colors/shiki-noble
 ```
-$ pytype --config=~/repo1/pytype.cfg ~/repo1/foo/*.py --unresolved
 
-Unresolved dependencies:
-  bar.dependency
+Also you can normalize font weight with `-w` argument, see `-h` for usage.
+
+Spotify theme settings are backed up to `~/.config/oomox/spotify_backup`. To undo the changes made by oomoxify, these files can be copied back to their original location `/usr/share/spotify/Apps`. Spotify can also be reinstalled, which will reset these files as well.
+
+Users running Spotify under Flatpak should set their "Spotify path" in oomox to `/var/lib/flatpak/app/com.spotify.Client/current/active/files/extra/share/spotify/Apps` in order to apply the theme.
+
+
+### Using with tiling WMs
+
+Create/append to `~/.config/gtk-3.0/gtk.css`:
+
+```css
+/* remove window title from Client-Side Decorations */
+.solid-csd headerbar .title {
+    font-size: 0;
+}
+
+/* hide extra window decorations/double border */
+window decoration {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
 ```
 
-### Subtools
 
-Pytype ships with a few scripts in addition to `pytype` itself:
+### Extra GTK3 CSS hacks
 
-* `annotate-ast`, an in-progress type annotator for ASTs.
-* [`merge-pyi`][merge-pyi], for merging type information from a .pyi file into a
-Python file.
-* `pytd`, a parser for .pyi files.
-* `pytype-single`, a debugging tool for pytype developers, which analyzes a
-single Python file assuming that .pyi files have already been generated for all
-of its dependencies.
-* `pyxref`, a cross references generator.
+Create/append to `~/.config/gtk-3.0/gtk.css`:
 
-## 2020 Roadmap
+```css
+* {
+  text-shadow: none;
+}
+```
 
-* Python 3.7 and 3.8 support
-* Stricter type annotation enforcement
-* Better performance on large files
-* Developer documentation
 
-## License
-[Apache 2.0][license]
+### Review articles and videos
 
-## Disclaimer
-This is not an official Google product.
+To learn more about using the application you can check these sources:
 
-[error-classes]: docs/errors.md
-[faq]: docs/faq.md
-[faq-diff]: docs/faq.md#how-is-pytype-different-from-other-type-checkers
-[github]: https://github.com/google/pytype/
-[importlab-travis]: https://github.com/google/importlab/blob/master/.travis.yml
-[license]: https://github.com/google/pytype/blob/master/LICENSE
-[merge-pyi]: https://github.com/google/pytype/tree/master/pytype/tools/merge_pyi
-[pep-484]: https://www.python.org/dev/peps/pep-0484
-[pyi-stub-files]: docs/user_guide.md#pyi-stub-files
-[scikit-build-issue]: https://github.com/scikit-build/ninja-python-distributions/issues/27
-[user-guide]: docs/user_guide.md
-[wsl]: https://docs.microsoft.com/en-us/windows/wsl/faq
+  * 2019, [Customizing icon themes animated tutorial](https://github.com/themix-project/oomox/wiki/Customizing-icon-themes)
+  * 2019, [How to contribute your theme from Github website](https://github.com/themix-project/oomox/wiki/How-to-contribute-your-theme-from-Github-website)
+  * 2019, [How to import and export Base16 themes in Themix/Oomox](https://github.com/themix-project/oomox/wiki/How-to-import-and-export-Base16-themes-in-Themix-Oomox)
+  * 2018, https://www.youtube.com/watch?v=XO9QA1njIOM by AddictiveTips
+  * https://delightlylinux.wordpress.com/2016/08/22/customize-theme-colors-with-oomox/
+  * 2016, https://www.youtube.com/watch?v=Dh5TuIYQ6jo by Spatry
+  * http://www.webupd8.org/2016/05/easily-create-your-own-numix-based-gtk.html
+  * http://www.webupd8.org/2016/06/tool-to-customize-numix-theme-colors.html
