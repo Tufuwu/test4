@@ -1,10 +1,6 @@
-.DS_Store
-*.py[co]
-.cache
+*.pyc
+utils/cache*
+.project
+.pydevproject
+.settings
 __pycache__
-*.html
-/tmp/
-.idea/
-.scannerwork/
-.env
-.pytest_cache/
