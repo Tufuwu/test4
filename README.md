@@ -1,267 +1,357 @@
-# Wirepas Linux Gateway
+Overview
+========
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ebb45a6a13ec4f2c88131ddf51a9579a)](https://www.codacy.com/manual/wirepas/gateway?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wirepas/gateway&amp;utm_campaign=Badge_Grade) [![Build Status](https://travis-ci.com/wirepas/gateway.svg?branch=master)](https://travis-ci.com/wirepas/gateway)
+[![Build Status](https://travis-ci.org/malor/cpython-lldb.svg?branch=master)](https://travis-ci.org/malor/cpython-lldb)
 
-<!-- MarkdownTOC levels="1,2" autolink="true"  -->
+`cpython_lldb` is an LLDB extension for debugging Python programs.
 
-- [Gateway overview](#gateway-overview)
-- [Option 1: native installation](#option-1-native-installation)
-- [Option 2: Docker installation](#option-2-docker-installation)
-- [Contributing](#contributing)
-- [License](#license)
+It may be useful for troubleshooting stuck threads and crashes in the interpreter,
+or external libraries. Unlike most Python debuggers, LLDB allows you to attach to
+a running process w/o instrumenting it in advance, or load a coredump and do a
+post-mortem analysis of a problem.
 
-<!-- /MarkdownTOC -->
+When analyzing the state of a Python process, normally you would only have
+access to the *intepreter-level* information: every variable would be of type
+PyObject\*, and stack traces would only contain CPython internal calls and
+calls to external libraries. Unless you are a CPython developer troubleshooting
+some bug in the implementation of the interpreter, that is typically not
+very useful. This extension, however, allows you to extract the *application-level*
+information about execution of a program: print the values of variables,
+list the source code, display Python stack traces, etc.
 
-## Gateway overview 
+While CPython itself provides a similar extension for gdb [out of the box](
+https://github.com/python/cpython/blob/master/Tools/gdb/libpython.py),
+one might still prefer to use LLDB as a debugger, e.g. on Mac OS.
 
-This repository contains Wirepas' reference gateway implementation, which
-relies on a set of services to exchange data from/to a Wirepas Mesh network
-from/to a MQTT broker or host device. The implemented API is described
-[here][wirepas_gateway_to_backend_api].
+`cpython_lldb` requires CPython to be built with debugging symbols, which is
+not the case for some Linux distros (most notably Arch Linux). CPython official
+[Docker images](https://hub.docker.com/_/python) are known to work correctly,
+as they are used for integration testing.
 
-The services will be known from now on as sink service and transport service.
-The sink service is responsible to interface locally with a Wirepas device
-running its Dual MCU API. The transport service packs network
-messages on protobuffers and publishes them on top of MQTT according to
-Wirepas Backend API.
 
-Figure 1, provides an overview of the gateway implementation and the
-apis involved at each step.
+Features
+========
 
-![Wirepas gateway architecture][here_img_overview]
+`cpython_lldb` targets CPython 3.5+ and supports the following features:
 
-**Figure 1 -** Gateway services overview.
+* pretty-priting of built-in types (int, bool, float, bytes, str, none, tuple, list, set, frozenset, dict)
+* printing of Python-level stack traces
+* printing of local variables
+* listing the source code
+* walking up and down the Python call stack
 
-## Option 1: native installation
+TODO:
 
-### Requirements
+* stack traces w/ mixed stacks (e.g. involving calls to clibs)
 
-The implementation is based on DBus. The C binding used to access DBus is sdbus
-from systemd library so even if systemd is not required to be running, the
-libsystemd must be available.
 
-Systemd version must be higher or equal to *221*. You can check it with:
+Installation
+============
 
-```shell
-systemd --version
-```
-
-In order to build the sink service or the transport python wheel that contains C extensions, systemd headers are needed
-
-```shell
-sudo apt install libsystemd-dev
-```
-
-Python 3 and a recent pip version (>= 18.1)
+If your version of LLDB is linked against system libpython, it's recommended
+that you install the extension to the user site packages directory and allow
+it to be loaded automatically on start of a new LLDB session:
 
 ```shell
-sudo apt install python3 python3-dev python3-gi
-wget https://bootstrap.pypa.io/get-pip.py \
-   && sudo python3 get-pip.py && rm get-pip.py \
-   && sudo pip3 install --upgrade pip
+$ python -m pip install --user cpython-lldb
+$ echo "command script import cpython_lldb" >> ~/.lldbinit
+$ chmod +x ~/.lldbinit
 ```
 
-### Installation
-
-The implementation uses system bus that has enforced security.
-In order to obtain a service name on system bus, the user launching the sink
-service must be previously declared to system.
-Provided file [*com.wirepas.sink.conf*](sink_service/com.wirepas.sink.conf)
-must be copied under */etc/dbus-1/system.d/* and edited with the user that will
-launch the sink_service (and transport service).
-
-To change the default wirepas user, please edit the following lines
-from com.wirepas.sink.conf:
-
-```xml
-    <!-- Only wirepas user can own the service name -->
-    <policy user="wirepas">
-```
-
-*It is recommended to restart your gateway once this file is copied.*
-
-#### Sink service
-
-You can either build yourself the sink service by foolowing instructions from [sink_service folder](sink_service)
-or you can use prebuilt version available for each release on [release section of this repository][here_releases].
-Download the one for your architecture (Arm or Amd64)
-
-#### Transport service
-
-To build the wheel yourself, please refer to the
-[transport's service readme file][here_transport_readme].
-
-Alternatively, you can use prebuilt Python wheels.
-You can either get it through [PyPi][wirepas_gateway_pypi] or from the
-[release section of this repository][here_releases].
-
-The library contains a c extension which will be compiled upon installation (even with prebuilt wheel).
-Please ensure that you have met all the build requirements prior to
-attempting the installation.
-
-If you get the wheel from [release section of this repository][here_releases]:
+Alternatively, you can install the extension to some other location on disk
+and tell LLDB to load it from there, e.g. ~/.lldb:
 
 ```shell
-    pip3 install wirepas_gateway-*.tar.gz
+$ mkdir -p ~/.lldb/cpython_lldb
+$ python -m pip install --target ~/.lldb/cpython_lldb cpython-lldb
+$ echo "command script import ~/.lldb/cpython_lldb/cpython_lldb.py" >> ~/.lldbinit
+$ chmod +x ~/.lldbinit
 ```
 
-or from [PyPi][wirepas_gateway_pypi]
+Usage
+=====
+
+Start a new LLDB session:
 
 ```shell
-    pip3 install wirepas_gateway
+$ lldb /usr/bin/python
 ```
 
-### Configuration and starting services
-
-#### Sink service configuration
-
-A sink service must be started for each connected sink on Gateway:
+or attach to an existing CPython process:
 
 ```shell
-    sink_service/build/sinkService -p <uart_port> -b <bitrate> -i <sink_id>
+$ lldb /usr/bin/python -p $PID
 ```
 
-Parameters are:
+If you've followed the installation steps, the extension will now be automatically
+loaded on start of a new LLDB session and register some Python-specific commands:
 
--   **uart_port:** uart port path (*default:* /dev/ttyACM0)
--   **bitrate:** bitrate of sink uart (*default:* auto baudrate. 125000, 115200 and 1000000 bps are tested)
--   **sink_id:** value between 0 and 9 (*default:* 0).
+```
+(lldb) help
+...
+Current user-defined commands:
+  py-bt     -- Print a Python-level call trace of the selected thread.
+  py-down   -- Select a newer Python stack frame.
+  py-list   -- List the source code of the Python module that is currently being executed.
+  py-locals -- Print the values of local variables in the selected Python frame.
+  py-up     -- Select an older Python stack frame.
+For more information on any command, type 'help <command-name>'.
+```
 
-If multiple sinks are present, they must have a different *sink_id*.
+Pretty-printing
+---------------
 
-#### Transport service configuration
+All known `PyObject`'s (i.e. built-in types) are automatically pretty-printed
+when encountered, as if you tried to get a `repr()` of something in Python REPL,
+e.g.:
 
-Parameters can be set from command line or from a setting file in YAML format.
-To get the full list of parameters, please run:
+```
+(lldb) frame variable v
+(PyObject *) v = 0x0000000100793c00 42
+(lldb) p v->ob_type->tp_name
+(const char *) $3 = 0x000000010017d42a "int"
+```
+
+Stack traces
+------------
+
+Use `py-bt` to print a full application-level stack trace of the current thread, e.g.:
+
+```
+(lldb) py-bt
+Traceback (most recent call last):
+  File "test.py", line 15, in <module>
+    fc()
+  File "test.py", line 12, in fc
+    fb()
+  File "test.py", line 8, in fb
+    fa()
+  File "test.py", line 2, in fa
+    abs(1)
+```
+
+Walking up and down the call stack
+----------------------------------
+
+Use `py-up` and `py-down` to select an older or a newer Python call stack frame, e.g.:
+
+```
+(lldb) py-up
+  File "/Users/malor/src/cpython/test.py", line 6, in cb
+    self.ca()
+(lldb) py-up
+  File "/Users/malor/src/cpython/test.py", line 20, in f_static
+    c.cb()
+(lldb) py-down
+  File "/Users/malor/src/cpython/test.py", line 6, in cb
+    self.ca()
+(lldb) py-down
+  File "/Users/malor/src/cpython/test.py", line 3, in ca
+    abs(1)
+(lldb) py-down
+*** Newest frame
+```
+
+Printing of local variables
+---------------------------
+
+Use `py-locals` to print the values of local variables in the selected frame:
+
+```
+(lldb) py-locals
+a = 42
+args = (1, 2, 3)
+b = [1, u'hello', u'\\u0442\\u0435\\u0441\\u0442']
+c = ([1], 2, [[3]])
+d = u'test'
+e = {u'a': -1, u'b': 0, u'c': 1}
+eggs = 42
+kwargs = {u'foo': 'spam'}
+spam = u'foobar'
+```
+
+Listing the source code
+-----------------------
+
+Use `py-list` to list the source code that is currently being executed in the selected
+Python frame, e.g.:
+
+```
+(lldb) py-list
+    1    SOME_CONST = 42
+    2
+    3
+    4    def fa():
+   >5        abs(1)
+    6        return 1
+    7
+    8
+    9    def fb():
+   10        1 + 1
+```
+
+The command also accepts optional `start` and `end` arguments that allow to
+list the source code within a specific range of lines, e.g.:
+
+```
+(lldb) py-list 4
+    4    def fa():
+   >5        abs(1)
+    6        return 1
+    7
+    8
+    9    def fb():
+   10        1 + 1
+   11        fa()
+   12
+   13
+   14    def fc():
+```
+
+or:
+
+```
+(lldb) py-list 4 11
+    4    def fa():
+   >5        abs(1)
+    6        return 1
+    7
+    8
+    9    def fb():
+   10        1 + 1
+   11        fa()
+```
+
+Potential issues and how to solve them
+======================================
+
+CPython 2.7.x
+-------------
+
+CPython 2.7.x is not supported. There are currently no plans to support it in the future.
+
+Missing debugging symbols
+-------------------------
+
+CPython debugging symbols are required. You can check if they are available as follows:
 
 ```shell
-    wm-gw --help
+$ lldb /usr/bin/python
+$ (lldb) type lookup PyObject
 ```
 
-#### From command line
-
-Here is an example to start the transport module from the command line:
+If debugging symbols are not available, you'll see something like:
 
 ```shell
-    wm-gw \
-          --mqtt_hostname "<server>" \
-          --mqtt_port <port> \
-          --mqtt_username <user> \
-          --mqtt_password <password> \
-          [--mqtt_force_unsecure] \
-          --gateway_id <gwid> \
+no type was found matching 'PyObject'
 ```
 
-where:
-
--   **mqtt_hostname:** Hostname or IP where the MQTT broker is located
-
--   **mqtt_port:** MQTT port
-
--   **mqtt_username:** MQTT user
-
--   **mqtt_password:** MQTT password
-
--   **mqtt_force_unsecure:** Toggle to disable TLS handshake.
-Necessary to establish connections to unsecure port (default: 1883).
-
--   **gateway_id:** The desired gateway id, instead of a random generated one
-
-    > It must be unique for each gateway reporting to same broker
-
-#### From configuration file
+Some Linux distros ship debugging symbols separately. To fix the problem on Debian / Ubuntu do:
 
 ```shell
-    wm-gw --settings=settings_files.yml
+$ sudo apt-get install python-dbg
 ```
 
-All parameters that are accepted by the transport service can be set
-through the settings file. An example of a *settings_file.yml*
-file is given below:
-
-```yaml
-    #
-    # MQTT brocker Settings
-    #
-    mqtt_hostname: <IP or hostname where the MQTT broker is located>
-    mqtt_port: <MQTT port (default: 8883 (secure) or 1883 (local))>
-    mqtt_username: <MQTT user>
-    mqtt_password: <MQTT password>
-    mqtt_force_unsecure: <true | false>
-
-    #
-    # Gateway settings
-    #
-    gateway_id: <The desired gateway id, must be unique for each gateway>
-    gateway_model: <Custom gateway model, can be omitted>
-    gateway_version: <Custom gateway version, can be omitted>
-
-    #
-    # Filtering Destination Endpoints
-    #
-    ignored_endpoints_filter: <Endpoints to filter out. Ex: [1, 2, 10-12]>
-    whitened_endpoints_filter: <Endpoints to whiten. Ex: [1, 2, 10-12]>
-```
-
-#### Optional
-
-##### Start services with systemd
-
-Please see this [Wiki entry][here wiki systemd]
-
-##### See local messages on Dbus interface
-
-Launch local gateway process to see messages received from sinks at Dbus
-level. It can be launched from the command line with:
+on CentOS / Fedora / RHEL do:
 
 ```shell
-wm-dbus-print
+$ sudo yum install python-debuginfo
 ```
 
-##### Configure a sink locally
+Other distros, like Arch Linux, do not provide debugging symbols in the package repos. In this case,
+you would need to build CPython from source. Please refer to official [CPython](https://devguide.python.org/setup/#compiling)
+or [distro](https://wiki.archlinux.org/index.php/Debug_-_Getting_Traces) docs for instructions.
 
-There is a script installed along the Wirepas Transport wheel that allow the configuration of sinks locally
+Alternatively, you can use official CPython [Docker images](https://hub.docker.com/_/python).
 
-Please see its help page for more information.
+
+Broken LLDB scripting
+---------------------
+
+Some Linux distros (most notably Debian Stretch) are shipped with a version of LLDB in which Python scripting
+triggers a segmentation fault when executing any non-trivial operation:
 
 ```shell
-wm-node-config --help
+$ lldb
+(lldb) script
+Python Interactive Interpreter. To exit, type 'quit()', 'exit()' or Ctrl-D.
+>>> import io
+>>> Segmentation fault
 ```
 
-## Option 2: Docker installation
+It's recommended that you use the latest LLDB release from the official [APT repo](https://apt.llvm.org/) instead
+of the one shipped with your distro.
 
-In order to ease the installation in a Docker environment, please see the instruction in [docker folder](docker).
-The Docker files under [container folder](conainer) are still used for our internal CI but must no be used for other purposes.
-They will be removed at some point.
+Conflicting Python versions on Mac OS
+-------------------------------------
 
-## Contributing
+If you see an error like this:
 
-We welcome your contributions!
+```
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+  File "/usr/local/Cellar/python/2.7.13/Frameworks/Python.framework/Versions/2.7/lib/python2.7/io.py", line 51, in <module>
+    import _io
+ImportError: dlopen(/usr/local/Cellar/python/2.7.13/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_io.so, 2): Symbol not found: __PyCodecInfo_GetIncrementalDecoder
+  Referenced from: /usr/local/Cellar/python/2.7.13/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_io.so
+  Expected in: flat namespace
+ in /usr/local/Cellar/python/2.7.13/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_io.so
+```
 
-Please read the [instructions on how to do it][here_contribution]
-and please review our [code of conduct][here_code_of_conduct].
+then the version of LLDB, that is shipped with Mac OS and linked against the system CPython,
+is trying to use CPython installed via Homebrew. This won't work. You need to make sure LLDB
+picks up the correct CPython version on start. One way to achieve that would be modifying
+`$PATH`, e.g. by creating a wrapper for `lldb`:
 
-## License
+```
+#!/bin/sh
 
-Copyright 2019 Wirepas Ltd licensed under Apache License, Version 2.0 See file
-[LICENSE][here_license] for full license details.
+export PATH=/usr/bin:$PATH
+exec lldb "$@"
+```
 
-[here_contribution]: CONTRIBUTING.md
-[here_code_of_conduct]: CODE_OF_CONDUCT.md
-[here_license]: LICENSE
-[here_img_overview]: img/wm-gateway-overview.png?raw=true
-[here_ci_docker_build]: .ci/build-images.sh
-[here_releases]: https://github.com/wirepas/gateway/releases
-[here_container]: container/
-[here_container_dockerfile]: container/Dockerfile
-[here_container_env]: container/wm_gateway.env
-[here_dbus_manifest]: sink_service/com.wirepas.sink.conf
-[here_container_entrypoint]: container/common/docker-entrypoint.sh
-[here_transport_readme]: python_transport/README.md
-[here wiki systemd]: https://github.com/wirepas/gateway/wiki/How-to-start-a-native-gateway-with-systemd
+and putting it to `/usr/local/bin`.
 
-[wirepas_backend_apis]: https://github.com/wirepas/backend-client
-[wirepas_gateway_to_backend_api]: https://github.com/wirepas/backend-apis/blob/master/gateway_to_backend/README.md
-[wirepas_gateway_pypi]: https://pypi.org/project/wirepas-gateway
+See this [page](https://github.com/vadimcn/vscode-lldb/wiki/Troubleshooting) for advice on
+troubleshooting of LLDB.
 
-[dockerhub_wirepas]: https://hub.docker.com/r/wirepas/gateway
+Development
+===========
+
+Running tests
+-------------
+
+Tests currently require `make` and `docker` to be installed.
+
+To run the tests against the *latest* released CPython version, do:
+
+```
+$ make test
+```
+
+To run the tests against a specific CPython (or LLDB) version, do:
+
+```
+$ PY_VERSION=X.Y LLDB_VERSION=Z make test
+```
+
+Supported CPython versions are:
+* `3.5`
+* `3.6`
+* `3.7`
+* `3.8`
+* `3.9`
+
+Supported LLDB versions:
+* `7`
+* `8`
+* `9`
+* `10`
+* `11`
+
+Contributors
+============
+
+Kudos to everyone who have contributed to this project!
+
+* Marco Neumann
