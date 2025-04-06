@@ -1,83 +1,44 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-env/
-bin/
-build/
-develop-eggs/
-dist/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-doc/_build
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-cover/
-.coverage
-.cache
-.pytest_cache
-nosetests.xml
-coverage.xml
-cover/
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# Rope
-.ropeproject
-
-# Django stuff:
-*.log
-*.pot
-
-# Sphinx documentation
-docs/_build/
-doc/source/generated/
-
-#mac
+# General
 .DS_Store
-*~
+.AppleDouble
+.LSOverride
 
-#pycharm
-.idea/*
+# Icon must end with two \r
+Icon
 
-#Dolphin browser files
-.directory/
-.directory
 
-#Binary data files
-*.volume
-*.am
-*.tiff
-*.tif
-*.dat
-*.DAT
+# Thumbnails
+._*
 
-#generated documntation files
-doc/resource/api/generated/
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 
-# ipython caches
-.ipynb_checkpoints/
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Files from vim
+*.swp
+*.swo
+*.swn
+*.swm
+*.swk
+*.swl
+
+# Python files
+*.pyc
+
+# Folders and files from installation of this project
+gadma/version.py
+build/*
+gadma.egg-info/*
+dist/*
