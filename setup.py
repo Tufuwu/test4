@@ -1,33 +1,57 @@
-#!/usr/bin/env python3
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#!/usr/bin/env python
+"""
+Standard build script.
+"""
 
-import setuptools
+__docformat__ = 'restructuredtext'
 
 
-def local_scheme(version):
-    """Generate a PEP440 compatible version if PEP440_VERSION is enabled"""
-    import os
-    import setuptools_scm.version  # only present during setup time
-
-    return (
-        ''
-        if 'PEP440_VERSION' in os.environ
-        else setuptools_scm.version.get_local_node_and_date(version)
-    )
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    print('You must have setuptools installed to use setup.py. Exiting...')
+    raise SystemExit(1)
 
 
-if __name__ == '__main__':
-    setuptools.setup(
-        use_scm_version={'local_scheme': local_scheme},
-        setup_requires=["setuptools_scm"],
-    )
+install_dependencies = (
+    'requests',
+    'six'
+)
+test_requirements = (
+    'mock',
+    'pyhamcrest',
+    'pylama',
+    'pytest',
+    'requests_mock'
+)
+setup(
+    name="python-owasp-zap-v2.4",
+    version="0.0.19",
+    description="OWASP ZAP 2.10 API client",
+    long_description="OWASP Zed Attack Proxy 2.10 API Python client (the 2.4 package name has been kept to make it easier to upgrade)",
+    author="ZAP development team",
+    author_email='',
+    url="https://www.zaproxy.org/",
+    download_url="https://github.com/zaproxy/zap-api-python/releases/tag/0.0.19",
+    platforms=['any'],
+    license="ASL2.0",
+    package_dir={
+        '': 'src',
+    },
+    packages=find_packages('src'),
+    classifiers=[
+        'License :: OSI Approved :: Apache Software License',
+        'Development Status :: 5 - Production/Stable',
+        'Topic :: Security',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+    ],
+    install_requires=install_dependencies,
+    tests_require=test_requirements,
+    extras_require={'tests': test_requirements}
+)
