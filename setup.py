@@ -1,46 +1,90 @@
+import io
 import os
+import sys
+from shutil import rmtree
 
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup, Command
 
-NAME = "georss_ingv_centro_nazionale_terremoti_client"
-AUTHOR = "Malte Franken"
-AUTHOR_EMAIL = "coding@subspace.de"
-DESCRIPTION = "A GeoRSS client library for the INGV Centro Nazionale Terremoti (Earthquakes) feed."
-URL = (
-    "https://github.com/exxamalte/python-georss-ingv-centro-nazionale-terremoti-client"
-)
+VERSION = '1.3.3'
 
-REQUIRES = [
-    "georss_client>=0.14",
-]
+here = os.path.abspath(os.path.dirname(__file__))
+with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+    README = '\n' + f.read()
 
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+class UploadCommand(Command):
+    """Support setup.py upload."""
 
-HERE = os.path.abspath(os.path.dirname(__file__))
-VERSION = {}
-with open(os.path.join(HERE, NAME, "__version__.py")) as f:
-    exec(f.read(), VERSION)  # pylint: disable=exec-used
+    description = 'Build and publish the package.'
+    user_options = []
+
+    @staticmethod
+    def status(s):
+        """Prints things in bold."""
+        print('\033[1m{0}\033[0m'.format(s))
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        try:
+            self.status('Removing previous builds...')
+            rmtree(os.path.join(here, 'dist'))
+        except OSError:
+            pass
+
+        self.status('Building Source and Wheel (universal) distribution...')
+        os.system('{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
+
+        self.status('Uploading the package to PyPI via Twine...')
+        os.system('twine upload dist/*')
+
+        self.status('Pushing git tags...')
+        os.system('git tag {0}'.format(VERSION))
+        os.system('git push --tags')
+
+        sys.exit()
+
 
 setup(
-    name=NAME,
-    version=VERSION["__version__"],
-    author=AUTHOR,
-    author_email=AUTHOR_EMAIL,
-    description=DESCRIPTION,
-    license="Apache-2.0",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url=URL,
-    packages=find_packages(exclude=("tests*",)),
-    classifiers=[
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "License :: OSI Approved :: Apache Software License",
-        "Operating System :: OS Independent",
+    name='django-rest-multitokenauth',
+    version=VERSION,
+    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    install_requires=[
+        'django-ipware==3.0.*',
     ],
-    install_requires=REQUIRES,
+    include_package_data=True,
+    license='BSD License',
+    description='An extension of django rest frameworks token auth, providing multiple authentication tokens per user',
+    long_description=README,
+    long_description_content_type='text/markdown',
+    url='https://github.com/anexia-it/django-rest-multitokenauth',
+    author='Harald Nezbeda',
+    author_email='hnezbeda@anexia-it.com',
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Web Environment',
+        'Framework :: Django',
+        'Framework :: Django :: 2.2',
+        'Framework :: Django :: 3.0',
+        'Framework :: Django :: 3.1',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+    ],
+    # $ setup.py upload support.
+    cmdclass={
+        'upload': UploadCommand,
+    },
 )

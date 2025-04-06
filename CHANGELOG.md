@@ -1,22 +1,58 @@
-# Changes
+# Changelog
 
-## 0.5 (08/06/2021)
-* Add license tag (thanks @fabaff).
-* Using version 0.14 of upstream [python-georss-client](https://github.com/exxamalte/python-georss-client) library.
-* General code improvements.
+## 1.4.0 - unreleased
 
-## 0.4 (20/04/2021)
-* Fixed image URLs by supporting new pattern (thanks @caiosweet).
-* Using version 0.13 of upstream [python-georss-client](https://github.com/exxamalte/python-georss-client) library.
-* Python 3.9 support.
+- Added Django 3.0 support
+- Added Django 3.1 support
+- Removed Django 1.11 support
+- Removed Django 2.0 support
+- Removed Python 2.7 support
+- Removed Python 3.4 support
 
-## 0.3 (20/10/2020)
-* Excluded tests from package.
+## 1.3.3
 
-## 0.2 (25/06/2020)
-* Added event id and image url (thanks @caiosweet).
-* Code restructure and clean-up
-* Using version 0.10 of upstream [python-georss-client](https://github.com/exxamalte/python-georss-client) library.
+- Removes python requires classifier
 
-## 0.1 (28/03/2019)
-* Migration from [python-georss-client](https://github.com/exxamalte/python-georss-client).
+## 1.3.2
+
+- Fixes installation for older python versions
+
+## 1.3.2
+
+- Fixes migrations for Django >=2.1
+
+## 1.3.1
+
+- Removed Django 1.8 support
+
+## 1.2.1
+
+- Switched travis testing to tox
+
+## 1.2
+
+- Internal release
+
+## 1.1.1
+
+- Updated setup.py and travis 
+
+## 1.1
+
+- Internal release
+
+## 1.0
+
+- Internal release
+
+## 0.3.0
+
+- First production ready release
+
+
+[1.4.0 - unreleased]: https://github.com/anexia-it/django-rest-multitokenauth
+[1.3.3]: https://pypi.org/project/django-rest-multitokenauth/1.3.3/
+[1.3.2]: https://pypi.org/project/django-rest-multitokenauth/1.3.2/
+[1.3.1]: https://pypi.org/project/django-rest-multitokenauth/1.3.1/
+[1.2.1]: https://pypi.org/project/django-rest-multitokenauth/1.2.1/
+[1.1.1]: https://pypi.org/project/django-rest-multitokenauth/1.1.1/
