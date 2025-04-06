@@ -1,11 +1,8 @@
 *.pyc
-*.db
-.coverage
-MANIFEST
+*.egg-info
 dist/
-build/
+.DS_Store
+.mypy_cache
+.coverage
 env/
-html/
-htmlcov/
-*.egg-info/
-.tox/
+build/
