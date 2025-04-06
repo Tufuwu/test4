@@ -1,93 +1,60 @@
-name: CI
+#
+# Build and deploy the documentation
+#
+name: Deploy
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
+  push:
     branches:
-      - '**'
-
+      - main
 
 jobs:
-  run_unittest_tests:
-    name: Unittest
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.9"]
-        django-version: ["2.2", "3.0", "3.1", "3.2"]
-        exclude:
-            - python-version: "3.9"
-              django-version: "3.0"
-            - python-version: "3.9"
-              django-version: "3.1"
-            - python-version: "3.9"
-              django-version: "3.2"
-
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v2
-      - name: setup python
+      # Cancel previous runs that are not completed
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.9'
 
-      - name: Install Dependencies
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build HTML documentaiton
+        run: make html
+
+      - name: Install TinyTeX
+        uses: r-lib/actions/setup-tinytex@v1
+
+      - name: Install LaTeX packages
         run: |
-          pip install --upgrade setuptools
-          pip install tox
+          tlmgr install tabulary latexmk ulem environ trimspaces titlesec \
+                      varwidth framed threeparttable wrapfig upquote capt-of \
+                      multirow eqparbox needspace fncychap letltxmacro
 
-      - name: Run unittest Python ${{ matrix.python-version }} -- Django ${{ matrix.django-version }}
-        env:
-          TOXENV: py${{ matrix.python-version }}-django${{ matrix.django-version }}
-        run: tox
+      - name: Build PDF documentaiton
+        run: |
+          make latexpdf
+          cp build/latex/Makefile.pdf build/html/
 
-  run_integration_tests:
-    name: Integration tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.9"]
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: setup python
-        uses: actions/setup-python@v2
+      - name: Deploy documentation
+        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Dependencies
-        run: |
-          pip install --upgrade setuptools
-          pip install tox
-
-      - name: Integration tests
-        env:
-          TOXENV: integration
-        run: tox
-
-  run_quality_tests:
-    name: Quality tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.9"]
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Dependencies
-        run: |
-          pip install tox
-
-      - name: Quality tests
-        env:
-          TOXENV: flake8
-        run: |
-          tox
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/html
+          # Only keep the latest commit to avoid bloating the repository
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'

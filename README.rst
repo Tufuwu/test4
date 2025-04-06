@@ -1,108 +1,47 @@
-.. image:: https://raw.githubusercontent.com/jschneier/django-storages/master/docs/logos/horizontal.png
-    :alt: Django-Storages
-    :width: 100%
+跟我一起写Makefile (PDF重制版)
+##############################
 
-.. image:: https://img.shields.io/pypi/v/django-storages.svg
-    :target: https://pypi.org/project/django-storages/
-    :alt: PyPI Version
+.. image:: https://travis-ci.org/seisman/how-to-write-makefile.svg?branch=master
+    :target: https://travis-ci.org/seisman/how-to-write-makefile
 
-.. image:: https://travis-ci.org/jschneier/django-storages.svg?branch=master
-    :target: https://travis-ci.org/jschneier/django-storages
-    :alt: Build Status
+简介
+----
 
-Installation
-============
-Installing from PyPI is as easy as doing:
+《跟我一起写Makefile》是 `陈皓`_ 发表在其CSDN博客上的系列文章。该系列文章翻译整理自 `GNU Make Manual`_ ，一直受到读者的推荐，是很多人学习Makefile的首选文档。目前网络上流传的PDF版本多为祝冬华整理的版本。这个版本的排版一般，代码部分没有做任何语法高亮。
 
-.. code-block:: bash
+2010年初学Makefile的时候，读了前几章皮毛，一直用到了现在。最近想着重新学习一下Makefile，顺便学习一下Sphinx，重新制作一个更精美的PDF版本。
 
-  pip install django-storages
+相关
+----
 
-If you'd prefer to install from source (maybe there is a bugfix in master that
-hasn't been released yet) then the magic incantation you are looking for is:
+- 书的文字部分来自于 `Andriki`_ 提供的Mediawiki源码；
+- 使用 `Sphinx`_ 制作文档
+- 项目主页： https://github.com/seisman/how-to-write-makefile
+- 网页在线版： https://seisman.github.io/how-to-write-makefile/
+- PDF下载： https://seisman.github.io/how-to-write-makefile/Makefile.pdf
 
-.. code-block:: bash
+本地编译
+--------
 
-  pip install -e 'git+https://github.com/jschneier/django-storages.git#egg=django-storages'
+#. Clone项目到本地::
 
-Once that is done set ``DEFAULT_FILE_STORAGE`` to the backend of your choice.
-If, for example, you want to use the boto3 backend you would set:
+   $ git clone https://github.com/seisman/how-to-write-makefile.git
 
-.. code-block:: python
+#. 安装依赖::
 
-  DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+   $ pip install -r requirements.txt
 
+#. 编译生成HTML::
 
-If you are using the ``FileSystemStorage`` as your storage management class in your models ``FileField`` fields, remove them
-and don't specify any storage parameter. That way, the ``DEFAULT_FILE_STORAGE`` class will be used by default in your field.
-For example, if you have a `photo` field defined as:
+   $ make html
+   $ firefox build/html/index.html&
 
-.. code-block:: python
+#. 编译生成PDF（要求安装TeXLive 2016）::
 
-    photo = models.FileField(
-        storage=FileSystemStorage(location=settings.MEDIA_ROOT),
-        upload_to='photos',
-    )
+   $ make latexpdf
+   $ evince build/latex/Makefile.pdf&
 
-Set it to just:
-
-.. code-block:: python
-
-    photo = models.FileField(
-        upload_to='photos',
-    )
-
-There are also a number of settings available to control how each storage backend functions,
-please consult the documentation for a comprehensive list.
-
-About
-=====
-django-storages is a project to provide a variety of storage backends in a single library.
-
-This library is usually compatible with the currently supported versions of
-Django. Check the Trove classifiers in setup.py to be sure.
-
-django-storages is backed in part by `Tidelift`_. Check them out for all of your enterprise open source
-software commerical support needs.
-
-.. _Tidelift: https://tidelift.com/subscription/pkg/pypi-django-storages?utm_source=pypi-django-storages&utm_medium=referral&utm_campaign=enterprise&utm_term=repo
-
-Security
-========
-
-To report a security vulnerability, please use the `Tidelift security contact`_. Tidelift will coordinate the
-fix and disclosure. Please **do not** post a public issue on the tracker.
-
-.. _Tidelift security contact: https://tidelift.com/security
-
-History
-=======
-This repo began as a fork of the original library under the package name of django-storages-redux and
-became the official successor (releasing under django-storages on PyPI) in February of 2016.
-
-Found a Bug? Something Unsupported?
-===================================
-I suspect that a few of the storage engines in backends/ have been unsupported
-for quite a long time. I personally only really need the S3Storage backend but
-welcome bug reports (and especially) patches and tests for some of the other
-backends.
-
-Issues are tracked via GitHub issues at the `project issue page
-<https://github.com/jschneier/django-storages/issues>`_.
-
-Documentation
-=============
-Documentation for django-storages is located at https://django-storages.readthedocs.io/.
-
-Contributing
-============
-
-#. `Check for open issues
-   <https://github.com/jschneier/django-storages/issues>`_ at the project
-   issue page or open a new issue to start a discussion about a feature or bug.
-#. Fork the `django-storages repository on GitHub
-   <https://github.com/jschneier/django-storages>`_ to start making changes.
-#. Add a test case to show that the bug is fixed or the feature is implemented
-   correctly.
-#. Bug me until I can merge your pull request. Also, don't forget to add
-   yourself to ``AUTHORS``.
+.. _`陈皓`: http://coolshell.cn/haoel
+.. _`Andriki`: http://andriki.com/mediawiki/index.php?title=Linux:%E8%B7%9F%E6%88%91%E4%B8%80%E8%B5%B7%E5%86%99Makefile
+.. _`Sphinx`: http://sphinx-doc.org/
+.. _`GNU Make Manual`: https://www.gnu.org/software/make/manual/
