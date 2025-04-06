@@ -1,214 +1,79 @@
-name: Mykrobe builds
-
-on:
-  push:
-    tags:
-    - 'v*.*.*'
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
+name: build (qemu)
+on: [push, pull_request]
 jobs:
-  build_containers:
-    name: Build linux/singularity container
+  test:
     runs-on: ubuntu-latest
     steps:
-
-    - name: Set up Go 1.16
-      uses: actions/setup-go@v1
+    - uses: actions/checkout@v2
+    - name: Run tests in chroot
+      uses: pguyot/arm-runner-action@v1
+      id: arm_runner_tests
       with:
-        go-version: 1.16
-      id: go
-
-    - name: Install Dependencies
+        image_additional_mb: 4096
+        base_image: 'raspios_lite:2021-03-04'
+        cpu: 'arm1176'
+        copy_repository_path: /home/pi/pynab
+        commands: |
+            sudo chown -R pi:pi /home/pi/pynab
+            sudo apt-get update -y
+            sudo apt-get install --no-install-recommends -y postgresql libpq-dev git python3 python3-venv python3-dev gettext nginx openssl libssl-dev libffi-dev libmpg123-dev libasound2-dev libatlas-base-dev libgfortran3 libopenblas-dev liblapack-dev gfortran zram-tools
+            sudo mkdir -p /run/systemd/timesync/ && sudo touch /run/systemd/timesync/synchronized
+            sudo -u pi taskset -c 0 /bin/bash install.sh ci-chroot-test
+    - name: Upload image if tests failed
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: Image of failed tests
+        path: ${{ steps.arm_runner_tests.outputs.image }}
+  create_image:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/releng' || startsWith(github.ref, 'refs/tags/')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Define the image name
+      id: image_and_branch_name
       run: |
-        sudo apt-get update && sudo apt-get install -y \
-          build-essential \
-          libssl-dev \
-          uuid-dev \
-          libgpgme11-dev \
-          squashfs-tools \
-          libseccomp-dev \
-          pkg-config \
-          debootstrap \
-          debian-keyring \
-          debian-archive-keyring \
-          rsync
-
-    - name: Install Singularity
-      env:
-        SINGULARITY_VERSION: 3.5.3
-        GOPATH: /tmp/go
-      run: |
-        mkdir -p $GOPATH
-        sudo mkdir -p /usr/local/var/singularity/mnt
-        mkdir -p $GOPATH/src/github.com/sylabs
-        cd $GOPATH/src/github.com/sylabs
-        wget https://github.com/hpcng/singularity/releases/download/v${SINGULARITY_VERSION}/singularity-${SINGULARITY_VERSION}.tar.gz
-        tar -xzf singularity-${SINGULARITY_VERSION}.tar.gz
-        cd singularity
-        ./mconfig -v -p /usr/local
-        make -j `nproc 2>/dev/null || echo 1` -C ./builddir all
-        sudo make -C ./builddir install
-
-
-    - name: Check out code for the container build
-      uses: actions/checkout@v2
-
-    - name: Set release version if is a release
-      if: startsWith(github.event.ref, 'refs/tags/v')
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-
-    - name: Set release version if not a release
-      if: false == startsWith(github.event.ref, 'refs/tags/v')
-      run: echo "RELEASE_VERSION=test" >> $GITHUB_ENV
-
-    - name: Build Singularity container
-      env:
-        SINGULARITY_RECIPE: Singularity.def
-        OUTPUT_CONTAINER: mykrobe_${{env.RELEASE_VERSION}}.img
-      run: |
-        ls
-        if [ -f "${SINGULARITY_RECIPE}" ]; then
-            sudo -E singularity build ${OUTPUT_CONTAINER} ${SINGULARITY_RECIPE}
+        if [ ${GITHUB_REF/refs\/tags\//} != ${GITHUB_REF} ]; then
+          echo ::set-output name=LOCAL_BRANCH::${GITHUB_REF/refs\/tags\//}
+          echo ::set-output name=IMAGE_NAME_SUFFIX::${GITHUB_REF/refs\/tags\//}
+        elif [ ${GITHUB_REF/refs\/heads\//} = "releng" ]; then
+          echo ::set-output name=LOCAL_BRANCH::releng
+          echo ::set-output name=IMAGE_NAME_SUFFIX::releng
         else
-            echo "${SINGULARITY_RECIPE} is not found."
-            echo "Present working directory: $PWD"
-            ls
+          echo ::set-output name=LOCAL_BRANCH::${GITHUB_REF/refs\/heads\//}
         fi
-
-    - name: Release
-      if: startsWith(github.event.ref, 'refs/tags/v')
-      uses: softprops/action-gh-release@v1
+    - name: Create a release image using chroot
+      uses: pguyot/arm-runner-action@v1
+      id: arm_runner_install
       with:
-        files: mykrobe*.img
-        draft: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  mac_build:
-    name: Build mac os command line
-    runs-on: macos-11
-    steps:
-
-    - name: Install dependencies
+        image_additional_mb: 4096
+        base_image: 'raspios_lite:2021-03-04'
+        cpu: 'arm1176'
+        commands: |
+            echo GITHUB_BRANCH=${{ steps.image_and_branch_name.outputs.LOCAL_BRANCH }}
+            echo GITHUB_REPOSITORY=${{ github.repository }}
+            sudo GITHUB_BRANCH=${{ steps.image_and_branch_name.outputs.LOCAL_BRANCH }} GITHUB_REPOSITORY=${{ github.repository }} /bin/bash setup
+            sudo rm -rf /pynab
+    - name: Compress the release image
       run: |
-        pip3 install cython requests wheel tox pyinstaller
-
-    - name: Check out code for the build
-      uses: actions/checkout@v2
-
-    - name: Set release version if is a release
-      if: startsWith(github.event.ref, 'refs/tags/v')
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-
-    - name: Set release version if not a release
-      if: false == startsWith(github.event.ref, 'refs/tags/v')
-      run: echo "RELEASE_VERSION=test" >> $GITHUB_ENV
-
-    - name: Test and build command line tarball
-      env:
-        OUTPUT_TARBALL: mykrobe.command_line.osx.${{env.RELEASE_VERSION}}.tar.gz
-      run: |
-        # mongod default data directory is /data/db, which is not writeable.
-        mkdir $HOME/mongodb_data
-        chown -R `id -un` $HOME/mongodb_data
-        sudo mongod --dbpath=$HOME/mongodb_data --quiet &> /dev/null &
-        sleep 3s
-        rm -rf .tox
-        sudo tox
-        sudo pip3 install .
-        mykrobe panels update_metadata --panels_dir src/mykrobe/data
-        mykrobe panels update_species --panels_dir src/mykrobe/data --debug all
-        cd dist
-        pyinstaller --workpath='./pyinstaller_build/binary_cache' --distpath='./pyinstaller_build' mykrobe_atlas_pyinstaller.spec
-        cd pyinstaller_build
-        tar cvfz ../../${OUTPUT_TARBALL} mykrobe_atlas/
-
-    - name: Release
-      if: startsWith(github.event.ref, 'refs/tags/v')
-      uses: softprops/action-gh-release@v1
+        mv ${{ steps.arm_runner_install.outputs.image }} pynab-${{ steps.image_and_branch_name.outputs.IMAGE_NAME_SUFFIX }}.img
+        xz -0 -T 0 -v pynab-${{ steps.image_and_branch_name.outputs.IMAGE_NAME_SUFFIX }}.img
+    - name: Create release with releng image
+      if: github.ref == 'refs/heads/releng'
+      uses: "marvinpinto/action-automatic-releases@v1.1.2"
       with:
-        files: mykrobe.command_line.osx.*.tar.gz
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
         draft: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  windows_build:
-    name: Build Windows command line
-    runs-on: windows-2019
-    steps:
-    - uses: msys2/setup-msys2@v2
+        title: "Prerelease image"
+        files: pynab-${{ steps.image_and_branch_name.outputs.IMAGE_NAME_SUFFIX }}.img.xz
+    - name: Create release with release image
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: "marvinpinto/action-automatic-releases@v1.1.2"
       with:
-        update: true
-        install: >-
-          autotools gcc git libcurl-devel bzip2 liblzma zip libbz2-devel xz zlib zlib-devel libtool wget liblzma-devel ncurses-devel base-devel openssl-devel mingw64/mingw-w64-x86_64-python3 mingw64/mingw-w64-x86_64-python3-pip mingw-w64-x86_64-python3-numpy mingw-w64-x86_64-python3-setuptools mingw-w64-x86_64-python3-wheel mingw-w64-x86_64-python-biopython
-
-    - name: Check out code for the build
-      uses: actions/checkout@v2
-
-    - name: Set release version if is a release
-      if: startsWith(github.event.ref, 'refs/tags/v')
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      shell: msys2 {0}
-
-    - name: Set release version if not a release
-      if: false == startsWith(github.event.ref, 'refs/tags/v')
-      run: echo "RELEASE_VERSION=test" >> $GITHUB_ENV
-      shell: msys2 {0}
-
-    - name: Test and build command line tarball
-      env:
-        OUTPUT_TARBALL: mykrobe.command_line.windows.${{env.RELEASE_VERSION}}.tar.gz
-      run: |
-        export PYTHONPATH="/mingw64/lib/python3.9/:/mingw64/lib/python3.9/site-packages:${PYTHONPATH}"
-        C:\\msys64\\mingw64\\bin\\python3.exe -m pip install pyinstaller requests pytest
-
-        echo "clone mccortex"
-        rm -rf mccortex
-        git clone --recursive -b geno_kmer_count https://github.com/phelimb/mccortex
-        cd mccortex/libs/htslib
-        git checkout bcf9bff178f81c9c1cf3a052aeb6cbe32fe5fdcc
-        cd ../bcftools
-        git checkout b406a3906b153faa8bec0a53df07b2adf18a3052
-        cd ../samtools
-        git checkout 2d4907cf9a34ccf7cde60143158b39e1cb40ac0c
-        cd ../../../
-        python ./ci/windows_file_fixes.py
-        cd mccortex
-        echo "make mccortex"
-        make all
-        echo "make tests mccortex"
-        make tests
-        cd ..
-
-        echo "pip install requirements"
-        C:\\msys64\\mingw64\\bin\\python3.exe -m pip install -r requirements.txt
-        echo "pip install ."
-        C:\\msys64\\mingw64\\bin\\python3.exe -m pip install .
-        echo "pytest"
-        export MYKROBE_MCCORTEX="${PWD}/mccortex/bin/mccortex31"
-        C:\\msys64\\mingw64\\bin\\python3.exe -m pytest
-        echo "update panels"
-        C:\\msys64/mingw64/bin/mykrobe.exe panels update_metadata --panels_dir src/mykrobe/data
-        C:\\msys64/mingw64/bin/mykrobe.exe panels update_species --panels_dir src/mykrobe/data --debug all
-        cd dist
-        C:\\msys64/mingw64/bin/pyinstaller.exe --workpath='./pyinstaller_build/binary_cache' --distpath='./pyinstaller_build' mykrobe_atlas_pyinstaller_windows.spec
-        cd pyinstaller_build
-        tar cvfz ../../${OUTPUT_TARBALL} mykrobe_atlas/
-      shell: msys2 {0}
-
-    - name: Release
-      if: startsWith(github.event.ref, 'refs/tags/v')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: mykrobe.command_line.windows.*.tar.gz
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
         draft: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        files: pynab-${{ steps.image_and_branch_name.outputs.IMAGE_NAME_SUFFIX }}.img.xz
