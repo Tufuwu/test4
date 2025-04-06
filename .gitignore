@@ -1,0 +1,8 @@
+.tox
+*.pyc
+*.egg-info
+*.eggs
+dist
+build
+MANIFEST
+__pycache__
