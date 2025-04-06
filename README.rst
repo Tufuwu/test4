@@ -1,91 +1,131 @@
-Fedora MirrorManager
-====================
+jq.py: a lightweight and flexible JSON processor
+================================================
 
-MirrorManager2 is a rewrite of `mirrormanager <https://pagure.io/mirrormanager/>`_
-using flask and SQLAlchemy.
+This project contains Python bindings for
+`jq <http://stedolan.github.io/jq/>`_.
 
-MirrorManager is the application that keeps track of the nearly 400 public mirrors,
-and over 300 private mirrors, that carry Fedora, EPEL, and RHEL content, and is used
-by rpmfusion.org, a third party repository. It automatically selects the "best"
-mirror for a given user based on a set of fallback heuristics.
+Installation
+------------
 
-:Github mirror: https://github.com/fedora-infra/mirrormanager2
-:Mailing list for announcements and discussions: https://lists.fedoraproject.org/archives/list/mirror-admin@lists.fedoraproject.org/
+Wheels are built for various Python versions and architectures on Linux and Mac OS X.
+On these platforms, you should be able to install jq with a normal pip install:
 
-Hacking
--------
+.. code-block:: sh
 
-Hacking with Vagrant
-~~~~~~~~~~~~~~~~~~~~
-Quickly start hacking on mirrormanager2 using the vagrant setup that is included
-in the repo is super simple.
+    pip install jq
 
-First, make a copy of the Vagrantfile example::
+If a wheel is not available,
+the source for jq 1.6 is downloaded over HTTPS and built.
+This requires:
 
-    $ cp Vagrantfile.example Vagrantfile
+* Autoreconf
 
-Next, install Ansible, Vagrant and the vagrant-libvirt plugin from the official Fedora
-repos::
+* The normal C compiler toolchain, such as gcc and make.
 
-    $ sudo dnf install ansible vagrant vagrant-libvirt vagrant-sshfs
+* libtool
 
+* Python headers.
 
-Now, from within main directory (the one with the Vagrantfile in it) of your git
-checkout of mirrormanager2, run the ``vagrant up`` command to provision your dev
-environment::
+Debian, Ubuntu or relatives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    $ vagrant up
+If on Debian, Ubuntu or relatives, running the following command should be sufficient:
 
-When this command is completed (it may take a while) you will be able to the
-command to start the mirrormanager server::
+.. code-block:: sh
 
-    $ vagrant ssh -c "pushd /vagrant/; python runserver.py --host '0.0.0.0'"
+    apt-get install autoconf automake build-essential libtool python-dev
 
-Once that is running, simply go to http://localhost:5000/ in your browser on
-your host to see your running mirrormanager test instance.
+Red Hat, Fedora, CentOS or relatives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+If on Red Hat, Fedora, CentOS, or relatives, running the following command should be sufficient:
 
-Manual Setup
-~~~~~~~~~~~~
+.. code-block:: sh
 
+    yum groupinstall "Development Tools"
+    yum install autoconf automake libtool python python-devel
 
-Here are some preliminary instructions about how to stand up your own instance
-of mirrormanager2. All required packages for MirrorManager2 are part of Fedora
-or RHEL/CentOS/EPEL. In the following example we will, however use a virtualenv
-and a sqlite database and we will install our dependencies from the Python
-Package Index (PyPI).
+Mac OS X
+~~~~~~~~
 
-First, set up a virtualenv::
+If on Mac OS X, you probably want to install
+`Xcode <https://developer.apple.com/xcode/>`_ and `Homebrew <http://brew.sh/>`_.
+Once Homebrew is installed, you can install the remaining dependencies with:
 
-    $ sudo yum install python-virtualenv
-    $ virtualenv my-MirrorMan-env
-    $ source my-MirrorMan-env/bin/activate
+.. code-block:: sh
 
-Issuing that last command should change your prompt to indicate that you are
-operating in an active virtualenv.
+    brew install autoconf automake libtool
 
-Next, install your dependencies::
+Usage
+-----
 
-    (my-MirrorMan-env)$ pip install -r requirements.txt
+Call ``jq.compile`` to compile a jq program.
+Call ``.input()`` on the compiled program to supply an input value.
+The input must either be:
 
-Now the protobuf deinition needs to be compiled to Python::
+* a valid JSON value, such as the values returned from ``json.load``
+* unparsed JSON text passed as the keyword argument ``text``.
 
-    (my-MirrorMan-env)$ protoc --python_out=mirrorlist mirrormanager.proto
-    (my-MirrorMan-env)$ protoc --python_out=mirrormanager2/lib mirrormanager.proto
+Calling ``first()`` on the result will run the program with the given input,
+and return the first output element.
 
-You should then create your own sqlite database for your development instance of
-mirrormanager2::
+.. code-block:: python
 
-    (my-MirrorMan-env)$ python createdb.py
+    import jq
 
-If all goes well, you can start a development instance of the server by
-running::
+    assert jq.compile(".").input("hello").first() == "hello"
+    assert jq.compile(".").input(text='"hello"').first() == "hello"
+    assert jq.compile("[.[]+1]").input([1, 2, 3]).first() == [2, 3, 4]
+    assert jq.compile(".[]+1").input([1, 2, 3]).first() == 2
 
-    (my-MirrorMan-env)$ python runserver.py
+Call ``text()`` instead of ``first()`` to serialise the output into JSON text:
 
-Open your browser and visit http://localhost:5000 to check it out.
+.. code-block:: python
 
-Once you made your changes please run the test suite to verify that nothing
-covered by tests has been broken::
+    assert jq.compile(".").input("42").text() == '"42"'
 
-    (my-MirrorMan-env)$ ./runtests.sh
+When calling ``text()``, if there are multiple output elements, each element is represented by a separate line:
+
+.. code-block:: python
+
+    assert jq.compile(".[]").input([1, 2, 3]).text() == "1\n2\n3"
+
+Call ``all()`` to get all of the output elements in a list:
+
+.. code-block:: python
+
+    assert jq.compile(".[]+1").input([1, 2, 3]).all() == [2, 3, 4]
+
+Call ``iter()`` to get all of the output elements as an iterator:
+
+.. code-block:: python
+
+    iterator = iter(jq.compile(".[]+1").input([1, 2, 3]))
+    assert next(iterator, None) == 2
+    assert next(iterator, None) == 3
+    assert next(iterator, None) == 4
+    assert next(iterator, None) == None
+
+Calling ``compile()`` with the ``args`` argument allows predefined variables to be used within the program:
+
+.. code-block:: python
+
+    program = jq.compile("$a + $b + .", args={"a": 100, "b": 20})
+    assert program.input(3).first() == 123
+
+Convenience functions are available to get the output for a program and input in one call:
+
+.. code-block:: python
+
+    assert jq.first(".[] + 1", [1, 2, 3]) == 2
+    assert jq.first(".[] + 1", text="[1, 2, 3]") == 2
+    assert jq.text(".[] + 1", [1, 2, 3]) == "2\n3\n4"
+    assert jq.all(".[] + 1", [1, 2, 3]) == [2, 3, 4]
+    assert list(jq.iter(".[] + 1", [1, 2, 3])) == [2, 3, 4]
+
+The original program string is available on a compiled program as the ``program_string`` attribute:
+
+.. code-block:: python
+
+    program = jq.compile(".")
+    assert program.program_string == "."
