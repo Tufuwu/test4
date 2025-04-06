@@ -1,15 +1,7 @@
--r base-requirements.txt
-
-# Required for running tests
-
-factory-boy==2.9.2
-Faker==0.8.1
-tblib==1.7.0
-responses==0.10.5
-
-# Extra stuff required for local dev
-
-django-debug-toolbar==1.9.1
+-r requirements.txt
 coverage
-ddt
-model-bakery==1.2.0
+pytest==6.2.3
+pytest-asyncio==0.14.0
+pytest-aiohttp==0.3.0
+pytest-cov==2.11.1
+codecov==2.1.11

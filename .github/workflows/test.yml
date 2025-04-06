@@ -1,39 +1,36 @@
-name: CI
-on: [push, pull_request]
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: main
+
 jobs:
   test:
+    name: test w/ Python ${{ matrix.python-version }}
+
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:10.1
-        ports:
-          - 5432:5432
+
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.3.9
-      - name: Cache Python dependencies
-        uses: actions/cache@v4
-        env:
-          cache-name: pythondotorg-cache-pip
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ github.job }}-${{ env.cache-name }}-${{ hashFiles('requirements.txt', '*-requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-${{ github.job }}-${{ env.cache-name }}-
-            ${{ runner.os }}-${{ github.job }}-
-            ${{ runner.os }}-
-      - name: Install Python dependencies
-        run: |
-          pip install -U pip setuptools wheel
-          pip install -r dev-requirements.txt
-      - name: Run Tests
-        run: |
-          python -Wd -m coverage run manage.py test -v2
-        env:
-          DATABASE_URL: postgres://postgres:@127.0.0.1:5432/python.org
-      - name: Coverage
-        run: |
-          coverage report -m --fail-under=75
+            ${{ runner.os }}-pip-
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python3 -m pip install -U -r dev-requirements.txt
+      - run: python3 -m coverage run --branch -m pytest tests/
+      - uses: codecov/codecov-action@v1
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+
