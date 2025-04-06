@@ -1,164 +1,89 @@
-#!/usr/bin/env python3
-
-# Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License"). You may not
-# use this file except in compliance with the License. A copy of the License
-# is located at
-#
-#     http://aws.amazon.com/apache2.0/
-#
-# or in the "license" file accompanying this file. This file is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-# express or implied. See the License for the specific language governing
-# permissions and limitations under the License.
-
-"""
-A setuptools based setup module.
-
-See:
-- https://packaging.python.org/en/latest/distributing.html
-- https://github.com/pypa/sampleproject
-
-To install:
-
-1. Setup pypi by creating ~/.pypirc
-
-        [distutils]
-        index-servers =
-          pypi
-          pypitest
-
-        [pypi]
-        username=
-        password=
-
-        [pypitest]
-        username=
-        password=
-
-2. Create the dist
-
-   python3 setup.py sdist bdist_wheel
-
-3. Push
-
-   twine upload dist/*
-"""
-
-import os
-import re
-
-# Always prefer setuptools over distutils
+import platform
 from setuptools import setup, find_packages
+import pkg_resources
 
 
-ROOT = os.path.dirname(__file__)
+install_requires = [
+    'PyYAML>=3.0',
+]
 
+def package_installed(pkg):
+    """Check if package is installed"""
+    req = pkg_resources.Requirement.parse(pkg)
+    try:
+        pkg_resources.get_provider(req)
+    except pkg_resources.DistributionNotFound:
+        return False
+    else:
+        return True
 
-def get_version():
-    """
-    Reads the version from sacrebleu's __init__.py file.
-    We can't import the module because required modules may not
-    yet be installed.
-    """
-    VERSION_RE = re.compile(r'''__version__ = ['"]([0-9.]+)['"]''')
-    init = open(os.path.join(ROOT, 'sacrebleu', '__init__.py')).read()
-    return VERSION_RE.search(init).group(1)
+# depend in Pillow if it is installed, otherwise
+# depend on PIL if it is installed, otherwise
+# require Pillow
+if package_installed('Pillow'):
+    install_requires.append('Pillow !=2.4.0,!=8.3.0,!=8.3.1')
+elif package_installed('PIL'):
+    install_requires.append('PIL>=1.1.6,<1.2.99')
+else:
+    install_requires.append('Pillow !=2.4.0,!=8.3.0,!=8.3.1')
 
+if platform.python_version_tuple() < ('2', '6'):
+    # for mapproxy-seed
+    install_requires.append('multiprocessing>=2.6')
 
-def get_description():
-    DESCRIPTION_RE = re.compile(r'''__description__ = ['"](.*)['"]''')
-    init = open(os.path.join(ROOT, 'sacrebleu', '__init__.py')).read()
-    return DESCRIPTION_RE.search(init).group(1)
+def long_description(changelog_releases=10):
+    import re
+    import textwrap
 
+    readme = open('README.rst').read()
+    changes = ['Changes\n-------\n']
+    version_line_re = re.compile(r'^\d\.\d+\.\d+\S*\s20\d\d-\d\d-\d\d')
+    for line in open('CHANGES.txt'):
+        if version_line_re.match(line):
+            if changelog_releases == 0:
+                break
+            changelog_releases -= 1
+        changes.append(line)
 
-def get_long_description():
-    with open('README.md') as f:
-        long_description = f.read()
-
-    with open('CHANGELOG.md') as f:
-        release_notes = f.read()
-
-    # Plug release notes into the long description
-    long_description = long_description.replace(
-        '# Release Notes\n\nPlease see [CHANGELOG.md](CHANGELOG.md) for release notes.',
-        release_notes)
-
-    return long_description
-
+    changes.append(textwrap.dedent('''
+        Older changes
+        -------------
+        See https://raw.github.com/mapproxy/mapproxy/master/CHANGES.txt
+        '''))
+    return readme + ''.join(changes)
 
 setup(
-    name='sacrebleu',
-    # Versions should comply with PEP440. For a discussion on single-sourcing
-    # the version across setup.py and the project code, see
-    # https://packaging.python.org/en/latest/single_source_version.html
-    version=get_version(),
-    description=get_description(),
-    long_description_content_type='text/markdown',
-    long_description=get_long_description(),
-    url='https://github.com/mjpost/sacrebleu',
-    author='Matt Post',
-    author_email='post@cs.jhu.edu',
-    maintainer_email='post@cs.jhu.edu',
-    license='Apache License 2.0',
-    # We don't support Python < 3.6 anymore
-    python_requires='>=3.6',
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 5 - Production/Stable',
-
-        # Indicate who your project is intended for
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        'Topic :: Text Processing',
-
-        # Pick your license as you wish (should match "license" above)
-        'License :: OSI Approved :: Apache Software License',
-
-        # List operating systems
-        'Operating System :: POSIX',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: Microsoft :: Windows',
-
-        # Specify the Python versions you support here. In particular, ensure
-        # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 3 :: Only',
-    ],
-
-    # What does your project relate to?
-    keywords=['machine translation, evaluation, NLP, natural language processing, computational linguistics'],
-
-    # Which packages to deploy (currently sacrebleu, sacrebleu.matrics and sacrebleu.tokenizers)?
+    name='MapProxy',
+    version="1.13.2",
+    description='An accelerating proxy for tile and web map services',
+    long_description=long_description(7),
+    author='Oliver Tonnhofer',
+    author_email='olt@omniscale.de',
+    url='https://mapproxy.org',
+    license='Apache Software License 2.0',
     packages=find_packages(),
-
-    # Mark sacrebleu (and recursively all its sub-packages) as supporting mypy type hints (see PEP 561).
-    package_data={"sacrebleu": ["py.typed"]},
-
-    # List run-time dependencies here.  These will be installed by pip when
-    # your project is installed. For an analysis of "install_requires" vs pip's
-    # requirements files see:
-    # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['portalocker', 'regex', 'tabulate>=0.8.9', 'numpy>=1.17', 'colorama'],
-
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). You can install these using the following syntax,
-    # for example:
-    # $ pip install -e .[dev,test]
-    extras_require={'ja': ['mecab-python3==1.0.3', 'ipadic>=1.0,<2.0']},
-
-    # To provide executable scripts, use entry points in preference to the
-    # "scripts" keyword. Entry points provide cross-platform support and allow
-    # pip to create the appropriate form of executable for the target platform.
-    entry_points={
+    include_package_data=True,
+    entry_points = {
         'console_scripts': [
-            'sacrebleu = sacrebleu.sacrebleu:main',
+            'mapproxy-seed = mapproxy.seed.script:main',
+            'mapproxy-util = mapproxy.script.util:main',
         ],
     },
+    package_data = {'': ['*.xml', '*.yaml', '*.ttf', '*.wsgi', '*.ini']},
+    install_requires=install_requires,
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Internet :: Proxy Servers",
+        "Topic :: Internet :: WWW/HTTP :: WSGI",
+        "Topic :: Scientific/Engineering :: GIS",
+    ],
+    zip_safe=False,
 )
