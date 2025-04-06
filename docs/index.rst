@@ -1,61 +1,86 @@
-*************************
-TJ Intranet Documentation
-*************************
+.. aiocache documentation master file, created by
+   sphinx-quickstart on Sat Oct  1 16:53:45 2016.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
-Intro
-=====
+Welcome to aiocache's documentation!
+====================================
 
-Intranet3 (Ion) is the next-generation Intranet platform for TJHSST. Using Python, Django, Redis, Postgres, and many other technologies, Ion was developed from the ground up to be simple, well-documented, and extensible.
 
-Contents
-========
+Installing
+----------
 
-.. toctree::
-    :maxdepth: 2
-    :hidden:
+- ``pip install aiocache``
+- ``pip install aiocache[redis]``
+- ``pip install aiocache[memcached]``
+- ``pip install aiocache[redis,memcached]``
 
-    setup/index
-    architecture/index
-    developing/index
-    sourcedoc/modules
-    administration/index
 
-Setup
+Usage
 -----
 
-- :doc:`Setting up the server<setup/server>`
-- :doc:`Setting up a Vagrant development environment<setup/vagrant>`
+Using a cache is as simple as
 
-Architecture
-------------
+.. code-block:: python
 
-Ion uses Django, Redis, Postgres, and many other Python frameworks and tools.
+    >>> import asyncio
+    >>> loop = asyncio.get_event_loop()
+    >>> from aiocache import Cache
+    >>> cache = Cache()
+    >>> loop.run_until_complete(cache.set('key', 'value'))
+    True
+    >>> loop.run_until_complete(cache.get('key'))
+    'value'
 
-See the :doc:`Architecture documentation<architecture/index>`.
+Here we are using the :ref:`simplememorycache` but you can use any other listed in :ref:`caches`. All caches contain the same minimum interface which consists on the following functions:
 
-Developing for Intranet
------------------------
-- :doc:`Coding Style Guide<developing/styleguide>`
-- :doc:`Test Writing Guide<developing/testing>`
-- :doc:`Understanding the Eighth Models<developing/eighth-models>`
+- ``add``: Only adds key/value if key does not exist. Otherwise raises ValueError.
+- ``get``: Retrieve value identified by key.
+- ``set``: Sets key/value.
+- ``multi_get``: Retrieves multiple key/values.
+- ``multi_set``: Sets multiple key/values.
+- ``exists``: Returns True if key exists False otherwise.
+- ``increment``: Increment the value stored in the given key.
+- ``delete``: Deletes key and returns number of deleted items.
+- ``clear``: Clears the items stored.
+- ``raw``: Executes the specified command using the underlying client.
 
-Using Intranet as a Developer
------------------------------
-- `API Root <https://ion.tjhsst.edu/api/>`_
-- `API Demo <https://www.tjhsst.edu/~2016jwoglom/ion-api-demo.html>`_
-- :doc:`OAuth Documentation<developing/oauth>`
-- `OAuth Demo <https://www.tjhsst.edu/~2016jwoglom/ionoauth/>`_
 
-Source Code Documentation
--------------------------
-More details can be found at `Sphinx Documentation <http://sphinx-doc.org/markup/index.html>`_
+You can also setup cache aliases like in Django settings:
 
-Go to the :doc:`Source Code Documentation<sourcedoc/intranet>`
+.. literalinclude:: ../examples/cached_alias_config.py
+  :language: python
+  :linenos:
+  :emphasize-lines: 6-26
 
-Indices
+
+In `examples folder <https://github.com/argaen/aiocache/tree/master/examples>`_ you can check different use cases:
+
+- `Sanic, Aiohttp and Tornado <https://github.com/argaen/aiocache/tree/master/examples/frameworks>`_
+- `Python object in Redis <https://github.com/argaen/aiocache/blob/master/examples/python_object.py>`_
+- `Custom serializer for compressing data <https://github.com/argaen/aiocache/blob/master/examples/serializer_class.py>`_
+- `TimingPlugin and HitMissRatioPlugin demos <https://github.com/argaen/aiocache/blob/master/examples/plugins.py>`_
+- `Using marshmallow as a serializer <https://github.com/argaen/aiocache/blob/master/examples/marshmallow_serializer_class.py>`_
+- `Using cached decorator <https://github.com/argaen/aiocache/blob/master/examples/cached_decorator.py>`_.
+- `Using multi_cached decorator <https://github.com/argaen/aiocache/blob/master/examples/multicached_decorator.py>`_.
+
+
+Contents
+--------
+
+.. toctree::
+
+  caches
+  serializers
+  plugins
+  configuration
+  decorators
+  locking
+  testing
+
+Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

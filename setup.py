@@ -1,36 +1,43 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from setuptools import find_packages, setup
+import re
+import os
 
-with open("README.rst", "r") as f:
-    long_description = f.read()
+from setuptools import setup, find_packages
+
+with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "aiocache/_version.py")) as fp:
+    try:
+        version = re.findall(r"^__version__ = \"([^']+)\"\r?$", fp.read(), re.M)[0]
+    except IndexError:
+        raise RuntimeError("Unable to determine version.")
 
 
-def get_requirements():
-    with open("requirements.txt") as req, open("docs/rtd-requirements.txt", "w") as rtd_file:
-        for dep in req:
-            print(dep.strip(), file=rtd_file)
-            yield dep.strip()
+with open("README.rst", encoding="utf8") as f:
+    readme = f.read()
 
 
 setup(
-    name="Ion",
-    description="The next-generation Intranet platform for TJHSST",
-    long_description=long_description,
-    author="The TJHSST Computer Systems Lab",
-    author_email="intranet@tjhsst.edu",
-    url="https://github.com/tjcsl/ion",
-    version="1.0",
-    test_suite="intranet.test.test_suite.run_tests",
-    setup_requires=["pip>=6.0", "setuptools_git"],  # session param
-    install_requires=[str(dep) for dep in get_requirements()],
-    packages=find_packages(),
+    name="aiocache",
+    version=version,
+    author="Manuel Miranda",
+    url="https://github.com/aio-libs/aiocache",
+    author_email="manu.mirandad@gmail.com",
+    description="multi backend asyncio cache",
+    long_description=readme,
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
-        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Framework :: Django :: 1.11",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Framework :: AsyncIO",
     ],
+    packages=find_packages(),
+    install_requires=None,
+    extras_require={
+        # todo: adapt code for aioredis 2.0
+        'redis:python_version<"3.8"': ["aioredis>=1.0.0,<2.0"],
+        'redis:python_version>="3.8"': ["aioredis>=1.3.0,<2.0"],
+        "memcached": ["aiomcache>=0.5.2"],
+        "msgpack": ["msgpack>=0.5.5"],
+    },
+    include_package_data=True,
 )
