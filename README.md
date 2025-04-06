@@ -1,224 +1,204 @@
-Injector - Python dependency injection framework, inspired by Guice
-===================================================================
-
-[![image](https://github.com/alecthomas/injector/workflows/CI/badge.svg)](https://github.com/alecthomas/injector/actions?query=workflow%3ACI+branch%3Amaster)
-[![Coverage Status](https://codecov.io/gh/alecthomas/injector/branch/master/graph/badge.svg)](https://codecov.io/gh/alecthomas/injector)
-
-Introduction
-------------
-
-While dependency injection is easy to do in Python due to its support for keyword arguments, the ease with which objects can be mocked and its dynamic nature, a framework for assisting in this process can remove a lot of boiler-plate from larger applications. That's where Injector can help. It automatically and transitively provides dependencies for you. As an added benefit, Injector encourages nicely compartmentalised code through the use of :ref:`modules <module>`.
-
-If you're not sure what dependency injection is or you'd like to learn more about it see:
-
-* [The Clean Code Talks - Don't Look For Things! (a talk by Miško Hevery)](
-  https://www.youtube.com/watch?v=RlfLCWKxHJ0)
-* [Inversion of Control Containers and the Dependency Injection pattern (an article by Martin Fowler)](
-  https://martinfowler.com/articles/injection.html)
-
-The core values of Injector are:
-
-* Simplicity - while being inspired by Guice, Injector does not slavishly replicate its API.
-  Providing a Pythonic API trumps faithfulness. Additionally some features are omitted
-  because supporting them would be cumbersome and introduce a little bit too much "magic"
-  (member injection, method injection).
+# hypothesis-jsonschema
 
-  Connected to this, Injector tries to be as nonintrusive as possible. For example while you may
-  declare a class' constructor to expect some injectable parameters, the class' constructor
-  remains a standard constructor – you may instantiate the class just the same manually, if you want.
+A [Hypothesis](https://hypothesis.readthedocs.io) strategy for generating data
+that matches some [JSON schema](https://json-schema.org/).
 
-* No global state – you can have as many [Injector](https://injector.readthedocs.io/en/latest/api.html#injector.Injector)
-  instances as you like, each with a different configuration and each with different objects in different
-  scopes. Code like this won't work for this very reason:
+[Here's the PyPI page.](https://pypi.org/project/hypothesis-jsonschema/)
 
-  ```python
-    class MyClass:
-        @inject
-        def __init__(t: SomeType):
-            # ...
+## API
 
-    MyClass()
-  ```
+The public API consists of just one function: `hypothesis_jsonschema.from_schema`,
+which takes a JSON schema and returns a strategy for allowed JSON objects.
 
-  This is simply because there's no global `Injector` to use. You need to be explicit and use
-  [Injector.get](https://injector.readthedocs.io/en/latest/api.html#injector.Injector.get),
-  [Injector.create_object](https://injector.readthedocs.io/en/latest/api.html#injector.Injector.create_object)
-  or inject `MyClass` into the place that needs it.
+JSONSchema drafts 04, 05, and 07 are fully tested and working.
+As of version 0.11, this includes resolving non-recursive references!
 
-* Cooperation with static type checking infrastructure – the API provides as much static type safety
-  as possible and only breaks it where there's no other option. For example the
-  [Injector.get](https://injector.readthedocs.io/en/latest/api.html#injector.Injector.get) method
-  is typed such that `injector.get(SomeType)` is statically declared to return an instance of
-  `SomeType`, therefore making it possible for tools such as [mypy](https://github.com/python/mypy) to
-  type-check correctly the code using it.
-  
-* The client code only knows about dependency injection to the extent it needs – 
-  [`inject`](https://injector.readthedocs.io/en/latest/api.html#injector.inject),
-  [`Inject`](https://injector.readthedocs.io/en/latest/api.html#injector.Inject) and
-  [`NoInject`](https://injector.readthedocs.io/en/latest/api.html#injector.NoInject) are simple markers
-  that don't really do anything on their own and your code can run just fine without Injector
-  orchestrating things.
+For details on how to use this strategy in your tests,
+[see the Hypothesis docs](https://hypothesis.readthedocs.io/).
 
-### How to get Injector?
 
-* GitHub (code repository, issues): https://github.com/alecthomas/injector
+## Supported versions
 
-* PyPI (installable, stable distributions): https://pypi.org/project/injector/. You can install it using pip:
+`hypothesis-jsonschema` requires Python 3.6 or later.
+In general, 0.x versions will require very recent versions of all dependencies
+because I don't want to deal with compatibility workarounds.
 
-  ```bash
-  pip install injector
-  ```
+`hypothesis-jsonschema` may make backwards-incompatible changes at any time
+before version 1.x - that's what semver means! - but I've kept the API surface
+small enough that this should be avoidable.  The main source of breaks will be
+if or when schema that never really worked turn into explicit errors instead
+of generating values that don't quite match.
 
-* Documentation: https://injector.readthedocs.org
-* Change log: https://injector.readthedocs.io/en/latest/changelog.html
+You can [sponsor me](https://github.com/sponsors/Zac-HD) to get priority
+support, roadmap input, and prioritized feature development.
 
-Injector works with CPython 3.6+ and PyPy 3 implementing Python 3.6+.
 
-A Quick Example
----------------
+### Changelog:
 
+- Improved canonicalisation of `uniqueItems: false` case
+- Reuse `jsonschema` validators during canonicalisation (performance improvement)
 
-```python
->>> from injector import Injector, inject
->>> class Inner:
-...     def __init__(self):
-...         self.forty_two = 42
-...
->>> class Outer:
-...     @inject
-...     def __init__(self, inner: Inner):
-...         self.inner = inner
-...
->>> injector = Injector()
->>> outer = injector.get(Outer)
->>> outer.inner.forty_two
-42
+#### 0.12.1 - 2020-04-14
+- Added a strategy for the `"color"` format
+- Only apply string length filter when needed (small performance improvement)
 
-```
+#### 0.12.0 - 2020-04-08
+- Fixed error in resolution of certain `$ref`\ s
+- Improved canonicalisation of `anyOf` and `contains` keys
 
-Or with `dataclasses` if you like:
+#### 0.11.1 - 2020-01-27
+- Requires Hypothesis >= 5.3.0, for improved IP address strategies
+- Better canoncialisation of array schemata
 
-```python
-from dataclasses import dataclass
-from injector import Injector, inject
-class Inner:
-    def __init__(self):
-        self.forty_two = 42
+#### 0.11.0 - 2020-01-26
+- Resolve local, non-recursive references via the `$ref` keyword.
 
-@inject
-@dataclass
-class Outer:
-    inner: Inner
+This is the largest feature in a while, and for some schemata it is a breaking
+change.  It's also a fundamental part of the spec, so I'm OK with that!
 
-injector = Injector()
-outer = injector.get(Outer)
-print(outer.inner.forty_two)  # Prints 42
-```
+Note that `hypothesis-jsonschema` will raise an explicit error rather than fetching
+a remote resource via URI.  If think your tests *really should* hit the network,
+get in touch and we can discuss adding an off-by-default option for this.
 
+#### 0.10.3 - 2020-01-26
+- Improved canonicalisation of conflicting `minProperties` and `maxProperties`
+- Explictly reject draft-03 schemata, which are not supported
+- More specific type annotations for `from_schema`
+- Better performance for certain object schemata
 
-A Full Example
---------------
+#### 0.10.2 - 2020-01-09
+- `enum` schema now shrink to a minimal example rather than the first value listed.
+  This also makes the internals more efficient in certain rare cases.
+- Improved handling of bounded numeric sub-schemas
 
-Here's a full example to give you a taste of how Injector works:
+#### 0.10.1 - 2019-12-28
+- Improved handling of non-integer numeric schemas with `multipleOf`
+- Improved handling of `not` in many common cases
+- Improved handling of object schemas with `dependencies` on required keys
+- Fixed cases where `propertyNames` bans a `required` key
 
+#### 0.10.0 - 2019-12-26
+- Improved handling of numeric schemas, especially integer schemas with `multipleOf`.
+- Bump the minimum version of Hypothesis to ensure that all users have the unique
+  array bugfix from `0.9.12`.
+- Fixed a bug where array schemas with an array of `items`, `additionalItems: false`,
+  and a `maxItems` larger than the number of allowed items would resolve to an
+  invalid strategy.
 
-```python
->>> from injector import Module, provider, Injector, inject, singleton
+#### 0.9.13 - 2019-12-18
+- Improved internal handling of schemas for arrays which must always be length-zero.
 
-```
+#### 0.9.12 - 2019-12-01
+- Fixed RFC 3339 strings generation.  Thanks to Dmitry Dygalo for the patch!
+- Fixed a bug where equal floats and ints could be generated in a unique array,
+  even though JSONSchema considers 0 === 0.0
+  (though this may also require an upstream fix to work...)
 
-We'll use an in-memory SQLite database for our example:
+#### 0.9.11 - 2019-11-30
+- Fixed a bug where objects which could have either zero or one
+  properties would always be generated with zero.
 
-
-```python
->>> import sqlite3
-
-```
-
-And make up an imaginary `RequestHandler` class that uses the SQLite connection:
-
-
-```python
->>> class RequestHandler:
-...   @inject
-...   def __init__(self, db: sqlite3.Connection):
-...     self._db = db
-...
-...   def get(self):
-...     cursor = self._db.cursor()
-...     cursor.execute('SELECT key, value FROM data ORDER by key')
-...     return cursor.fetchall()
-
-```
-
-Next, for the sake of the example, we'll create a configuration type:
-
-
-```python
->>> class Configuration:
-...     def __init__(self, connection_string):
-...         self.connection_string = connection_string
-
-```
-
-Next, we bind the configuration to the injector, using a module:
-
-
-```python
->>> def configure_for_testing(binder):
-...     configuration = Configuration(':memory:')
-...     binder.bind(Configuration, to=configuration, scope=singleton)
-
-```
-
-Next we create a module that initialises the DB. It depends on the configuration provided by the above module to create a new DB connection, then populates it with some dummy data, and provides a `Connection` object:
-
-
-```python
->>> class DatabaseModule(Module):
-...   @singleton
-...   @provider
-...   def provide_sqlite_connection(self, configuration: Configuration) -> sqlite3.Connection:
-...     conn = sqlite3.connect(configuration.connection_string)
-...     cursor = conn.cursor()
-...     cursor.execute('CREATE TABLE IF NOT EXISTS data (key PRIMARY KEY, value)')
-...     cursor.execute('INSERT OR REPLACE INTO data VALUES ("hello", "world")')
-...     return conn
-
-```
-
-(Note how we have decoupled configuration from our database initialisation code.)
-
-Finally, we initialise an `Injector` and use it to instantiate a `RequestHandler` instance. This first transitively constructs a `sqlite3.Connection` object, and the Configuration dictionary that it in turn requires, then instantiates our `RequestHandler`:
-
-
-```python
->>> injector = Injector([configure_for_testing, DatabaseModule()])
->>> handler = injector.get(RequestHandler)
->>> tuple(map(str, handler.get()[0]))  # py3/py2 compatibility hack
-('hello', 'world')
-
-```
-
-We can also verify that our `Configuration` and `SQLite` connections are indeed singletons within the Injector:
-
-
-```python
->>> injector.get(Configuration) is injector.get(Configuration)
-True
->>> injector.get(sqlite3.Connection) is injector.get(sqlite3.Connection)
-True
-
-```
-
-You're probably thinking something like: "this is a large amount of work just to give me a database connection", and you are correct; dependency injection is typically not that useful for smaller projects. It comes into its own on large projects where the up-front effort pays for itself in two ways:
-
-1.  Forces decoupling. In our example, this is illustrated by decoupling our configuration and database configuration.
-2.  After a type is configured, it can be injected anywhere with no additional effort. Simply `@inject` and it appears. We don't really illustrate that here, but you can imagine adding an arbitrary number of `RequestHandler` subclasses, all of which will automatically have a DB connection provided.
-
-Footnote
---------
-
-This framework is similar to snake-guice, but aims for simplification.
-
-&copy; Copyright 2010-2013 to Alec Thomas, under the BSD license
+#### 0.9.10 - 2019-11-27
+- Updated project metadata and development tooling
+- Supported and tested on Python 3.8
+
+#### 0.9.9 - 2019-10-02
+- Correct handling of `{"items": [...], "uniqueItems": true"}` schemas
+
+#### 0.9.8 - 2019-08-24
+- Corrected handling of the `"format"` keyword with unknown values - custom values
+  are allowed by the spec and should be treated as annotations (i.e. ignored).
+
+#### 0.9.7 - 2019-08-15
+- Improved canonicalisation, especially for deeply nested schemas.
+
+#### 0.9.6 - 2019-08-02
+- A performance optimisation for null and boolean schema,
+  which relies on a bugfix in `jsonschema >= 3.0.2`.
+
+#### 0.9.5 - 2019-08-02
+- Improved handling of the `contains` keyword for arrays
+
+#### 0.9.4 - 2019-07-01
+- Improved canonicalisation and merging for a wide range of schemas,
+  which as usual unlocks significant optimisations and performance
+  improvements for cases where they apply.
+
+#### 0.9.3 - 2019-06-13
+- Future-proofed canonicalisation of `type` key.
+
+#### 0.9.2 - 2019-05-23
+- Better internal canonicalization, which makes current and future
+  optimisations more widely applicable.
+- Yet another fix, this time for negative zero and numeric bouds as floats
+  with sub-integer precision.  IEEE 754 is *tricky*, even with Hypothesis!
+- Fixes handling of `enum` with elements disallowed by base schema,
+  handling of `if-then-else` with a base schema, and handling of regex
+  patterns that are invalid in Python.
+
+#### 0.9.1 - 2019-05-22
+- Fix the fix for numeric schemas with `multipleOf` and exclusive bounds.
+
+#### 0.9.0 - 2019-05-21
+- Supports merging schemas for overlapping `patternProperties`,
+  a significant performance improvement in most cases.
+- If the `"type"` key is missing, it is now inferred from other keys
+  rather than always defaulting to `"object"`.
+- Fixed handling of complicated numeric bounds.
+
+#### 0.8.2 - 2019-05-21
+- Improve performance for object schemas where the min and max size can be
+  further constrained from `properties` and `propertyNames` attributes.
+
+#### 0.8.1 - 2019-03-24
+- Supports draft-04 schemata with the latest version of `jsonschema`
+
+#### 0.8.0 - 2019-03-23
+- Further improved support for `allOf`, `oneOf`, and `anyOf` with base schemata
+- Added support for `dependencies`
+- Handles overlapping `patternProperties`
+
+#### 0.7.0 - 2019-03-21
+- Now requires `jsonschema` >= 3.0
+- Improved support for `allOf`, `oneOf`, and `propertyNames`
+- Supports schemata with `"type": [an array of types]`
+- Warning-free on Hypothesis 4.11
+
+#### 0.6.1 - 2019-02-23
+- Fix continuous delivery configuration (*before* the latent bug manifested)
+
+#### 0.6.0 - 2019-02-23
+- Support for conditional subschemata, i.e. the `if`, `then`, `else` keywords,
+  and the `anyOf`, `allOf`, `oneOf`, and `not` keywords.
+
+#### 0.5.0 - 2019-02-22
+- Works with `jsonschema` 3.0 pre-release
+- Initial support for draft06 and draft07
+
+#### 0.4.2 - 2019-02-14
+- Dropped dependency on `canonicaljson`
+- Less warnings on Python 3.7
+
+#### 0.4.1 - 2019-02-06
+- Relicensed under the more permissive Mozilla Public License, like Hypothesis
+- Requires Hypothesis version 4.0 or later
+- Fixed an array bounds bug with `maxItems` and `contains` keywords
+
+#### 0.4.0 - 2018-11-25
+Supports string formats (email, datetime, etc) and simple use of the
+`"contains"` keyword for arrays.
+
+#### 0.3.0 - 2018-11-25
+Good support for all basic types.  MVP.
+
+#### 0.2.0 - 2018-11-24
+Inference for null, boolean, string, and numeric types.
+
+#### 0.1.0 - 2018-11-21
+Stake in the ground (generate arbitrary JSON and filter it!)
+
+
+### Security contact information
+To report a security vulnerability, please use the
+[Tidelift security contact](https://tidelift.com/security).
+Tidelift will coordinate the fix and disclosure.
