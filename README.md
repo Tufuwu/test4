@@ -1,51 +1,28 @@
-# Chronicle Detection API
+[![Build Status](https://travis-ci.com/ladybug-tools/ladybug-grasshopper.svg?branch=master)](https://travis-ci.com/ladybug-tools/ladybug-grasshopper)
 
-Python samples and guidelines for using the Chronicle Detection API.
+[![IronPython](https://img.shields.io/badge/ironpython-2.7-red.svg)](https://github.com/IronLanguages/ironpython2/releases/tag/ipy-2.7.8/)
 
-## Setup
+# ladybug-grasshopper
 
-Follow these instructions: https://cloud.google.com/python/setup
+:beetle: :green_book: Ladybug plugin for Grasshopper (aka. ladybug[+])
 
-You may skip installing the Cloud Client Libraries and the Cloud SDK, they are
-unnecessary for interacting with Chronicle.
+This repository contains all Grasshopper components for the ladybug plugin.
+The package includes both the userobjects (`.ghuser`) and the Python source (`.py`).
+Note that this library only possesses the Grasshopper components and, in order to
+run the plugin, the core libraries must be installed in a way that
+they can be found by Rhino (see dependencies).
 
-After creating and activating the virtual environment `venv`, install Python
-library dependencies by running this command:
+## Dependencies
 
-```shell
-pip install -r requirements.txt
-```
+The ladybug-grasshopper plugin has the following dependencies (other than Rhino/Grasshopper):
 
-It is assumed that you're using Python 3.7 or above. If you're using an older
-Python 3 version, you need to install this backported library as well:
+* [ladybug-core](https://github.com/ladybug-tools/ladybug)
+* [ladybug-geometry](https://github.com/ladybug-tools/ladybug-geometry)
+* [ladybug-comfort](https://github.com/ladybug-tools/ladybug-comfort)
+* [ladybug-rhino](https://github.com/ladybug-tools/ladybug-rhino)
 
-```shell
-pip install dataclasses
-```
+## Installation
 
-## Credentials
-
-Running the samples requires a JSON credentials file. By default, all the
-samples try to use the file `.chronicle_credentials.json` in the user's home
-directory. If this file is not found, you need to specify it explicitly by
-adding the following argument to the sample's command-line:
-
-```shell
--c <file_path>
-```
-
-or
-
-```shell
---credentials_file <file_path>
-```
-
-## Usage
-
-Run this command-line, assuming the current working directory is the root
-directory of this repository (i.e. the directory which contains this `README.md`
-file):
-
-```shell
-python3 -m samples.v1.<sample_name> -h
-```
+See the [Wiki of the lbt-grasshopper repository](https://github.com/ladybug-tools/lbt-grasshopper/wiki)
+for the installation instructions for the entire Ladybug Tools Grasshopper plugin
+(including this repository).
