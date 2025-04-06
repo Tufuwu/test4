@@ -1,57 +1,170 @@
-# Grow HAT Mini
+# ElasticSearch DBAPI
 
-Designed as a tiny valet for your plants, Grow HAT mini will monitor the soil moiture for up to 3 plants, water them with tiny pumps, and show you their health on its small but informative screen. Learn more - https://shop.pimoroni.com/products/grow
+[![Build Status](https://travis-ci.org/preset-io/elasticsearch-dbapi.svg?branch=master)](https://travis-ci.org/preset-io/elasticsearch-dbapi)
+[![PyPI version](https://badge.fury.io/py/elasticsearch-dbapi.svg)](https://badge.fury.io/py/elasticsearch-dbapi)
+[![Coverage Status](https://codecov.io/github/preset-io/elasticsearch-dbapi/coverage.svg?branch=master)](https://codecov.io/github/preset-io/elasticsearch-dbapi)
 
-[![Build Status](https://travis-ci.com/pimoroni/enviroplus-python.svg?branch=master)](https://travis-ci.com/pimoroni/grow-python)
-[![Coverage Status](https://coveralls.io/repos/github/pimoroni/grow-python/badge.svg?branch=master)](https://coveralls.io/github/pimoroni/grow-python?branch=master)
-[![PyPi Package](https://img.shields.io/pypi/v/enviroplus.svg)](https://pypi.python.org/pypi/growhat)
-[![Python Versions](https://img.shields.io/pypi/pyversions/enviroplus.svg)](https://pypi.python.org/pypi/growhat)
 
-# Installing
+`elasticsearch-dbapi` Implements a DBAPI (PEP-249) and SQLAlchemy dialect, 
+that enables SQL access on elasticsearch clusters for query only access. 
+Uses Elastic X-Pack [SQL API](https://www.elastic.co/guide/en/elasticsearch/reference/current/xpack-sql.html)
 
-You're best using the "One-line" install method.
+We are currently building support for `opendistro/_sql` API for AWS Elasticsearch Service / [Open Distro SQL](https://opendistro.github.io/for-elasticsearch-docs/docs/sql/) 
 
-## One-line (Installs from GitHub)
+This library supports Elasticsearch 7.X versions.
 
+### Installation
+
+```bash
+$ pip install elasticsearch-dbapi
+```  
+
+To install support for AWS Elasticsearch Service / [Open Distro](https://opendistro.github.io/for-elasticsearch/features/SQL%20Support.html):
+
+```bash
+$ pip install elasticsearch-dbapi[aws]
+```  
+
+### Usage:
+
+#### Using DBAPI:
+
+```python
+from es.elastic.api import connect
+
+conn = connect(host='localhost')
+curs = conn.cursor()
+curs.execute(
+    "select * from flights LIMIT 10"
+)
+print([row for row in curs])
 ```
-curl -sSL https://get.pimoroni.com/grow | bash
+
+#### Using SQLAlchemy execute:
+
+```python
+from sqlalchemy.engine import create_engine
+
+engine = create_engine("elasticsearch+http://localhost:9200/")
+rows = engine.connect().execute(
+    "select * from flights LIMIT 10"
+)
+print([row for row in rows])
 ```
 
-**Note** report issues with one-line installer here: https://github.com/pimoroni/get
+#### Using SQLAlchemy:
 
-## Or... Install and configure dependencies from GitHub:
+```python
+from sqlalchemy import func, select
+from sqlalchemy.engine import create_engine
+from sqlalchemy.schema import MetaData, Table
 
-* `git clone https://github.com/pimoroni/grow-python`
-* `cd grow-python`
-* `sudo ./install.sh`
 
-**Note** Raspbian Lite users may first need to install git: `sudo apt install git`
-
-## Or... Install from PyPi and configure manually:
-
-* Install dependencies:
-
-```
-sudo apt install python3-setuptools python3-pip python3-yaml python3-smbus python3-pil python3-spidev python3-rpi.gpio
+engine = create_engine("elasticsearch+http://localhost:9200/")
+logs = Table("flights", MetaData(bind=engine), autoload=True)
+count = select([func.count("*")], from_obj=logs).scalar()
+print(f"COUNT: {count}")
 ```
 
-* Run `sudo pip3 install growhat`
+#### Using SQLAlchemy reflection:
 
-**Note** this wont perform any of the required configuration changes on your Pi, you may additionally need to:
+```python
 
-* Enable i2c: `sudo raspi-config nonint do_i2c 0`
-* Enable SPI: `sudo raspi-config nonint do_spi 0`
-* Add the following to `/boot/config.txt`: `dtoverlay=spi0-cs,cs0_pin=14`
+from sqlalchemy.engine import create_engine
+from sqlalchemy.schema import Table, MetaData
 
-## Monitoring
+engine = create_engine("elasticsearch+http://localhost:9200/")
+logs = Table("flights", MetaData(bind=engine), autoload=True)
+print(engine.table_names())
 
-You should read the following to get up and running with our monitoring script:
+metadata = MetaData()
+metadata.reflect(bind=engine)
+print([table for table in metadata.sorted_tables])
+print(logs.columns)
+```
 
-* [Using and configuring monitor.py](examples/README.md)
-* [Setting up monitor.py as a service](service/README.md)
+#### Connection Parameters:
 
-## Help & Support
+[elasticsearch-py](https://elasticsearch-py.readthedocs.io/en/master/index.html)
+is used to establish connections and transport, this is the official
+elastic python library. `Elasticsearch` constructor accepts multiple optional parameters
+that can be used to properly configure your connection on aspects like security, performance 
+and high availability. These optional parameters can be set at the connection string, for
+example:
 
-* GPIO Pinout - https://pinout.xyz/pinout/grow_hat_mini
-* Support forums - http://forums.pimoroni.com/c/support
-* Discord - https://discord.gg/hr93ByC
+ ```bash
+    elasticsearch+http://localhost:9200/?http_compress=True&timeout=100
+```
+will set transport to use gzip (http_compress) and timeout to 10 seconds.
+
+For more information on configuration options, look at `elasticsearch-py`’s documentation:
+- [Transport Options](https://elasticsearch-py.readthedocs.io/en/master/connection.html#transport)
+- [HTTP tranport](https://elasticsearch-py.readthedocs.io/en/master/transports.html#urllib3httpconnection)
+
+The connection string follows RFC-1738, to support multiple nodes you should use `sniff_*` parameters
+
+#### Fetch size
+
+By default the maximum number of rows which get fetched by a single query
+is limited to 10000. This can be adapted through the `fetch_size`
+parameter:
+```python
+from es.elastic.api import connect
+
+conn = connect(host='localhost')
+curs = conn.cursor(fetch_size=1000)
+```
+If more than 10000 rows should get fetched then
+[max_result_window](https://www.elastic.co/guide/en/elasticsearch/reference/7.x/index-modules.html#dynamic-index-settings)
+has to be adapted as well.
+
+### Tests
+
+To run unittest launch elasticsearch and kibana (kibana is really not required but is a nice to have)
+
+```bash
+$ docker-compose up -d
+$ nosetests -v
+```
+
+### Special case for sql opendistro endpoint (AWS ES)
+
+AWS ES exposes the opendistro SQL plugin, and it follows a different SQL dialect. 
+Because of dialect and API response differences, we provide limited support for opendistro SQL 
+on this package using the `odelasticsearch` driver:
+
+```python
+from sqlalchemy.engine import create_engine
+
+engine = create_engine(
+    "odelasticsearch+https://search-SOME-CLUSTER.us-west-2.es.amazonaws.com:443/"
+)
+rows = engine.connect().execute(
+    "select count(*), Carrier from flights GROUP BY Carrier"
+)
+print([row for row in rows])
+```
+
+Or using DBAPI:
+```python
+from es.opendistro.api import connect
+
+conn = connect(host='localhost',port=9200,path="", scheme="http")
+
+curs = conn.cursor().execute(
+    "select * from flights LIMIT 10"
+)
+
+print([row for row in curs])
+```
+
+### Known limitations
+
+This library does not yet support the following features:
+
+- Array type columns are not supported. Elaticsearch SQL does not support them either. 
+SQLAlchemy `get_columns` will exclude them.
+- `object` and `nested` column types are not well supported and are converted to strings
+- Indexes that whose name start with `.`
+- GEO points are not currently well-supported and are converted to strings
+- Very limited support for AWS ES, no AWS Auth yet for example
