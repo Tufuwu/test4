@@ -1,77 +1,49 @@
-Contributing guidelines
-=======================
+# How to contribute
 
-In General
-----------
+Bug reports in the issue tracker and pull requests are welcome.
 
-- [PEP 8](http://www.python.org/dev/peps/pep-0008/), when sensible.
-- Test ruthlessly. Write docs for new features.
-- Even more important than Test-Driven Development, **Human-Driven Development**.
+## Pull request
 
+1. Fork the repository at github.
+2. Clone your fork.
 
-In Particular
--------------
+    ```sh
+    git clone https://github.com/YOUR_GIT_USERNAME/pymysensors.git
+    cd pymysensors
+    ```
 
-!!! warning
-    **THE WHOLE SECTION IS OUT OF DATE.**
+3. Add the main repository as upstream.
 
+    ```sh
+    git remote add upstream https://github.com/theolind/pymysensors.git
+    ```
 
-**Questions, Feature Requests, Bug Reports, and Feedback**
+4. Create a feature branch based off master branch.
 
-... should all be reported on the [Github Issue Tracker](https://github.com/botify-labs/simpleflow/issues?state=open).
+    ```sh
+    git checkout -b cool_new_feature master
+    ```
 
-**Setting Up for Local Development**
+5. Make your changes in the new topic branch. New features should preferably be accompanied with new tests. PEP8 and PEP257 style should be followed. We use pylint and flake8 as code linters.
+6. Test with tox and make sure existing tests don't fail. Linting will also be checked when tox is run.
 
-1. Fork `simpleflow`_ on Github.
-2. Clone your fork::
+    ```sh
+    pip3 install -r requirements_dev.txt
+    tox
+    ```
 
-    $ git clone git@github.com/botify-labs/simpleflow.git
+7. Add and commit your work and describe the additions and or changes in the commit message. Use an editor for the commit message, not the command line. Try to keep the header of the commit message within 50 characters and the body within 72 characters per line. A blank line should separate the header from the body of the commit message. Markdown is cool.
 
-3. Make your virtualenv and install dependencies. If you have virtualenv and virtualenvwrapper_, run::
+    ```sh
+    git add -A
+    git commit
+    ```
 
-    $ mkvirtualenv simpleflow
-    $ cd simpleflow
-    $ pip install -r requirements-dev.txt
+8. Push you local changes to your fork.
 
-- If you don't have virtualenv and virtualenvwrapper, you can install both using `virtualenv-burrito`.
+    ```sh
+    git push origin HEAD
+    ```
 
-
-**Git Branch Structure**
-
-simpleflow used to have a separated `devel` branch but is now using only one,
-main branch `main`, that contains what will be released in the next version.
-This branch is (hopefully) always stable.
-
-**Pull Requests**
-
-1. Create a new local branch. ::
-
-    $ git checkout -b name-of-feature
-
-2. Commit your changes. Write [good commit messages](http://chris.beams.io/posts/git-commit/).
-
-    $ git commit -m "Detailed commit message"
-    $ git push origin name-of-feature
-
-3. Before submitting a pull request, check the following:
-
-   - If the pull request adds functionality, it should be tested and the docs should be updated.
-   - The pull request should work on Python 2.7 and PyPy. Use `tox` to verify that it does.
-
-4. Submit a pull request to the `main` branch.
-
-**Running tests**
-
-To run all the tests in your current virtual environment: ::
-
-    $ ./script/test
-
-This is what Travis CI does on each environment.
-
-If you want to simulate what Travis CI does, you can approach that by running a container
-from them:
-
-    $ ./script/test-travis python2.7
-    $ ./script/test-travis pypy
-
-This can help you simulate locally what Travis CI would do. Be aware though that tests may fail depending on your OS, so Travis CI is the reference gate for the project. For instance, installing `subprocess32` in a Pypy environment doesn't work on Mac OSX.
+9. Create a pull request at github to the main pymysensors repository and target the master branch with your changes.
+10. Watch build checks turn green :white_check_mark:, and get the :thumbsup: in the code review.

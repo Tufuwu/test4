@@ -1,61 +1,64 @@
+#PyCharm
+.idea/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[cod]
 
 # C extensions
 *.so
 
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
 .installed.cfg
-lib
-lib64
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
 # Installer logs
 pip-log.txt
-
-# Virtualenv
-/venv/
+pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-.coverage*
+htmlcov/
+.tox/
+.coverage
+.cache
+.pytest_cache/
 nosetests.xml
-/.pytest_cache/
+coverage.xml
 
 # Translations
 *.mo
+*.pot
 
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
+# Django stuff:
+*.log
 
-# Vim swap files
-*.swp
+# Sphinx documentation
+docs/_build/
 
-# Jetbrains
-.idea/
+# PyBuilder
+target/
 
-# Complexity
-output/*.html
-output/*/index.html
+# pickle files (serialized python object)
+*.pickle
 
-# Mkdocs
-docs/site
-
-# Coverage
-htmlcov/
-
-# Temporary files
-.cache/
-/tmp/
-
-# Not to be ignored
-!docs/script/build
+# json files (persistence)
+*.json
