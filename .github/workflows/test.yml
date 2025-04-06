@@ -1,51 +1,37 @@
-name: Unix
-
-on: [push, pull_request]
+---
+name: tests
+on:
+  push:
+  pull_request:
 
 jobs:
-  test:
-    strategy:
-      matrix:
-        python-version: ["3.9"]
-        os: [ubuntu-latest]
+  tests:
+    name: ${{ matrix.os }} - python${{ matrix.python }} - ${{ matrix.tz }}
     runs-on: ${{ matrix.os }}
-
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-14
+          - macos-13
+          - macos-12
+        python: ["3.9"]
+        tz:
+          - 'utc'
+          - 'cest'
     steps:
-    - uses: actions/checkout@v2
-    - name: Cache conda
-      uses: actions/cache@v4
-      # Increase this value to reset cache
-      env: {CACHE_NUMBER: 0}
-      with:
-        path: ~/conda_pkgs_dir
-        key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ matrix.python-version }}
-
-    - uses: conda-incubator/setup-miniconda@v2
-      name: Setup conda
-      with:
-        auto-update-conda: true
-        activate-environment: testing
-        auto-activate-base: false
-        channels: conda-forge,defaults
-        channel-priority: true
-
-    - shell: bash -l {0}
-      name: Install dependencies
-      run: |
-        conda install --yes "numba<0.49" scipy h5py mkl pytest pyflakes python=${{ matrix.python-version }};
-        conda install --yes -c conda-forge mpi4py;
-        pip install openPMD-viewer;
-        python setup.py install
-    - shell: bash -l {0}
-      name: pyflakes
-      run: python -m pyflakes .
-    - shell: bash -l {0}
-      name: FBPIC physics tests
-      run: python setup.py test
-    - shell: bash -l {0}
-      name: PICMI test
-      run: |
-        pip install wget picmistandard numexpr periodictable;
-        cd tests/unautomated;
-        curl https://raw.githubusercontent.com/picmi-standard/picmi/main/Examples/laser_acceleration/laser_acceleration_PICMI.py -o fbpic_script.py;
-        python test_picmi.py
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip|${{ hashFiles('setup.py') }}|${{ hashFiles('setup.cfg') }}
+      - run: pip install tox
+      - run: git submodule update --init --force
+      - run: |
+          git apply --directory libfaketime/vendor/libfaketime libfaketime/vendor/libfaketime.patch
+          make -C libfaketime/vendor/libfaketime
+      - run: tox -e ${{ matrix.python }}-${{ matrix.tz }}
