@@ -1,149 +1,84 @@
-![Setconf Logo](web/icon_128x128.png)
+# diff-match-patch
 
-![Build](https://github.com/xyproto/setconf/workflows/Build/badge.svg) [![License](https://img.shields.io/badge/license-GPL2-green.svg?style=flat)](https://raw.githubusercontent.com/xyproto/setconf/main/COPYING)
+Google's [Diff Match and Patch][DMP] library, packaged for modern Python.
 
-Setconf is a small utility for changing settings in configuration textfiles.
+[![build status](https://travis-ci.org/diff-match-patch-python/diff-match-patch.svg?branch=master)](https://travis-ci.org/diff-match-patch-python/diff-match-patch)
+[![version](https://img.shields.io/pypi/v/diff-match-patch.svg)](https://pypi.org/project/diff-match-patch)
+[![license](https://img.shields.io/pypi/l/diff-match-patch.svg)](https://github.com/diff-match-patch-python/diff-match-patch/blob/master/LICENSE)
 
-It has no dependencies except the built-in Python modules.
+## Install
 
-Pull requests are welcome.
+diff-match-patch is supported on Python 2.7 or Python 3.4 or newer.
+You can install it from PyPI:
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/setconf.svg)](https://repology.org/project/setconf/versions)
+```shell
+python -m pip install diff-match-patch
+```
 
-Compile time features
----------------------
+## Usage
 
-* It can be compiled to native with <a href="http://nuitka.net/">nuitka</a>. Try these parameters: `--exe --lto --python-version=2.7`
+Generating a patchset (analogous to unified diff) between two texts:
 
+```python
+from diff_match_patch import diff_match_patch
 
-TODO
-----
+dmp = diff_match_patch()
+patches = dmp.patch_make(text1, text2)
+diff = dmp.patch_toText(patches)
+```
 
-* A flag for changing the n'th occurence.
-* A cleaner way to handle arguments, without adding an external dependency.
-* A flag for commenting out keys (adding "# ")
-* A flag for removing a value instead of using `''`.
-* A flag for removing both the key and the value.
-* Rewrite in a different language?
-* Optimize the code that is used for adding options with `-a`.
-* A way to add an option with `-a` after a given string occurs.
-* Test and fix the combination of `-a` and multiline markers.
-* Fix the behavior when `"` is the multiline marker and `:` the delimiter (the [yml](https://fdik.org/yml/) format).
-* Document which assignment symbols and comment markers are supported.
-* Refactor.
-* Support both `#define` and `%define` (ref asmttpd).
-* When changing settings in JSON files, a line may look like this: `"go.formatTool": "gofmt",`. Add a flag for being able to set the key and value without having to specify the quotes and the final comma.
+Applying a patchset to a text can then be done with:
 
+```python
+from diff_match_patch import diff_match_patch
 
-Changes from 0.7.6 to 0.7.7
----------------------------
+dmp = diff_match_patch()
+patches = dmp.patch_fromText(diff)
+new_text, _ = dmp.patch_apply(patches, text)
+```
 
-* Apply fix for trailing newlines by @zappolowski (issue #16).
-* Also test with Python 3.8.
+## Original README
+The Diff Match and Patch libraries offer robust algorithms to perform the
+operations required for synchronizing plain text.
 
-Changes from 0.7.5 to 0.7.6
----------------------------
+1. Diff:
+   * Compare two blocks of plain text and efficiently return a list of differences.
+   * [Diff Demo](https://neil.fraser.name/software/diff_match_patch/demos/diff.html)
+2. Match:
+   * Given a search string, find its best fuzzy match in a block of plain text. Weighted for both accuracy and location.
+   * [Match Demo](https://neil.fraser.name/software/diff_match_patch/demos/match.html)
+3. Patch:
+   * Apply a list of patches onto plain text. Use best-effort to apply patch even when the underlying text doesn't match.
+   * [Patch Demo](https://neil.fraser.name/software/diff_match_patch/demos/patch.html)
 
-* Add test cases.
-* Allow uncommenting keys without providing a value.
-* Update documentation.
+Originally built in 2006 to power Google Docs, this library is now available in C++, C#, Dart, Java, JavaScript, Lua, Objective C, and Python.
 
-Changes from 0.7.4 to 0.7.5
----------------------------
+### Reference
 
-* Can now uncomment configuration options with the `-u` flag.
-* Uncommenting and setting values also works on Linux kernel configuration (`#CONFIG_KERNEL_XY is not set` to `CONFIG_KERNEL_XY=y`).
+* [API](https://github.com/google/diff-match-patch/wiki/API) - Common API across all languages.
+* [Line or Word Diffs](https://github.com/google/diff-match-patch/wiki/Line-or-Word-Diffs) - Less detailed diffs.
+* [Plain Text vs. Structured Content](https://github.com/google/diff-match-patch/wiki/Plain-Text-vs.-Structured-Content) - How to deal with data like XML.
+* [Unidiff](https://github.com/google/diff-match-patch/wiki/Unidiff) - The patch serialization format.
+* [Support](https://groups.google.com/forum/#!forum/diff-match-patch) - Newsgroup for developers.
 
-Changes from 0.7.3 to 0.7.4
----------------------------
+### Languages
+Although each language port of Diff Match Patch uses the same API, there are some language-specific notes.
 
-* Correctly formatted help text.
+* [C++](https://github.com/google/diff-match-patch/wiki/Language:-Cpp)
+* [C#](https://github.com/google/diff-match-patch/wiki/Language:-C%23)
+* [Dart](https://github.com/google/diff-match-patch/wiki/Language:-Dart)
+* [Java](https://github.com/google/diff-match-patch/wiki/Language:-Java)
+* [JavaScript](https://github.com/google/diff-match-patch/wiki/Language:-JavaScript)
+* [Lua](https://github.com/google/diff-match-patch/wiki/Language:-Lua)
+* [Objective-C](https://github.com/google/diff-match-patch/wiki/Language:-Objective-C)
+* [Python](https://github.com/google/diff-match-patch/wiki/Language:-Python)
 
-Changes from 0.7.2 to 0.7.3
----------------------------
+A standardized speed test tracks the [relative performance of diffs](https://docs.google.com/spreadsheets/d/1zpZccuBpjMZTvL1nGDMKJc7rWL_m_drF4XKOJvB27Kc/edit#gid=0) in each language.
 
-* Can change single-line `#define` values by using the `-d` flag.
+### Algorithms
+This library implements [Myer's diff algorithm](https://neil.fraser.name/writing/diff/myers.pdf) which is generally considered to be the best general-purpose diff. A layer of [pre-diff speedups and post-diff cleanups](https://neil.fraser.name/writing/diff/) surround the diff algorithm, improving both performance and output quality.
 
-Changes from 0.7.1 to 0.7.2
----------------------------
-* Fixed an issue that only happened on Python 3.2.
-* Several minor changes.
+This library also implements a [Bitap matching algorithm](https://neil.fraser.name/writing/patch/bitap.ps) at the heart of a [flexible matching and patching strategy](https://neil.fraser.name/writing/patch/).
 
-Changes from 0.7 to 0.7.1
--------------------------
-* Removed a dependency on chardet
-
-Changes from 0.6.8 to 0.7
--------------------------
-* Fix issue #6, a failing testcase for `+=`.
-
-Changes from 0.6.7 to 0.6.8
----------------------------
-* Deal mainly with bytes instead of strings.
-* Handle ISO-8859-1 (Latin1) better, for Python 3.
-
-Changes from 0.6.6 to 0.6.7
----------------------------
-* Can use floating point numbers together with `+=` and `-=`
-
-Changes from 0.6.5 to 0.6.6
----------------------------
-* Fixed a problem with files without newline endings
-
-Changes from 0.6.4 to 0.6.5
----------------------------
-* Can now use += or -= for increasing or decreasing integer values
-
-Changes from 0.6.3 to 0.6.4
----------------------------
-* Better error messages when write permissions are denied
-
-Changes from 0.6.2 to 0.6.3
----------------------------
-* Fixed a problem with -a that occurred when a key existed but was commented out
-* Added regression test
-
-Changes from 0.6.1 to 0.6.2
----------------------------
-* Now runs on Python 2 and Python 3 (tested with 2.4, 2.5, 2.6, 2.7 and 3.3)
-
-Changes from 0.6 to 0.6.1
--------------------------
-* Fixed a problem with the -a option
-* Creates the file when -a or --add is given, if needed
-
-Changes from 0.5.3 to 0.6
--------------------------
-* Made -a add options only when not already present
-
-Changes from 0.5.2 to 0.5.3
----------------------------
-* Made it compile with the latest version of shedskin
-* Added an option -a for adding keys/values to a file
-
-Changes from 0.5.1 to 0.5.2
----------------------------
-* Fixed a problem with ascii/utf-8 encoding
-
-Changes from 0.5 to 0.5.1
--------------------------
-* Fixed a problem with => assignments
-* Changed the way files are opened with open()
-* Added more tests relating to ascii/utf-8
-
-Changes from 0.4 to 0.5
------------------------
-* Add support for => as well
-* Fixed a bug where comments were not ignored for multiline values
-* New logo
-
-Changes from 0.3.2 to 0.4 (released)
-------------------------------------
-* Ignored configuration options that are commented out
-
-
-General information
--------------------
-
-* License: GPL2
-* Author: Alexander F. Rødseth
+[DMP]: https://github.com/google/diff-match-patch
+[API]: https://github.com/google/diff-match-patch/wiki/API
