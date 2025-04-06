@@ -1,74 +1,104 @@
-#!/usr/bin/env python
-#
-# Copyright 2012, Google Inc.
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are
-# met:
-#
-#     * Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above
-# copyright notice, this list of conditions and the following disclaimer
-# in the documentation and/or other materials provided with the
-# distribution.
-#     * Neither the name of Google Inc. nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# coding: utf-8
 
-"""Set up script for pywebsocket3.
-"""
-
-from __future__ import absolute_import
-from __future__ import print_function
-from setuptools import setup, Extension
+from codecs import open   # pylint:disable=redefined-builtin
+from os.path import dirname, join
+import re
 import sys
 
-_PACKAGE_NAME = 'pywebsocket3'
+from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
 
-# Build and use a C++ extension for faster masking. SWIG is required.
-_USE_FAST_MASKING = False
 
-# This is used since python_requires field is not recognized with
-# pip version 9.0.0 and earlier
-if sys.hexversion < 0x020700f0:
-    print('%s requires Python 2.7 or later.' % _PACKAGE_NAME, file=sys.stderr)
-    sys.exit(1)
+CLASSIFIERS = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Python :: Implementation :: PyPy',
+    'Operating System :: OS Independent',
+    'Operating System :: POSIX',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS :: MacOS X',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+]
 
-if _USE_FAST_MASKING:
-    setup(ext_modules=[
-        Extension('pywebsocket3/_fast_masking',
-                  ['pywebsocket3/fast_masking.i'],
-                  swig_opts=['-c++'])
-    ])
 
-setup(
-    author='Yuzo Fujishima',
-    author_email='yuzo@chromium.org',
-    description='Standalone WebSocket Server for testing purposes.',
-    long_description=('pywebsocket3 is a standalone server for '
-                      'the WebSocket Protocol (RFC 6455). '
-                      'See pywebsocket3/__init__.py for more detail.'),
-    license='See LICENSE',
-    name=_PACKAGE_NAME,
-    packages=[_PACKAGE_NAME, _PACKAGE_NAME + '.handshake'],
-    python_requires='>=2.7',
-    install_requires=['six'],
-    url='https://github.com/GoogleChromeLabs/pywebsocket3',
-    version='4.0.0',
-)
+class PyTest(TestCommand):
+    # pylint:disable=attribute-defined-outside-init
 
-# vi:sts=4 sw=4 et
+    user_options = [(b'pytest-args=', b'a', b"Arguments to pass to py.test")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = None
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        # Do the import here, once the eggs are loaded.
+        # pylint:disable=import-outside-toplevel
+        import pytest
+        errno = pytest.main(self.pytest_args)
+        sys.exit(errno)
+
+
+def main():
+    base_dir = dirname(__file__)
+    install_requires = [
+        'attrs>=17.3.0',
+        'requests>=2.4.3',
+        'requests-toolbelt>=0.4.0, <1.0.0',
+        'wrapt>=1.10.1'
+    ]
+    redis_requires = ['redis>=2.10.3']
+    jwt_requires = ['pyjwt>=1.3.0', 'cryptography>=3, <3.5.0']
+    extra_requires = {'jwt': jwt_requires, 'redis': redis_requires, 'all': jwt_requires + redis_requires}
+    test_requires = [
+        'bottle',
+        'jsonpatch>1.14',
+        'mock>=2.0.0, <4.0.0',
+        'pycodestyle',
+        'pylint',
+        'sphinx',
+        'sqlalchemy<1.4.0',
+        'tox',
+        'pytest>=2.8.3, <4.0.0',
+        'pytest-cov',
+        'pytest-xdist<1.28.0',
+        'coveralls',
+        'coverage',
+        'tox-gh-actions',
+        'pytz',
+    ]
+    extra_requires['test'] = test_requires
+    with open('boxsdk/version.py', 'r', encoding='utf-8') as config_py:
+        version = re.search(r'^\s+__version__\s*=\s*[\'"]([^\'"]*)[\'"]', config_py.read(), re.MULTILINE).group(1)
+    setup(
+        name='boxsdk',
+        version=version,
+        description='Official Box Python SDK',
+        long_description=open(join(base_dir, 'README.rst'), encoding='utf-8').read(),  # pylint:disable=consider-using-with
+        author='Box',
+        author_email='oss@box.com',
+        url='http://opensource.box.com',
+        packages=find_packages(exclude=['demo', 'docs', 'test', 'test*', '*test', '*test*']),
+        install_requires=install_requires,
+        extras_require=extra_requires,
+        tests_require=test_requires,
+        cmdclass={'test': PyTest},
+        classifiers=CLASSIFIERS,
+        keywords='box oauth2 sdk',
+        license='Apache Software License, Version 2.0, http://www.apache.org/licenses/LICENSE-2.0',
+        package_data={'boxsdk': ['py.typed']},
+    )
+
+
+if __name__ == '__main__':
+    main()
