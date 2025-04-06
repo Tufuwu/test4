@@ -1,68 +1,79 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Copyright 2015-2019 by Hartmut Goebel <h.goebel@crazy-compilers.com>
+#
+# This file is part of unittest2pytest.
+#
+# unittest2pytest is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+from setuptools import setup
+import re
 
 
-import os
-
-import distutils.command.sdist
-from distutils.core import setup
-from distutils.command.install import INSTALL_SCHEMES
-
-
-# override default tarball format with bzip2
-distutils.command.sdist.sdist.default_format = {"posix": "bztar"}
-
-# force to install data files to site-packages
-for scheme in INSTALL_SCHEMES.values():
-    scheme["data"] = scheme["purelib"]
-
-# recursively scan for python modules to be included
-package_root_dirs = ["kobo"]
-packages = set()
-package_data = {}
-for package_root_dir in package_root_dirs:
-    for root, dirs, files in os.walk(package_root_dir):
-        # ignore PEP 3147 cache dirs and those whose names start with '.'
-        dirs[:] = [i for i in dirs if not i.startswith('.') and i != '__pycache__']
-        parts = root.split("/")
-        if "__init__.py" in files:
-            package = ".".join(parts)
-            packages.add(package)
-            relative_path = ""
-        elif files:
-            relative_path = []
-            while ".".join(parts) not in packages:
-                relative_path.append(parts.pop())
-            if not relative_path:
-                continue
-            relative_path.reverse()
-            relative_path = os.path.join(*relative_path)
-            package = ".".join(parts)
-        else:
-            # not a module, no files -> skip
-            continue
-
-        package_files = package_data.setdefault(package, [])
-        package_files.extend([os.path.join(relative_path, i) for i in files if not i.endswith(".py")])
+def get_version(filename):
+    """
+    Return package version as listed in `__version__` in `filename`.
+    """
+    init_py = open(filename).read()
+    return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
 
 
-packages = sorted(packages)
-for package in package_data.keys():
-    package_data[package] = sorted(package_data[package])
+version = get_version('unittest2pytest/__init__.py')
+
+
+def read(filename):
+    return open(filename, 'r', encoding='utf-8').read()
+
+
+long_description = '\n\n'.join([read('README.rst'),
+                                read('CHANGES.rst')])
 
 
 setup(
-    name            = "kobo",
-    version         = "0.20.2",
-    description     = "A pile of python modules used by Red Hat release engineering to build their tools",
-    url             = "https://github.com/release-engineering/kobo/",
-    author          = "Red Hat, Inc.",
-    author_email    = "dmach@redhat.com",
-    license         = "LGPLv2.1",
-
-    packages        = packages,
-    package_data    = package_data,
-    scripts         = ["kobo/admin/kobo-admin"],
-    install_requires=["six"],
-    python_requires ='>2.6',
+    name="unittest2pytest",
+    license='GPLv3+',
+    version=version,
+    description="Convert unittest test-cases to pytest",
+    long_description=long_description,
+    author="Hartmut Goebel",
+    author_email="h.goebel@crazy-compilers.com",
+    url="https://github.com/pytest-dev/unittest2pytest",
+    packages=["unittest2pytest", "unittest2pytest.fixes"],
+    entry_points={
+        'console_scripts': [
+            'unittest2pytest = unittest2pytest.__main__:main',
+        ],
+    },
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topic :: Software Development",
+        "Topic :: Utilities",
+    ],
+    python_requires=">=3.6",
+    zip_safe=False
 )
