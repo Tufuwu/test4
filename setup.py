@@ -1,49 +1,36 @@
-# setup.py
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from setuptools import find_packages, setup
 
-import pathlib
-from setuptools import setup, find_packages
+with open("README.rst", "r") as f:
+    long_description = f.read()
+
+
+def get_requirements():
+    with open("requirements.txt") as req, open("docs/rtd-requirements.txt", "w") as rtd_file:
+        for dep in req:
+            print(dep.strip(), file=rtd_file)
+            yield dep.strip()
+
 
 setup(
-    name='gsheets',
-    version='0.6.dev0',
-    author='Sebastian Bank',
-    author_email='sebastian.bank@uni-leipzig.de',
-    description='Pythonic wrapper for the Google Sheets API',
-    keywords='spreadhseets google api v4 wrapper csv pandas',
-    license='MIT',
-    url='https://github.com/xflr6/gsheets',
-    project_urls={
-        'Documentation': 'https://gsheets.readthedocs.io',
-        'Changelog': 'https://gsheets.readthedocs.io/en/latest/changelog.html',
-        'Issue Tracker': 'https://github.com/xflr6/gsheets/issues',
-        'CI': 'https://github.com/xflr6/gsheets/actions',
-        'Coverage': 'https://codecov.io/gh/xflr6/gsheets',
-    },
+    name="Ion",
+    description="The next-generation Intranet platform for TJHSST",
+    long_description=long_description,
+    author="The TJHSST Computer Systems Lab",
+    author_email="intranet@tjhsst.edu",
+    url="https://github.com/tjcsl/ion",
+    version="1.0",
+    test_suite="intranet.test.test_suite.run_tests",
+    setup_requires=["pip>=6.0", "setuptools_git"],  # session param
+    install_requires=[str(dep) for dep in get_requirements()],
     packages=find_packages(),
-    platforms='any',
-    python_requires='>=3.6',
-    install_requires=[
-        'google-api-python-client',
-        'oauth2client>=1.5.0',
-    ],
-    extras_require={
-        'dev': ['tox>=3', 'flake8', 'pep8-naming', 'wheel', 'twine'],
-        'test': ['mock>=3', 'pytest>=4', 'pytest-mock>=2', 'pytest-cov'],
-        'docs': ['sphinx>=1.8', 'sphinx-rtd-theme'],
-    },
-    long_description=pathlib.Path('README.rst').read_text(encoding='utf-8'),
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Internet :: WWW/HTTP',
-        'Topic :: Office/Business :: Financial :: Spreadsheet',
+        "Development Status :: 5 - Production/Stable",
+        "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Framework :: Django :: 1.11",
     ],
 )

@@ -1,21 +1,52 @@
-*.py[co]
-__pycache__/
+# Python-specific ignores
+.eggs
+*.pyc
+__pycache__
+__pycache__/*
 
-/MANIFEST
-/build/
-/dist/
-/docs/_build/
-/*.egg-info/
-/*.egg
-/.eggs/
+# Build stuff ignores
+build
+.coverage
+dist/*.tar.gz
 
-/.venv/
-/.pytest_cache/
-/.coverage
-/htmlcov/
-/.tox/
+# General ignores
+*.crt
+*.dbg
+dump.rdb
+*.DS_Store
+.DS_STORE
+*.key
+*.log
+*.swp
 
-Thumbs.db
+# Development-specific ignores
+devconfig.json
+.vagrant
 
-/storage.json
-/*.csv
+# Text editors ignores
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# mypy-related ignores
+.mypy_cache
+
+# Ion-specific ignores
+intranet/apps/files/cred.py*
+intranet/collected_static
+maintenance_mode_state.txt
+uploads/*
+
+# Fixture-related ignores
+fixtures/**/*.json
+fixtures/README.txt
+fixtures/*.sql
+*fixtures*.tar*
+
+# NPM-related ignores
+node_modules/
+package-lock.json
+
+# Virtual environments
+venv/
+.venv/
