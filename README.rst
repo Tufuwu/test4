@@ -1,117 +1,83 @@
-Belogging
-=========
+Panedr
+======
 
-*Don't fight with logging ...*
+|Build Status|
 
-|Coverage Status| |PyPI Version| |PyPI License| |PyPI latest|
+Panedr reads a Gromacs EDR file and returns its content as a pandas
+dataframe. The library exposes one function—the ``edr_to_df``
+function—that gets the path to an EDR file and returns a pandas
+dataframe.
 
-----
+``panedr`` is compatible with python 3.6 and greater.
 
-Easy logging configuration based on environment variables.
+Example
+-------
 
-Features:
+.. code:: python
 
-* Set logging level using environment variable LOG_LEVEL (defaults to `INFO`)
-* Set which loggers to enable using environment variable `LOGGERS` (defaults to `''`, everything)
-* Always output to stdout
-* Optional JSON formatter
-* Completely disable logging setting `LOG_LEVEL=DISABLED`
+    import panedr
 
-Requirements:
+    # Read the EDR file
+    path = 'ener.edr'
+    df = panedr.edr_to_df(path)
 
-* Python 3.10+
+    # The `verbose` optional parameter can be set to True to display the
+    # progress on stderr
+    df = panedr.edr_to_df(path, verbose=True)
 
-Install:
+    # Get the average pressure after the first 10 ns
+    pressure_avg = df[u'Pressure'][df[u'Time'] > 10000].mean()
 
-.. code-block:: bash
+Install
+-------
 
-   pip install belogging
+.. code:: bash
 
+    pip install panedr
 
-Examples:
----------
+If you are using [conda](https://docs.conda.io) and [conda-forge](https://conda-forge.org/), you can istead run
 
-Simple applications:
-~~~~~~~~~~~~~~~~~~~~
+.. code:: bash
 
-.. code-block:: python
+    conda install -c conda-forge panedr
 
-    # my_script.py
+Tests
+-----
 
-    import belogging
-    belogging.load()
-    # ^^ this call is optional, only useful for customization
-    # For example, to enable JSON output: belogging.load(json=True)
+The ``panedr`` repository contains a series of tests. If you downloaded or
+cloned the code from the repository, you can run the tests. To do so,
+install `pytest <https://docs.pytest.org/>`__, and, in the directory of the
+panedr source code, run:
 
-    # belogging.getLogger is just a sugar to logging.getLogger, you can
-    # use logging.getLogger as usual (and recommended).
-    logger = belogging.getLogger('foobar')
-    logger.debug('test 1')
-    logger.info('test 2')
+.. code:: bash
 
+    pytest -v tests
 
-Executing:
+License
+-------
 
-.. code-block:: bash
+Panedr translate in python part of the source code of Gromacs.
+Therefore, Panedr is distributed under the same GNU Lesser General
+Public License version 2.1 as Gromacs.
 
-    # selecting LOG_LEVEL
-    $ LOG_LEVEL=DEBUG python my_script.py
-    # level=DEBUG message=test 1
-    # level=INFO message=test 2
+    Panedr — a library to manipulate Gromacs EDR file in python
 
-    # selecting LOGGERS
-    $ LOGGERS=foobar python my_script.py
-    # Both messages
+    Copyright (C) 2016 Jonathan Barnoud
 
-    # Both
-    $ LOGGERS=foobar LOG_LEVEL=INFO my_script.py
-    # only level=INFO message=test 2
+    This library is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation; either version 2.1 of the
+    License, or (at your option) any later version.
 
+    This library is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    Lesser General Public License for more details.
 
-Applications should call ```belogging.load()``` upon initialization.
-The first ```__init__.py``` would be a good candidate, but anything before any call to
-```logging``` module will be fine.
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301 USA
 
-
-Django:
-~~~~~~~
-
-
-In your projects ```settings.py```:
-
-.. code-block:: python
-
-    import belogging
-    # Disable django logging setup
-    LOGGING_CONFIG = None
-    belogging.load()
-
-
-Inside your code, just use ```logging.getLogger()``` as usual.
-
-.. code-block:: bash
-
-    $ export LOG_LEVEL=WARNING
-    $ ./manage.py runserver
-    # It will output only logging messages with severity > WARNING
-
-
-Logging follows a hierarchy, so you easily select or skip some logging messages:
-
-
-.. code-block:: bash
-
-    $ export LOGGERS=my_app.critical_a,my_app.critical_c,my_lib
-    $ ./my-app.py
-    # "my_app.critical_b messages" will be skipped
-    # all messages from my_lib will show up
-
-
-.. |Coverage Status| image:: https://coveralls.io/repos/github/georgeyk/belogging/badge.svg?branch=master
-   :target: https://coveralls.io/github/georgeyk/belogging?branch=master
-.. |PyPI Version| image:: https://img.shields.io/pypi/pyversions/belogging.svg?maxAge=2592000
-   :target: https://pypi.python.org/pypi/belogging
-.. |PyPI License| image:: https://img.shields.io/pypi/l/belogging.svg?maxAge=2592000
-   :target: https://pypi.python.org/pypi/belogging
-.. |PyPI latest| image:: https://img.shields.io/pypi/v/belogging.svg?maxAge=2592000
-   :target: https://pypi.python.org/pypi/belogging
+.. |Build Status| image:: https://travis-ci.org/jbarnoud/panedr.svg
+   :target: https://travis-ci.org/jbarnoud/panedr

@@ -1,7 +1,12 @@
+
+# Created by https://www.gitignore.io/api/python,ipythonnotebook,vim
+
+### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache
 
 # C extensions
 *.so
@@ -51,14 +56,6 @@ coverage.xml
 
 # Django stuff:
 *.log
-local_settings.py
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
 
 # Sphinx documentation
 docs/_build/
@@ -66,26 +63,20 @@ docs/_build/
 # PyBuilder
 target/
 
-# IPython Notebook
-.ipynb_checkpoints
 
-# pyenv
-.python-version
+### IPythonNotebook ###
+# Temporary data
+.ipynb_checkpoints/
 
-# celery beat schedule file
-celerybeat-schedule
 
-# dotenv
-.env
+### Vim ###
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
 
-# virtualenv
-venv/
-ENV/
 
-# Spyder project settings
-.spyderproject
-
-# Rope project settings
-.ropeproject
-
-tmp/*
+### Gromacs ###
+\#*
