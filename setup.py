@@ -1,52 +1,54 @@
-#!/usr/bin/env python
+from setuptools import setup, find_packages
 
-from setuptools import find_packages, setup
-
-
-# Get version without importing, which avoids dependency issues
-def get_version():
-    import re
-
-    with open("chardet/version.py") as version_file:
-        return re.search(
-            r"""__version__\s+=\s+(['"])(?P<version>.+?)\1""", version_file.read()
-        ).group("version")
-
-
-def readme():
-    with open("README.rst") as f:
-        return f.read()
-
+version = '1.3.2'
 
 setup(
-    name="chardet",
-    version=get_version(),
-    description="Universal encoding detector for Python 2 and 3",
-    long_description=readme(),
-    author="Mark Pilgrim",
-    author_email="mark@diveintomark.org",
-    maintainer="Daniel Blanchard",
-    maintainer_email="dan.blanchard@gmail.com",
-    url="https://github.com/chardet/chardet",
-    license="LGPL",
-    keywords=["encoding", "i18n", "xml"],
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: Text Processing :: Linguistic",
+    name='ckanext-harvest',
+    version=version,
+    description="Harvesting interface plugin for CKAN",
+    long_description="""\
+    """,
+    classifiers=[],
+    keywords='',
+    author='CKAN',
+    author_email='ckan@okfn.org',
+    url='https://github.com/ckan/ckanext-harvest',
+    license='AGPL',
+    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
+    namespace_packages=['ckanext'],
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=[
+            # dependencies are specified in pip-requirements.txt
+            # instead of here
     ],
-    packages=find_packages(),
-    python_requires=">=3.6",
-    entry_points={"console_scripts": ["chardetect = chardet.cli.chardetect:main"]},
+    tests_require=[
+        'nose',
+        'mock',
+    ],
+    test_suite='nose.collector',
+    entry_points="""
+        [ckan.plugins]
+            # Add plugins here, eg
+            harvest=ckanext.harvest.plugin:Harvest
+            ckan_harvester=ckanext.harvest.harvesters:CKANHarvester
+
+            # Test plugins
+
+            test_harvester=ckanext.harvest.tests.test_queue:MockHarvester
+            test_harvester2=ckanext.harvest.tests.test_queue2:MockHarvester
+            test_action_harvester=ckanext.harvest.tests.test_action:MockHarvesterForActionTests
+
+        [paste.paster_command]
+            harvester = ckanext.harvest.commands.harvester:Harvester
+        [babel.extractors]
+            ckan = ckan.lib.extract:extract_ckan
+    """,
+    message_extractors={
+        'ckanext': [
+            ('**.py', 'python', None),
+            ('**.js', 'javascript', None),
+            ('**/templates/**.html', 'ckan', None),
+        ],
+    }
 )

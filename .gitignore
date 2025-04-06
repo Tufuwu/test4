@@ -1,9 +1,16 @@
+syntax: glob
 *.pyc
 *.egg-info
-*.swp
-PKG-INFO
-/dist
-/build
-.hypothesis
-.cache
+*.orig
+.coverage
+build
+*.egg
+.DS_Store
+dist
+development.ini
+*.sw?
+*~
+node_modules
+*.project
 .eggs
+.vscode/
