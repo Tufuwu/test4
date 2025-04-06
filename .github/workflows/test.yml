@@ -1,36 +1,58 @@
-name: Lint and Tests
+name: Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install tox
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade tox
+      - name: Run pre-commit linting
+        run: tox -e pre-commit
+
+  test_python_36:
+    runs-on: ubuntu-latest
+    name: Python 3.6
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install tox
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade tox tox-py
+      - name: Run tests
+        run: tox --py 36
 
   test:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         python-version: ["3.9"]
-
+    name: Python ${{ matrix.python-version }}
     steps:
-
-      - name: "Pull the repository"
-        uses: actions/checkout@v2
-
-      - name: "Set up Python ${{ matrix.python-version }}"
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: "Install Nox"
+          architecture: x64
+      - name: Install tox
         run: |
-          pip3 install setuptools
-          pip3 install nox
-
-      - name: "Lint with Flake8 and Black"
-        run: |
-          python3 -m nox --session lint
-
-      - name: "Test with pytest"
-        run: |
-          python3 -m nox --session test-${{ matrix.python-version }}
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade 'tox>=4.0'
+      - name: Run tests
+        run: tox run -f py$(echo ${{ matrix.python-version }} | tr -d .)
