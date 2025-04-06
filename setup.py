@@ -1,58 +1,40 @@
-"""
-Django-MongoEngine
-------------------
-
-Django support for MongoDB using MongoEngine.
-
-This is work-in-progress. Some things working, some don't. Fix what you need and make
-pull-request.
-
-Links
-`````
-
-* `development version
-  <https://github.com/MongoEngine/django-mongoengine>`_
-
-"""
-from setuptools import setup, find_packages
-import sys
 import os
+import sys
 
+from setuptools import find_packages, setup
 
-__version__ = '0.4.6'
-__description__ = 'Django support for MongoDB via MongoEngine'
-__license__ = 'BSD'
-__author__ = 'Ross Lawley'
-__email__ = 'ross.lawley@gmail.com'
+if sys.version_info[:2] < (3, 6):
+    raise RuntimeError("Python version >= 3.6 required.")
 
-
-sys.path.insert(0, os.path.dirname(__file__))
+CLASSIFIERS = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering",
+]
 
 
 setup(
-    name='django-mongoengine',
-    version=__version__,
-    url='https://github.com/mongoengine/django-mongoengine',
-    download_url='https://github.com/mongoengine/django-mongoengine/tarball/master',
-    license=__license__,
-    author=__author__,
-    author_email=__email__,
-    description=__description__,
-    long_description=__doc__,
-    zip_safe=False,
-    platforms='any',
-    install_requires=["django>2.2,<3.3", "mongoengine>=0.14"],
-    packages=find_packages(exclude=('doc', 'docs',)),
-    include_package_data=True,
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Framework :: Django'
-    ]
+    name="h5netcdf",
+    description="netCDF4 via h5py",
+    long_description=(
+        open("README.rst").read() if os.path.exists("README.rst") else ""
+    ),
+    version="0.8.1",
+    license="BSD",
+    classifiers=CLASSIFIERS,
+    author="Stephan Hoyer",
+    author_email="shoyer@gmail.com",
+    url="https://github.com/h5netcdf/h5netcdf",
+    python_requires=">=3.6",
+    install_requires=["h5py"],
+    tests_require=["netCDF4", "pytest"],
+    packages=find_packages(),
 )
