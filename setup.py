@@ -1,71 +1,75 @@
+import codecs
 import os
+import re
 
-from setuptools import setup, find_packages
+from setuptools import Command, setup
 
-
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
 def read(fname):
-    with open(fname) as fp:
-        return fp.read()
+    file_path = os.path.join(os.path.dirname(__file__), fname)
+    return codecs.open(file_path, encoding="utf-8").read()
 
 
-try:
-    import pypandoc
+def get_version():
+    changes_path = os.path.join(BASE_PATH, "CHANGES.rst")
+    regex = r"^#*\s*(?P<version>[0-9]+\.[0-9]+(\.[0-9]+)?)$"
+    with codecs.open(changes_path, encoding="utf-8") as changes_file:
+        for line in changes_file:
+            res = re.match(regex, line)
+            if res:
+                return res.group("version")
+    return "0.0.0"
 
-    long_description = pypandoc.convert("README.md", "rst")
-except (IOError, ImportError, OSError):
-    long_description = read("README.md")
+
+version = get_version()
 
 
-REQUIREMENTS_FILE = "requirements.txt"
-REQUIREMENTS = open(os.path.join(PROJECT_DIR, REQUIREMENTS_FILE)).readlines()
+class VersionCommand(Command):
+    description = "print current library version"
+    user_options = []
 
-REQUIREMENTS_TESTS_FILE = "requirements-test.txt"
-REQUIREMENTS_TESTS = open(
-    os.path.join(PROJECT_DIR, REQUIREMENTS_TESTS_FILE)
-).readlines()
+    def initialize_options(self):
+        pass
 
-REQUIREMENTS_TOX_FILE = "requirements-tox.txt"
-REQUIREMENTS_TOX = open(os.path.join(PROJECT_DIR, REQUIREMENTS_TOX_FILE)).readlines()
+    def finalize_options(self):
+        pass
 
-EXTRAS_REQUIRE = {
-    "enum": ["marshmallow-enum"],
-    "union": ["marshmallow-union"],
-}
+    def run(self):
+        print(version)
 
 
 setup(
-    name="marshmallow-jsonschema",
-    version="0.11.0",
-    description="JSON Schema Draft v4 (http://json-schema.org/)"
-    " formatting with marshmallow",
-    long_description=long_description,
-    author="Stephen Fuhry",
-    author_email="fuhrysteve@gmail.com",
-    url="https://github.com/fuhrysteve/marshmallow-jsonschema",
-    packages=find_packages(exclude=("test*",)),
-    package_dir={"marshmallow-jsonschema": "marshmallow-jsonschema"},
-    include_package_data=True,
-    install_requires=REQUIREMENTS,
-    tests_require=REQUIREMENTS_TESTS + REQUIREMENTS_TOX,
-    extras_require=EXTRAS_REQUIRE,
-    license=read("LICENSE"),
-    zip_safe=False,
-    keywords=(
-        "marshmallow-jsonschema marshmallow schema serialization "
-        "jsonschema validation"
-    ),
+    name="pytest-deadfixtures",
+    version=version,
+    author="João Luiz Lorencetti",
+    author_email="me@dirtycoder.net",
+    maintainer="João Luiz Lorencetti",
+    maintainer_email="me@dirtycoder.net",
+    license="MIT",
+    url="https://github.com/jllorencetti/pytest-deadfixtures",
+    description="A simple plugin to list unused fixtures in pytest",
+    long_description=read("README.rst"),
+    py_modules=["pytest_deadfixtures"],
+    install_requires=["pytest>=3.0.0"],
     classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Framework :: Pytest",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
+        "Topic :: Software Development :: Testing",
+        "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Operating System :: OS Independent",
+        "License :: OSI Approved :: MIT License",
     ],
-    test_suite="tests",
+    cmdclass={"version": VersionCommand},
+    entry_points={"pytest11": ["deadfixtures = pytest_deadfixtures"]},
 )

@@ -1,1 +1,5 @@
-marshmallow>=3
+pre-commit
+pytest
+pytest-cov
+tox
+tox-gh-actions
