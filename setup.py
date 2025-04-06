@@ -1,57 +1,55 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/python
+import os
 import re
-import sys
+import subprocess
+from setuptools import setup
 
-from setuptools import find_packages, setup
+with open("README.md", encoding="utf-8") as f:
+    long_description = f.read()
 
-with open("portal/__init__.py", "r") as fd:
-    version = re.search(
-        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', fd.read(), re.MULTILINE
-    ).group(1)
 
-try:
-    from semantic_release import setup_hook
+def get_version():
+    """Get the version from git tags.
 
-    setup_hook(sys.argv)
-except ImportError:
-    pass
+    Version is determined by the latest git tag, and will be the tag name without the leading 'v'.
+
+    Returns:
+        str: The version number.
+    """
+    try:
+        # Get the latest git tag
+        version = subprocess.check_output(
+            ["git", "describe", "--tags", "--abbrev=0"], encoding="utf-8"
+        ).strip()
+        version = re.sub("^v", "", version)
+        return version
+
+    except subprocess.CalledProcessError:
+        return "0.0.0"
+
 
 setup(
-    name="codeforlife-portal",
-    version=version,
-    packages=find_packages(),
-    include_package_data=True,
-    install_requires=[
-        "django>=1.10.8, <= 1.11.24",
-        "django-countries==5.4",
-        "djangorestframework>=3.8.2, < 3.9.0",
-        "django-autoconfig==0.8.0",
-        "django-pipeline==1.6.14",
-        "django-recaptcha==2.0.5",
-        "pyyaml==4.2b1",
-        "rapid-router >= 1.0.0.post.dev1",
-        "aimmo",
-        "reportlab>=3.5.32,<3.6.0",
-        "django-formtools==2.1",
-        "django-otp<=0.7.0",  # we needed to fix this due to a wide ranged dependency in django-two-factor-auth
-        "requests>=2.22.0,<2.23.0",
-        "django-treebeard==4.3",
-        "django-sekizai==1.0.0",
-        "django-classy-tags==1.*",
-        "Pillow==5.4.1",
-        "sqlparse",
-        "libsass",
-        "phonenumbers>=8.11.0, <8.12.0",
-        "more-itertools==5.0.0",  # 8.0.2 doesn't support Python <=3.4
-        "future",
-        "django-hijack>=2.1.10, <2.2.0",
-        "django-hijack-admin>=2.1.10, <2.2.0",
-        f"cfl-common=={version}",
-    ],
-    classifiers=[
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3.7",
-        "Framework :: Django",
-    ],
-    zip_safe=False,
+    name="anybadge",
+    description="Simple, flexible badge generator for project badges.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    version=get_version(),
+    author="Jon Grace-Cox",
+    author_email="30441316+jongracecox@users.noreply.github.com",
+    packages=["anybadge", "anybadge.templates", "anybadge.server"],
+    py_modules=["anybadge_server"],
+    setup_requires=["setuptools", "wheel"],
+    tests_require=[],
+    install_requires=["packaging"],
+    package_data={"anybadge": ["templates/*.svg"]},
+    options={"bdist_wheel": {"universal": False}},
+    python_requires=">=3.7",
+    url="https://github.com/jongracecox/anybadge",
+    entry_points={
+        "console_scripts": [
+            "anybadge=anybadge.cli:main",
+            "anybadge-server=anybadge.server.cli:main",
+        ],
+    },
+    classifiers=["License :: OSI Approved :: MIT License"],
 )
