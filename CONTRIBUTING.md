@@ -1,103 +1,43 @@
 # Contributing
 
-Contributions are welcome, and they are greatly appreciated! Every
-little bit helps, and credit will always be given.
+When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
 
-## Contribution Guidelines
+Please note we have a code of conduct, please follow it in all your interactions with the project.
 
-### Documentation
+## Pull Request Process
 
-We use [Sphinx](http://www.sphinx-doc.org/en/master/), and the references page is automatically
-generated thanks to `sphinx.ext.autodoc` and `sphinx_autodoc_typehints` extensions. All
-functions / methods / classes should have proper docstrings.
+TBA
 
-To build the docs locally:
-```bash
-$ tox -e docs
-```
+--
 
-To preview:
-```bash
-# MacOS:
-$ open docs/_build/index.html
-# Linux:
-$ xdg-open docs/_build/index.html
-```
+Every participant file (`.yml`) will be automatically validated in two steps upon your PR:
 
-[Hosted documentation](https://pyinaturalist.readthedocs.io/) is automatically updated when code
-gets pushed to the `master` branch.
+1. Validate file(s) against the [schema file](.jsonschema)
+2. Validate link(s) within the file(s) using [awesome_bot](https://github.com/dkhamsing/awesome_bot)
 
-For any new or changed behavior, add a brief high-level summary to `HISTORY.md`.
-This isn't needed for internal changes (tests, other docs, refactoring, etc.).
+If all checks have passed, your PR is ready to be merged. Otherwise, you need to make sure, that the file(s) provided follow the required schema (see example below) and that all URLs provided are valid.
 
-### Tests
+__Example File__
 
-We use the [pytest](https://docs.pytest.org/en/latest/) framework for unit testing.
-
-Just run the `pytest` command to run locally.
-
-We also use [tox](https://tox.readthedocs.io/en/latest/) to test multiple python versions, as well as test coverage, style, and type checks:
-
-Use the `tox` command to run locally. This is also run by Travis CI on all pull requests.
-
-### Type Annotations
-
-All functions / methods should have parameters and return value type annotations.
-Those type annotations are checked by MyPy (`tox -e mypy`) and will appear in the documentation.
-
-### Pull Requests
-Here are some general guidelines for submitting a pull request:
-
-- If the changes are trivial, just briefly explain the changes in the PR description.
-- Otherwise, please submit an issue describing the proposed change prior to submitting a PR.
-- Make sure the code is tested, annotated and documented as described above.
-- Submit the PR to be merged into the `dev` branch.
-
-### Releases
-For maintainers:
-
-Releases are based on git tags. Travis CI will build and deploy packages to PyPi on tagged commits
-on the `master` branch. Release steps:
-
-- Update the version in `pyinaturalist/__init__.py`
-- Update the release notes in `HISTORY.md`
-- Merge changes into the `master` branch
-- Push a new tag, e.g.: `git tag v0.1 && git push origin --tags`
-- This will trigger a deployment. Verify that this completes successfully and that the new version
-  can be installed from pypi with `pip install`
-
-
-## Types of Contributions
-You can contribute in many ways:
-
-### Report Bugs
-Report bugs at https://github.com/niconoe/pyinaturalist/issues.
-
-If you are reporting a bug, please include:
-
-* Your operating system name and version.
-* Any details about your local setup that might be helpful in troubleshooting.
-* Detailed steps to reproduce the bug.
-
-### Fix Bugs
-Look through the GitHub issues for bugs. Anything tagged with "bug"
-is open to whoever wants to implement it.
-
-### Implement Features
-Look through the GitHub issues for features. Anything tagged with "feature"
-is open to whoever wants to implement it.
-
-### Write Documentation
-pyinaturalist could always use more documentation, whether as part of the
-official pyinaturalist docs, in docstrings, or even on the web in blog posts,
-articles, and such.
-
-### Submit Feedback
-The best way to send feedback is to file an issue at https://github.com/niconoe/pyinaturalist/issues.
-
-If you are proposing a feature:
-
-* Explain in detail how it would work.
-* Keep the scope as narrow as possible, to make it easier to implement.
-* Remember that this is a volunteer-driven project, and that contributions
-  are welcome :)
+> `participants/2020/acme.yml`
+> ```yaml
+> ---
+> 
+> # Name of the participant
+> Name: Acme Corporation
+> 
+> # Website URL of the participant
+> Website: https://acme.corp
+> 
+> # List of obtainable swag. Allowed values are
+> # glasses, laptop, mug, shirt, socks, stickers, swag
+> Swag:
+>   - stickers
+>   - shirt
+> 
+> # Description of the participation (aka "How to get swag?")
+> Description: Create one or more merged pull requests.
+> 
+> # URL of a details page
+> Details: https://blog.acme.corp/hacktoberfest/
+> ```

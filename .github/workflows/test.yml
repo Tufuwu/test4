@@ -1,89 +1,58 @@
-name: Build
+---
+name: Validate PR
 
 on:
-  push:
-    branches: [main, dev]
-    tags: ['v*']
   pull_request:
-    branches: [main, dev]
-  workflow_dispatch:
+    paths:
+      - 'participants/**/*.yml'
 
 jobs:
-  test:
+  ValidateYAML:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"]
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Git checkout
+        uses: actions/checkout@v2
 
-      # Cache packages per python version, and reuse until setup.py changes
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}
-          restore-keys: ${{ runner.os }}-pip-${{ matrix.python-version }}
+      - name: Validate YAML files
+        uses: nwisbeta/validate-yaml-schema@v1.0
 
-      - name: Install dependencies
-        run: pip install ".[dev]"
-      - name: Run unit tests
-        run: pytest
-
-  analyze:
+  ValidateLinks:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-3.8-${{ hashFiles('setup.py') }}
-          restore-keys: ${{ runner.os }}-pip-3.8
+    needs: [ValidateYAML]
 
-      - name: Install dependencies
-        run: pip install ".[dev]"
-      - name: Run style checks
-        run: black --check .
-      - name: Run type checks
-        run: mypy .
-      - name: Generate code coverage report
-        run: pytest --cov --cov-report=term --cov-report=html
-      - name: Send code coverage report to Coveralls
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: coveralls
-      - name: Test Sphinx documentation build
-        run: make -C docs all
-      - name: Test package build
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Ruby 2.6
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.6.x
+
+      - id: file-diff
+        uses: lots0logs/gh-action-get-changed-files@2.1.4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate Links
         run: |
-          python setup.py sdist bdist_wheel
-          twine check dist/*
+          FILELIST=""
 
-  # Deploy pre-release builds from dev branch, and stable builds on tags only
-  release:
-    needs: [test, analyze]
-    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dev'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
+          for FILENAME in $(jq '.[]' $HOME/files.json); do
+            FILENAME="${FILENAME:1}"
+            FILENAME="${FILENAME::-1}"
 
-      - name: Install dependencies
-        run: pip install -U ".[build]"
-      - name: Build wheel
-        run: python setup.py sdist bdist_wheel
-      - name: Deploy to pypi
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: twine upload dist/*
+            if [ -f "$FILENAME" ] && [[ $FILENAME == *"participants"* ]] && [ "${FILENAME: -4}" == ".yml" ]; then
+              FILELIST+="$FILENAME,"
+            else
+              echo "- Skipped $FILENAME"
+            fi
+          done
+
+          if [ -n "$FILELIST" ]; then
+            gem install awesome_bot
+            awesome_bot --files "$FILELIST" --allow-dupe --allow-redirect --skip-save-results
+          else
+            echo "Nothing to do."
+          fi
