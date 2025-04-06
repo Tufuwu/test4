@@ -1,66 +1,38 @@
-name: "Build Conda Packages"
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Upload Python Package
 
 on:
-  pull_request:
-    branches:
-      - "*"
-  push:
-    branches:
-      - "main"
+  release:
+    types: [published]
 
-defaults:
-  run:
-    shell: bash -l {0}
 
 jobs:
-  build:
-    name: conda build (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-          os: ["ubuntu-latest", "macos-latest"]
+  deploy:
+
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Dump env
-        run: |
-            printenv
-            echo "USER_ID=$(id -u)" >> $GITHUB_ENV
-      - name: Setup miniconda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: false
-          conda-build-version: 3
-          auto-activate-base: true
-          activate-environment: ""
-      - name: Setup Xcode and SDK on macOS
-        if: runner.os == 'macOS'
-        run: |
-            MACOS_SDK=MacOSX10.9.sdk
-            curl -OL https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/${MACOS_SDK}.tar.xz
-            sudo tar xf ${MACOS_SDK}.tar.xz -C /opt
-            printf "CONDA_BUILD_SYSROOT:\n    - /opt/${MACOS_SDK}\n" >> conda-recipe/conda_build_config.yaml
-      - name: Build macOS
-        if: runner.os == 'macOS'
-        run: |
-            mkdir packages
-            conda config --add channels paulscherrerinstitute
-            conda build --output-folder packages conda-recipe
-      - name: Build Linux
-        if: runner.os == 'linux'
-        uses: docker://condaforge/linux-anvil-comp7:latest
-        with:
-          args: bash -c "conda config --add channels paulscherrerinstitute;conda info;cd /github/workspace;mkdir packages;conda build --output-folder packages conda-recipe"
-        env:
-          HOST_USER_ID: ${{ env.USER_ID }}
-      - name: Upload Anaconda
-        run: |
-            conda install anaconda-client
-            [[ -z ${MY_CONDA_TOKEN} ]] || anaconda -v -t ${MY_CONDA_TOKEN} upload --force packages/*/*.tar.bz2
-        env:
-          MY_CONDA_TOKEN: ${{ secrets.MY_CONDA_TOKEN }}
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          path: packages/*/*.tar.bz2
-          retention-days: 1
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ipython pandas
+        pip install .[test]
+    - name: Build package
+      run: python setup.py bdist
+    - name: Publish package
+      uses: pypa/gh-action-pypi-publish@v1.4.2
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
