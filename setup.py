@@ -1,45 +1,93 @@
-import os
+#!/usr/bin/env python
+from glob import glob
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
-cur_dir = os.path.dirname(__file__)
-readme = os.path.join(cur_dir, 'README.md')
-if os.path.exists(readme):
-    with open(readme) as fh:
-        long_description = fh.read()
-else:
-    long_description = ''
+def read_file(filename):
+    try:
+        return open(filename, "r").read()
+    except IOError:
+        return ""
+
 
 setup(
-    name='walrus',
-    version=__import__('walrus').__version__,
-    description='walrus',
-    long_description=long_description,
-    author='Charles Leifer',
-    author_email='coleifer@gmail.com',
-    url='http://github.com/coleifer/walrus/',
-    install_requires=['redis>=3.0.0'],
-    packages=find_packages(),
-    package_data={
-        'walrus': [
-            'scripts/*',
-            'stopwords.txt',
-        ],
-    },
+    name="circuits",
+    description="Asynchronous Component based Event Application Framework",
+    long_description=open("README.rst").read().replace(
+        ".. include:: examples/index.rst",
+        read_file("examples/index.rst")
+    ),
+    author="James Mills",
+    author_email="prologic@shortcircuit.net.au",
+    url="http://circuitsframework.com/",
+    download_url="http://bitbucket.org/circuits/circuits/downloads/",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Environment :: No Input/Output (Daemon)",
+        "Environment :: Other Environment",
+        "Environment :: Plugins",
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: System Administrators",
+        "Intended Audience :: Telecommunications Industry",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Operating System :: POSIX :: BSD",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Topic :: Adaptive Technologies",
+        "Topic :: Communications :: Chat :: Internet Relay Chat",
+        "Topic :: Communications :: Email :: Mail Transport Agents",
+        "Topic :: Database",
+        "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
+        "Topic :: Software Development :: Libraries :: Application Frameworks",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Clustering",
+        "Topic :: System :: Distributed Computing"],
+    license="MIT",
+    keywords="event framework distributed concurrent component asynchronous",
+    platforms="POSIX",
+    packages=find_packages(
+        exclude=[
+            "*.tests",
+            "*.tests.*",
+            "tests.*",
+            "tests",
+            "*.fabfile",
+            "*.fabfile.*",
+            "fabfile.*",
+            "fabfile",
+        ]
+    ),
+    scripts=glob("bin/*"),
+    entry_points={
+        "console_scripts": [
+            "circuits.web=circuits.web.main:main",
+        ]
+    },
+    zip_safe=True,
+    use_scm_version={
+        "write_to": "circuits/version.py",
+    },
+    setup_requires=[
+        "setuptools_scm"
     ],
-    test_suite='walrus.tests',
+    extras_require={"stomp": ["stompest>=2.3.0", "pysocks>=1.6.7"]},
 )

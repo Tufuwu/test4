@@ -1,47 +1,94 @@
-## Walrus
+[![Build Status](https://travis-ci.com/circuits/circuits.svg)](https://travis-ci.com/circuits/circuits)
 
-![](http://media.charlesleifer.com/blog/photos/walrus-logo-0.png)
+[![codecov](https://codecov.io/gh/circuits/circuits/branch/master/graph/badge.svg)](https://codecov.io/gh/circuits/circuits)
 
-Lightweight Python utilities for working with [Redis](http://redis.io).
+[![Stories Ready](https://badge.waffle.io/circuits/circuits.png?label=ready&title=Ready)](https://waffle.io/circuits/circuits)
 
-The purpose of [walrus](https://github.com/coleifer/walrus) is to make working
-with Redis in Python a little easier. Rather than ask you to learn a new
-library, walrus subclasses and extends the popular `redis-py` client, allowing
-it to be used as a drop-in replacement. In addition to all the features in
-`redis-py`, walrus adds support for some newer commands, including full support
-for streams and consumer groups.
+circuits is a **Lightweight** **Event** driven and **Asynchronous** **Application Framework** for the [Python Programming Language](http://www.python.org/) with a strong **Component** Architecture.
 
-walrus consists of:
+circuits also includes a lightweight, high performance and scalable HTTP/WSGI compliant web server as well as various I/O and Networking components.
 
-* Pythonic container classes for the Redis data-types:
-    * [Hash](https://walrus.readthedocs.io/en/latest/containers.html#hashes)
-    * [List](https://walrus.readthedocs.io/en/latest/containers.html#lists)
-    * [Set](https://walrus.readthedocs.io/en/latest/containers.html#sets)
-    * [Sorted Set](https://walrus.readthedocs.io/en/latest/containers.html#sorted-sets-zset)
-    * [HyperLogLog](https://walrus.readthedocs.io/en/latest/containers.html#hyperloglog)
-    * [Array](https://walrus.readthedocs.io/en/latest/containers.html#arrays) (custom type)
-    * [BitField](https://walrus.readthedocs.io/en/latest/containers.html#bitfield)
-    * [BloomFilter](https://walrus.readthedocs.io/en/latest/containers.html#bloomfilter)
-    * [**Streams**](https://walrus.readthedocs.io/en/latest/streams.html)
-* [Autocomplete](https://walrus.readthedocs.io/en/latest/autocomplete.html)
-* [Cache](https://walrus.readthedocs.io/en/latest/cache.html) implementation that exposes several decorators for caching function and method calls.
-* [Full-text search](https://walrus.readthedocs.io/en/latest/full-text-search.html) supporting set operations.
-* [Graph store](https://walrus.readthedocs.io/en/latest/graph.html)
-* [Rate-limiting](https://walrus.readthedocs.io/en/latest/rate-limit.html)
-* [Locking](https://walrus.readthedocs.io/en/latest/api.html#walrus.Lock)
-* **Experimental** active-record style [Models](https://walrus.readthedocs.io/en/latest/models.html) that support persisting structured information and performing complex queries using secondary indexes.
-* More? [More!](https://walrus.readthedocs.io)
+-   [Website](http://circuitsframework.com/)
+-   [Downloads](https://github.com/circuits/circuits/releases)
+-   [Documentation](http://circuits.readthedocs.org/en/latest/)
 
-### Models
+Got questions?
 
-Persistent structures implemented on top of Hashes. Supports secondary indexes to allow filtering on equality, inequality, ranges, less/greater-than, and a basic full-text search index. The full-text search features a boolean search query parser, porter stemmer, stop-word filtering, and optional double-metaphone implementation.
+-   [Ask a Question](http://stackoverflow.com/questions/ask) (Tag it: `circuits-framework`)
 
-### Found a bug?
+Examples
+========
 
-![](http://media.charlesleifer.com/blog/photos/p1420743625.21.png)
+Features
+========
 
-Please open a [github issue](https://github.com/coleifer/walrus/issues/new) and I will try my best to fix it!
+-   event driven
+-   concurrency support
+-   component architecture
+-   asynchronous I/O components
+-   no required external dependencies
+-   full featured web framework (circuits.web)
+-   coroutine based synchronization primitives
 
-### Alternative Backends
+Requirements
+============
 
-Walrus also can integrate with the Redis-like databases [rlite](https://github.com/seppo0010/rlite), [ledis](http://ledisdb.com/), and [vedis](http://vedis.symisc.net). Check the [documentation](https://walrus.readthedocs.io/en/latest/alt-backends.html) for more details.
+-   circuits has no dependencies beyond the [Python Standard Library](http://docs.python.org/library/).
+
+Supported Platforms
+===================
+
+-   Linux, FreeBSD, Mac OS X, Windows
+-   Python 2.7, 3.4, 3.5, 3.6
+-   pypy (the newer the better)
+
+Installation
+============
+
+The simplest and recommended way to install circuits is with pip. You may install the latest stable release from PyPI with pip:
+
+    $ pip install circuits
+
+If you do not have pip, you may use easy\_install:
+
+    $ easy_install circuits
+
+Alternatively, you may download the source package from the [PyPi](http://pypi.python.org/pypi/circuits) or the [Downloads](https://github.com/circuits/circuits/releases) extract it and install using:
+
+    $ python setup.py install
+
+> **note**
+>
+> You can install the [development version](https://github.com/circuits/circuits/archive/master.zip#egg=circuits-dev)  
+> via `pip install circuits==dev`.
+>
+License
+=======
+
+circuits is licensed under the [MIT License](http://www.opensource.org/licenses/mit-license.php).
+
+Feedback
+========
+
+We welcome any questions or feedback about bugs and suggestions on how to improve circuits.
+
+Let us know what you think about circuits. [@pythoncircuits](http://twitter.com/pythoncircuits).
+
+Do you have suggestions for improvement? Then please [Create an Issue](https://github.com/circuits/circuits/issues/new) with details of what you would like to see. I'll take a look at it and work with you to either incorporate the idea or find a better solution.
+
+Community
+=========
+
+There are also several places you can reach out to the circuits community:
+
+-   [Mailing List](http://groups.google.com/group/circuits-users)
+-   [Google+ Group](https://plus.google.com/communities/107775112577294599973)
+-   [\#circuits IRC Channel](http://webchat.freenode.net/?randomnick=1&channels=circuits&uio=d4) on the [FreeNode IRC Network](http://freenode.net)
+-   [Ask a Question](http://stackoverflow.com/questions/ask) on [Stackoverflow](http://stackoverflow.com/) (Tag it: `circuits-framework`)
+
+------------------------------------------------------------------------
+
+Disclaimer
+==========
+
+Whilst I (James Mills) continue to contribute and maintain the circuits project I do not represent the interests or business of my employer Facebook Inc. The contributions I make are of my own free time and have no bearing or relevance to Facebook Inc.
