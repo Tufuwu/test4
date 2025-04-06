@@ -1,37 +1,35 @@
----
-name: tests
-on:
-  push:
-  pull_request:
+name: CI tests
+
+on: [push, pull_request]
 
 jobs:
-  tests:
-    name: ${{ matrix.os }} - python${{ matrix.python }} - ${{ matrix.tz }}
-    runs-on: ${{ matrix.os }}
+  build:
+
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-14
-          - macos-13
-          - macos-12
-        python: ["3.9"]
-        tz:
-          - 'utc'
-          - 'cest'
+        python-version: ["3.9"]
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip|${{ hashFiles('setup.py') }}|${{ hashFiles('setup.cfg') }}
-      - run: pip install tox
-      - run: git submodule update --init --force
-      - run: |
-          git apply --directory libfaketime/vendor/libfaketime libfaketime/vendor/libfaketime.patch
-          make -C libfaketime/vendor/libfaketime
-      - run: tox -e ${{ matrix.python }}-${{ matrix.tz }}
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    # - name: Cache pip
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: ~/.cache/pip  # This path is specific to Ubuntu
+    #     # Look to see if there is a cache hit for the corresponding requirements file
+    #     key: ${{ runner.os }}-pip-${{ hashFiles('requirements-development.txt') }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-pip-
+    #       ${{ runner.os }}-
+    - name: Install dependencies
+      run: pip install -r requirements-development.txt
+    - name: Standardize code formatting with black
+      run: black --check .
+    - name: Static analysis with mypy
+      run: mypy ofxtools tests
+    - name: Test with nose
+      run: nosetests -dsv --nologcapture --with-coverage --cover-package ofxtools tests/*.py

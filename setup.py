@@ -1,101 +1,67 @@
-#!/usr/bin/env python
-
-import os
-import re
+"""
+Release process:
+    1. Update ofxtools.__version__.__version__
+    2. Change download_url below
+    3. Commit changes & push
+    4.  Test: `python setup.py sdist`
+    5.  Test: `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
+    6.  Test result: Check https://test.pypi.org/project/ofxtools
+    7.  `git tag` the release
+    8.  `git push --tags`
+    9.  Verify that new tag shows at https://github.com/csingley/ofxtools/releases
+    10. `twine upload dist/*`
+    11. `make clean`
+    12. Change download_url back to master; commit & push
+"""
+# stdlib imports
+import os.path
 from setuptools import setup, find_packages
-from setuptools.command.install import install
-import subprocess
-import sys
 
+__here__ = os.path.dirname(os.path.realpath(__file__))
 
-# This hack is from http://stackoverflow.com/a/7071358/1231454;
-# the version is kept in a seperate file and gets parsed - this
-# way, setup.py doesn't have to import the package.
+ABOUT = {}
+with open(os.path.join(__here__, "ofxtools", "__version__.py"), "r") as f:
+    exec(f.read(), ABOUT)
 
-VERSIONFILE = 'libfaketime/_version.py'
+with open(os.path.join(__here__, "README.rst"), "r") as f:
+    README = f.read()
 
-version_line = open(VERSIONFILE).read()
-version_re = r"^__version__ = ['\"]([^'\"]*)['\"]"
-match = re.search(version_re, version_line, re.M)
-if match:
-    version = match.group(1)
-else:
-    raise RuntimeError("Could not find version in '%s'" % VERSIONFILE)
-
-
-_vendor_path = 'libfaketime/vendor/libfaketime'
-if sys.platform == "linux" or sys.platform == "linux2":
-    libname = 'libfaketime.so.1'
-elif sys.platform == "darwin":
-    libname = 'libfaketime.1.dylib'
-
-else:
-    raise RuntimeError("libfaketime does not support platform %s" % sys.platform)
-
-faketime_lib = os.path.join(_vendor_path, 'src', libname)
-
-
-class CustomInstall(install):
-    def run(self):
-        self.my_outputs = []
-        subprocess.check_call(['patch', '-p1', '<', '../libfaketime.patch'], cwd=_vendor_path, shell=True)
-        subprocess.check_call(['make', '-C', _vendor_path])
-
-        dest = os.path.join(self.install_purelib, os.path.dirname(faketime_lib))
-        try:
-            os.makedirs(dest)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-        print(faketime_lib, '->', dest)
-        self.copy_file(faketime_lib, dest)
-        self.my_outputs.append(os.path.join(dest, libname))
-
-        install.run(self)
-
-    def get_outputs(self):
-        outputs = install.get_outputs(self)
-        outputs.extend(self.my_outputs)
-        return outputs
+URL_BASE = "{}/tarball".format(ABOUT["__url__"])
 
 setup(
-    name='libfaketime',
-    version=version,
-    author='Simon Weber',
-    author_email='simon@simonmweber.com',
-    url='http://pypi.python.org/pypi/libfaketime/',
-    packages=find_packages(exclude=['test']),
-    scripts=[],
-    license='GPLv2',
-    description='A fast alternative to freezegun that wraps libfaketime.',
-    long_description=(open('README.md').read() + '\n\n' +
-                      open('CHANGELOG.md').read()),
-    long_description_content_type='text/markdown',
-    install_requires=[
-        'python-dateutil >= 1.3, != 2.0',         # 2.0 is python3-only
-        'pytz',                                   # for pytz.timezone and pytz.utc
-    ],
+    name=ABOUT["__title__"],
+    version=ABOUT["__version__"],
+    description=ABOUT["__description__"],
+    long_description=README,
+    long_description_content_type="text/x-rst",
+    author=ABOUT["__author__"],
+    author_email=ABOUT["__author_email__"],
+    url=ABOUT["__url__"],
+    packages=find_packages(),
+    package_data={"ofxtools": ["README.rst", "py.typed", "config/*"]},
+    python_requires=">=3.8",
+    license=ABOUT["__license__"],
+    # Note: change 'master' to the tag name when releasing a new verion
+    download_url="{}/master".format(URL_BASE),
+    # download_url="{}/{}".format(URL_BASE, ABOUT["__version__"]),
+    entry_points={"console_scripts": ["ofxget=ofxtools.scripts.ofxget:main"]},
     classifiers=[
-        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Financial and Insurance Industry",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Utilities",
+        "Topic :: Office/Business",
+        "Topic :: Office/Business :: Financial",
+        "Topic :: Office/Business :: Financial :: Accounting",
+        "Topic :: Office/Business :: Financial :: Investment",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: OS Independent",
+        "Natural Language :: English",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
-    include_package_data=True,
-    zip_safe=False,
-    cmdclass={'install': CustomInstall},
-    entry_points={
-        'console_scripts': [
-            'python-libfaketime = libfaketime:main',
-        ]
-    },
+    keywords=["ofx", "Open Financial Exchange"],
 )
