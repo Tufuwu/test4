@@ -1,65 +1,39 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
+# Python bytecode
+*.pyc
 
-# C extensions
-*.so
+# distutils/distribute metadata and outputs
+pyudev.egg-info/*
+build/*
+dist/*
 
-# Vim scratch files
-.swp
+# Sphinx outputs
+doc/_build/*
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+# Test environments and results
+.tox/*
+*-tests.xml
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Rope configuration
+.ropeproject/*
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# Vagrant files
+.vagrant
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
+# coverage files
+htmlcov
 .coverage
-.cache
-nosetests.xml
-coverage.xml
 
-# Translations
-*.mo
-*.pot
+# pyreverse files
+_pyreverse
+
+# hypothesis files
+.hypothesis
+
+# vim
 *.swp
 
-# Django stuff:
-*.log
+# zip
+*.gz
 
-# PyCharm junk
-.idea
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-\.pytest_cache/
-
-docs/source/autosummary/
+# pytest
+.cache
