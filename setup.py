@@ -1,44 +1,33 @@
-from setuptools import setup, find_packages
-import client
+#!/usr/bin/env python
 
-VERSION = client.__version__
+from setuptools import find_packages, setup
 
 setup(
-    name='okpy',
-    version=VERSION,
-    author='John Denero, Soumya Basu, Stephen Martinis, Sharad Vikram, Albert Wu',
-    # author_email='',
-    description=('ok.py supports programming projects by running tests, '
-                'tracking progress, and assisting in debugging.'),
-    # long_description=long_description,
-    url='https://github.com/okpy/ok-client',
-    # download_url='https://github.com/okpy/ok/releases/download/v{}/ok'.format(VERSION),
-
-    license='Apache License, Version 2.0',
-    keywords=['education', 'autograding'],
-    packages=find_packages(include=[
-        'client',
-        'client.*',
-    ]),
-    package_data={
-        'client': ['config.ok'],
-    },
-    # install_requires=[],
-    entry_points={
-        'console_scripts': [
-            'ok=client.cli.ok:main',
-            'ok-publish=client.cli.publish:main',
-            'ok-lock=client.cli.lock:main',
-            'ok-test=client.cli.test:main',
-        ],
-    },
+    name="aioapns",
+    version="2.0.2",
+    description="An efficient APNs Client Library for Python/asyncio",
+    long_description=open("README.rst").read(),
+    platforms="all",
     classifiers=[
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        "License :: OSI Approved :: Apache Software License",
+        "Intended Audience :: Developers",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Development Status :: 5 - Production/Stable",
     ],
+    license="Apache License, Version 2.0",
+    author="Alexander Tikhonov",
+    author_email="random.gauss@gmail.com",
+    url="https://github.com/Fatal1ty/aioapns",
+    packages=find_packages(exclude=("tests",)),
     install_requires=[
-        'requests==2.12.4',
-        'coverage==4.4'
+        "h2>=4.0.0",
+        "pyOpenSSL>=17.5.0",
+        "pyjwt>=2.0.0",
     ],
 )
