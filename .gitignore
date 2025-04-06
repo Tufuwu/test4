@@ -1,9 +1,11 @@
-.venv/
-.idea/
-.vscode/
-__pycache__/
+*.pyc
+__pycache__
+env
+/.idea/
 
-.env
-.python-version
-*.sqlite3
-*.bak
+# ignore mappings and settings files
+/mappings.py
+/settings.py
+
+# ignore downloads
+/downloads
