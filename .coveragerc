@@ -1,8 +1,9 @@
 [run]
-source = rnc2rng
+omit = *_patch*,circus/tests/*
+source = circus
+include = circus/*
+parallel = true
 
-[report]
-exclude_lines =
-    pragma: no cover
-    def __repr__
-    assert
+[html]
+directory = html
+

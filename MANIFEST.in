@@ -1,4 +1,4 @@
-include AUTHORS
-include README.rst
-include test.py
-include tests/*.rn*
+include CONTRIBUTORS.txt
+include README.md
+include LICENSE
+include pip-requirements.txt
