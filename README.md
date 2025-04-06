@@ -1,185 +1,97 @@
-# //build directory for GN-based projects
+[![CI Testing](https://github.com/chembl/ChEMBL_Structure_Pipeline/workflows/CI/badge.svg)](https://github.com/chembl/ChEMBL_Structure_Pipeline/actions?query=workflow%3ACI+branch%3Amain)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This project provides a work-in-progress standalone version of the toolchains and configs used by the Chromium project.
+# ChEMBL Structure Pipeline
 
-## Supported platforms
+ChEMBL protocols used to standardise and salt strip molecules. First used in ChEMBL 26.
 
-The toolchains have been tested on the following platforms:
+Check the [wiki](https://github.com/chembl/ChEMBL_Structure_Pipeline/wiki) and paper[[1]](#1) for a detailed description of the different processes.
 
-* Windows (MSVC 2013/2015/2017/2019, Clang 3.8)
-* FreeBSD (GCC 6, Clang 11)
-* Linux (GCC 6, Clang 3.8)
-* OS X (Xcode 7.3.1)
+## Installation (it requires RDKit to work)
 
-[![Build Status](https://travis-ci.org/timniederhausen/gn-build.svg?branch=master)](https://travis-ci.org/timniederhausen/gn-build)
-[![Build status](https://ci.appveyor.com/api/projects/status/jpot0c7wp6e78lkk/branch/master?svg=true)](https://ci.appveyor.com/project/timniederhausen/gn-build)
+From source:
 
-The [testsrc](https://github.com/timniederhausen/gn-build/tree/testsrc)
-branch contains the test/example project used by the CI tests.
+    git clone https://github.com/chembl/ChEMBL_Structure_Pipeline.git
+    pip install ./ChEMBL_Structure_Pipeline
 
-## Reference
+Using conda:
 
-### Basic variables
+```bash
+conda install -c conda-forge chembl_structure_pipeline
+```
 
-All variables described here are build args and can be overridden in the user's
-`args.gn` file.
+## Usage
 
-#### [`//build/config/BUILDCONFIG.gn`](config/BUILDCONFIG.gn)
+### Standardise a compound [(info)](https://github.com/chembl/ChEMBL_Structure_Pipeline/wiki/Work-done-by-each-step#standardize_molblock)
 
-(these variables are available everywhere)
 
-* `is_debug` (default: true): Toggle between debug and release builds.
-* `is_clang` (default: false): Favor Clang over the platform default (GCC/MSVC).
-* `is_official_build` (default: !is_debug): Set to enable the official build
-  level of optimization. This enables an additional level of optimization above
-  release (!is_debug).
-* `external` (default: "//external"): Label of the external projects directory.
-  By convention, all 3rd-party projects should end up in this directory, so they
-  can depend on each other (e.g. $external/mysql_connector -> $external/zlib)
+```python
+from chembl_structure_pipeline import standardizer
 
-#### [`//build/toolchain/clang.gni`](toolchain/clang.gni)
+o_molblock = """
+  Mrv1810 07121910172D          
 
-* `use_lld` (default: false): Use the new LLD linker.
-  This requires `is_clang` to be true.
-* `clang_base_path` (default: ""): The path of your Clang installation folder
-  (without /bin). If you use Clang on Windows, you are required to set this,
-  as the Clang installation isn't automatically detected.
+  4  3  0  0  0  0            999 V2000
+   -2.5038    0.4060    0.0000 C   0  0  3  0  0  0  0  0  0  0  0  0
+   -2.5038    1.2310    0.0000 O   0  5  0  0  0  0  0  0  0  0  0  0
+   -3.2182   -0.0065    0.0000 N   0  3  0  0  0  0  0  0  0  0  0  0
+   -1.7893   -0.0065    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  1  3  1  0  0  0  0
+  1  4  1  4  0  0  0
+M  CHG  2   2  -1   3   1
+M  END
+"""
 
-#### [`//build/toolchain/compiler_version.gni`](toolchain/compiler_version.gni)
+std_molblock = standardizer.standardize_molblock(o_molblock)
+```
 
-* `gcc_version` (default: auto-detected): Version of the GCC compiler.
-  **Note:** Auto-detection is toolchain-specific and happens only if GCC is the
-  active compiler. <br>
-  Format: `major` * 10000 + `minor` * 100 + `patchlevel`
-* `clang_version` (default: auto-detected): Version of the Clang compiler.
-  **Note:** Auto-detection is toolchain-specific and happens only if Clang is
-  the active compiler. <br>
-  Format: `major` * 10000 + `minor` * 100 + `patchlevel`
-* `msc_ver` (default: auto-detected): Value of the _MSC_VER variable.
-  See https://msdn.microsoft.com/en-us/library/b0084kay.aspx.
-  **Note:** Auto-detection happens only when targeting Windows.
-* `msc_full_ver` (default: auto-detected): Value of the _MSC_FULL_VER variable.
-  See https://msdn.microsoft.com/en-us/library/b0084kay.aspx.
-  **Note:** Auto-detection happens only when targeting Windows.
+### Get the parent compound [(info)](https://github.com/chembl/ChEMBL_Structure_Pipeline/wiki/Work-done-by-each-step#get_parent_molblock)
 
-### Windows toolchain
 
-#### [`//build/toolchain/win/settings.gni`](toolchain/win/settings.gni)
+```python
+from chembl_structure_pipeline import standardizer
 
-* `visual_studio_version` (default: "latest"): Desired version of Visual Studio.
-  If `visual_studio_path` is set, this must be the version of the VS installation
-  at the `visual_studio_path`.
+o_molblock = """
+  Mrv1810 07121910262D          
 
-  Use "2013" for Visual Studio 2013 or "latest" for automatically choosing the
-  highest version (`visual_studio_path` must be unset in this case).
-* `visual_studio_path` (default: auto-detected): The path of your MSVC installation.
-  If this is set you must set visual_studio_version as well.
-  Autodetected based on `visual_studio_version`.
-* `windows_sdk_version` (default: auto-detected): Windows SDK version to use.
-  Can either be a full Windows 10 SDK number (e.g. 10.0.10240.0),
-  "8.1" for the Windows 8.1 SDK or "default" for the default SDK selected by VS.
-* `clang_msc_ver` (default: auto-detected): MSVC version `clang-cl` will report
-  in `_MSC_VER`.
+  3  1  0  0  0  0            999 V2000
+   -5.2331    1.1053    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -4.5186    1.5178    0.0000 N   0  3  0  0  0  0  0  0  0  0  0  0
+   -2.8647    1.5789    0.0000 Cl  0  5  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+M  CHG  2   2   1   3  -1
+M  END
+"""
 
-### POSIX toolchain
+parent_molblock, _ = standardizer.get_parent_molblock(o_molblock)
+```
 
-This is the default toolchain for POSIX operating systems,
-which is used for all POSIX systems that don't have special toolchains.
+### Check a compound [(info)](https://github.com/chembl/ChEMBL_Structure_Pipeline/wiki/Work-done-by-each-step#checkmolecule)
 
-#### [`//build/toolchain/posix/settings.gni`](toolchain/posix/settings.gni)
+The checker assesses the quality of a structure. It highlights specific features or issues in the structure that may need to be revised. Together with the description of the issue, the checker process returns a penalty score (between 0-9) which reflects the seriousness of the issue (the higher the score, the more critical is the issue)
 
-* `gcc_cc` (default: gcc): Path of the GCC C compiler executable.
-  Does not have to be absolute.
-* `gcc_cxx` (default: g++): Path of the GCC C++ compiler executable.
-  Does not have to be absolute.
-* `clang_cc` (default: clang): Path of the Clang C compiler executable.
-  Does not have to be absolute. **Note:** If `clang_base_path` is set,
-  the default will be `clang_base_path/bin/clang`.
-* `clang_cxx` (default: clang++): Path of the Clang C++ compiler executable.
-  Does not have to be absolute. **Note:** If `clang_base_path` is set,
-  the default will be `clang_base_path/bin/clang++`.
+```python
+from chembl_structure_pipeline import checker
 
-### Mac/iOS toolchain
+o_molblock = """ 
+  Mrv1810 02151908462D           
+ 
+  4  3  0  0  0  0            999 V2000 
+    2.2321    4.4196    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0 
+    3.0023    4.7153    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0 
+    1.4117    4.5059    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0 
+    1.9568    3.6420    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0 
+  1  2  1  1  0  0  0 
+  1  3  1  0  0  0  0 
+  1  4  1  0  0  0  0 
+M  END 
+"""
 
-#### [`//build/toolchain/mac/settings.gni`](toolchain/mac/settings.gni)
+issues = checker.check_molblock(o_molblock)
+```
 
-* `use_system_xcode` (default: true): Use the system install of Xcode for tools
-  like ibtool, libtool, etc. This does not affect the compiler. When this
-  variable is false, targets will instead use a hermetic install of Xcode.
-* `hermetic_xcode_path` (default: ""): The path to the hermetic install of
-  Xcode. Only relevant when use_system_xcode = false.
-* `use_xcode_clang` (default: true): Compile with Xcode version of clang
-  instead of hermetic version shipped with the build. If `true`,
-  `clang_base_path` needs to be set.
-* `enable_dsyms` (default: true): Produce dSYM files for targets that are
-  configured to do so. dSYM generation is controlled globally as it is a
-  linker output (produced via the `//build/toolchain/mac/linker_driver.py`.
-  Enabling this will result in all shared library, loadable module, and
-  executable targets having a dSYM generated.
-* `enable_stripping` (default: `is_official_build`): Strip symbols from linked
-  targets by default. If this is enabled, the //build/config/mac:strip_all
-  config will be applied to all linked targets. If custom stripping parameters
-  are required, remove that config from a linked target and apply custom
-  `-Wcrl,strip` flags. See //build/toolchain/mac/linker_driver.py for more
-  information.
+## References
+<a id="1">[1]</a> 
+Bento, A.P., Hersey, A., Félix, E. et al. An open source chemical structure curation pipeline using RDKit. J Cheminform 12, 51 (2020). https://doi.org/10.1186/s13321-020-00456-1
 
-#### [`//build/toolchain/mac/mac_sdk.gni`](toolchain/mac/mac_sdk.gni)
-
-* `mac_sdk_min` (default: "10.10"): Minimum supported version of the Mac SDK.
-* `mac_deployment_target` (default: "10.9"): Minimum supported version of OSX.
-* `mac_sdk_path` (default: ""): Path to a specific version of the Mac SDK, not
-  including a slash at the end. If empty, the path to the lowest version
-  greater than or equal to `mac_sdk_min` is used.
-* `mac_sdk_name` (default: "macosx"): The SDK name as accepted by xcodebuild.
-
-#### [`//build/toolchain/mac/ios_sdk.gni`](toolchain/mac/ios_sdk.gni)
-
-* `ios_sdk_path` (default: ""): Path to a specific version of the iOS SDK, not
-  including a slash at the end. When empty this will use the default SDK based
-  on the value of use_ios_simulator.
-
-  SDK properties (required when `ios_sdk_path` is non-empty):
-
-  * `ios_sdk_name`: The SDK name as accepted by xcodebuild.
-  * `ios_sdk_version`
-  * `ios_sdk_platform`
-  * `ios_sdk_platform_path`
-  * `xcode_version`
-  * `xcode_build`
-  * `machine_os_build`
-
-* `ios_deployment_target` (default: "9.0"): Minimum supported version of OSX.
-
-### Android toolchain
-
-#### [`//build/toolchain/android/settings.gni`](toolchain/android/settings.gni)
-
-* `android_ndk_root` (default: "$external/android_tools/ndk"):
-  Path of the Android NDK.
-* `android_ndk_version` (default: "r12b"): NDK Version string.
-* `android_ndk_major_version` (default: 12): NDK Major version.
-* `android_sdk_root` (default: "$external/android_tools/sdk"):
-  Path of the Android SDK.
-* `android_sdk_version` (default: "24"): Android SDK version.
-* `android_sdk_build_tools_version` (default: "24.0.2"):
-  Version of the Build Tools contained in the SDK.
-* `android_libcpp_lib_dir` (default: ""): Libc++ library directory.
-  Override to use a custom libc++ binary.
-* `use_order_profiling` (default: false): Adds intrumentation to each function.
-  Writes a file with the order that functions are called at startup.
-
-## Recommended workflow
-
-Fork this repo and add it as a submodule/subtree/`DEPS`-entry to your project.
-This way you can modify every part of the `//build` directory while still being
-able to easily merge upstream changes (e.g. support for new GN features that
-you don't want to implement yourself.)
-
-To ease sharing/composition of projects using this `//build` repo,
-it is recommended that you refrain from modifying large parts of the toolchains/configs.
-If changes are necessary, consider contributing them back ;)
-
-For more complex projects, it might be feasible to use a custom build-config file
-that just `import()s` [`//build/config/BUILDCONFIG.gn`](config/BUILDCONFIG.gn) and then overrides
-the defaults set inside `BUILDCONFIG.gn`. There's also GN's `default_args` scope, which can be used
-to provide project-specific argument overrides.
