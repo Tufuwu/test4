@@ -1,18 +1,30 @@
-build/
-/build.sh
-.coverage
-.cache/
-dist/
-doc/_build/
-.DS_Store
-*.egg*
-.env
-*.py[co]
-_release/
-_resources/
-*.sw*
-.tox/
-.python-version
-.*.un~
+# Reminder:
+# - A leading slash means the pattern is anchored at the root.
+# - No leading slash means the pattern matches at any depth.
 
-\.idea/
+# Python files
+*.pyc
+__pycache__/
+.tox/
+*.egg-info/
+/build/
+/dist/
+/.eggs/
+.coverage
+
+# IDE project files
+/.pydevproject
+
+# vim python-mode plugin
+/.ropeproject
+
+# IntelliJ IDEA / PyCharm project files
+/.idea
+/*.iml
+
+# JS/node/npm/web dev files
+node_modules
+npm-debug.log
+
+# OS X metadata files
+.DS_Store

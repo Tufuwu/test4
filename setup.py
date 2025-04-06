@@ -1,83 +1,62 @@
 #!/usr/bin/env python
-"""
-Copyright 2014-2020 Parsely, Inc.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
-import re
-
+import glob
 from setuptools import setup, find_packages
 
-# Get version without importing, which avoids dependency issues
-def get_version():
-    with open("streamparse/version.py") as version_file:
-        return re.search(
-            r"""__version__\s+=\s+(['"])(?P<version>.+?)\1""", version_file.read()
-        ).group("version")
-
-
-def readme():
-    """ Returns README.rst contents as str """
-    with open("README.rst") as f:
-        return f.read()
-
-
-install_requires = [
-    l.split("#")[0].strip()
-    for l in open("requirements.txt").readlines()
-    if not l.startswith(("#", "-"))
-]
-
-tests_require = ["graphviz", "pytest"]
+install_requires = []
+tests_require = ["coverage", "flake8", "pexpect", "wheel"]
+importlib_backport_requires = ["importlib-metadata >= 0.23, < 3"]
 
 setup(
-    name="streamparse",
-    version=get_version(),
-    author="Parsely, Inc.",
-    author_email="hello@parsely.com",
-    url="https://github.com/Parsely/streamparse",
-    description=(
-        "streamparse lets you run Python code against real-time "
-        "streams of data. Integrates with Apache Storm."
-    ),
-    long_description=readme(),
-    license="Apache License 2.0",
-    packages=find_packages(),
-    entry_points={
-        "console_scripts": [
-            "sparse = streamparse.cli.sparse:main",
-            "streamparse = streamparse.cli.sparse:main",
-            "streamparse_run = streamparse.run:main",
-        ]
+    name='argcomplete',
+    version='1.12.1',
+    url='https://github.com/kislyuk/argcomplete',
+    project_urls={
+        "Documentation": "https://kislyuk.github.io/argcomplete",
+        "Source Code": "https://github.com/kislyuk/argcomplete",
+        "Issue Tracker": "https://github.com/kislyuk/argcomplete/issues"
     },
+    license='Apache Software License',
+    author='Andrey Kislyuk',
+    author_email='kislyuk@gmail.com',
+    description='Bash tab completion for argparse',
+    long_description=open('README.rst').read(),
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require={
         "test": tests_require,
-        "all": install_requires + tests_require,
-        "docs": ["sphinx"] + tests_require,
+        ':python_version == "2.7"': importlib_backport_requires,
+        ':python_version == "3.5"': importlib_backport_requires,
+        ':python_version == "3.6"': importlib_backport_requires,
+        ':python_version == "3.7"': importlib_backport_requires
     },
+    packages=find_packages(exclude=['test']),
+    scripts=glob.glob('scripts/*'),
+    package_data={'argcomplete': ['bash_completion.d/python-argcomplete']},
     zip_safe=False,
     include_package_data=True,
+    platforms=['MacOS X', 'Posix'],
+    test_suite='test',
     classifiers=[
-        "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-    ],
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Development Status :: 5 - Production/Stable',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: System :: Shells',
+        'Topic :: Terminals'
+    ]
 )

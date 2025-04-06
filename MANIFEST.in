@@ -1,6 +1,3 @@
-recursive-include streamparse *
+include argcomplete/bash_completion.d/*
 include *.rst
-include *.md
-include *.txt
-global-exclude *.pyc
-global-exclude __pycache__
+recursive-include test *
