@@ -1,5 +1,5 @@
+[paths]
+source = .
+        /lorax/
 [run]
-branch = true
-source =
-    num2words
-    tests
+relative_files = True
