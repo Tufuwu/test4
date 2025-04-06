@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2017, Thomas Bechtold <tbechtold@suse.com>
@@ -16,8 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import setuptools
-
-setuptools.setup(setup_requires=['pbr>=1.8'],
-                 pbr=True,
-                 )
+try:
+    from pbr import version as pbr_version
+except ImportError:
+    # no pbr available
+    version = 'unknown'
+    pass
+else:
+    version = pbr_version.VersionInfo('py2pack').release_string()
