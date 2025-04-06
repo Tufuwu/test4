@@ -1,22 +1,10 @@
-# Ontologies and Annotations
-*.gpad
-*.owl
-*.obo
-gene_association.*
-/*.gpa
-/*.gaf
-/*.json
-gene2go
-*.gz
-.cache
+bin
+include
+lib
+local
+man
+venv
 
-# Temporary working files
-*.png
 *.pyc
-/*.xlsx
-/*.txt
-*.bac
-
-# Sphinx working directories
-_static
-_templates
+dist
+*.egg-info
