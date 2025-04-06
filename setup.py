@@ -1,80 +1,43 @@
-import os
-import re
-import shutil
-import sys
-from setuptools import setup, find_packages
-
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
-    README = readme.read()
-
-# allow setup.py to be run from any path
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+import codecs
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 
-def get_version(package):
-    """
-    Return package version as listed in `__version__` in `init.py`.
-    """
-    init_py = open(os.path.join(package, '__init__.py')).read()
-    return re.search('__version__ = [\'"]([^\'"]+)[\'"]', init_py).group(1)
-
-
-version = get_version('star_ratings')
-
-if sys.argv[-1] == 'publish':
-    if os.system('pip freeze | grep wheel'):
-        print('wheel not installed.\nUse `pip install wheel`.\nExiting.')
-        sys.exit()
-    if os.system('pip freeze | grep twine'):
-        print('twine not installed.\nUse `pip install twine`.\nExiting.')
-        sys.exit()
-    os.system('python setup.py sdist bdist_wheel')
-    os.system('twine upload dist/*')
-    print('You probably want to also tag the version now:')
-    print('  git tag -a {} -m \'version {}\''.format(version, version))
-    print('  git push --tags')
-    shutil.rmtree('dist')
-    shutil.rmtree('build')
-    shutil.rmtree('django_star_ratings.egg-info')
-    sys.exit()
+with codecs.open('README.rst', encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
-    name='django-star-ratings',
-    version=version,
-    packages=find_packages(),
-    include_package_data=True,
-    package_data={
-        'star_ratings/static': ['*'],
-        'star_ratings/templates': ['*'],
-        '': ['README.rst', 'setup.cfg'],
-    },
-    exclude_package_data={
-        '': ['__pycache__', '*.py[co]'],
-        'star_ratings/static/star_ratings/js/node_modules': ['*'],
-    },
-    license='BSD License',
-    description=('A Django app to add star ratings to models.'),
-    long_description=README,
-    url='https://github.com/wildfish/django-star-ratings',
-    author='Wildfish',
-    author_email='developers@wildfish.com',
-    keywords='ratings',
+    name='yahoofinancials',
+    version='1.7',
+    description='A powerful financial data module used for pulling both fundamental and technical data from Yahoo Finance',
+    long_description=long_description,
+    url='https://github.com/JECSand/yahoofinancials',
+    download_url='https://github.com/JECSand/yahoofinancials/archive/1.7.tar.gz',
+    author='Connor Sanders',
+    author_email='connor@exceleri.com',
+    license='MIT',
+    keywords=['finance data', 'stocks', 'commodities', 'cryptocurrencies', 'currencies', 'forex', 'yahoo finance'],
+    packages=['yahoofinancials'],
     install_requires=[
-        'django',
-        'django-model-utils',
-        'django-braces',
-        'swapper',
+        "beautifulsoup4",
+        "pytz",
+        "pycryptodome"
     ],
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Web Environment',
-        'Framework :: Django',
-        'License :: OSI Approved :: BSD License',
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Financial and Insurance Industry',
+        'Topic :: Office/Business :: Financial :: Investment',
+        'Topic :: Software Development :: Libraries :: Python Modules',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10'
     ],
+    zip_safe=False
 )

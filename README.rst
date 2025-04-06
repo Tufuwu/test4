@@ -1,300 +1,748 @@
-===================
-django-star-ratings
-===================
+===============
+yahoofinancials
+===============
 
-|Build Status| |codecov.io| |Documentation Status|
+A python module that returns stock, cryptocurrency, forex, mutual fund, commodity futures, ETF, and US Treasury financial data from Yahoo Finance.
 
-Python 3 compatible ratings for Django.
+Current Version: v1.7
 
-Add ratings to any Django model with a template tag.
+Version Released: 01/01/2023
 
-See full `documentation
-<http://django-star-ratings.readthedocs.io/en/latest/?badge=latest/>`_.
+Report any bugs by opening an issue here: https://github.com/JECSand/yahoofinancials/issues
 
-Built by Wildfish. https://wildfish.com
+Overview
+--------
+A powerful financial data module used for pulling both fundamental and technical data from Yahoo Finance.
 
-Requirements
-============
-
-* Python 3.6+.
-* Django 2.2+
-
+- As of Version 0.10, Yahoo Financials now returns historical pricing data for commodity futures, cryptocurrencies, ETFs, mutual funds, U.S. Treasuries, currencies, indexes, and stocks.
 
 Installation
-============
-
-Install from PyPI:
-
-::
-
-    pip install django-star-ratings
-
-add ``star_ratings`` to ``INSTALLED_APPS``:
-
-::
-
-    INSTALLED_APPS = (
-        ...
-        'star_ratings'
-    )
-
-sync your database:
-
-::
-
-    python manage.py migrate
-
-add the following to your urls.py:
-
-::
-
-    path('ratings/', include('star_ratings.urls', namespace='ratings')),
-
-Make sure ``'django.core.context_processors.request',`` is in
-``TEMPLATE_CONTEXT_PROCESSORS``.
-
-Usage
-=====
-
-Add the following javascript and stylesheet to your template
-
-::
-
-    {% load static %}
-    <html>
-    ...
-    <link rel="stylesheet" href="{% static 'star-ratings/css/star-ratings.css' %}">
-    <script type="text/javascript" src="{% static 'star-ratings/js/dist/star-ratings.min.js' %}"></script>
-    ...
-    </html>
-
-To enable ratings for a model add the following tag in your template
-
-::
-
-    {% load ratings %}
-    <html>
-    ...
-    {% ratings object %}
-    ...
-    </html>
-
-Template tags
-=============
-
-The template tag takes four arguments:
-
--  ``icon_height``: defaults to ``STAR_RATINGS_STAR_HEIGHT``
--  ``icon_width``: defaults to ``STAR_RATINGS_STAR_WIDTH``
--  ``read_only``: overrides the ``editable`` behaviour to make the widget read only
--  ``template_name``: overrides the tempalte to use for the widget
-
-Settings
-========
-
-To prohibit users from altering their ratings set
-``STAR_RATINGS_RERATE = False`` in settings.py
-
-To allow users to delete a rating by selecting the same score again, set
-``STAR_RATINGS_RERATE_SAME_DELETE = True`` in settings.py, note
-that ``STAR_RATINGS_RERATE`` must be True if this is set.
-
-To allow uses to delete a rating via a clear button, set
-``STAR_RATINGS_CLEARABLE = True``` in settings.py. This can be used
-with or without STAR_RATINGS_RERATE.
-
-To change the number of rating stars, set ``STAR_RATINGS_RANGE``
-(defaults to 5)
-
-To enable anonymous rating set ``STAR_RATINGS_ANONYMOUS = True``.
-
-Please note that ``STAR_RATINGS_RERATE``, ``STAR_RATINGS_RERATE_SAME_DELETE`` and  ``STAR_RATINGS_CLEARABLE``
-will have no affect when anonymous rating is enabled.
-
-Anonymous Rating
-================
-
-If anonymous rating is enabled only the ip address for the rater will be stored (even if the user is logged in).
-When a user rates an object a preexisting object will not be searched for, instead a new rating object will be created
-
-**If this value is changed your lookups will return different results!**
-
-To control the default size of stars in pixels set the values of ``STAR_RATINGS_STAR_HEIGHT`` and
-``STAR_RATINGS_STAR_WIDTH``. By default ``STAR_RATINGS_STAR_WIDTH`` is the same as
-``STAR_RATINGS_STAR_HEIGHT`` and ``STAR_RATINGS_STAR_HEIGHT`` defaults to 32.
-
-
-Changing the star graphics
-==========================
-
-To change the star graphic, add a sprite sheet to
-``/static/star-ratings/images/stars.png`` with the states aligned
-horizontally. The stars should be laid out in three states: full, empty
-and active.
-
-You can also set ``STAR_RATINGS_STAR_SPRITE`` to the location of your sprite sheet.
-
-Customize widget template
-=========================
-
-You can customize ratings widget by creating ``star_ratings/widget.html``. For example :
-
-::
-
-    {% extends "star_ratings/widget_base.html" %}
-    {% block rating_detail %}
-    Whatever you want
-    {% endblock %}
-
-See ``star_ratings/widget_base.html`` for other blocks to be extended.
-
-Ordering by ratings
-===================
-
-The easiest way to order by ratings is to add a ``GenericRelation`` to
-the ``Rating`` model from your model:
-
-::
-
-    from django.contrib.contenttypes.fields import GenericRelation
-    from star_ratings.models import Rating
-
-    class Foo(models.Model):
-        bar = models.CharField(max_length=100)
-        ratings = GenericRelation(Rating, related_query_name='foos')
-
-    Foo.objects.filter(ratings__isnull=False).order_by('ratings__average')
-
-Custom Rating Model
-===================
-
-In some cases you may need to create your own rating model. This is possible
-by setting ``STAR_RATING_RATING_MODEL`` in your settings file. This can be useful
-to add additional fields or methods to the model. This is very similar to the how
-django handles swapping the user model
-(see [https://docs.djangoproject.com/en/1.10/topics/auth/customizing/#substituting-a-custom-user-model]).
-
-For ease ``AbstractBaseRating`` is supplied. For example if you wanted to add the
-field ``foo`` to the rating model you would need to crate your rating model
-extending ``AbstractBaseRating``:
-
-::
-
-   ./myapp/models.py
-
-   class MyRating(AbstractBaseRating):
-      foo = models.TextField()
-
-And add the setting to the setting file:
-
-::
-
-   ./settings.py
-
-   ...
-   STAR_RATINGS_RATING_MODEL = 'myapp.MyRating'
-   ...
-
-**NOTE:** If you are using a custom rating model there is an issue with how django
-migration handles dependency orders. In order to create your initial migration you
-will need to comment out the ``STAR_RATINGS_RATING_MODEL`` setting and run
-``makemigrations``. After this initial migration you will be able to add the setting
-back in and run ``migrate`` and ``makemigrations`` without issue.
-
-Changing the ``pk`` type (Requires django >= 1.10)
-==================================================
-
-One use case for changing the rating model would be to change the pk type of the
-related object. By default we assume the pk of the rated object will be a
-positive integer field which is fine for most uses, if this isn't though you will
-need to override the ``object_id`` field on the rating model as well as set
-STAR_RATINGS_OBJECT_ID_PATTERN to a reasonable value for your new pk field. As
-of django 1.10 you can now hide fields form parent abstract models, so to change
-the ``object_id``to a ``CharField`` you can do something like:
-
-::
-
-   class MyRating(AbstractBaseRating):
-      object_id = models.CharField(max_length=10)
-
-And add the setting to the setting file:
-
-::
-
-   ./settings.py
-
-   ...
-   STAR_RATINGS_OBJECT_ID_PATTERN = '[a-z0-9]{32}'
-   ...
-
-
-Events
-======
-
-Some events are dispatched from the javascript when an object is raised. Each
-event that ias dispatched has a ``details`` property that contains information
-about the object and the rating.
-
-``rate-success``
-----------------
-
-Dispatched after the user has rated an object and the display has been updated.
-
-The event details contains
-
-::
-
-    {
-        sender: ... // The star DOM object that was clicked
-        rating: {
-            average: ... // Float giving the updated average of the rating
-            count: ... // Integer giving the total number of ratings
-            percentage: ... // Float giving the percentage rating
-            total: ... // Integer giving the sum of all ratings
-            user_rating: ... // Integer giving the rating by the user
-    }
-
-``rate-failed``
----------------
-
-Dispatched after the user has rated an object but the server responds with an error.
-
-The event details contains
-
-::
-
-    {
-        sender: ... // The star DOM object that was clicked
-        error: ... // String giving the error message from the server
-    }
-
-
-Running tests
 -------------
+- yahoofinancials runs on Python 3.6, 3.7, 3.8, 3.9, and 3.10.
+- This package depends on beautifulsoup4, pytz, and pycryptodome to work.
 
-To run the test use:
+1. Installation using pip:
 
-::
+- Linux/Mac:
 
-    $> ./runtests.py
+.. code-block:: bash
 
-.. |Build Status| image:: https://travis-ci.org/wildfish/django-star-ratings.svg?branch=master
-   :target: https://travis-ci.org/wildfish/django-star-ratings
-.. |codecov.io| image:: http://codecov.io/github/wildfish/django-star-ratings/coverage.svg?branch=master
-   :target: http://codecov.io/github/wildfish/django-star-ratings?branch=master
-.. |Documentation Status| image:: https://readthedocs.org/projects/django-star-ratings/badge/?version=latest
-   :target: http://django-star-ratings.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
+    $ pip install yahoofinancials
+
+- Windows (If python doesn't work for you in cmd, try running the following command with just py):
+
+.. code-block::
+
+    > python -m pip install yahoofinancials
+
+2. Installation using github (Mac/Linux):
+
+.. code-block:: bash
+
+    $ git clone https://github.com/JECSand/yahoofinancials.git
+    $ cd yahoofinancials
+    $ python setup.py install
+
+3. Demo using the included demo script:
+
+.. code-block:: bash
+
+    $ cd yahoofinancials
+    $ python demo.py -h
+    $ python demo.py
+    $ python demo.py WFC C BAC
+
+4. Test using the included unit testing script:
+
+.. code-block:: bash
+
+    $ cd yahoofinancials
+    $ python test/test_yahoofinancials.py
+
+Module Methods
+--------------
+- The financial data from all methods is returned as JSON.
+- You can run multiple symbols at once using an inputted array or run an individual symbol using an inputted string.
+- YahooFinancials works with Python 3.6, 3.7, 3.8, 3.9, and 3.10 and runs on all operating systems. (Windows, Mac, Linux).
+
+Featured Methods
+^^^^^^^^^^^^^^^^
+1. get_financial_stmts(frequency, statement_type, reformat=True)
+
+   - frequency can be either 'annual' or 'quarterly'.
+   - statement_type can be 'income', 'balance', 'cash' or a list of several.
+   - reformat optional value defaulted to true. Enter False for unprocessed raw data from Yahoo Finance.
+2. get_stock_price_data(reformat=True)
+
+   - reformat optional value defaulted to true. Enter False for unprocessed raw data from Yahoo Finance.
+3. get_stock_earnings_data(reformat=True)
+
+   - reformat optional value defaulted to true. Enter False for unprocessed raw data from Yahoo Finance.
+4. get_summary_data(reformat=True)
+
+   - Returns financial summary data for cryptocurrencies, stocks, currencies, ETFs, mutual funds, U.S. Treasuries, commodity futures, and indexes.
+   - reformat optional value defaulted to true. Enter False for unprocessed raw data from Yahoo Finance.
+5. get_stock_quote_type_data()
+
+6. get_historical_price_data(start_date, end_date, time_interval)
+
+   - This method will pull historical pricing data for stocks, currencies, ETFs, mutual funds, U.S. Treasuries, cryptocurrencies, commodities, and indexes.
+   - start_date should be entered in the 'YYYY-MM-DD' format and is the first day that data will be pulled for.
+   - end_date should be entered in the 'YYYY-MM-DD' format and is the last day that data will be pulled for.
+   - time_interval can be either 'daily', 'weekly', or 'monthly'. This variable determines the time period interval for your pull.
+   - Data response includes relevant pricing event data such as dividends and stock splits.
+7. get_num_shares_outstanding(price_type='current')
+
+   - price_type can also be set to 'average' to calculate the shares outstanding with the daily average price.
+
+Methods Added in v1.5
+^^^^^^^^^^^^^^^^^^^^^^^
+- get_daily_dividend_data(start_date, end_date)
+
+Additional Module Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^
+- get_interest_expense()
+- get_operating_income()
+- get_total_operating_expense()
+- get_total_revenue()
+- get_cost_of_revenue()
+- get_income_before_tax()
+- get_income_tax_expense()
+- get_gross_profit()
+- get_net_income_from_continuing_ops()
+- get_research_and_development()
+- get_current_price()
+- get_current_change()
+- get_current_percent_change()
+- get_current_volume()
+- get_prev_close_price()
+- get_open_price()
+- get_ten_day_avg_daily_volume()
+- get_three_month_avg_daily_volume()
+- get_stock_exchange()
+- get_market_cap()
+- get_daily_low()
+- get_daily_high()
+- get_currency()
+- get_yearly_high()
+- get_yearly_low()
+- get_dividend_yield()
+- get_annual_avg_div_yield()
+- get_five_yr_avg_div_yield()
+- get_dividend_rate()
+- get_annual_avg_div_rate()
+- get_50day_moving_avg()
+- get_200day_moving_avg()
+- get_beta()
+- get_payout_ratio()
+- get_pe_ratio()
+- get_price_to_sales()
+- get_exdividend_date()
+- get_book_value()
+- get_ebit()
+- get_net_income()
+- get_earnings_per_share()
+- get_key_statistics_data()
+
+Usage Examples
+--------------
+- The class constructor can take either a single ticker or a list of tickers as it's parameter.
+- This makes it easy to initiate multiple classes for different groupings of financial assets.
+- Quarterly statement data returns the last 4 periods of data, while annual returns the last 3.
+
+Single Ticker Example
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    from yahoofinancials import YahooFinancials
+
+    ticker = 'AAPL'
+    yahoo_financials = YahooFinancials(ticker)
+
+    balance_sheet_data_qt = yahoo_financials.get_financial_stmts('quarterly', 'balance')
+    income_statement_data_qt = yahoo_financials.get_financial_stmts('quarterly', 'income')
+    all_statement_data_qt =  yahoo_financials.get_financial_stmts('quarterly', ['income', 'cash', 'balance'])
+    apple_earnings_data = yahoo_financials.get_stock_earnings_data()
+    apple_net_income = yahoo_financials.get_net_income()
+    historical_stock_prices = yahoo_financials.get_historical_price_data('2008-09-15', '2018-09-15', 'weekly')
+
+Lists of Tickers Example
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    from yahoofinancials import YahooFinancials
+
+    tech_stocks = ['AAPL', 'MSFT', 'INTC']
+    bank_stocks = ['WFC', 'BAC', 'C']
+    commodity_futures = ['GC=F', 'SI=F', 'CL=F']
+    cryptocurrencies = ['BTC-USD', 'ETH-USD', 'XRP-USD']
+    currencies = ['EURUSD=X', 'JPY=X', 'GBPUSD=X']
+    mutual_funds = ['PRLAX', 'QASGX', 'HISFX']
+    us_treasuries = ['^TNX', '^IRX', '^TYX']
+
+    yahoo_financials_tech = YahooFinancials(tech_stocks)
+    yahoo_financials_banks = YahooFinancials(bank_stocks)
+    yahoo_financials_commodities = YahooFinancials(commodity_futures)
+    yahoo_financials_cryptocurrencies = YahooFinancials(cryptocurrencies)
+    yahoo_financials_currencies = YahooFinancials(currencies)
+    yahoo_financials_mutualfunds = YahooFinancials(mutual_funds)
+    yahoo_financials_treasuries = YahooFinancials(us_treasuries)
+
+    tech_cash_flow_data_an = yahoo_financials_tech.get_financial_stmts('annual', 'cash')
+    bank_cash_flow_data_an = yahoo_financials_banks.get_financial_stmts('annual', 'cash')
+
+    banks_net_ebit = yahoo_financials_banks.get_ebit()
+    tech_stock_price_data = yahoo_financials_tech.get_stock_price_data()
+    daily_bank_stock_prices = yahoo_financials_banks.get_historical_price_data('2008-09-15', '2018-09-15', 'daily')
+    daily_commodity_prices = yahoo_financials_commodities.get_historical_price_data('2008-09-15', '2018-09-15', 'daily')
+    daily_crypto_prices = yahoo_financials_cryptocurrencies.get_historical_price_data('2008-09-15', '2018-09-15', 'daily')
+    daily_currency_prices = yahoo_financials_currencies.get_historical_price_data('2008-09-15', '2018-09-15', 'daily')
+    daily_mutualfund_prices = yahoo_financials_mutualfunds.get_historical_price_data('2008-09-15', '2018-09-15', 'daily')
+    daily_treasury_prices = yahoo_financials_treasuries.get_historical_price_data('2008-09-15', '2018-09-15', 'daily')
+
+Examples of Returned JSON Data
+------------------------------
+
+1. Annual Income Statement Data for Apple:
 
 
-Releasing
----------
+.. code-block:: python
 
-Travis is setup to push releases to pypi automatically on tags, to do a release:
+    yahoo_financials = YahooFinancials('AAPL')
+    print(yahoo_financials.get_financial_stmts('annual', 'income'))
 
-1. Up version number.
-2. Update release notes.
-3. Push dev.
-4. Merge develop into master.
-5. Tag with new version number.
-6. Push tags.
+
+.. code-block:: javascript
+
+    {
+        "incomeStatementHistory": {
+            "AAPL": [
+                {
+                    "2016-09-24": {
+                        "minorityInterest": null,
+                        "otherOperatingExpenses": null,
+                        "netIncomeFromContinuingOps": 45687000000,
+                        "totalRevenue": 215639000000,
+                        "totalOtherIncomeExpenseNet": 1348000000,
+                        "discontinuedOperations": null,
+                        "incomeTaxExpense": 15685000000,
+                        "extraordinaryItems": null,
+                        "grossProfit": 84263000000,
+                        "netIncome": 45687000000,
+                        "sellingGeneralAdministrative": 14194000000,
+                        "interestExpense": null,
+                        "costOfRevenue": 131376000000,
+                        "researchDevelopment": 10045000000,
+                        "netIncomeApplicableToCommonShares": 45687000000,
+                        "effectOfAccountingCharges": null,
+                        "incomeBeforeTax": 61372000000,
+                        "otherItems": null,
+                        "operatingIncome": 60024000000,
+                        "ebit": 61372000000,
+                        "nonRecurring": null,
+                        "totalOperatingExpenses": 0
+                    }
+                }
+            ]
+        }
+    }
+
+2. Annual Balance Sheet Data for Apple:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('AAPL')
+    print(yahoo_financials.get_financial_stmts('annual', 'balance'))
+
+
+.. code-block:: javascript
+
+    {
+        "balanceSheetHistory": {
+            "AAPL": [
+                {
+                    "2016-09-24": {
+                        "otherCurrentLiab": 8080000000,
+                        "otherCurrentAssets": 8283000000,
+                        "goodWill": 5414000000,
+                        "shortTermInvestments": 46671000000,
+                        "longTermInvestments": 170430000000,
+                        "cash": 20484000000,
+                        "netTangibleAssets": 119629000000,
+                        "totalAssets": 321686000000,
+                        "otherLiab": 36074000000,
+                        "totalStockholderEquity": 128249000000,
+                        "inventory": 2132000000,
+                        "retainedEarnings": 96364000000,
+                        "intangibleAssets": 3206000000,
+                        "totalCurrentAssets": 106869000000,
+                        "otherStockholderEquity": 634000000,
+                        "shortLongTermDebt": 11605000000,
+                        "propertyPlantEquipment": 27010000000,
+                        "deferredLongTermLiab": 2930000000,
+                        "netReceivables": 29299000000,
+                        "otherAssets": 8757000000,
+                        "longTermDebt": 75427000000,
+                        "totalLiab": 193437000000,
+                        "commonStock": 31251000000,
+                        "accountsPayable": 59321000000,
+                        "totalCurrentLiabilities": 79006000000
+                    }
+                }
+            ]
+        }
+    }
+
+3. Quarterly Cash Flow Statement Data for Citigroup:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('C')
+    print(yahoo_financials.get_financial_stmts('quarterly', 'cash'))
+
+
+.. code-block:: javascript
+
+    {
+        "cashflowStatementHistoryQuarterly": {
+            "C": [
+                {
+                    "2017-06-30": {
+                        "totalCashFromOperatingActivities": -18505000000,
+                        "effectOfExchangeRate": -117000000,
+                        "totalCashFromFinancingActivities": 39798000000,
+                        "netIncome": 3872000000,
+                        "dividendsPaid": -760000000,
+                        "salePurchaseOfStock": -1781000000,
+                        "capitalExpenditures": -861000000,
+                        "changeToLiabilities": -7626000000,
+                        "otherCashflowsFromInvestingActivities": 82000000,
+                        "totalCashflowsFromInvestingActivities": -22508000000,
+                        "netBorrowings": 33586000000,
+                        "depreciation": 901000000,
+                        "changeInCash": -1332000000,
+                        "changeToNetincome": 1444000000,
+                        "otherCashflowsFromFinancingActivities": 8753000000,
+                        "changeToOperatingActivities": -17096000000,
+                        "investments": -23224000000
+                    }
+                }
+            ]
+        }
+    }
+
+4. Monthly Historical Stock Price Data for Wells Fargo:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('WFC')
+    print(yahoo_financials.get_historical_price_data("2018-07-10", "2018-08-10", "monthly"))
+
+
+.. code-block:: javascript
+
+    {
+        "WFC": {
+            "currency": "USD",
+            "eventsData": {
+                "dividends": {
+                    "2018-08-01": {
+                        "amount": 0.43,
+                        "date": 1533821400,
+                        "formatted_date": "2018-08-09"
+                    }
+                }
+            },
+            "firstTradeDate": {
+                "date": 76233600,
+                "formatted_date": "1972-06-01"
+            },
+            "instrumentType": "EQUITY",
+            "prices": [
+                {
+                    "adjclose": 57.19147872924805,
+                    "close": 57.61000061035156,
+                    "date": 1533096000,
+                    "formatted_date": "2018-08-01",
+                    "high": 59.5,
+                    "low": 57.08000183105469,
+                    "open": 57.959999084472656,
+                    "volume": 138922900
+                }
+            ],
+            "timeZone": {
+                "gmtOffset": -14400
+            }
+        }
+    }
+
+5. Monthly Historical Price Data for EURUSD:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('EURUSD=X')
+    print(yahoo_financials.get_historical_price_data("2018-07-10", "2018-08-10", "monthly"))
+
+
+.. code-block:: javascript
+
+    {
+        "EURUSD=X": {
+            "currency": "USD",
+            "eventsData": {},
+            "firstTradeDate": {
+                "date": 1070236800,
+                "formatted_date": "2003-12-01"
+            },
+            "instrumentType": "CURRENCY",
+            "prices": [
+                {
+                    "adjclose": 1.1394712924957275,
+                    "close": 1.1394712924957275,
+                    "date": 1533078000,
+                    "formatted_date": "2018-07-31",
+                    "high": 1.169864296913147,
+                    "low": 1.1365960836410522,
+                    "open": 1.168961763381958,
+                    "volume": 0
+                }
+            ],
+            "timeZone": {
+                "gmtOffset": 3600
+            }
+        }
+    }
+
+6. Monthly Historical Price Data for BTC-USD:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('BTC-USD')
+    print(yahoo_financials.get_historical_price_data("2018-07-10", "2018-08-10", "monthly"))
+
+
+.. code-block:: javascript
+
+    {
+        "BTC-USD": {
+            "currency": "USD",
+            "eventsData": {},
+            "firstTradeDate": {
+                "date": 1279321200,
+                "formatted_date": "2010-07-16"
+            },
+            "instrumentType": "CRYPTOCURRENCY",
+            "prices": [
+                {
+                    "adjclose": 6285.02001953125,
+                    "close": 6285.02001953125,
+                    "date": 1533078000,
+                    "formatted_date": "2018-07-31",
+                    "high": 7760.740234375,
+                    "low": 6133.02978515625,
+                    "open": 7736.25,
+                    "volume": 4334347882
+                }
+            ],
+            "timeZone": {
+                "gmtOffset": 3600
+            }
+        }
+    }
+
+7. Weekly Historical Price Data for Crude Oil Futures:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('CL=F')
+    print(yahoo_financials.get_historical_price_data("2018-08-01", "2018-08-10", "weekly"))
+
+
+.. code-block:: javascript
+
+    {
+        "CL=F": {
+            "currency": "USD",
+            "eventsData": {},
+            "firstTradeDate": {
+                "date": 1522555200,
+                "formatted_date": "2018-04-01"
+            },
+            "instrumentType": "FUTURE",
+            "prices": [
+                {
+                    "adjclose": 68.58999633789062,
+                    "close": 68.58999633789062,
+                    "date": 1532923200,
+                    "formatted_date": "2018-07-30",
+                    "high": 69.3499984741211,
+                    "low": 66.91999816894531,
+                    "open": 68.37000274658203,
+                    "volume": 683048039
+                },
+                {
+                    "adjclose": 67.75,
+                    "close": 67.75,
+                    "date": 1533528000,
+                    "formatted_date": "2018-08-06",
+                    "high": 69.91999816894531,
+                    "low": 66.13999938964844,
+                    "open": 68.76000213623047,
+                    "volume": 1102357981
+                }
+            ],
+            "timeZone": {
+                "gmtOffset": -14400
+            }
+        }
+    }
+
+8. Apple Stock Quote Data:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('AAPL')
+    print(yahoo_financials.get_stock_quote_type_data())
+
+
+.. code-block:: javascript
+
+    {
+        "AAPL": {
+            "underlyingExchangeSymbol": null,
+            "exchangeTimezoneName": "America/New_York",
+            "underlyingSymbol": null,
+            "headSymbol": null,
+            "shortName": "Apple Inc.",
+            "symbol": "AAPL",
+            "uuid": "8b10e4ae-9eeb-3684-921a-9ab27e4d87aa",
+            "gmtOffSetMilliseconds": "-14400000",
+            "exchange": "NMS",
+            "exchangeTimezoneShortName": "EDT",
+            "messageBoardId": "finmb_24937",
+            "longName": "Apple Inc.",
+            "market": "us_market",
+            "quoteType": "EQUITY"
+        }
+    }
+
+9. U.S. Treasury Current Pricing Data:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials(['^TNX', '^IRX', '^TYX'])
+    print(yahoo_financials.get_current_price())
+
+
+.. code-block:: javascript
+
+    {
+        "^IRX": 2.033,
+        "^TNX": 2.895,
+        "^TYX": 3.062
+    }
+
+10. BTC-USD Summary Data:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('BTC-USD')
+    print(yahoo_financials.get_summary_data())
+
+
+.. code-block:: javascript
+
+    {
+        "BTC-USD": {
+            "algorithm": "SHA256",
+            "ask": null,
+            "askSize": null,
+            "averageDailyVolume10Day": 545573809,
+            "averageVolume": 496761640,
+            "averageVolume10days": 545573809,
+            "beta": null,
+            "bid": null,
+            "bidSize": null,
+            "circulatingSupply": 17209812,
+            "currency": "USD",
+            "dayHigh": 6266.5,
+            "dayLow": 5891.87,
+            "dividendRate": null,
+            "dividendYield": null,
+            "exDividendDate": "-",
+            "expireDate": "-",
+            "fiftyDayAverage": 6989.074,
+            "fiftyTwoWeekHigh": 19870.62,
+            "fiftyTwoWeekLow": 2979.88,
+            "fiveYearAvgDividendYield": null,
+            "forwardPE": null,
+            "fromCurrency": "BTC",
+            "lastMarket": "CCCAGG",
+            "marketCap": 106325663744,
+            "maxAge": 1,
+            "maxSupply": 21000000,
+            "navPrice": null,
+            "open": 6263.2,
+            "openInterest": null,
+            "payoutRatio": null,
+            "previousClose": 6263.2,
+            "priceHint": 2,
+            "priceToSalesTrailing12Months": null,
+            "regularMarketDayHigh": 6266.5,
+            "regularMarketDayLow": 5891.87,
+            "regularMarketOpen": 6263.2,
+            "regularMarketPreviousClose": 6263.2,
+            "regularMarketVolume": 755834368,
+            "startDate": "2009-01-03",
+            "strikePrice": null,
+            "totalAssets": null,
+            "tradeable": false,
+            "trailingAnnualDividendRate": null,
+            "trailingAnnualDividendYield": null,
+            "twoHundredDayAverage": 8165.154,
+            "volume": 755834368,
+            "volume24Hr": 750196480,
+            "volumeAllCurrencies": 2673437184,
+            "yield": null,
+            "ytdReturn": null
+        }
+    }
+
+11. Apple Key Statistics Data:
+
+
+.. code-block:: python
+
+    yahoo_financials = YahooFinancials('AAPL')
+    print(yahoo_financials.get_key_statistics_data())
+
+
+.. code-block:: javascript
+
+    {
+        "AAPL": {
+            "annualHoldingsTurnover": null,
+            "enterpriseToRevenue": 2.973,
+            "beta3Year": null,
+            "profitMargins": 0.22413999,
+            "enterpriseToEbitda": 9.652,
+            "52WeekChange": -0.12707871,
+            "morningStarRiskRating": null,
+            "forwardEps": 13.49,
+            "revenueQuarterlyGrowth": null,
+            "sharesOutstanding": 4729800192,
+            "fundInceptionDate": "-",
+            "annualReportExpenseRatio": null,
+            "totalAssets": null,
+            "bookValue": 22.534,
+            "sharesShort": 44915125,
+            "sharesPercentSharesOut": 0.0095,
+            "fundFamily": null,
+            "lastFiscalYearEnd": 1538179200,
+            "heldPercentInstitutions": 0.61208,
+            "netIncomeToCommon": 59531001856,
+            "trailingEps": 11.91,
+            "lastDividendValue": null,
+            "SandP52WeekChange": -0.06475246,
+            "priceToBook": 6.7582316,
+            "heldPercentInsiders": 0.00072999997,
+            "nextFiscalYearEnd": 1601337600,
+            "yield": null,
+            "mostRecentQuarter": 1538179200,
+            "shortRatio": 1,
+            "sharesShortPreviousMonthDate": "2018-10-31",
+            "floatShares": 4489763410,
+            "beta": 1.127094,
+            "enterpriseValue": 789555511296,
+            "priceHint": 2,
+            "threeYearAverageReturn": null,
+            "lastSplitDate": "2014-06-09",
+            "lastSplitFactor": "1/7",
+            "legalType": null,
+            "morningStarOverallRating": null,
+            "earningsQuarterlyGrowth": 0.318,
+            "priceToSalesTrailing12Months": null,
+            "dateShortInterest": 1543536000,
+            "pegRatio": 0.98,
+            "ytdReturn": null,
+            "forwardPE": 11.289103,
+            "maxAge": 1,
+            "lastCapGain": null,
+            "shortPercentOfFloat": 0.0088,
+            "sharesShortPriorMonth": 36469092,
+            "category": null,
+            "fiveYearAverageReturn": null
+        }
+    }
+
+12. Apple and Wells Fargo Daily Dividend Data:
+
+
+.. code-block:: python
+
+    start_date = '1987-09-15'
+    end_date = '1988-09-15'
+    yahoo_financials = YahooFinancials(['AAPL', 'WFC'])
+    print(yahoo_financials.get_daily_dividend_data(start_date, end_date))
+
+
+.. code-block:: javascript
+
+    {
+        "AAPL": [
+            {
+                "date": 564157800,
+                "formatted_date": "1987-11-17",
+                "amount": 0.08
+            },
+            {
+                "date": 571674600,
+                "formatted_date": "1988-02-12",
+                "amount": 0.08
+            },
+            {
+                "date": 579792600,
+                "formatted_date": "1988-05-16",
+                "amount": 0.08
+            },
+            {
+                "date": 587655000,
+                "formatted_date": "1988-08-15",
+                "amount": 0.08
+            }
+        ],
+        "WFC": [
+            {
+                "date": 562861800,
+                "formatted_date": "1987-11-02",
+                "amount": 0.3008
+            },
+            {
+                "date": 570724200,
+                "formatted_date": "1988-02-01",
+                "amount": 0.3008
+            },
+            {
+                "date": 578583000,
+                "formatted_date": "1988-05-02",
+                "amount": 0.3344
+            },
+            {
+                "date": 586445400,
+                "formatted_date": "1988-08-01",
+                "amount": 0.3344
+            }
+        ]
+    }
+
