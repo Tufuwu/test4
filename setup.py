@@ -1,84 +1,91 @@
-# -*- coding: utf-8 -*-
-#  Licensed to Elasticsearch B.V. under one or more contributor
-#  license agreements. See the NOTICE file distributed with
-#  this work for additional information regarding copyright
-#  ownership. Elasticsearch B.V. licenses this file to you under
-#  the Apache License, Version 2.0 (the "License"); you may
-#  not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-# 	http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing,
-#  software distributed under the License is distributed on an
-#  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-#  KIND, either express or implied.  See the License for the
-#  specific language governing permissions and limitations
-#  under the License.
+#!/usr/bin/env python
 
-from os.path import dirname, join
+"""
+A setuptools based setup module.
+
+See:
+https://packaging.python.org/en/latest/distributing.html
+"""
+
+from os import path
+
+try:
+    from pip.req import parse_requirements
+except ImportError:
+    # pip >= 10
+    from pip._internal.req import parse_requirements
 
 from setuptools import find_packages, setup
 
-VERSION = (7, 2, 0)
-__version__ = VERSION
-__versionstr__ = ".".join(map(str, VERSION))
 
-f = open(join(dirname(__file__), "README"))
-long_description = f.read().strip()
-f.close()
+def get_requirements(requirements_file):
+    """Use pip to parse requirements file."""
+    requirements = []
+    if path.isfile(requirements_file):
+        for req in parse_requirements(requirements_file, session="hack"):
+            try:
+                if req.markers:
+                    requirements.append("%s;%s" % (req.req, req.markers))
+                else:
+                    requirements.append("%s" % req.req)
+            except AttributeError:
+                # pip >= 20.0.2
+                requirements.append(req.requirement)
+    return requirements
 
-install_requires = [
-    "six",
-    "python-dateutil",
-    "elasticsearch>=7.0.0,<8.0.0",
-    # ipaddress is included in stdlib since python 3.3
-    'ipaddress; python_version<"3.3"',
-]
 
-develop_requires = [
-    "mock",
-    "pytest>=3.0.0",
-    "pytest-cov",
-    "pytest-mock<3.0.0",
-    "pytz",
-    "coverage<5.0.0",
-    "sphinx",
-    "sphinx_rtd_theme",
-]
+if __name__ == "__main__":
+    HERE = path.abspath(path.dirname(__file__))
+    INSTALL_REQUIRES = get_requirements(path.join(HERE, "requirements.txt"))
+    MYSQL_REQUIRES = get_requirements(path.join(HERE, "mysql-requirements.txt"))
+    POSTGRESQL_REQUIRES = get_requirements(
+        path.join(HERE, "postgresql-requirements.txt"))
+    LDAP_REQUIRES = get_requirements(path.join(HERE, "ldap-requirements.txt"))
 
-setup(
-    name="elasticsearch-dsl",
-    description="Python client for Elasticsearch",
-    license="Apache-2.0",
-    url="https://github.com/elasticsearch/elasticsearch-dsl-py",
-    long_description=long_description,
-    long_description_content_type="text/x-rst",
-    version=__versionstr__,
-    author="Honza Král",
-    author_email="honza.kral@gmail.com",
-    maintainer="Seth Michael Larson",
-    maintainer_email="seth.larson@elastic.co",
-    packages=find_packages(where=".", exclude=("tests*",)),
-    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: Apache Software License",
-        "Intended Audience :: Developers",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-    ],
-    install_requires=install_requires,
-    extras_require={"develop": develop_requires},
-)
+    with open(path.join(HERE, "README.rst")) as readme:
+        LONG_DESCRIPTION = readme.read()
+
+    def local_scheme(version):
+        """Skip the local version (eg. +xyz of 0.6.1.dev4+gdf99fe2)
+            to be able to upload to Test PyPI"""
+        return ""
+
+    setup(
+        name="modoboa",
+        description="Mail hosting made simple",
+        long_description=LONG_DESCRIPTION,
+        license="ISC",
+        url="http://modoboa.org/",
+        author="Antoine Nguyen",
+        author_email="tonio@ngyn.org",
+        classifiers=[
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Web Environment",
+            "Framework :: Django :: 2.2",
+            "Intended Audience :: System Administrators",
+            "License :: OSI Approved :: ISC License (ISCL)",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Topic :: Communications :: Email",
+            "Topic :: Internet :: WWW/HTTP",
+        ],
+        keywords="email",
+        packages=find_packages(exclude=["doc", "test_data", "test_project"]),
+        include_package_data=True,
+        zip_safe=False,
+        scripts=["bin/modoboa-admin.py"],
+        install_requires=INSTALL_REQUIRES,
+        use_scm_version={"local_scheme": local_scheme},
+        python_requires=">=3.4",
+        setup_requires=["setuptools_scm"],
+        extras_require={
+            "ldap": LDAP_REQUIRES,
+            "mysql": MYSQL_REQUIRES,
+            "postgresql": POSTGRESQL_REQUIRES,
+            "argon2": ["argon2-cffi >= 16.1.0"],
+        },
+    )
