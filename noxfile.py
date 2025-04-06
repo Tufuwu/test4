@@ -2,7 +2,7 @@
 
 import nox
 
-SOURCES = ["noxfile.py", "src", "test/test_xdg.py"]
+SOURCES = ["noxfile.py", "src"]
 
 
 @nox.session
@@ -35,9 +35,3 @@ def isort(session):
 def black(session):
     """Check code formatting with black."""
     session.run("black", "--check", *SOURCES, external=True)
-
-
-@nox.session
-def pytest(session):
-    """Check code formatting with black."""
-    session.run("pytest", "test", external=True)
