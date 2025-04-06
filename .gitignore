@@ -1,12 +1,10 @@
+.coverage
 *.pyc
-*.o
-*.hi
-*.swp
-*.so
-*.dot
-build
-build_cmark
+_py_cache
+docs/build
+certs
+
+## Packages
+*.egg-info
 dist
-hotdoc.egg-info/
-*.eggs
-.ycm_extra_conf.py
+.tox
