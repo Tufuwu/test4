@@ -1,4 +1,10 @@
-__pycache__/
-*.py[co]
-.tox
+/asttokens/version.py
+
 .coverage
+*.py[co]
+
+# Building and packaging
+build/
+dist/
+*.egg-info/
+docs/_build/
