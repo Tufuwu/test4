@@ -1,17 +1,23 @@
-default: test
+TESTS=tests authtools
+SETTINGS=tests.sqlite_test_settings
+COVERAGE_COMMAND=
 
-test: env
-	.env/bin/pytest tests
+test: test-builtin test-authtools test-customuser
 
-.PHONY: doc
-doc: env
-	.env/bin/sphinx-build -a -W -E doc build/sphinx/html
+test-builtin:
+	cd tests && DJANGO_SETTINGS_MODULE=$(SETTINGS) $(COVERAGE_COMMAND) ./manage.py test --traceback $(TESTS) --verbosity=2
 
+test-authtools:
+	+AUTH_USER_MODEL='authtools.User' make test-builtin
 
-env: .env/.up-to-date
+test-customuser:
+	+AUTH_USER_MODEL='tests.User' make test-builtin
 
-.env/.up-to-date: pyproject.toml Makefile
-	python3 -m venv .env
-	.env/bin/pip install -e .[testing,doc]
-	touch $@
+coverage:
+	+make test COVERAGE_COMMAND='coverage run --source=authtools --branch --parallel-mode'
+	cd tests && coverage combine && coverage html
 
+docs:
+	cd docs && $(MAKE) html
+
+.PHONY: test test-builtin test-authtools test-customuser coverage docs
