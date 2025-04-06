@@ -1,50 +1,61 @@
-
-import os
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-import platform
+# setuptools installation of POW
+# Copyright (c) 2010 Oliver Beckstein <orbeckst@gmail.com>
+# Released under the GNU Public License 3 (or higher, your choice)
 
 
-cmdclass = {}
+from setuptools import setup, find_packages
 
-install_requires = ['flexx >= 0.4.1',
-                    'future',
-                    'normality == 0.6.1',
-                    'dataset == 0.8']
+# Dynamically calculate the version based on VERSION.
+version = __import__('mdpow.version').get_version()
 
-
-readthedocs = os.environ.get('READTHEDOCS') == 'True'
-
-if not readthedocs:
-    if not platform.python_implementation() == "PyPy":
-        install_requires += ['numpy >= 1.10.2p']
-        if ('APPVEYOR' not in os.environ) or ('TRAVIS' not in os.environ):
-            install_requires += ['pandas >= 0.17.1',
-                                 'bokeh == 0.12.16',
-                                 'tornado == 4.3']
-
-
-version = '0.9.7b0'
-
-
-setup(name='abcEconomics',
+setup(name="MDPOW",
       version=version,
-      author='Davoud Taghawi-Nejad',
-      author_email='Davoud@Taghawi-Nejad.de',
-      description='Agent-Based Complete Economy modelling platform',
-      url='https://github.com/AB-CE/abce.git',
-      package_dir={'abcEconomics': 'abcEconomics',
-                   'abcEconomics.gui': 'abcEconomics/gui',
-                   'abcEconomics.agents': 'abcEconomics/agents',
-                   'abcEconomics.contracts': 'abcEconomics/contracts',
-                   'abcEconomics.logger': 'abcEconomics/logger',
-                   'abcEconomics.scheduler': 'abcEconomics/scheduler'
-                   },
-      packages=['abcEconomics'],
-      long_description=open('README.rst').read(),
-      setup_requires=['setuptools>=18.0', 'cython'],
-      install_requires=install_requires,
-      include_package_data=True,
-      cmdclass=cmdclass)
+      description="A library for computing solvation/water partitioning coefficients using molecular dynamics simulations",
+      long_description=open("README.rst").read(),
+      author="Oliver Beckstein",
+      author_email="orbeckst@gmail.com",
+      license="GPLv3",
+      url="https://github.com/Becksteinlab/MDPOW",
+      keywords="science Gromacs analysis 'molecular dynamics'",
+      classifiers=[
+          "Development Status :: 4 - Beta",
+          "Environment :: Console",
+          "Intended Audience :: Science/Research",
+          "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+          "Operating System :: POSIX",
+          "Programming Language :: Python :: 2.7",
+          "Topic :: Scientific/Engineering :: Chemistry",
+          "Topic :: Scientific/Engineering :: Physics",
+      ],
+      packages=find_packages(exclude=['examples']),
+      scripts=['scripts/mdpow-pow',
+               'scripts/mdpow-pcw',
+               'scripts/mdpow-ghyd',
+               'scripts/mdpow-check',
+               'scripts/mdpow-rebuild-fep',
+               'scripts/mdpow-rebuild-simulation',
+               'scripts/mdpow-equilibrium',
+               'scripts/mdpow-fep',
+               'scripts/mdpow-cfg2yaml.py',
+               'scripts/mdpow-solvationenergy',
+               'scripts/mdpow-get-runinput'
+      ],
+      package_data={'mdpow': ['top/*.dat', 'top/*.gro', 'top/*.itp',
+                              'top/oplsaa.ff/*',
+                              'top/charmm36-mar2019.ff/*',
+                              'top/amber99sb.ff/*',
+                              'templates/*'], },
+      install_requires=['numpy>=1.6', 'scipy',
+                        'pyyaml',
+                        'GromacsWrapper>=0.5.1',
+                        'numkit',
+                        'six',
+                        'mdanalysis',
+                        'alchemlyb',
+                        'pandas',
+                        'pymbar',
+      ],
+      #setup_requires=['pytest-runner',],
+      tests_require=['pytest', 'pybol', 'py'],
+      zip_safe=True,
+)

@@ -1,90 +1,96 @@
-abcEconomics the Agent-Based Computational Economy platform that makes modeling easier
-//////////////////////////////////////////////////////////////////////////////////////
+=================== 
+ README for MDPOW
+=================== 
 
-abcEconomics is a Python based modeling platform for economic simulations.
-abcEconomics comes with standard functions to simulations of trade, production
-and consumption. The modeler can concentrate on implementing
-the logic and decisions of an agents; abcEconomics takes care of all exchange
-of goods and production and consumption.
+|build| |cov| |docs|
 
-.. image:: https://zenodo.org/badge/4157636.svg
-   :target: https://zenodo.org/badge/latestdoi/4157636
+.. |P_ow| replace:: *P*\ :sub:`OW`
+.. |P_cw| replace:: *P*\ :sub:`CW`
 
-.. image:: https://travis-ci.org/AB-CE/abce.svg?branch=master
-   :alt: abcEconomics build status on Travis CI
-   :target: https://travis-ci.org/AB-CE/abce
+*MDPOW* is a python package that automates the calculation of
+solvation free energies via molecular dynamics (MD) simulations. In
+particular, it facilitates the computation of partition
+coeffcients. Currently implemented:
 
-.. image:: https://ci.appveyor.com/api/projects/status/c2w73u9im2b87reb?svg=true
-   :alt: abcEconomics build status on Appveyor CI
-   :target: https://ci.appveyor.com/project/AB-CE/abce
+- *water-octanol* partition coefficient (|P_ow|)
+- *water-cyclohexane* partition coefficient (|P_cw|)
 
-.. image:: https://img.shields.io/pypi/v/abcEconomics.svg
-   :alt:  Pypi version
-   :target: https://pypi.python.org/pypi/abcEconomics
+Calculations are performed with the Gromacs_ MD software package
+[#GromacsWrapperNote]_. Currently, *OPLS-AA*, *CHARMM/CGENFF*, and
+*AMBER/GAFF* parameters are supported.
 
-.. image:: https://readthedocs.org/projects/abcEconomics/badge/?version=master
-   :alt:  readthedocs
-   :target: https://abcEconomics.readthedocs.io
+As *input*, the user only needs to provide a structure file (PDB or
+GRO) and a Gromacs ITP file containing the parametrization of the
+small molecule (e.g. from LigandBook_ or ParamChem_).
 
-.. figure:: https://raw.githubusercontent.com/AB-CE/abce/master/docs/cheesegrater.png
-   :target: http://35.176.189.179/abcEconomics/
-   :scale: 20 %
-   :align: right
-
-In abcEconomics, goods have the physical properties of
-goods in reality in the sense that if agent A gives a good to agent B, then
-- unlike information - agent B receives the good and agent B does not have
-the good anymore.
-The ownership and transformations (production or consumption) of goods are
-automatically handled by the platform.
-
-abcEconomics models are programmed in standard Python, stock functions of agents
-can be inherited from archetype classes (Firm or Household). The only
-not-so-standard Python is that agents are executed in parallel by the
-Simulation class (in start.py).
-
-abcEconomics allows the modeler to program agents as ordinary Python class-objects,
-but run the simulation on a multi-core/processor computer. It takes no
-effort or intervention from the modeler to run the simulation on a
-multi-core system.
-The speed advantages of using abcEconomics with multi-processes enabled.
-abcEconomics are typically only observed for 10000 agents and more. Below, it
-might be slower than pure python implementation. abcEconomics supports pypy3,
-which is approximately 10 times faster than CPython.
-
-abcEconomics is a scheduler and a set of agent classes.
-According to the schedule the simulation class calls - each sub-round - agents
-to execute some actions. Each agent executes these actions
-using some of the build-in functions, such as trade, production and
-consumption of abcEconomics. The agents can use the full set of commands of the
-Python general purpose language.
-
-The audience of abcEconomics are economists that want to model agent-based
-models of trade and production.
-
-abcEconomics does support an accounting framework
-for financial simulations. `ESL can be downloaded here <https://github.com/AB-CE/abcESL>`_.
-
-abcEconomics runs on macOS, Windows, and Linux. abcEconomics runs 10x faster on pypy!
-
-Install with::
-
-    pip3 install abcEconomics
+.. _Gromacs: http://www.gromacs.org
+.. _GromacsWrapper: http://gromacswrapper.readthedocs.org/en/latest/
+.. _LigandBook: http://ligandbook.org/
+.. _ParamChem: https://cgenff.paramchem.org/
 
 
-The documentation is here:
+Documentation
+-------------
 
-    http://abce.readthedocs.io/
+* https://mdpow.readthedocs.io
+* `Tutorial`_ : computing the octanol-water partition coefficient of
+  benzene (uses the `example files`_)
+  
 
-An example is here:
+.. _Tutorial: http://mdpow.readthedocs.io/en/latest/init.html#tutorial-using-the-mdpow-scripts-to-compute-logpow-of-benzene
+.. _example files: https://github.com/Becksteinlab/MDPOW/tree/develop/doc/examples
 
-    `Insurance Market <http://35.176.189.179/abcEconomics/>`_
+Installation
+------------
 
-A code example is here:
+See `INSTALL`_ for detailed instructions. Note that
+**only Python 2.7** is supported.
 
-    `Jupyter Tutorial <https://github.com/AB-CE/examples/tree/master/examples/jupyter_tutorial>`_
+You will also need `Gromacs`_ (currently tested with versions 4.6.5,
+2018, 2019, 2021 but 2016 and 2020 should also work).
 
-More code examples are here:
 
-https://github.com/AB-CE/examples
+Development version
+~~~~~~~~~~~~~~~~~~~
 
+If you want to install the development version, get the sources from
+GitHub (the development branch) ::
+
+  git clone https://github.com/Becksteinlab/MDPOW.git  
+
+and Install from the checked out source::
+
+  pip install MDPOW/
+
+(Note the trailing slash ``/`` to indicate the directory.)
+
+
+
+Source code
+-----------
+
+*MDPOW* is open source and published under the `GNU General Public License
+v3`_. Source code is available at https://github.com/Becksteinlab/MDPOW .
+
+.. _`GNU General Public License v3`: 
+   http://www.gnu.org/licenses/gpl-3.0.html
+
+Footnotes
+---------
+
+.. [#GromacsWrapperNote] The package is built on top of the GromacsWrapper_
+                         framework (which is automatically installed).
+
+.. |build| image:: https://github.com/Becksteinlab/MDPOW/actions/workflows/ci.yaml/badge.svg?branch=develop
+   :alt: Build Status
+   :target: https://github.com/Becksteinlab/MDPOW/actions/workflows/ci.yaml
+
+.. |cov| image:: https://codecov.io/github/Becksteinlab/MDPOW/coverage.svg?branch=develop
+   :alt: Coverage Status
+   :target: https://codecov.io/github/Becksteinlab/MDPOW?branch=develop
+
+.. |docs| image:: https://readthedocs.org/projects/mdpow/badge/?version=latest
+   :target: http://mdpow.readthedocs.org/en/latest/?badge=latest
+   :alt: Documentation
+   
+.. _INSTALL: INSTALL.rst
