@@ -1,1 +1,2 @@
-include README.md LICENSE requirements.txt tests/*.py
+include README.rst
+recursive-include ckanext/archiver *.html *.json *.js *.less *.css
