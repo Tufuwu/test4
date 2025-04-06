@@ -1,47 +1,132 @@
-name: Automated tests & code coverage
-
+name: CI
 on: [push, pull_request]
-
 jobs:
-  build:
-
+  checks:
+    name:  TOXENV=${{ matrix.tox-env }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - check-name: Formatting
+            python-version: 3.9
+            tox-env: format-check
+          - check-name: Types
+            python-version: 3.9
+            tox-env: typecheck
+          - check-name: Vendoring
+            python-version: 3.9
+            tox-env: vendor-check
+    steps:
+      - name: Checkout Pex
+        uses: actions/checkout@v2
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: Check ${{ matrix.check-name }}
+        uses: ./.github/actions/run-tox
+        with:
+          tox-env: ${{ matrix.tox-env }}
+  cpython-unit-tests:
+    name: (${{ matrix.os }}) TOXENV=py${{ join(matrix.python-version, '') }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # 3.5 fails with a bad comparison in TurbineMap unit tests
-        # 3.8 fails when installing pyproj
-        python-version: ["3.9"] # 3.5, 3.8
-        os: [ubuntu-latest, macos-latest, windows-latest]
-      fail-fast: False
-
+        python-version: ["3.9"]
+        os: [ubuntu-latest, macos-10.15]
+        exclude:
+          - os: macos-10.15
+            python-version: ["3.9"]
+          - os: macos-10.15
+            python-version: ["3.9"]
+          - os: macos-10.15
+            python-version: ["3.9"]
+          - os: macos-10.15
+            python-version: ["3.9"]
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    # - name: Lint with flake8
-    #   run: |
-    #     pip install flake8
-    #     # stop the build if there are Python syntax errors or undefined names
-    #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-    #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Run tests
-      run: |
-        pip install pytest
-        pytest  
-    - name: Generate coverage report
-      run: |
-        pip install pytest
-        pip install pytest-cov
-        pytest --cov=./ --cov-report=xml
-    - name: Upload coverage to Codecov  
-      uses: codecov/codecov-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        fail_ci_if_error: true
+      - name: Checkout Pex
+        uses: actions/checkout@v2
+      - name: Setup Python ${{ join(matrix.python-version, '.') }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: "${{ join(matrix.python-version, '.') }}"
+      - name: Cache Pyenv Interpreters
+        uses: actions/cache@v4
+        with:
+          path: .pyenv_test
+          key: ${{ runner.os }}-pyenv-test
+      - name: Run Unit Tests
+        uses: ./.github/actions/run-tox
+        with:
+          tox-env: py${{ join(matrix.python-version, '') }}
+  pypy-unit-tests:
+    name: (PyPy ${{ join(matrix.pypy-version, '.') }}) TOXENV=pypy${{ matrix.pypy-version[0] }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pypy-version: [[2, 7], [3, 6]]
+    steps:
+      - name: Checkout Pex
+        uses: actions/checkout@v2
+      - name: Setup PyPy ${{ join(matrix.pypy-version, '.') }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: "pypy-${{ join(matrix.pypy-version, '.') }}"
+      - name: Cache Pyenv Interpreters
+        uses: actions/cache@v4
+        with:
+          path: .pyenv_test
+          key: ${{ runner.os }}-pyenv-test
+      - name: Run Unit Tests
+        uses: ./.github/actions/run-tox
+        with:
+          tox-env: pypy${{ matrix.pypy-version[0] }}
+  cpython-integration-tests:
+    name: (${{ matrix.os }}) TOXENV=py${{ join(matrix.python-version, '') }}-integration
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+        os: [ubuntu-latest, macos-10.15]
+    steps:
+      - name: Checkout Pex
+        uses: actions/checkout@v2
+      - name: Setup Python ${{ join(matrix.python-version, '.') }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: "${{ join(matrix.python-version, '.') }}"
+      - name: Cache Pyenv Interpreters
+        uses: actions/cache@v4
+        with:
+          path: .pyenv_test
+          key: ${{ runner.os }}-pyenv-test
+      - name: Run Integration Tests
+        uses: ./.github/actions/run-tox
+        with:
+          tox-env: py${{ join(matrix.python-version, '') }}-integration
+  pypy-integration-tests:
+    name: (PyPy ${{ join(matrix.pypy-version, '.') }}) TOXENV=pypy${{ matrix.pypy-version[0] }}-integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pypy-version: [[2, 7], [3, 6]]
+    steps:
+      - name: Checkout Pex
+        uses: actions/checkout@v2
+      - name: Setup PyPy ${{ join(matrix.pypy-version, '.') }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: "pypy-${{ join(matrix.pypy-version, '.') }}"
+      - name: Install Packages
+        run: |
+          # This is needed for `test_requirement_file_from_url` for building `lxml`.
+          sudo apt install --yes libxslt-dev
+      - name: Cache Pyenv Interpreters
+        uses: actions/cache@v4
+        with:
+          path: .pyenv_test
+          key: ${{ runner.os }}-pyenv-test
+      - name: Run Integration Tests
+        uses: ./.github/actions/run-tox
+        with:
+          tox-env: pypy${{ matrix.pypy-version[0] }}-integration

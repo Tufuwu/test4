@@ -1,179 +1,176 @@
-FLORIS Wake Modeling Utility
-----------------------------
+***
+PEX
+***
+.. image:: https://github.com/pantsbuild/pex/workflows/CI/badge.svg?branch=master
+    :target: https://travis-ci.org/pantsbuild/pex
+.. image:: https://img.shields.io/pypi/l/pex.svg
+    :target: https://pypi.org/project/pex/
+.. image:: https://img.shields.io/pypi/v/pex.svg
+    :target: https://pypi.org/project/pex/
+.. image:: https://img.shields.io/pypi/pyversions/pex.svg
+    :target: https://pypi.org/project/pex/
+.. image:: https://img.shields.io/pypi/wheel/pex.svg
+    :target: https://pypi.org/project/pex/#files
 
-**Further documentation is available at http://floris.readthedocs.io/.**
+.. contents:: **Contents**
 
-For technical questions regarding FLORIS usage please first search for or post
-your questions to
-`stackoverflow <https://stackoverflow.com/questions/tagged/floris>`_ using
-the **floris** tag. Alternatively, email the NREL FLORIS team at
-`NREL.Floris@nrel.gov <mailto:floris@nrel.gov>`_ or contact
-`Jen King <mailto:jennifer.king@nrel.gov>`_ and
-`Paul Fleming <mailto:paul.fleming@nrel.gov>`_ directly.
-
-.. image:: https://github.com/nrel/floris/workflows/Automated%20tests%20%26%20code%20coverage/badge.svg
-  :target: https://github.com/nrel/floris/actions
-.. image:: https://codecov.io/gh/nrel/floris/branch/develop/graph/badge.svg
-  :target: https://codecov.io/gh/nrel/floris
-
-Background and Objectives
-=========================
-This FLORIS framework is designed to provide a computationally inexpensive,
-controls-oriented modeling tool of the steady-state wake characteristics in
-a wind farm. The wake models implemented in this version of FLORIS are:
-
-- Jensen model for velocity deficit
-- Jimenez model for wake deflection
-- Gauss model for wake deflection and velocity deficit
-- Multi zone model for wake deflection and velocity deficit
-- Curl  model for wake deflection and velocity deficit
-
-More information on all of these models can be found in the
-`theory <https://floris.readthedocs.io/en/develop/source/theory.html>`_
-section of the online documentation.
-
-A couple of publications with practical information on using floris as a
-modeling and simulation tool for controls research are
-
-1. Annoni, J., Fleming, P., Scholbrock, A., Roadman, J., Dana, S., Adcock, C.,
-   Porté-Agel, F, Raach, S., Haizmann, F., and Schlipf, D.: `Analysis of
-   control-oriented wake modeling tools using lidar field results <https://www.wind-energ-sci.net/3/819/2018/>`__,
-   in: Wind Energy Science, vol. 3, pp. 819-831, Copernicus Publications,
-   2018.
-2. Bay, C.J., King, J., Fleming, P., Mudafort, R., and Martínez-Tossas, L.A.:
-   `Unlocking the Full Potential of Wake Steering: Implementation and
-   Assessment of a Controls-Oriented Model <https://www.wind-energ-sci-discuss.net/wes-2019-19/>`__,
-   submitted to Wind Energy Science Discussions, Copernicus Publications,
-   2019.
-
-Citation
+Overview
 ========
+pex is a library for generating .pex (Python EXecutable) files which are
+executable Python environments in the spirit of `virtualenvs <http://virtualenv.org>`_.
+pex is an expansion upon the ideas outlined in
+`PEP 441 <http://legacy.python.org/dev/peps/pep-0441/>`_
+and makes the deployment of Python applications as simple as ``cp``.  pex files may even
+include multiple platform-specific Python distributions, meaning that a single pex file
+can be portable across Linux and OS X.
 
-.. image:: https://zenodo.org/badge/178914781.svg
-  :target: https://zenodo.org/badge/latestdoi/178914781
+pex files can be built using the ``pex`` tool.  Build systems such as `Pants
+<http://pantsbuild.org/>`_, `Buck <http://facebook.github.io/buck/>`_, and  `{py}gradle <https://github.com/linkedin/pygradle>`_  also
+support building .pex files directly.
 
-If FLORIS played a role in your research, please cite it. This software can be
-cited as:
+Still unsure about what pex does or how it works?  Watch this quick lightning
+talk: `WTF is PEX? <http://www.youtube.com/watch?v=NmpnGhRwsu0>`_.
 
-   FLORIS. Version 1.1.4 (2019). Available at https://github.com/nrel/floris.
+pex is licensed under the Apache2 license.
 
-For LaTeX users:
-
-.. code-block:: latex
-
-    @misc{FLORIS_2019,
-    author = {NREL},
-    title = {{FLORIS. Version 1.1.4}},
-    year = {2019},
-    publisher = {GitHub},
-    journal = {GitHub repository},
-    url = {https://github.com/NREL/floris}
-    }
-
-.. _installation:
 
 Installation
 ============
-The FLORIS repository consists of two primary branches:
 
-- `master <https://github.com/NREL/FLORIS/tree/master>`_ - Stable
-  release corresponding to a specific version number.
-- `develop <https://github.com/NREL/FLORIS/tree/dev>`_ - Latest
-  updates including bug fixes and improvements. See :ref:`changelog` for
-  details.
-
-These can be cloned (i.e. downloaded) directly from GitHub with one of the
-following commands:
+To install pex, simply
 
 .. code-block:: bash
 
-    # master branch
-    git clone https://github.com/nrel/floris -b master
+    $ pip install pex
 
-    # develop branch
-    git clone https://github.com/nrel/floris -b develop
-
-After obtaining the source code, it can be "installed" using ``pip`` or another
-Python package manager. With ``pip``, there are two options:
-
-- local editable install
-- using a tagged release version from the ``pip`` repo
-
-For consistency between all developers, it is recommended to use Python
-virtual environments;
-`this link <https://realpython.com/blog/python/python-virtual-environments-a-primer/>`_
-provides a great introduction. Using virtual environments in a Jupyter Notebook
-is described `here <https://help.pythonanywhere.com/pages/IPythonNotebookVirtualenvs/>`_.
-
-Local Editable Installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The local editable installation allows developers to maintain an importable
-instance of FLORIS while continuing to extend it. The alternative is to
-constantly update python paths within the package to match the local
-environment.
-
-Before doing the local install, the source code repository must be cloned
-directly from GitHub:
+You can also build pex in a git clone using tox:
 
 .. code-block:: bash
 
-    git clone https://github.com/nrel/floris
+    $ tox -e package
+    $ cp dist/pex ~/bin
 
-Then, using the local editable installation is as simple as running the
-following command from the parent directory of the
-cloned repository:
+This builds a pex binary in ``dist/pex`` that can be copied onto your ``$PATH``.
+The advantage to this approach is that it keeps your Python environment as empty as
+possible and is more in-line with what pex does philosophically.
 
-.. code-block:: bash
 
-    pip install -e floris
+Simple Examples
+===============
 
-Finally, test the installation by starting a python terminal and importing
-FLORIS:
-
-.. code-block:: bash
-
-    import floris
-
-pip Repo Installation
-~~~~~~~~~~~~~~~~~~~~~
-The FLORIS version available through the pip repository is typically the latest
-tagged and released major version. This version represents the most recent
-stable, tested, and validated code.
-
-In this case, there is no need to download the source code directly. FLORIS
-and its dependencies can be installed with:
+Launch an interpreter with ``requests``, ``flask`` and ``psutil`` in the environment:
 
 .. code-block:: bash
 
-    pip install floris
+    $ pex requests flask 'psutil>2,<3'
 
-Dependencies
+Or instead freeze your current virtualenv via requirements.txt and execute it anywhere:
+
+.. code-block:: bash
+
+    $ pex $(pip freeze) -o my_virtualenv.pex
+    $ deactivate
+    $ ./my_virtualenv.pex
+
+Run webserver.py in an environment containing ``flask`` as a quick way to experiment:
+
+.. code-block:: bash
+
+    $ pex flask -- webserver.py
+
+Launch Sphinx in an ephemeral pex environment using the Sphinx entry point ``sphinx:main``:
+
+.. code-block:: bash
+
+    $ pex sphinx -e sphinx:main -- --help
+
+Build a standalone pex binary into ``pex.pex`` using the ``pex`` console_scripts entry point:
+
+.. code-block:: bash
+
+    $ pex pex -c pex -o pex.pex
+
+You can also build pex files that use a specific interpreter type:
+
+.. code-block:: bash
+
+    $ pex pex -c pex --python=pypy -o pypy-pex.pex
+
+Most pex options compose well with one another, so the above commands can be
+mixed and matched.  For a full list of options, just type ``pex --help``.
+
+
+Integrating pex into your workflow
+==================================
+
+If you use tox (and you should!), a simple way to integrate pex into your
+workflow is to add a packaging test environment to your ``tox.ini``:
+
+.. code-block:: ini
+
+    [testenv:package]
+    deps = pex
+    commands = pex . -o dist/app.pex
+
+Then ``tox -e package`` will produce a relocateable copy of your application
+that you can copy to staging or production environments.
+
+
+Documentation
+=============
+
+More documentation about Pex, building .pex files, and how .pex files work
+is available at https://pex.readthedocs.io.
+
+
+Development
+===========
+
+Pex uses `tox <https://testrun.org/tox/en/latest/>`_ for test and development automation. To run
+the test suite, just invoke tox:
+
+.. code-block:: bash
+
+    $ tox
+
+If you don't have tox, you can generate a pex of tox:
+
+.. code-block::
+
+    $ pex tox -c tox -o ~/bin/tox
+
+Tox provides many useful commands and options, explained at https://tox.readthedocs.io/en/latest/.
+Below, we provide some of the most commonly used commands used when working on Pex, but the
+docs are worth acquainting yourself with to better understand how Tox works and how to do more
+advanced commmands.
+
+To run a specific environment, identify the name of the environment you'd like to invoke by
+running ``tox --listenvs-all``, then invoke like this:
+
+.. code-block::
+
+    $ tox -e format-run
+
+To run MyPy:
+
+.. code-block::
+
+    $ tox -e typecheck
+
+All of our tox test environments allow passthrough arguments, which can be helpful to run
+specific tests:
+
+.. code-block::
+
+    $ tox -e py37-integration -- -k test_reproducible_build
+
+To run Pex from source, rather than through what is on your PATH, invoke via Python:
+
+.. code-block::
+
+    $ python -m pex
+
+Contributing
 ============
-FLORIS has dependencies on various math, statistics, and plotting libraries in
-addition to other general purpose packages. For the simulation and tool
-modules, the dependencies are listed in ``floris/requirements.txt``. The
-documentation has additional requirements listed in
-``floris/docs/requirements.txt``.
 
-The requirements files can be used to install everything with:
-
-.. code-block:: bash
-
-    pip install -r requirements.txt
-
-License
-=======
-
-Copyright 2019 NREL
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+To contribute, follow these instructions: https://www.pantsbuild.org/docs/contributor-overview
