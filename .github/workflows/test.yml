@@ -1,50 +1,68 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python package
-
+name: CI
 on:
-  [push, pull_request]
-
+- pull_request
+- push
 jobs:
   tests:
-    runs-on: ${{ matrix.os }}
+    name: Add-on testing
+    runs-on: ubuntu-latest
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONPATH: ${{ github.workspace }}/resources/lib:${{ github.workspace }}/tests
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+#        max-parallel: 2
         python-version: ["3.9"]
-        optionals: [none, pandas, numba]
-        exclude:
-          - python-version: pypy3
-            optionals: pandas
-          - python-version: pypy3
-            optionals: numba
-          - os: macos-latest
-            python-version: pypy3
-          - os: windows-latest
-            python-version: pypy3
-
     steps:
-    - uses: actions/checkout@v2
+    - name: Check out ${{ github.sha }} from repository ${{ github.repository }}
+      uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        sudo apt-get install gettext
+        sudo pip install coverage --install-option="--install-scripts=/usr/bin"
         python -m pip install --upgrade pip
-        python -m pip install flake8 tox
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with tox/pytest
-      run: |
-        tox -e py-${{ matrix.optionals }}
-    - name: "Upload coverage to Codecov"
+        pip install -r requirements.txt
+    - name: Run tox
+      run: python -m tox -q -e flake8,py
+    - name: Run pylint
+      run: python -m pylint resources/lib/ tests/
+    - name: Compare translations
+      run: make check-translations
+    # Python 2.7 and Python 3.5 are no longer supported by proxy.py
+    - name: Start proxy server, when supported
+      run: python -m proxy --hostname 127.0.0.1 --log-level DEBUG &
+      if: matrix.python-version == '3.6' || matrix.python-version == '3.7' || matrix.python-version == '3.8'
+      #if: contains(["3.6", "3.7", "3.8"], matrix.python-version)
+    - name: Run unit tests
+      run: coverage run -m unittest discover
+      env:
+        ADDON_PASSWORD: ${{ secrets.ADDON_PASSWORD }}
+        ADDON_USERNAME: ${{ secrets.ADDON_USERNAME }}
+    - name: Run addon service
+      run: coverage run -a resources/lib/service_entry.py
+      env:
+        ADDON_PASSWORD: ${{ secrets.ADDON_PASSWORD }}
+        ADDON_USERNAME: ${{ secrets.ADDON_USERNAME }}
+    - name: Run addon using cli
+      run: coverage run -a tests/run.py /
+    - name: Upload code coverage to CodeCov
       uses: codecov/codecov-action@v1
+      continue-on-error: true
+    # FIXME: Requires changes from SonarSource/sonarcloud-github-action#9
+    - name: Analyze with SonarCloud
+      uses: dagwieers/sonarcloud-github-action@more-options
       with:
-        fail_ci_if_error: true
+        organization: add-ons
+        projectKey: add-ons_plugin.video.vrt.nu
+        sources: resources/lib/
+        tests: tests/
+        verbose: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      continue-on-error: true
