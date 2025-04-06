@@ -1,62 +1,111 @@
-#!/usr/bin/env python3
-"""Setup script for shaarli-client"""
 import codecs
-import os
-import re
+import sys
 
-from setuptools import find_packages, setup
+from setuptools import find_packages
+from setuptools import setup
 
-
-def get_long_description():
-    """Reads the main README.rst to get the program's long description"""
-    with codecs.open('README.rst', 'r', 'utf-8') as f_readme:
-        return f_readme.read()
+version = "7.0.0a1.dev0"
 
 
-def get_package_metadata(attribute):
-    """Reads metadata from the main package's __init__"""
-    with open(os.path.join('shaarli_client', '__init__.py'), 'r') as f_init:
-        return re.search(
-            r'^__{attr}__\s*=\s*[\'"]([^\'"]*)[\'"]'.format(attr=attribute),
-            f_init.read(), re.MULTILINE
-        ).group(1)
+def read(filename):
+    try:
+        with codecs.open(filename, encoding="utf-8") as f:
+            return f.read()
+    except NameError:
+        with open(filename, encoding="utf-8") as f:
+            return f.read()
+
+
+long_description = "\n\n".join(
+    [read("README.rst"), read("CREDITS.rst"), read("CHANGES.rst")]
+)
+
+if sys.version_info < (3,):
+    long_description = long_description.encode("utf-8")
 
 
 setup(
-    name=get_package_metadata('title'),
-    version=get_package_metadata('version'),
-    description=get_package_metadata('brief'),
-    long_description=get_long_description(),
-    author=get_package_metadata('author'),
-    maintainer='VirtualTam',
-    maintainer_email='virtualtam@flibidi.net',
-    license='MIT',
-    url='https://github.com/shaarli/python-shaarli-client',
-    keywords='bookmark bookmarking shaarli social',
-    packages=find_packages(exclude=['tests.*', 'tests']),
-    entry_points={
-        'console_scripts': [
-            'shaarli = shaarli_client.main:main',
+    name="zest.releaser",
+    version=version,
+    description="Software releasing made easy and repeatable",
+    long_description=long_description,
+    classifiers=[
+        "Development Status :: 6 - Mature",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
+    keywords=["releasing", "packaging", "pypi"],
+    author="Reinout van Rees",
+    author_email="reinout@vanrees.org",
+    url="https://zestreleaser.readthedocs.io",
+    license="GPL",
+    packages=find_packages(exclude=["ez_setup"]),
+    namespace_packages=["zest"],
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=[
+        "setuptools",
+        "colorama",
+        "requests",
+        "twine >= 1.6.0",
+    ],
+    extras_require={
+        "recommended": [
+            "chardet",
+            "check-manifest",
+            "pyroma",
+            "readme_renderer",
+            "wheel",
+        ],
+        "test": [
+            "z3c.testsetup >= 0.8.4",
+            "zope.testing",
+            "zope.testrunner",
+            "wheel",
         ],
     },
-    install_requires=[
-        'requests >= 2.25',
-        'pyjwt == 2.0.1'
-    ],
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'Intended Audience :: End Users/Desktop',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Utilities',
-    ]
+    entry_points={
+        "console_scripts": [
+            "release = zest.releaser.release:main",
+            "prerelease = zest.releaser.prerelease:main",
+            "postrelease = zest.releaser.postrelease:main",
+            "fullrelease = zest.releaser.fullrelease:main",
+            "longtest = zest.releaser.longtest:main",
+            "lasttagdiff = zest.releaser.lasttagdiff:main",
+            "lasttaglog = zest.releaser.lasttaglog:main",
+            "addchangelogentry = zest.releaser.addchangelogentry:main",
+            "bumpversion = zest.releaser.bumpversion:main",
+        ],
+        # The datachecks are implemented as entry points to be able to check
+        # our entry point implementation.
+        "zest.releaser.prereleaser.middle": [
+            "datacheck = zest.releaser.prerelease:datacheck",
+        ],
+        "zest.releaser.releaser.middle": [
+            "datacheck = zest.releaser.release:datacheck",
+        ],
+        "zest.releaser.postreleaser.middle": [
+            "datacheck = zest.releaser.postrelease:datacheck",
+        ],
+        "zest.releaser.addchangelogentry.middle": [
+            "datacheck = zest.releaser.addchangelogentry:datacheck",
+        ],
+        "zest.releaser.bumpversion.middle": [
+            "datacheck = zest.releaser.bumpversion:datacheck",
+        ],
+        # Documentation generation
+        "zest.releaser.prereleaser.before": [
+            "preparedocs = "
+            + "zest.releaser.preparedocs:prepare_entrypoint_documentation",
+        ],
+    },
 )
