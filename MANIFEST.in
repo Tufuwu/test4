@@ -1,33 +1,28 @@
-include CHANGES
-include LICENSE
+include .coveragerc
+include CHANGELOG.md
+include CONTRIBUTING.md
+include COPYING.txt
+include Makefile
+include PULL_REQUEST_TEMPLATE.md
+include pyproject.toml
 include README.rst
-include MANIFEST.in
-include *.py
-include *.ini
-include run_test_and_report.sh
-include *.txt
-include AUTHORS
-recursive-include guardian *.py
-recursive-include guardian/locale *.po *.mo
-recursive-include docs *.bat
-recursive-include docs *.css
-recursive-include docs *.eot
-recursive-include docs *.html
-recursive-include docs *.js
-recursive-include docs *.py
-recursive-include docs *.rst
-recursive-include docs *.sh
-recursive-include docs *.svg
-recursive-include docs *.ttf
-recursive-include docs *.woff
-recursive-include docs Makefile
-recursive-include example_project *.css
-recursive-include example_project *.html
-recursive-include example_project *.js
-recursive-include example_project *.png
-recursive-include example_project *.txt
-recursive-include example_project *.py
-recursive-exclude docs/build *
-recursive-include guardian *.html
-recursive-include guardian *.svg
-recursive-include benchmarks *.py
+include RELEASE.md
+include REVIEWING.md
+include checklist.py
+include asv.conf.json
+
+graft assets
+graft ci
+graft doc
+graft ipynbs
+graft licenses
+graft skbio
+
+prune doc/build
+prune doc/source/generated
+
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.so
+global-exclude .*.swp
+global-exclude .coverage
