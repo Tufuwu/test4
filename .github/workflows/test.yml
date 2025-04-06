@@ -1,28 +1,17 @@
-name: Run tests
+name: validate blocklist entries
 
 on:
-  pull_request:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - uses: actions/cache@v4
-      with:
-        path: ${{ env.pythonLocation }}
-        key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
-    - name: Install dependencies
-      run: |
-        pip install -U pip
-        pip install -U .
-    - name: Run tests
-      run: python -m unittest discover
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - run: pip install -r requirements.txt && python verify.py

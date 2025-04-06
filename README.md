@@ -1,297 +1,129 @@
-# Panoptes CLI
+List of disposable email domains
+========================
 
-A command-line interface for [Panoptes](https://github.com/zooniverse/Panoptes),
-the API behind [the Zooniverse](https://www.zooniverse.org/).
+[![Licensed under CC0](https://licensebuttons.net/p/zero/1.0/88x31.png)](https://creativecommons.org/publicdomain/zero/1.0/)
 
-## Installation
+This repo contains a [list of disposable and temporary email address domains](disposable_email_blocklist.conf) often used to register dummy users in order to spam or abuse some services.
 
-The Panoptes CLI is written in Python, so in order to install it you will need
-to install either Python 2 or Python 3, along with `pip`. macOS and Linux
-already come with Python installed, so run this to see if you already have
-everything you need:
+We cannot guarantee all of these can still be considered disposable but we do basic checking so chances are they were disposable at one point in time.
 
-```
-$ python --version && pip --version
-```
+Allowlist
+=========
+The file [allowlist.conf](allowlist.conf) gathers email domains that are often identified as disposable but in fact are not.
 
-If you see an error like `python: command not found` or `pip: command not found`
-then you will need to install this:
-
-- [Python installation](https://wiki.python.org/moin/BeginnersGuide/Download)
-- [Pip installation](https://pip.pypa.io/en/stable/installing/)
-
-Once these are installed you can just use `pip` to install the latest release of
-the CLI:
-
-```
-$ pip install panoptescli
+Example Usage
+=============
+**Python**
+```Python
+blocklist = ('disposable_email_blocklist.conf')
+blocklist_content = [line.rstrip() for line in blocklist.readlines()]
+if email.split('@')[1] in blocklist_content:
+    message = "Please enter your permanent email address."
+    return (False, message)
+else:
+    return True
 ```
 
-Alternatively, if you want to preview the next release you can install HEAD
-directly from GitHub (though be aware that this may contain
-bugs/untested/incomplete features):
-
-```
-$ pip install -U git+git://github.com/zooniverse/panoptes-cli.git
-```
-
-To upgrade an existing installation to the latest version:
-
-```
-pip install -U panoptescli
+Available as [PyPI module](https://pypi.org/project/disposable-email-domains) thanks to [@di](https://github.com/di)
+```python
+>>> from disposable_email_domains import blocklist
+>>> 'bearsarefuzzy.com' in blocklist
+True
 ```
 
-## Built-in help
+**PHP** contributed by [@txt3rob](https://github.com/txt3rob), [@deguif](https://github.com/deguif), [@pjebs](https://github.com/pjebs) and [@Wruczek](https://github.com/Wruczek)
 
-Every command comes with a built in `--help` option, which explains how to use
-it.
-
+1. Make sure the passed email is valid. You can check that with [filter_var](https://secure.php.net/manual/en/function.filter-var.php)
+2. Make sure you have the mbstring extension installed on your server
+```php
+function isDisposableEmail($email, $blocklist_path = null) {
+    if (!$blocklist_path) $blocklist_path = __DIR__ . '/disposable_email_blocklist.conf';
+    $disposable_domains = file($blocklist_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $domain = mb_strtolower(explode('@', trim($email))[1]);
+    return in_array($domain, $disposable_domains);
+}
 ```
-$ panoptes --help
-Usage: panoptes [OPTIONS] COMMAND [ARGS]...
+**Ruby on Rails** contributed by [@MitsunChieh](https://github.com/MitsunChieh)
 
-Options:
-  -e, --endpoint TEXT  Overides the default API endpoint
-  -a, --admin          Enables admin mode. Ignored if you're not logged in as
-                       an administrator.
-  --version            Show the version and exit.
-  --help               Show this message and exit.
+In resource model, usually it is `user.rb`
+```Ruby
+before_validation :reject_email_blocklist
 
-Commands:
-  configure    Sets default values for configuration options.
-  info         Displays version and environment information for debugging.
-  project      Contains commands for managing projects.
-  subject      Contains commands for retrieving information about subjects.
-  subject-set  Contains commands for managing subject sets.
-  user         Contains commands for retrieving information about users.
-  workflow     Contains commands for managing workflows.
+def reject_email_blocklist
+  blocklist = File.read('config/disposable_email_blocklist.conf').split("\n")
+
+  if blocklist.include?(email.split('@')[1])
+    errors[:email] << 'invalid email'
+    return false
+  else
+    return true
+  end
+end
 ```
+**NodeJs** contributed by [@martin-fogelman](https://github.com/martin-fogelman)
 
-```
-$ panoptes project --help
-Usage: panoptes project [OPTIONS] COMMAND [ARGS]...
+```Node
+'use strict';
 
-  Contains commands for managing projects.
+const readline = require('readline'),
+  fs = require('fs');
 
-Options:
-  --help  Show this message and exit.
+const input = fs.createReadStream('./disposable_email_blocklist.conf'),
+  output = [],
+  rl = readline.createInterface({input});
 
-Commands:
-  create    Creates a new project.
-  delete
-  download  Downloads project-level data exports.
-  info
-  ls        Lists project IDs and names.
-  modify    Changes the attributes of an existing project..
-```
+// PROCESS LINES
+rl.on('line', (line) => {
+  console.log(`Processing line ${output.length}`);
+  output.push(line);
+});
 
-```
-$ panoptes subject-set upload-subjects --help
-Usage: panoptes subject-set upload-subjects [OPTIONS] SUBJECT_SET_ID
-                                            MANIFEST_FILES...
-
-  Uploads subjects from each of the given MANIFEST_FILES.
-
-  Example with only local files:
-
-  $ panoptes subject-set upload-subjects 4667 manifest.csv
-
-  Local filenames will be automatically detected in the manifest and
-  uploaded, or filename columns can be specified with --file-column.
-
-  If you are hosting your media yourself, you can put the URLs in the
-  manifest and specify the column number(s):
-
-  $ panoptes subject-set upload-subjects -r 1 4667 manifest.csv
-
-  $ panoptes subject-set upload-subjects -r 1 -r 2 4667 manifest.csv
-
-  Any local files will still be detected and uploaded.
-
-Options:
-  -M, --allow-missing            Do not abort when creating subjects with no
-                                 media files.
-  -r, --remote-location INTEGER  Specify a field (by column number) in the
-                                 manifest which contains a URL to a remote
-                                 media location. Can be used more than once.
-  -m, --mime-type TEXT           MIME type for remote media. Defaults to
-                                 image/png. Can be used more than once, in
-                                 which case types are mapped one to one with
-                                 remote locations in the order they are given.
-                                 Has no effect without --remote-location.
-  -f, --file-column INTEGER      Specify a field (by column number) in the
-                                 manifest which contains a local file to be
-                                 uploaded. Can be used more than once.
-                                 Disables auto-detection of filename columns.
-  --help                         Show this message and exit.
+// SAVE AS JSON
+rl.on('close', () => {
+  try {
+    const json = JSON.stringify(output);
+    fs.writeFile('disposable_email_blocklist.json', json, () => console.log('--- FINISHED ---'));
+  } catch (e) {
+    console.log(e);
+  }
+});
 ```
 
-## Uploading non-image media types
+**C#**
+```C#
+private static readonly Lazy<HashSet<string>> _emailBlockList = new Lazy<HashSet<string>>(() =>
+{
+  var lines = File.ReadLines("disposable_email_blocklist.conf")
+    .Where(line => !string.IsNullOrWhiteSpace(line) && !line.TrimStart().StartsWith("//"));
+  return new HashSet<string>(lines, StringComparer.OrdinalIgnoreCase);
+});
 
-If you wish to upload subjects with non-image media (e.g. audio or video),
-you will need to make sure you have the `libmagic` library installed. If you
-don't already have `libmagic`, please see the [dependency information for
-python-magic](https://github.com/ahupp/python-magic#dependencies) for more
-details.
+private static bool IsBlocklisted(string domain) => _emailBlockList.Value.Contains(domain);
 
-To check if `libmagic` is installed, run this command:
+...
 
-```
-$ panoptes info
-```
-
-If you see `libmagic: False` in the output then it isn't installed.
-
-## Command Line Examples
-
-This readme does not list everything that the CLI can do. For a full list of
-commands and their options, use the built in help as described above.
-
-### Log in and optionally set the API endpoint
-
-```
-$ panoptes configure
-username []:
-password:
+var addr = new MailAddress(email);
+if (IsBlocklisted(addr.Host)))
+  throw new ApplicationException("Email is blocklisted.");
 ```
 
-Press enter without typing anything to keep the current value (shown in
-brackets). You probably don't need to change the endpoint, unless you're running
-your own copy of the Panoptes API.
+Contributing
+============
+Feel free to create PR with additions or request removal of some domain (with reasons).
 
-### Create a new project
+Specifically, if adding more than one new domain, please cite in your PR where one can generate a disposable email address which uses that domain, so the maintainers can verify it.
 
-```
-$ panoptes project create "My Project" "This is a description of my project"
-*2797 zooniverse/my-project My Project
-```
+Please add new disposable domains directly into [disposable_email_blocklist.conf](disposable_email_blocklist.conf) in the same format (only second level domains on new line without @), then run [maintain.sh](maintain.sh). The shell script will help you convert uppercase to lowercase, sort, remove duplicates and remove allowlisted domains.
 
-The `*` before the project ID indicates that the project is private.
+Changelog
+============
 
-### Create a subject set in your new project
+* 2/11/21 We created a github [org account](https://github.com/disposable-email-domains) and transferred the repository to it.
 
-```
-$ panoptes subject-set create 2797 "My first subject set"
-4667 My first subject set
-```
+* 4/18/19 [@di](https://github.com/di) [joined](https://github.com/martenson/disposable-email-domains/issues/205) as a core maintainer of this project. Thank you!
 
-### Make your project public
+* 7/31/17 [@deguif](https://github.com/deguif) [joined](https://github.com/martenson/disposable-email-domains/issues/106) as a core maintainer of this project. Thanks!
 
-```
-$ panoptes project modify --public 2797
-2797 zooniverse/my-project My Project
-```
+* 12/6/16 - Available as [PyPI module](https://pypi.org/project/disposable-email-domains) thanks to [@di](https://github.com/di)
 
-### Upload subjects
-
-```
-$ panoptes subject-set upload-subjects 4667 manifest.csv
-```
-
-Local filenames will be automatically detected in the manifest and uploaded. If
-you are hosting your media yourself, you can put the URLs in the manifest and
-specify the column number(s) and optionally set the file type if you're not
-uploading PNG images:
-
-```
-$ panoptes subject-set upload-subjects -m image/jpeg -r 1 4667 manifest.csv
-$ panoptes subject-set upload-subjects -r 1 -r 2 4667 manifest.csv
-```
-
-A manifest is a CSV file which contains the names of local media files to upload (one per column) or remote URLs (matching the `-r` option)
-and any other column is recorded as subject metadata, where the column name is the key and the row/column entry is the value, for example:
-
-file_name_1 | file_name_2 | metadata | !metadata_hidden_from_classification | #metadata_hidden_from_all
--- | -- | -- | -- | --
-local_image_file_1.jpeg | local_image_file_2.jpeg | image_01 | giraffe | kenya_site_1
-
-### Resuming a failed upload
-
-If an upload fails for any reason, the CLI should detect the failure and give you the option of resuming the upload at a later time:
-
-```
-$ panoptes subject-set upload-subjects -m image/jpeg -r 1 4667 manifest.csv
-Uploading subjects  [------------------------------------]    0%  00:41:05
-Error: Upload failed.
-Would you like to save the upload state to resume the upload later? [Y/n]: y
-Enter filename to save to [panoptes-upload-4667.yaml]:
-```
-
-This will save a new manifest file which you can use to resume the upload. The new manifest file will be in YAML format rather than CSV, and the YAML file contains all the information about the original upload (including any command-line options you specified) along with a list of the subjects which have not yet been uploaded.
-
-To resume the upload, simply run the `upload-subjects` command specifying the same subject set ID with the new manifest file. Note that you do not need to include any other options that you originally specified (such as `-r`, `-m`, and so on):
-
-```
-$ panoptes subject-set upload-subjects 4667 panoptes-upload-4667.yaml
-```
-
-### Generate and download a classifications export
-
-```
-$ panoptes project download --generate 2797 classifications.csv
-```
-
-### Generate and download a talk comments export
-
-```
-$ panoptes project download --generate --data-type talk_comments 2797 classifications.csv
-```
-
-### List workflows in your project
-
-```
-$ panoptes workflow ls -p 2797
-1579 Example workflow 1
-2251 Example workflow 2
-```
-
-### Add a subject set to a workflow
-
-```
-$ panoptes workflow add-subject-sets 1579 4667
-```
-
-### List subject sets in a workflow
-
-```
-$ panoptes subject-set ls -w 1579
-4667 My first subject set
-```
-
-### List subject sets in a project
-
-```
-$ panoptes subject-set ls -p 2797
-```
-
-### Verify that subject set 4667 is in project 2797
-
-```
-$ panoptes subject-set ls -p 2797 4667
-```
-
-### Add known subjects to a subject set
-
-```
-# for known subjects with ids 3, 2, 1 and subject set with id 999
-$ panoptes subject-set add-subjects 999 3 2 1
-```
-
-## Debugging
-
-To view the various requests as sent to the Panoptes API as well as other info,
-include the env var `PANOPTES_DEBUG=true` before your command, like so:
-
-`PANOPTES_DEBUG=true panoptes workflow ls -p 1234`
-
-### Usage
-
-1. Run `docker-compose build` to build the containers. Note there are mulitple containers for different envs, see docker-compose.yml for more details
-
-2. Create and run all the containers with `docker-compose up`
-
-### Testing
-
-1. Use docker to run a testing environment bash shell and run test commands .
-    1. Run `docker-compose run --rm dev sh` to start an interactive shell in the container
-    1. Run `python -m unittest discover` to run the full test suite
+* 7/27/16 - Converted all domains to the second level. This means that starting from [this commit](https://github.com/martenson/disposable-email-domains/commit/61ae67aacdab0b19098de2e13069d7c35b74017a) the implementers should take care of matching the second level domain names properly i.e. `@xxx.yyy.zzz` should match `yyy.zzz` in blocklist more info in [#46](https://github.com/martenson/disposable-email-domains/issues/46)
