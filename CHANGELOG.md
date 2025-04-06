@@ -1,123 +1,102 @@
-# Change Log
+# 3.5.2
 
-- Add support for Python 3.10 and 3.11
-- Configure HTTP client to use a network timeout of 10 seconds
-- Use `versioningit` for versioning
-- Tests: Remove dependency on Apiary Mock Server API
+The binary wheels have now been built with `-DPORTABLE=True`. This should fix issues with Dysco crashing on some platforms (due to missing AVX instructions). Otherwise nothing has changed.
 
-## 4.0.0 (2021-09-19)
 
-- Upgrade dependencies
-- Drop support for Python 2.7 and Python 3.5
-- Add support for Python 3.9
+# 3.5.1
 
-## 3.1.3 (2020-09-23)
+The binary wheel for python 3.10 is now based on numpy 1.22.4. Otherwise nothing has changed.
 
-- Upgrade dependencies
 
-## 3.1.2 (2020-07-04)
+# 3.5.0
 
-- Upgrade dependencies
+This version as a binary wheel ships with underlying casacore v3.5.0
 
-## 3.1.1 (2019-10-28)
+Binary wheels are now `manylinux2014` which will only work with pip >= 19.3
 
-- GET instead of POST for family services, thanks to [amotl][]. See
-  [#33](https://github.com/ip-tools/python-epo-ops-client/issues/33) for more
-  info.
+The license has changed to LGPL.
 
-## 3.1.0 (2019-10-27)
 
-- Add support for bulk retrieval, thanks to [mmath][]
+# 3.4.0
 
-## 3.0.0 (2019-10-27)
+This version as a binary wheel ships with underlying casacore v3.4.0
 
-- Drop support for PyPy, Python 3.4 (probably still works)
-- Add support for Python 3.7, 3.8
-- Invalid and expired tokens are now treated the same, since OPS doesn't
-  distinguish between the two use cases.
+There are no changes to python-casacore itself
 
-## 2.3.2 (2018-01-15)
 
-- Bug fix: Cache 4xx results as well, thanks to [amotl][]
+# 3.3.0
 
-## 2.3.1 (2017-11-10)
+This version as a binary wheel ships with underlying casacore v3.3.0.
 
-- Bug fix: explicitly declare content-type during request
+Ony a few changes in python-casacore itself:
 
-## 2.3.0 (2017-10-22)
+ - Expose complete MS and subtable definitions (#183)
+ - Miminum casacore version is now 3.2.0 (#195)
+ - Several improvements to library handling in setup.py (#194)
 
-- Drop support for Python 2.6
-- Officially support Python 3.6
-- Update to latest dependencies
-- Add image retrieval service, thanks to [rfaga][]
 
-## 2.2.0 (2017-03-30)
+# 3.2.0
 
-- EPO OPS v3.2 compatibility, thanks to [eltermann][]
+This version as a binary wheel ships with underlying casacore v3.2.0.
 
-## 2.1.0 (2016-02-21)
+Changes are only in the underlying casacore.
 
-- Add number service, thanks to [eltermann][]
 
-## 2.0.0 (2015-12-11)
+# 3.1.1
 
-- Dropping support for Python 3.3 (although it probably still works).
-- Update to latest dependencies, no new features.
+This is the first release that will be supplied as binary wheels
+(manylinux2010). Note that you need pip > 10.x to use manylinux2010 wheels.
+If you don't use the binary wheel and unicode is important to you, use
+casacore 3.1.1. Note that we skipped 3.1.0 to match the casacore version
+and hopefully avoid confusion.
 
-## 1.0.0 (2015-09-20)
+Changes:
 
-- Allow no middleware to be specified
-- Minor tweaks to development infrastructure, no new features.
-- This has been working for a while now, let's call it 1.0!
+ - handle unicode even better! :) (#158)
+ - iteritems() in casacore/tables/table.py incompatible with Python 3 (#165)
+ - Make a big binary wheel including dependencies (#145)
+ - Use ~ instead of - to negate the mask (#179)
+ 
+ 
+# 3.0
 
-## 0.1.9 (2015-07-21)
+ - Improve the setup procedure (#146)
+ - prepare for 3.0.0 (#147)
+ - More find_boost improvements  build system (#131)
+ - gcc failure when attempting setup.py build_ext on Red Hat EL 7.4 (quantamath.cc) (#135)
+ - python-casacore uses hardcoded casa:: calls (#136)
+ - quanta example not working with python 2.7.6 bug (#17)
+ - Fix build and namespace problem (#137)
+ - Remove deprecated has_key (#132)
+ - Correct header guard macro definition (#156)
+ - Avoiding TypeError deep down in setuptool (#155)
 
-- No new features, just updating third party dependencies
 
-## 0.1.8 (2015-01-24)
+# 2.2.0
 
-- No new features, just updating third party dependencies
+ - Expose MeasurementSet functionality (#61)
+ - Many improvements to documentation and test coverage
+   Thanks to Shibasis Patel (@shibasisp) our Google summer of Code '17 student.
+ 
+ A full list of changes can be found on the issue tracker:
+ 
+ https://github.com/casacore/python-casacore/milestone/6?closed=1
+ 
 
-## 0.1.7 (2015-01-24)
+# 2.1.0
 
-- Created default Dogpile DBM path if it doesn't exist
 
-## 0.1.6 (2014-12-12)
+ - Replaced references to pyrap -> casacore (issue #16)
+ - Experimental support for Python3 (needs python3 branch build of casacore)
+ - Link against correct Python on OSX when using homebrew (issue #15)
 
-- Fixed bug with how service URL is constructed
 
-## 0.1.5 (2014-10-17)
+# 2.0.0
 
-- Added support for register retrieval and search
-
-## 0.1.4 (2014-10-10)
-
-- Verified PyPy3 support
-- Updated various dependency pacakges
-
-## 0.1.3 (2014-05-21)
-
-- Python 3.4 compatibility
-- Updated `requests` dependency to 2.3.0
-
-## 0.1.2 (2014-03-04)
-
-- Python 2.6 and 3.3 compatibility
-
-## 0.1.1 (2014-03-01)
-
-- Allow configuration of which HTTP responses (based on status code) to cache
-
-## 0.1.0 (2014-02-20)
-
-- Introduced dogpile.cache for caching http200 resopnses
-- Introduced the concept of middleware
-
-## 0.0.1 (2014-01-21)
-
-- Initial release
-
-[amotl]: https://github.com/amotl
-[eltermann]: https://github.com/eltermann
-[mmath]: https://github.com/mmath
-[rfaga]: https://github.com/rfaga
+- Renamed project from pyrap to python-casacore
+- Renamed modules from pyrap to casacore
+- Added backswards compatible module which imports casacore
+- Removed scons build dependency, just use setup.py 
+- Depends on CASACORE 2.0
+- Cleanup of project structure
+- Moved development to github

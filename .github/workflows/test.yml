@@ -1,71 +1,26 @@
----
-name: Tests
+name: Linux
 
 on:
-  pull_request: ~
   push:
     branches: [ main ]
-
-  # Allow job to be triggered manually.
-  workflow_dispatch:
-
-# Cancel in-progress jobs when pushing to the same branch.
-concurrency:
-  cancel-in-progress: true
-  group: ${{ github.workflow }}-${{ github.ref }}
+  pull_request:
+    branches: [ main ]
 
 jobs:
-
   tests:
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
-        os: ["ubuntu-latest"]
-        python-version: [
-          "3.6",
-          "3.11",
-        ]
-
-    env:
-      OS: ${{ matrix.os }}
-      PYTHON: ${{ matrix.python-version }}
-      OPS_KEY: ${{ secrets.OPS_API_CONSUMER_KEY }}
-      OPS_SECRET: ${{ secrets.OPS_API_CONSUMER_SECRET }}
-
-    name: Python ${{ matrix.python-version }} on OS ${{ matrix.os }}
+        dist:
+          - py3_casacore_main
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Needed for `setuptools-scm`
+          fetch-depth: 0
 
-    - name: Acquire sources
-      uses: actions/checkout@v3
+      - name: Build container
+        run: docker build . -t ${{ matrix.dist }} -f .github/workflows/${{ matrix.dist }}.docker
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: x64
-        cache: 'pip'
-        cache-dependency-path: 'setup.py'
 
-    - name: Setup project
-      run: |
-        make install-develop
-
-    - name: Run linter
-      if: matrix.python-version != '3.6'
-      run: |
-        make lint
-
-    - name: Run tests
-      run: |
-        make test-ci
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        files: ./coverage.xml
-        flags: unittests
-        env_vars: OS,PYTHON
-        name: codecov-umbrella
-        fail_ci_if_error: false

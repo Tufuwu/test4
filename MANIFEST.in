@@ -1,5 +1,0 @@
-include *.md
-include LICENSE
-include Makefile
-recursive-include epo_ops *.py
-recursive-include docs *.md
