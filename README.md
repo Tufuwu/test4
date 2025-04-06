@@ -1,29 +1,31 @@
-BundleWrap is a decentralized configuration management system that is designed to be powerful, easy to extend and extremely versatile.
+# skeleton-generic #
 
-For more information, have a look at [bundlewrap.org](http://bundlewrap.org) and [docs.bundlewrap.org](http://docs.bundlewrap.org).
+[![GitHub Build Status](https://github.com/cisagov/skeleton-generic/workflows/build/badge.svg)](https://github.com/cisagov/skeleton-generic/actions)
 
-------------------------------------------------------------------------
+This is a generic skeleton project that can be used to quickly get a
+new [cisagov](https://github.com/cisagov) GitHub project started.
+This skeleton project contains [licensing information](LICENSE), as
+well as [pre-commit hooks](https://pre-commit.com) and
+[GitHub Actions](https://github.com/features/actions) configurations
+appropriate for the major languages that we use.
 
-<a href="https://pypi.python.org/pypi/bundlewrap/">
-    <img src="http://img.shields.io/pypi/v/bundlewrap.svg" alt="Latest Version">
-</a>
-&nbsp;
-<a href="https://github.com/bundlewrap/bundlewrap/actions">
-    <img src="https://github.com/bundlewrap/bundlewrap/workflows/Tests/badge.svg" alt="Build status">
-</a>
-&nbsp;
-<a href="https://pypi.python.org/pypi/bundlewrap/">
-    <img src="http://img.shields.io/pypi/pyversions/bundlewrap.svg" alt="Python compatibility">
-</a>
+In many cases you will instead want to use one of the more specific
+skeleton projects derived from this one.
 
-------------------------------------------------------------------------
+## Contributing ##
 
-Donations appreciated:
+We welcome contributions!  Please see [here](CONTRIBUTING.md) for
+details.
 
-Bitcoin `13AJYksqncZromPF8HvDUXsmHChAm3Y7W7`
+## License ##
 
-Ethereum `0x5Eb3037e197d3C0d2E014bcfC2e027EB0AD42812`
+This project is in the worldwide [public domain](LICENSE).
 
-------------------------------------------------------------------------
+This project is in the public domain within the United States, and
+copyright and related rights in the work worldwide are waived through
+the [CC0 1.0 Universal public domain
+dedication](https://creativecommons.org/publicdomain/zero/1.0/).
 
-BundleWrap is © 2013 - 2021 [Torsten Rehn](mailto:torsten@rehn.email)
+All contributions to this project will be released under the CC0
+dedication. By submitting a pull request, you are agreeing to comply
+with this waiver of copyright interest.
