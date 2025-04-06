@@ -1,201 +1,256 @@
-![Functional tests](https://github.com/dassencio/mapgen/workflows/Functional%20tests/badge.svg)
+# in-toto demo [![Build Status](https://travis-ci.com/in-toto/demo.svg?branch=master)](https://travis-ci.com/in-toto/demo)
 
-# Description
+In this demo, we will use in-toto to secure a software supply chain with a very
+simple workflow.  Bob is a developer for a project, Carl packages the software, and
+Alice oversees the project.  So, using in-toto's names for the parties, 
+Alice is the project owner - she creates and signs the software supply chain
+layout with her private key - and Bob and Carl are project functionaries -
+they carry out the steps of the software supply chain as defined in the layout.
 
-`mapgen` is a tool (written in Python 3) which generates interactive maps with
-customizable markers. It takes a YAML file containing map settings and marker
-data as input and generates an HTML page as output. This page contains all
-JavaScript and CSS code it needs inlined into it, so it can be directly opened
-in a web browser (without the need for a web server), shared with others (e.g.
-via e-mail), or added to an existing webpage through an `<iframe>` element.
+For the sake of demonstrating in-toto, we will have you run all parts of the
+software supply chain.
+This is, you will perform the commands on behalf of Alice, Bob and Carl as well
+as the client who verifies the final product.
 
-Below is an example of what a typical input YAML file looks like:
 
-```yaml
-map settings:
-  title: Largest capital cities of the European Union
-markers:
-  - coordinates: [51.5073219, -0.1276474]
-    popup contents: London, United Kingdom (8.83 million)
-  - coordinates: [52.5170365, 13.3888599]
-    popup contents: Berlin, Germany (3.75 million)
-  - coordinates: [40.4167047, -3.7035825]
-    popup contents: Madrid, Spain (3.23 million)
-  - coordinates: [41.894802, 12.4853384]
-    popup contents: Rome, Italy (2.87 million)
-  - coordinates: [48.8566101, 2.3514992]
-    popup contents: Paris, France (2.15 million)
+## Download and setup in-toto on \*NIX (Linux, OS X, ..)
+__Virtual Environments (optional)__
+
+We highly recommend installing `in-toto` and its dependencies in a
+[`venv`](https://docs.python.org/3/library/venv.html) Python virtual
+environment. Just copy-paste the following snippet to create a virtual
+environment:
+
+```bash
+# Create the virtual environment
+python -m venv in-toto-demo
+
+# Activate the virtual environment
+# This will add the prefix "(in-toto-demo)" to your shell prompt
+source in-toto-demo/bin/activate
 ```
 
-The resulting page can be seen [here](https://htmlpreview.github.io/?https://github.com/dassencio/mapgen/blob/master/examples/largest-eu-capitals/output.html).
-Clicking on a marker will open a popup showing its associated city name and
-estimated population.
+__Get demo files and install in-toto__
+```bash
+# Fetch the demo repo using git
+git clone https://github.com/in-toto/demo.git
 
-Here are some more interesting examples:
+# Change into the demo directory
+cd demo
 
-- Location of SUSE offices: [Input YAML](https://github.com/dassencio/mapgen/tree/master/examples/suse-offices/input.yaml) |
-  [Output HTML](https://htmlpreview.github.io/?https://github.com/dassencio/mapgen/blob/master/examples/suse-offices/output.html)
+# Install a compatible version of in-toto
+pip install -r requirements.txt
+```
+*Note: If you are having troubles installing in-toto, make sure you have all
+the system dependencies. See the [installation guide on
+in-toto.readthedocs.io](https://in-toto.readthedocs.io/en/latest/installing.html)
+for details.*
 
-- Largest countries in Western Europe: [Input YAML](https://github.com/dassencio/mapgen/tree/master/examples/largest-west-eu-countries/input.yaml) |
-  [Output HTML](https://htmlpreview.github.io/?https://github.com/dassencio/mapgen/blob/master/examples/largest-west-eu-countries/output.html)
+Inside the demo directory you will find four directories: `owner_alice`,
+`functionary_bob`, `functionary_carl` and `final_product`. Alice, Bob and Carl
+already have RSA keys in each of their directories. This is what you see:
+```bash
+tree  # If you don't have tree, try 'find .' instead
+# the tree command gives you the following output
+# .
+# ├── README.md
+# ├── final_product
+# ├── functionary_bob
+# │   ├── bob
+# │   └── bob.pub
+# ├── functionary_carl
+# │   ├── carl
+# │   └── carl.pub
+# ├── owner_alice
+# │   ├── alice
+# │   ├── alice.pub
+# │   └── create_layout.py
+# ├── requirements.txt
+# ├── run_demo.py
+# └── run_demo_md.py
+```
 
-- Famous monuments of Paris: [Input YAML](https://github.com/dassencio/mapgen/tree/master/examples/famous-monuments-paris/input.yaml) |
-  [Output HTML](https://htmlpreview.github.io/?https://github.com/dassencio/mapgen/blob/master/examples/famous-monuments-paris/output.html)
+## Run the demo commands
+Note: if you don't want to type or copy & paste commands and would rather watch
+a script run through the commands, jump to [the last section of this document](#tired-of-copy-pasting-commands)
 
-# License
+### Define software supply chain layout (Alice)
+First, we will need to define the software supply chain layout. To simplify this
+process, we provide a script that generates a simple layout for the purpose of
+the demo.
 
-Except for files from the [Leaflet](https://leafletjs.com/) and
-[Leaflet-providers](https://github.com/leaflet-extras/leaflet-providers)
-libraries and icons from [Flaticon](https://www.flaticon.com/), all files from
-this project are licensed under the GPLv3. See the
-[`LICENSE`](https://github.com/dassencio/mapgen/tree/master/LICENSE) file for
-more information.
+In this software supply chain layout, we have Alice, who is the project
+owner that creates the layout, Bob, who clones the project's repo and
+performs some pre-packaging editing (update version number), and Carl, who uses
+`tar` to package the project sources into a tarball, which
+together with the in-toto metadata composes the final product that will
+eventually be installed and verified by the end user.
 
-Files from the Leaflet and Leaflet-providers libraries are licensed under the
-[2-clause BSD license](https://github.com/Leaflet/Leaflet/blob/master/LICENSE).
+```shell
+# Create and sign the software supply chain layout on behalf of Alice
+cd owner_alice
+python create_layout.py
+```
+The script will create a layout, add Bob's and Carl's public keys (fetched from
+their directories), sign it with Alice's private key and dump it to `root.layout`.
+In `root.layout`, you will find that (besides the signature and other information)
+there are three steps, `clone`, `update-version` and `package`, that
+the functionaries Bob and Carl, identified by their public keys, are authorized
+to perform.
 
-Icons from Flaticon were produced by Google, Freepik and Smashicons. Those are
-all licensed under the [CC BY 3.0 license](https://creativecommons.org/licenses/by/3.0/).
+### Clone project source code (Bob)
+Now, we will take the role of the functionary Bob and perform the step
+`clone` on his behalf, that is we use in-toto to clone the project repo from GitHub and
+record metadata for what we do. Execute the following commands to change to Bob's
+directory and perform the step.
 
-# Required modules
+```shell
+cd ../functionary_bob
+in-toto-run --step-name clone --products demo-project/foo.py --key bob -- git clone https://github.com/in-toto/demo-project.git
+```
 
-All Python modules needed by `mapgen` are listed in the
-[`requirements.txt`](https://github.com/dassencio/mapgen/tree/master/requirements.txt)
-file. You can install them with the following command:
+Here is what happens behind the scenes:
+ 1. In-toto wraps the command `git clone https://github.com/in-toto/demo-project.git`,
+ 1. hashes the contents of the source code, i.e. `demo-project/foo.py`,
+ 1. adds the hash together with other information to a metadata file,
+ 1. signs the metadata with Bob's private key, and
+ 1. stores everything to `clone.[Bob's keyid].link`.
 
-    pip3 install -r requirements.txt
+### Update version number (Bob)
+Before Carl packages the source code, Bob will update
+a version number hard-coded into `foo.py`. He does this using the `in-toto-record` command,
+which produces the same link metadata file as above but does not require Bob to wrap his action in a single command.
+So first Bob records the state of the files he will modify:
 
-# Usage instructions
+```shell
+# In functionary_bob directory
+in-toto-record start --step-name update-version --key bob --materials demo-project/foo.py
+```
 
-For an input file `input.yaml` containing map settings and marker data,
-running the following command will generate the desired HTML
-page and store it on `output.html`:
+Then Bob uses an editor of his choice to update the version number in `demo-project/foo.py`, e.g.:
 
-    ./mapgen -i input.yaml -o output.html
+```shell
+sed -i.bak 's/v0/v1/' demo-project/foo.py && rm demo-project/foo.py.bak
+```
 
-If you omit `-o output.html` on the command above, the generated HTML will be
-printed on the standard output (`stdout`).
+And finally he records the state of files after the modification and produces
+a link metadata file called `update-version.[Bob's keyid].link`.
+```shell
+# In functionary_bob directory
+in-toto-record stop --step-name update-version --key bob --products demo-project/foo.py
+```
 
-# YAML input
+Bob has done his work and can send over the sources to Carl, who will create
+the package for the user.
 
-## Introduction
+```shell
+# Bob has to send the update sources to Carl so that he can package them
+cp -r demo-project ../functionary_carl/
+```
 
-Each marker has two possible states: "normal" and "selected". Different icons
-can be displayed for a marker depending on whether it is selected or not. This
-allows the user to create maps which are more fun to interact with by making
-the icon of a selected marker look different from the icons of the
-unselected (normal) markers. Only one marker can be selected at a time.
+### Package (Carl)
+Now, we will perform Carl’s `package` step by executing the following commands
+to change to Carl's directory and create a package of the software project
 
-**NOTE**: When running `mapgen`, relative paths to icons files appearing on
-the input YAML file will be resolved from the current working directory, not
-from the location of the YAML file!
+```shell
+cd ../functionary_carl
+in-toto-run --step-name package --materials demo-project/foo.py --products demo-project.tar.gz --key carl -- tar --exclude ".git" -zcvf demo-project.tar.gz demo-project
+```
 
-If `popup contents` is defined for a marker, a popup will be shown when it is
-selected. Markers with no `popup contents` defined are assumed to be
-non-selectable and are therefore always displayed with their normal icons.
+This will create another step link metadata file, called `package.[Carl's keyid].link`.
+It's time to release our software now.
 
-The input YAML file is divided into three main sections:
 
-- `default marker settings`: Style settings (e.g. icon dimensions) which are
-  applied to all markers by default. These settings can be overridden at the
-  definition of each marker.
+### Verify final product (client)
+Let's first copy all relevant files into the `final_product` that is
+our software package `demo-project.tar.gz` and the related metadata files `root.layout`,
+`clone.[Bob's keyid].link`, `update-version.[Bob's keyid].link` and `package.[Carl's keyid].link`:
+```shell
+cd ..
+cp owner_alice/root.layout functionary_bob/clone.776a00e2.link functionary_bob/update-version.776a00e2.link functionary_carl/package.2f89b927.link functionary_carl/demo-project.tar.gz final_product/
+```
+And now run verification on behalf of the client:
+```shell
+cd final_product
+# Fetch Alice's public key from a trusted source to verify the layout signature
+# Note: The functionary public keys are fetched from the layout
+cp ../owner_alice/alice.pub .
+in-toto-verify --layout root.layout --layout-key alice.pub
+```
+This command will verify that
+ 1. the layout has not expired,
+ 2. was signed with Alice’s private key,
+<br>and that according to the definitions in the layout
+ 3. each step was performed and signed by the authorized functionary
+ 4. the recorded materials and products follow the artifact rules and
+ 5. the inspection `untar` finds what it expects.
 
-- `map settings`: Global map settings such as the name of the map tile provider
-  as well as external resources to inline into the generated HTML page with the
-  intent of modifying the map's style and behavior.
 
-- `markers`: List of markers to be displayed on the map. Each marker must have
-  a pair of coordinates specifying its location. A marker is not required
-  to have a popup (`popup contents` is an optional attribute).
+From it, you will see the meaningful output `PASSING` and a return value
+of `0`, that indicates verification worked out well:
+```shell
+echo $?
+# should output 0
+```
 
-### Attributes in `default marker settings`:
+### Tampering with the software supply chain
+Now, let’s try to tamper with the software supply chain.
+Imagine that someone got a hold of the source code before Carl could package it.
+We will simulate this by changing `demo-project/foo.py` on Carl's machine
+(in `functionary_carl` directory) and then let Carl package and ship the
+malicious code.
 
-- `icon`: Path to an icon file (an image) or the name of a built-in icon to be
-  used as the default icon for markers in both "normal" and "selected" states.
-  Built-in icons are located in the `template/icons` directory, and their names
-  must be given without the `.svg` suffix (e.g. `airplane` or `house`). Defaults
-  to `placeholder`.
+```shell
+cd ../functionary_carl
+echo something evil >> demo-project/foo.py
+```
+Carl thought that this is the genuine code he got from Bob and
+unwittingly packages the tampered version of foo.py
 
-- `icon color`: Default icon color assigned to all icons of all markers (both
-  in "normal" and "selected" states). Applicable only to built-in icons. Any CSS
-  color is allowed.
+```shell
+in-toto-run --step-name package --materials demo-project/foo.py --products demo-project.tar.gz --key carl -- tar --exclude ".git" -zcvf demo-project.tar.gz demo-project
+```
+and ships everything out as final product to the client:
+```shell
+cd ..
+cp owner_alice/root.layout functionary_bob/clone.776a00e2.link functionary_bob/update-version.776a00e2.link functionary_carl/package.2f89b927.link functionary_carl/demo-project.tar.gz final_product/
+```
 
-- `icon dimensions`: Default icon dimensions (in pixels) expressed as an array
-  of form `[width, height]`. Defaults to `[40, 40]`.
+### Verifying the malicious product
 
-- `normal icon`: Accepts the same values as `icon`, but only affects the icons
-  shown for markers when they are not selected. Has higher precedence than
-  `icon`, i.e., if both `icon` and `normal icon` are specified, the default
-  normal icon will be set to the one specified in `normal icon`.
+```shell
+cd final_product
+in-toto-verify --layout root.layout --layout-key alice.pub
+```
+This time, in-toto will detect that the product `foo.py` from Bob's `update-version`
+step was not used as material in Carl's `package` step (the verified hashes
+won't match) and therefore will fail verification an return a non-zero value:
+```shell
+echo $?
+# should output 1
+```
 
-- `normal icon color`: Accepts the same values as `icon color`, but only affects
-  the icons shown for markers when they are not selected. Has higher precedence
-  than `icon color`, i.e., if both `icon color` and `normal icon color` are
-  specified, the default color for normal icons will be set to the one specified
-  in `normal icon color`. Defaults to `#1081e0` (blue).
 
-- `normal icon dimensions`: Accepts the same values as `icon dimensions`, but
-  only affects the icons shown for markers when they are not selected. Has
-  higher precedence than `icon dimensions`, i.e., if both `icon dimensions` and
-  `normal icon dimensions` are specified, the default dimensions for normal
-  icons will be set to those specified in `normal icon dimensions`.
+### Wrapping up
+Congratulations! You have completed the in-toto demo! This exercise shows a very
+simple case in how in-toto can protect the different steps within the software
+supply chain. More complex software supply chains that contain more steps can be
+created in a similar way. You can read more about what in-toto protects against
+and how to use it on [in-toto's Github page](https://in-toto.github.io/).
 
-- `selected icon`: Equivalent of `normal icon` for selected icons.
+## Cleaning up and automated run through
+### Clean slate
+If you want to run the demo again, you can use the following script to remove all the files you created above.
 
-- `selected icon color`: Equivalent of `normal icon color` for selected icons.
-  Defaults to `#d30800` (red).
+```bash
+cd .. # You have to be the demo directory
+python run_demo.py -c
+```
 
-- `selected icon dimensions`: Equivalent of `normal icon dimensions` for
-  selected icons.
+### Tired of copy-pasting commands?
+The same script can be used to sequentially execute all commands listed above. Just change into the `demo` directory, run `python run_demo.py` without flags and observe the output.
 
-### Attributes in `map settings`:
-
-- `external css files`: List of CSS files to be inlined into the generated HTML
-  page. CSS styles defined in these files will override the default CSS styles
-  from `mapgen` (see [`template/mapgen.css`](https://github.com/dassencio/mapgen/tree/master/template/mapgen.css)).
-
-- `external javascript files`: List of JavaScript files to be inlined into the
-  generated HTML page. The map can be manipulated through the `map` property of
-  the global `mapgen` object (see [`template/mapgen.js`](https://github.com/dassencio/mapgen/tree/master/template/mapgen.js)).
-
-- `show zoom control`: Whether zoom controls (`+`/`-` buttons) should be
-  displayed or not. Valid values are `no` and `yes`. Defaults to `yes`.
-
-- `tile provider`: Name associated with the server from which map tiles will be
-  fetched. The tile provider name must be among those listed in the
-  [Leaflet-providers](https://github.com/leaflet-extras/leaflet-providers)
-  project. To preview what the map will look like with a certain provider,
-  visit the Leaflet-providers [demo page](https://leaflet-extras.github.io/leaflet-providers/preview/).
-  Make sure you do not violate the usage policy of your selected provider as
-  that may cause your application to be blocked by it. Defaults to
-  `OpenStreetMap.Mapnik`.
-
-- `title`: Title to be displayed when the generated HTML page is opened in a
-  web browser.
-
-- `zoom control position`: Location on the map where zoom controls must be
-  displayed, if applicable. Valid values are `bottom left`, `bottom right`,
-  `top left` and `top right`. Defaults to `top right`.
-
-### Marker entries in `markers`:
-
-All markers must be entered as a list under the `markers` section of the YAML
-file. Every marker accepts the same attributes as the ones from
-`default marker settings`, but those will only be applied to the marker being
-defined, i.e., values for attributes specified on a marker have higher
-precedence than those for attributes with the same names specified under
-`default marker settings`.
-
-Additional attributes for markers:
-
-- `coordinates`: Marker position on the map expressed as an array of form
-  `[latitude, longitude]`. Latitude and longitude values must fall within the
-  value ranges `[-90, 90]` and `[-180, 180]` respectively. Every marker
-  needs to have `coordinates` defined.
-
-- `popup contents`: HTML contents to be shown on the popup displayed for a
-  marker when it is selected.
-
-# Contributors & contact information
-
-Diego Assencio / diego@assencio.com
+```bash
+# In the demo directory
+python run_demo.py
+```
