@@ -1,54 +1,33 @@
-from setuptools import setup, find_packages
+import re
+import setuptools
+import sys
 
-version = '1.3.2'
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
-setup(
-    name='ckanext-harvest',
-    version=version,
-    description="Harvesting interface plugin for CKAN",
-    long_description="""\
-    """,
-    classifiers=[],
-    keywords='',
-    author='CKAN',
-    author_email='ckan@okfn.org',
-    url='https://github.com/ckan/ckanext-harvest',
-    license='AGPL',
-    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-    namespace_packages=['ckanext'],
-    include_package_data=True,
-    zip_safe=False,
-    install_requires=[
-            # dependencies are specified in pip-requirements.txt
-            # instead of here
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+setuptools.setup(
+    name="ladybug-pandas",
+    use_scm_version = True,
+    setup_requires=['setuptools_scm'],
+    author="Ladybug Tools",
+    author_email="info@ladybug.tools",
+    description="A ladybug extension powered by pandas",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/ladybug-tools/ladybug-pandas",
+    packages=setuptools.find_packages(exclude=["tests"]),
+    install_requires=requirements,
+    extras_require={
+        'arrow': ['pyarrow']
+    },
+    classifiers=[
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "Operating System :: OS Independent"
     ],
-    tests_require=[
-        'nose',
-        'mock',
-    ],
-    test_suite='nose.collector',
-    entry_points="""
-        [ckan.plugins]
-            # Add plugins here, eg
-            harvest=ckanext.harvest.plugin:Harvest
-            ckan_harvester=ckanext.harvest.harvesters:CKANHarvester
-
-            # Test plugins
-
-            test_harvester=ckanext.harvest.tests.test_queue:MockHarvester
-            test_harvester2=ckanext.harvest.tests.test_queue2:MockHarvester
-            test_action_harvester=ckanext.harvest.tests.test_action:MockHarvesterForActionTests
-
-        [paste.paster_command]
-            harvester = ckanext.harvest.commands.harvester:Harvester
-        [babel.extractors]
-            ckan = ckan.lib.extract:extract_ckan
-    """,
-    message_extractors={
-        'ckanext': [
-            ('**.py', 'python', None),
-            ('**.js', 'javascript', None),
-            ('**/templates/**.html', 'ckan', None),
-        ],
-    }
+    license="AGPL-3.0"
 )
