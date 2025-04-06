@@ -1,32 +1,38 @@
-name: lexpy
-on: push
+name: Continuous Integration
+
+on: [push, pull_request]
 
 jobs:
-  unittests:
-    name: lexpy unitests
-    runs-on: ${{ matrix.os }}
+  build:
+
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest, ubuntu-latest]
         python-version: ["3.9"]
+        lua-version: ["bundle", "lua5.2", "lua5.3", "luajit-5.1"]
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-    - name: Setup Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - name: Check out recursively
+      run: git submodule update --init --recursive
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install Dependencies
-      run: |
-        python3 -m pip install --upgrade pip setuptools
-        pip install -e .
-        pip install coverage
+    - name: Set up Python packages
+      run: python -m pip install -U "pip<21" "setuptools<45" ; python -m pip install -U tox virtualenv
 
-    - name: Run Unittests
-      run: |
-        coverage run -m unittest discover -s lexpy/tests
-        coverage report -m
+    - name: Set up Lua ${{ matrix.lua-version }}
+      if: ${{ !contains(matrix.lua-version, 'bundle') }}
+      run: sudo apt-get install lib${{ matrix.lua-version }}-dev
+
+    - name: Run tests with tox
+      run: tox -e py # Runs the version of Python tox is currently using
+      continue-on-error: ${{ contains(matrix.python-version, 'pypy') }}
+      env:
+        SETUP_OPTIONS: ${{ !contains(matrix.lua-version, 'luajit') && (contains(matrix.lua-version, 'bundle') && '--use-bundle' || '--no-luajit') || '' }}
+        CFLAGS: ${{ contains(matrix.lua-version, 'bundle') && '-flto -g' || '-g' }}
+        LDFLAGS: ${{ contains(matrix.lua-version, 'bundle') && '-flto' || '' }}

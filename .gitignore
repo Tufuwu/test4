@@ -1,16 +1,19 @@
-.env
-sample.py
-samplewords.txt
-samplewords2.txt
-.coverage
-sampledawg.py
+# Build/test processes
+
+.tox
 .idea
-*.pyc
-dist
-lexpy.egg-info
 build
-.venv
-dawg_sample.py
-compare_trie_dawg_size.py
-compare_trie_dawg_time.py
-venv
+dist
+MANIFEST
+*.pyc
+*.pyd
+*.dll
+*.egg-info
+*.so
+*.c
+*.patch
+wheel*/
+lupa/version.py
+
+# Vim swapfiles
+*.swp
