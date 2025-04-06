@@ -1,9 +1,10 @@
-recursive-include partd *.py
+# See: https://docs.python.org/3/distutils/commandref.html
+graft flintrock
 
-include requirements.txt
-include setup.py
-include README.rst
-include LICENSE.txt
-include MANIFEST.in
-include versioneer.py
-include partd/_version.py
+include README.md
+include CHANGELOG.md
+include COPYRIGHT
+include LICENSE
+
+global-exclude *.py[cod] __pycache__ .DS_Store
+global-exclude config.yaml
