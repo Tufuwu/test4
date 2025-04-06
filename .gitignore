@@ -1,29 +1,54 @@
-# Virtual Environment
-venv/
-
-# Editor Configurations
-.vscode/
-.idea/
-
-# Python
-__pycache__/
-
-# Pip
-src/
-
-# Jupyter Notebook
-.ipynb_checkpoints
+*svn*
 *.ipynb
-
-# Output files, except requirements.txt
-*.txt
-!requirements.txt
-
-# Comma-Separated Values (CSV) Reports
-*.csv
-
-# Excluded sites list
-tests/.excluded_sites
-
-# MacOS Folder Metadata File
+*.pyc
+*.pyo
+.project
+.pydevproject
+*.swp
+*.swo
+build
+dist
+*.egg-info
+pip-wheel-metadata/
+.settings
+*.wpr
+*.wpu
+.idea
+.coverage
+cover
 .DS_Store
+*,cover
+tags
+.pytest_cache
+.venv
+
+# KDevelop
+.kdev4/
+*.kdev4
+
+# Ninja IDE
+*.nja
+
+# Sublime
+.codeintel
+
+#VScode
+.vscode/
+
+# Rope
+.ropeproject
+
+# Vagrant
+.vagrant
+Vagrantfile
+
+# Built documentation
+docs/_build
+docs/_diagrams
+docs/api.yaml
+
+# Overriden variables
+containers/vars/vars.yaml
+
+# Generated Dockerfiles
+containers/images/pulp/Dockerfile.*

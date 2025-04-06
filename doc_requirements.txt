@@ -1,0 +1,6 @@
+-r requirements.txt
+plantuml
+sphinx
+sphinx-rtd-theme
+sphinxcontrib-openapi
+towncrier
