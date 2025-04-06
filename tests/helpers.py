@@ -1,55 +1,62 @@
-import re
+import os
 from contextlib import contextmanager
 from datetime import timedelta
 
-from django.utils import timezone
+import factory
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.db.models.signals import post_save
+from easy_thumbnails.files import get_thumbnailer
 from freezegun import freeze_time
 
 
-@contextmanager
-def active_phase(module, phase_type):
-    now = timezone.now()
-    phase = module.phase_set.create(
-        start_date=now,
-        end_date=now + timedelta(days=1),
-        name='TEST PHASE',
-        description='TEST DESCRIPTION',
-        type=phase_type().identifier,
-        weight=0,
-    )
+@factory.django.mute_signals(post_save)
+def setup_phase(phase_factory, item_factory, phase_content_class, **kwargs):
+    phase_content = phase_content_class()
+    phase = phase_factory(phase_content=phase_content, **kwargs)
+    module = phase.module
+    project = phase.module.project
+    item = item_factory(module=module) if item_factory else None
+    return phase, module, project, item
 
-    with freeze_time(phase.start_date):
+
+@factory.django.mute_signals(post_save)
+def setup_users(project):
+    anonymous = AnonymousUser()
+    moderator = project.moderators.first()
+    initiator = project.organisation.initiators.first()
+    return anonymous, moderator, initiator
+
+
+@contextmanager
+def freeze_phase(phase):
+    with freeze_time(phase.start_date + timedelta(seconds=1)):
         yield
 
-    phase.delete()
+
+@contextmanager
+def freeze_pre_phase(phase):
+    with freeze_time(phase.start_date - timedelta(seconds=1)):
+        yield
 
 
 @contextmanager
-def past_phase(module, phase_type):
-    now = timezone.now()
-    phase = module.phase_set.create(
-        start_date=now,
-        end_date=now + timedelta(days=1),
-        name='TEST PHASE',
-        description='TEST DESCRIPTION',
-        type=phase_type().identifier,
-        weight=0,
-    )
-
-    with freeze_time(phase.end_date + timedelta(minutes=1)):
+def freeze_post_phase(phase):
+    with freeze_time(phase.end_date + timedelta(seconds=1)):
         yield
 
-    phase.delete()
+
+def assert_template_response(response, template_name, status_code=200):
+    assert response.status_code == status_code
+    response_template = response.template_name[0]
+    assert response_template == template_name, \
+        '{} != {}'.format(response_template, template_name)
 
 
-class pytest_regex:
-    """Assert that a given string meets some expectations."""
-
-    def __init__(self, pattern, flags=0):
-        self._regex = re.compile(pattern, flags)
-
-    def __eq__(self, actual):
-        return bool(self._regex.match(str(actual)))
-
-    def __repr__(self):
-        return self._regex.pattern
+def createThumbnail(imagefield):
+    thumbnailer = get_thumbnailer(imagefield)
+    thumbnail = thumbnailer.generate_thumbnail(
+        {'size': (800, 400), 'crop': 'smart'})
+    thumbnailer.save_thumbnail(thumbnail)
+    thumbnail_path = os.path.join(settings.MEDIA_ROOT, thumbnail.path)
+    return thumbnail_path

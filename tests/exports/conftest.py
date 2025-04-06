@@ -1,11 +1,7 @@
 from pytest_factoryboy import register
 
-from tests.apps.ideas import factories as idea_factories
-from tests.categories import factories as category_factories
-from tests.comments import factories as comment_factories
-from tests.ratings import factories as rating_factories
+from tests.budgeting import factories as budgeting_factories
+from tests.ideas import factories as ideas_factories
 
-register(category_factories.CategoryFactory)
-register(idea_factories.IdeaFactory)
-register(rating_factories.RatingFactory)
-register(comment_factories.CommentFactory)
+register(ideas_factories.IdeaFactory)
+register(budgeting_factories.ProposalFactory)

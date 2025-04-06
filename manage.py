@@ -3,7 +3,8 @@ import os
 import sys
 
 if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.project.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE",
+                          "adhocracy-plus.config.settings")
 
     from django.core.management import execute_from_command_line
 

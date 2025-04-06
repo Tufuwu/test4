@@ -1,19 +1,44 @@
+import factory
 import pytest
+from django.urls import reverse
+from django.urls.base import get_resolver
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
-from adhocracy4.test import factories
-from adhocracy4.test import helpers
-from tests.apps.locations import factories as location_factories
-from tests.apps.organisations.factories import MemberFactory
-from tests.apps.organisations.factories import OrganisationFactory
-from tests.apps.questions import factories as q_factories
-from tests.images import factories as img_factories
+from adhocracy4.test import factories as a4_factories
+from adhocracy4.test.factories.maps import AreaSettingsFactory
+from adhocracy4.test.helpers import patch_background_task_decorator
+
+from . import factories
 
 
 def pytest_configure(config):
     # Patch email background_task decorators for all tests
-    helpers.patch_background_task_decorator('adhocracy4.emails.tasks')
+    patch_background_task_decorator('adhocracy4.emails.tasks')
+
+    # Populate reverse dict with organisation patterns
+    resolver = get_resolver()
+    resolver.reverse_dict
+
+
+register(factories.UserFactory)
+register(factories.UserFactory, 'user2')
+register(factories.AdminFactory, 'admin')
+register(factories.OrganisationFactory)
+register(factories.MemberFactory)
+
+register(factories.PhaseFactory)
+register(factories.PhaseContentFactory)
+register(factories.CategoryFactory)
+register(factories.LabelFactory)
+register(factories.CommentFactory)
+register(factories.RatingFactory)
+register(factories.ModeratorStatementFactory)
+
+register(a4_factories.GroupFactory)
+register(a4_factories.ProjectFactory)
+register(a4_factories.ModuleFactory)
+register(AreaSettingsFactory)
 
 
 @pytest.fixture
@@ -22,19 +47,35 @@ def apiclient():
 
 
 @pytest.fixture
-def image_factory():
-    return img_factories.ImageFactory()
+def ImagePNG():
+    return factory.django.ImageField(width=1500, height=1400, format='PNG')
 
 
-register(OrganisationFactory)
-register(factories.UserFactory)
-register(MemberFactory)
-register(factories.GroupFactory)
-register(factories.AdminFactory, 'admin')
-register(factories.UserFactory, 'another_user')
-register(factories.UserFactory, 'staff_user', is_staff=True)
-register(factories.ProjectFactory)
-register(factories.ModuleFactory)
-register(factories.PhaseFactory)
-register(q_factories.QuestionFactory)
-register(location_factories.LocationFactory)
+@pytest.fixture
+def ImageBMP():
+    return factory.django.ImageField(width=1500, height=1400, format='BMP')
+
+
+@pytest.fixture
+def smallImage():
+    return factory.django.ImageField(width=200, height=200)
+
+
+@pytest.fixture
+def bigImage():
+    return factory.django.ImageField(width=1500, height=1400)
+
+
+@pytest.fixture
+def login_url():
+    return reverse('account_login')
+
+
+@pytest.fixture
+def logout_url():
+    return reverse('account_logout')
+
+
+@pytest.fixture
+def signup_url():
+    return reverse('account_signup')

@@ -1,6 +1,7 @@
 [run]
 source =
-    adhocracy4
+    apps
 omit =
     */migrations/*
-    */autofixtures.py
+    */tests.py
+    */test_*.py
