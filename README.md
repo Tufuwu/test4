@@ -1,49 +1,51 @@
-# adhocracy+
+# Chronicle Detection API
 
-[adhocracy.plus](https://adhocracy.plus/) is a free Open-Source participation platform maintained and primarily developed by Liquid Democracy e.V.. It is based on [adhocracy 4](https://github.com/liqd/adhocracy4) and [Django](https://github.com/django/django).
+Python samples and guidelines for using the Chronicle Detection API.
 
-![Build Status](https://github.com/liqd/adhocracy-plus/actions/workflows/django.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/liqd/adhocracy-plus/badge.svg?branch=master)](https://coveralls.io/github/liqd/adhocracy-plus?branch=master)
+## Setup
 
-## Getting started
+Follow these instructions: https://cloud.google.com/python/setup
 
-adhocracy+ is designed to make online participation easy and accessible to everyone. It can be used on our SaaS-platform or installed on your own servers. How to get started on our platform is explained [here](https://adhocracy.plus/info/start/).
+You may skip installing the Cloud Client Libraries and the Cloud SDK, they are
+unnecessary for interacting with Chronicle.
 
-## Installation for development
+After creating and activating the virtual environment `venv`, install Python
+library dependencies by running this command:
 
-### Requirements:
+```shell
+pip install -r requirements.txt
+```
 
- * nodejs (+ npm)
- * python 3.x (+ venv + pip)
- * libpq (only if postgres should be used)
+It is assumed that you're using Python 3.7 or above. If you're using an older
+Python 3 version, you need to install this backported library as well:
 
-### Installation:
+```shell
+pip install dataclasses
+```
 
-    git clone https://github.com/liqd/adhocracy-plus.git
-    cd adhocracy-plus
-    make install
-    make fixtures
+## Credentials
 
-### Start virtual environment:
-    source venv/bin/activate
+Running the samples requires a JSON credentials file. By default, all the
+samples try to use the file `.chronicle_credentials.json` in the user's home
+directory. If this file is not found, you need to specify it explicitly by
+adding the following argument to the sample's command-line:
 
-### Check if tests work:
+```shell
+-c <file_path>
+```
 
-    make test
+or
 
-### Start a local server:
+```shell
+--credentials_file <file_path>
+```
 
-    make watch
+## Usage
 
-Go to http://localhost:8004/ and login with admin@liqd.net | password
+Run this command-line, assuming the current working directory is the root
+directory of this repository (i.e. the directory which contains this `README.md`
+file):
 
-## Installation on a production system
-
-You like adhocracy+ and want to run your own version? An installation guide for production systems can be found [here](./docs/installation_prod.md).
-
-## Contributing or maintaining your own fork
-
-If you found an issue, want to contribute, or would like to add your own features to your own version of adhocracy+, check out [contributing](./docs/contributing.md).
-
-## Security
-We care about security. So, if you find any issues concerning security, please send us an email at info [at] liqd [dot] net.
+```shell
+python3 -m samples.v1.<sample_name> -h
+```
