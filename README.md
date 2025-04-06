@@ -1,65 +1,128 @@
-# PySDL2
+gp-saml-gui
+===========
 
-[![Tests](https://github.com/marcusva/py-sdl2/actions/workflows/run_tests.yml/badge.svg)](https://github.com/marcusva/py-sdl2/actions/workflows/run_tests.yml)
-[![Build Status](https://ci.appveyor.com/api/projects/status/i0k6eou3fj2646ov?svg=true)](https://ci.appveyor.com/project/marcusva/py-sdl2)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pysdl2)
-[![PyPI Version](https://img.shields.io/pypi/v/PySDL2.svg)](https://pypi.python.org/pypi/PySDL2)
+[![Test Workflow Status](https://github.com/dlenski/gp-saml-gui/workflows/test/badge.svg)](https://github.com/dlenski/gp-saml-gui/actions?query=workflow%3Atest)
 
-PySDL2 is a pure Python wrapper around the SDL2, SDL2\_mixer, SDL2\_image,
-SDL2\_ttf, and SDL2\_gfx libraries.
-Instead of relying on C code, it uses the built-in ctypes module to interface
-with SDL2, and provides simple Python classes and wrappers for common
-SDL2 functionality.
+Table of Contents
+=================
 
-## Installation
+  * [Introduction](#introduction)
+  * [Installation](#installation)
+    * [First, non-Python Dependencies](#first-non-python-dependencies)
+    * [Second, gp-saml-gui itself](#second-gp-saml-gui-itself)
+  * [How to use](#how-to-use)
+  * [License](#license)
 
-PySDL2 is easy to install and integrate within your own projects.
-To install or update to the latest version, simply run one of the
-following commands in a terminal:
+Introduction
+============
 
-```bash
-# Install latest stable version from PyPI
-pip install -U pysdl2
+This is a helper script to allow you to interactively login to a GlobalProtect VPN
+that uses [SAML](https://en.wikipedia.org/wiki/Security_Assertion_Markup_Language)
+authentication, so that you can subsequently connect with [OpenConnect](https://www.infradead.org/openconnect).
+(The GlobalProtect protocol is supported in OpenConnect v8.0 or newer; v8.06+ is recommended.)
 
-# Install latest development verion from GitHub
-pip install -U git+https://github.com/marcusva/py-sdl2.git
+Interactive login is, unfortunately, sometimes a necessary alternative to automated
+login via scripts such as
+[zdave/openconnect-gp-okta](https://github.com/zdave/openconnect-gp-okta).
+
+Installation
+============
+
+First, non-Python Dependencies
+------------------------------
+
+gp-saml-gui uses GTK, which requires Python 3 bindings.
+
+On Debian / Ubuntu, these are packaged as `python3-gi`, `gir1.2-gtk-3.0`, and
+`gir1.2-webkit2-4.0`:
+
+```
+$ sudo apt install python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.0
 ```
 
-**Note**: If installing on Python 3 on a computer where both Python 2 and 3
-are installed, replace `pip` with `pip3` in the above commands.
+On Fedora (and possibly RHEL/CentOS) the matching libraries are packaged in
+`python3-gobject`, `gtk3-devel`, and `webkit2gtk3-devel`:
 
-## Requirements
-
-In order for PySDL2 to work, the binaries for SDL2 (and any SDL2 addon modules
-you wish to use, e.g. SDL2\_mixer) need to be installed on your system. On
-macOS and Windows, the recommended way to install the SDL2 binaries is via the `pysdl2-dll` package using pip:
-
-```bash
-pip install pysdl2-dll
+```
+$ sudo dnf install python3-gobject gtk3-devel webkit2gtk3-devel
 ```
 
-This will install pre-built binaries for all supported SDL2 libraries as
-a Python package, which PySDL2 will automatically load if available.
-On Linux and other Unix-like OSes, you can install the SDL2 binaries using
-your system's package manager (which may be out of date), or alternatively
-build and install the latest versions yourself from source.
+On Arch Linux, the libraries are packaged in `gtk3`, `gobject-introspection`
+and `webkit2gtk`:
 
-The current minimum supported versions for each library are listed below:
+```
+$ sudo pacman -S gtk3 gobject-introspection webkit2gtk
+```
 
-* **SDL2** >= 2.0.5
-* **SDL2_mixer** >= 2.0.1 (for the `sdl2.sdlmixer` module)
-* **SDL2_ttf** >= 2.0.14 (for the `sdl2.sdlttf` module)
-* **SDL2_image** >= 2.0.1 (for the `sdl2.sdlimage` module)
-* **SDL2_gfx** >= 1.0.3 (for the `sdl2.sdlgfx` module)
+Second, gp-saml-gui itself
+--------------------------
 
-## Documentation
+Install gp-saml-gui itself using `pip`:
 
-If you just started with SDL and PySDL2, it is strongly recommended
-that you read through the tutorial of the documentation to learn the
-basics. You can find the documentation at `doc/html` or online at
-<http://pysdl2.readthedocs.org>.
+```
+$ pip3 install https://github.com/dlenski/gp-saml-gui/archive/master.zip
+...
+$ gp-saml-gui
+usage: gp-saml-gui [-h] [--no-verify] [-C COOKIES | -K] [-p | -g] [-c CERT]
+                   [--key KEY] [-v | -q] [-x | -P | -S] [-u]
+                   [--clientos {Windows,Linux,Mac}] [-f EXTRA]
+                   server [openconnect_extra [openconnect_extra ...]]
+gp-saml-gui: error: the following arguments are required: server, openconnect_extra
+```
 
-## License
+How to use
+==========
 
-This library is given to the public domain. There are no licensing
-restrictions. Please see `doc/copying.rst` for further details.
+Specify the GlobalProtect server URL (portal or gateway) and optional
+arguments, such as `--clientos=Windows` (because many GlobalProtect
+servers don't require SAML login, but apparently omit it in their configuration
+for OSes other than Windows).
+
+This script will pop up a [GTK WebKit2 WebView](https://webkitgtk.org/) window.
+After you succesfully complete the SAML login via web forms, the script will output
+`HOST`, `USER`, `COOKIE`, and `OS` variables in a form that can be used by
+[OpenConnect](http://www.infradead.org/openconnect/juniper.html)
+(similar to the output of `openconnect --authenticate`):
+
+```sh
+$ eval $( gp-saml-gui --clientos=Windows vpn.company.com )
+Got SAML POST content, opening browser...
+Finished loading about:blank...
+Finished loading https://company.okta.com/app/panw_globalprotect/deadbeefFOOBARba1234/sso/saml...
+Finished loading https://company.okta.com/login/sessionCookieRedirect...
+Finished loading https://vpn.qorvo.com/SAML20/SP/ACS...
+Got SAML relevant headers, done: {'prelogin-cookie': 'blahblahblah', 'saml-username': 'foo12345@corp.company.com', 'saml-slo': 'no', 'saml-auth-status': '1'}
+
+SAML response converted to OpenConnect command line invocation:
+
+    echo 'blahblahblah' |
+        openconnect --protocol=gp --user='foo12345@corp.company.com' --os=win --usergroup=prelogin-cookie:gateway --passwd-on-stdin vpn.company.com
+
+$ echo $HOST; echo $USER; echo $COOKIE; echo $OS
+https://vpn.company.com/gateway:prelogin-cookie
+foo12345@corp.company.com
+blahblahblah
+win
+
+$ echo "$COOKIE" | openconnect --protocol=gp -u "$USER" --os="$OS" --passwd-on-stdin "$HOST"
+```
+
+If you specify either the `-P`/`--pkexec-openconnect` or `-S`/`--sudo-openconnect` options, the script
+will automatically invoke OpenConnect as described, using either [`pkexec` from Polkit](https://www.freedesktop.org/software/polkit/docs/0.106/polkit.8.html)
+or [`sudo`](https://www.sudo.ws/), as specified. Extra arguments needed for OpenConnect can be specified by adding ` -- ` to the command line, and then
+appending these. For example:
+
+```sh
+$ gp-saml-gui -P --clientos=Windows vpn.company.com -- --csd-wrapper=hip-report.sh
+…
+Launching OpenConnect with pkexec, equivalent to:
+    echo blahblahblahlongrandomcookievalue |
+        sudo openconnect --protocol=gp --user=foo12345@corp.company.com --os=win --usergroup=gateway:prelogin-cookie --passwd-on-stdin vpn.company.com
+<pkexec authentication dialog pops up>
+<openconnect runs>
+```
+
+License
+=======
+
+GPLv3 or newer

@@ -1,61 +1,25 @@
-#!/usr/bin/env python
-import os
+#!/usr/bin/env python3
+
 import sys
-import re
-# from distutils.core import setup
-from setuptools import setup
+try:
+  from setuptools import setup
+except ImportError:
+  from distutils.core import setup
 
-VERSION = "0.9.8"
+if not sys.version_info[0] == 3:
+    sys.exit("Python 2.x is not supported; Python 3.x is required.")
 
-if __name__ == "__main__":
+########################################
 
-    if "--format=msi" in sys.argv or "bdist_msi" in sys.argv:
-        # hack the version name to a format msi doesn't have trouble with
-        VERSION = VERSION.replace("-alpha", "a")
-        VERSION = VERSION.replace("-beta", "b")
-        VERSION = VERSION.replace("-rc", "r")
-
-    fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "README.md")
-    with open(fname, "r") as readme:
-        long_desc = readme.read()
-        # Strip out CI badges for PyPI releases
-        long_desc = re.sub(r"\[!\[Build Status(.*?)\n", "", long_desc)
-
-    setupdata = {
-        "name":  "PySDL2",
-        "version": VERSION,
-        "description": "Python SDL2 bindings",
-        "long_description": long_desc,
-        "long_description_content_type": "text/markdown",
-        "author": "Marcus von Appen",
-        "author_email": "marcus@sysfault.org",
-        "license": "Public Domain / zlib",
-        "url": "https://github.com/marcusva/py-sdl2",
-        "download_url": "https://pypi.python.org/pypi/PySDL2",
-        "package_dir": {"sdl2.examples": "examples"},
-        "package_data": {"sdl2.test": ["resources/*.*"],
-                         "sdl2.examples": ["resources/*.*"]},
-        "packages": ["sdl2",
-                     "sdl2.ext",
-                     "sdl2.test",
-                     "sdl2.examples"
-                     ],
-        "classifiers": [
-            "Development Status :: 4 - Beta",
-            "Intended Audience :: Developers",
-            "License :: Public Domain",
-            "License :: OSI Approved :: zlib/libpng License",
-            "Operating System :: OS Independent",
-            "Programming Language :: Python",
-            "Programming Language :: Python :: 2.7",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.5",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: Implementation :: CPython",
-            "Programming Language :: Python :: Implementation :: PyPy",
-            "Topic :: Software Development :: Libraries :: Python Modules",
-            ],
-        }
-    setup(**setupdata)
+setup(name="gp-saml-gui",
+      version='0.1',
+      description=" Interactively authenticate to GlobalProtect VPNs that require SAML",
+      long_description=open("README.md").read(),
+      author="Daniel Lenski",
+      author_email="dlenski@gmail.com",
+      license='GPL v3 or later',
+      install_requires=list(open("requirements.txt")),
+      url="https://github.com/dlenski/gp-saml-gui",
+      py_modules = ['gp_saml_gui'],
+      entry_points={ 'console_scripts': [ 'gp-saml-gui=gp_saml_gui:main' ] },
+      )
