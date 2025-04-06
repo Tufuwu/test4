@@ -1,9 +1,10 @@
-include *.rst
-include *.txt
-include test_*.py
+include AUTHORS.rst
+include LICENSE
+include MANIFEST.in
+include README.rst
+include test_docformatter.py
+recursive-include images *.png
 
+exclude .pre-commit-hooks.yaml
 exclude .travis.yml
-prune docs/_build
-recursive-exclude .github  *
-
-global-exclude *.py[cod] __pycache__ *.so *.dylib
+exclude Makefile

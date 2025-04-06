@@ -1,66 +1,32 @@
----
-name: Python
-
+name: CI
 on:
   push:
-    branches: [ main ]
+    branches:
+      - "*"
   pull_request:
-    branches: [ main ]
-
+    branches:
+      - main
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - name: Output env variables
-        run: |
-           echo "Default branch=${default-branch}"
-           echo "GITHUB_WORKFLOW=${GITHUB_WORKFLOW}"
-           echo "GITHUB_ACTION=$GITHUB_ACTION"
-           echo "GITHUB_ACTIONS=$GITHUB_ACTIONS"
-           echo "GITHUB_ACTOR=$GITHUB_ACTOR"
-           echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
-           echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
-           echo "GITHUB_EVENT_PATH=$GITHUB_EVENT_PATH"
-           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-           echo "GITHUB_SHA=$GITHUB_SHA"
-           echo "GITHUB_REF=$GITHUB_REF"
-           echo "GITHUB_HEAD_REF=$GITHUB_HEAD_REF"
-           echo "GITHUB_BASE_REF=$GITHUB_BASE_REF"
-           echo "::debug::---Start content of file $GITHUB_EVENT_PATH"
-           cat $GITHUB_EVENT_PATH
-           echo "\n"
-           echo "::debug::---end"
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install tox tox-gh-actions
-      - name: Check
-        run: |
-          tox -e checks
-
-  tests:
-    needs: check
-    runs-on: ubuntu-latest
+  test:
     strategy:
-      max-parallel: 5
+      fail-fast: false
       matrix:
         python-version: ["3.9"]
-
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    name: "${{ matrix.os }} Python: ${{ matrix.python-version }}"
     steps:
-      - uses: actions/checkout@v1
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install tox tox-gh-actions
-      - name: Test with tox
-        run: |
-          tox
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python setup.py install
+        pip install --quiet coverage coveralls
+    - name: Run tests
+      run: make coverage
+    # - name: Upload Coverage
+    #   run: coveralls
+
