@@ -1,12 +1,16 @@
-Welcome to ladybug-pandas's documentation!
-===================================
+Welcome to datacube-ows's documentation!
+======================================
+
+Contents:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-.. include:: modules.rst
-
+   readme
+   installation
+   usage
+   contributing
+   history
 
 Indices and tables
 ==================

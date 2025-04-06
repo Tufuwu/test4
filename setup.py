@@ -1,33 +1,71 @@
-import re
-import setuptools
-import sys
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+from setuptools import setup, find_packages
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
 
-setuptools.setup(
-    name="ladybug-pandas",
-    use_scm_version = True,
-    setup_requires=['setuptools_scm'],
-    author="Ladybug Tools",
-    author_email="info@ladybug.tools",
-    description="A ladybug extension powered by pandas",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/ladybug-tools/ladybug-pandas",
-    packages=setuptools.find_packages(exclude=["tests"]),
-    install_requires=requirements,
-    extras_require={
-        'arrow': ['pyarrow']
+with open('HISTORY.rst') as history_file:
+    history = history_file.read()
+
+requirements = [
+    'datacube',
+    'Flask',
+    'flask_log_request_id',
+    'requests',
+    'affine',
+    'click',
+    'colour',
+    'lxml',
+    'matplotlib',
+    'numpy',
+    'opencensus',
+    'Pillow',
+    'prometheus_client',
+    'psycopg2',
+    'python_dateutil',
+    'pytz',
+    'rasterio',
+    'regex',
+    'scikit-image',
+    'timezonefinderL',
+    'python-slugify',
+    'xarray'
+]
+
+test_requirements = [
+    # TODO: put package test requirements here
+    'pytest', 'pytest-cov', 'pytest_localserver', 'owslib', 'mock', 'pep8', 'pylint==1.6.4',
+]
+
+setup(
+    name='datacube_ows',
+    version='0.2.0',
+    description="Datacube Open Web Services",
+    long_description=readme + '\n\n' + history,
+    author="Open Data Cube",
+    author_email='earth.observation@ga.gov.au',
+    url='https://github.com/opendatacube/datacube-wms',
+    entry_points={
+        'console_scripts': [
+            'datacube-ows=datacube_ows.wsgi:main',
+            'datacube-ows-update=datacube_ows.update_ranges:main'
+        ]
     },
+    packages=find_packages(),
+    include_package_data=True,
+    install_requires=requirements,
+    license="Apache Software License 2.0",
+    zip_safe=False,
+    keywords='datacube, wms, wcs',
     classifiers=[
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
-        "Operating System :: OS Independent"
+        'Development Status :: 2 - Pre-Alpha',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Natural Language :: English',
+        'Programming Language :: Python :: 3.5',
     ],
-    license="AGPL-3.0"
+    test_suite='tests',
+    tests_require=test_requirements
 )
