@@ -1,31 +1,32 @@
-name: Tests
-
-on:
-  pull_request:
-  push:
-    branches: [main, main]
+name: ci
+on: [push, workflow_dispatch]
 
 jobs:
-  test:
+  job:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ["3.9"]
-
-    name: Python ${{ matrix.python }} Test
-
     steps:
-      - name: Checkout
+      - name: Check out repository code
         uses: actions/checkout@v2
 
-      - name: Setup Python
+      - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python }}
+          python-version: 3.9
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run test suite
-        run: python setup.py test
+      - name: Test
+        run: tests/run_tests.sh
+        shell: bash
+        env:
+          LI_AT_COOKIE: ${{ secrets.LI_AT_COOKIE }}
+
+      - name: Build distribution
+        run: python setup.py install_egg_info sdist bdist_wheel
+
+      - name: Deploy to PyPi
+        uses: pypa/gh-action-pypi-publish@main
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_DEPLOY_TOKEN }}
