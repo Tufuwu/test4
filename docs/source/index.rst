@@ -1,100 +1,89 @@
-.. Django Oscar API documentation master file, created by
-   sphinx-quickstart on Wed Dec 23 16:04:47 2015.
+.. fbpic documentation main file, created by
+   sphinx-quickstart on Sun Sep 11 12:04:39 2016.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
-================
-Django Oscar API
-================
-This package provides a RESTful API for `django-oscar`_, it's based on `django-rest-framework`_ and it exposes most of Oscar's functionality. You can find `the source code`_ on GitHub. If you have any questions or problems using Oscar API, please use the Github issuetracker.
+FBPIC documentation
+======================================================
 
-.. _`django-oscar`: https://github.com/django-oscar/django-oscar
-.. _`django-rest-framework`: http://www.django-rest-framework.org
-.. _`the source code`: https://github.com/django-oscar/django-oscar-api
+FBPIC (Fourier-Bessel Particle-In-Cell) is a `Particle-In-Cell (PIC)
+code <http://en.wikipedia.org/wiki/Particle-in-cell>`_ for
+relativistic plasma
+physics. It is especially well-suited for physical simulations of **laser-wakefield acceleration** and **plasma-wakefield acceleration**.
 
+The distinctive feature of FBPIC, compared to *most* other PIC codes, is to use
+a **spectral cylindrical representation.** This makes the code both **fast**
+and **accurate**, for situations with **close-to-cylindrical
+symmetry**. For a brief overview of the
+algorithm, its advantages and limitations, see the section :doc:`overview/overview`.
 
-Requirements:
--------------
-- Python 3.6 / 3.7 / 3.8
-- Oscar >= 2.1
-- Django 2.2 / 3.0
-- Django REST Framework >= 3.9
+In addition, FBPIC implements several **useful features for laser-plasma acceleration**, including:
 
-See `Travis`_ for the current tested platforms.
-
-.. _`travis`: https://travis-ci.org/django-oscar/django-oscar-api
-
-
-.. _django-oscar-api-installation:
-
-Installation
-------------
-Please see the installation instructions of `Oscar`_ to install Oscar and how to create your own project. Then you can install Oscar API by simply typing:
-
-.. _`Oscar`: https://django-oscar.readthedocs.io
-
-.. code-block:: bash
-
-    $ pip install django-oscar-api
-
-Or you could add ``django-oscar-api`` to your project dependencies.
-
-.. note::
-
-    If you would like to install the current development version, use this:
-
-    .. code-block:: bash
-
-        $ pip install git+https://github.com/django-oscar/django-oscar-api.git
+    * Moving window
+    * Calculation of **space-charge fields** at the beginning of the simulation
+    * Intrinsic **mitigation of Numerical Cherenkov Radiation** (NCR) from relativistic bunches
+    * **Field ionization** module (ADK model)
+    * Support for **boosted-frame simulations** (see :doc:`advanced/boosted_frame`)
 
 
-Use out-of-the-box
-------------------
+FBPIC can run on **multi-core CPU** (with multi-threading) or **GPU**. For large
+simulations, running the code on GPU can be much faster than on CPU.
 
-You can use the oscarapi application in an django-oscar E-ccmmerce site without any customization. See for more information: :doc:`/topics/outofthebox`
+Contents of the documentation
+-----------------------------
 
+If you are new to FBPIC, we **strongly recommend** that you read the
+section :doc:`overview/overview` first, so as to have a basic understanding of
+what the code does.
 
-.. _django-oscar-sandbox:
-
-Play around with the sandbox
-----------------------------
-You can also install Oscar API from source and run the sandbox site to play around a bit. Make sure to create a virtualenv first.
-
-.. code-block:: bash
-
-    $ mkvirtualenv oscarapi
-    $ git clone https://github.com/django-oscar/django-oscar-api.git
-    $ cd django-oscar-api
-    $ make sandbox
-
-    # run the server
-    $ python sandbox/manage.py runserver
-
-Now you can browse the API at http://localhost:8000/api. Here you can actually use the API already (a cool feature of `django-rest-framework`_) by using your browser and test which JSON formats you can send/receive.
-
-
-But I want to customise the standard serializers / views!
----------------------------------------------------------
-
-Probably you want this, because you already extended or changed django-oscar's functionality by forking it's apps right? See :doc:`/topics/customizing_oscarapi` for this.
-
+You can then see the section :doc:`install/installation` and
+:doc:`how_to_run`, to get started with using FBPIC. For more
+information, the section :doc:`api_reference/api_reference` lists the main objects
+that are accessible through FBPIC.
 
 .. toctree::
-   :hidden:
    :maxdepth: 1
 
-   topics/outofthebox
-   topics/communicate_with_the_api
-   topics/customizing_oscarapi
-   topics/the_admin_api
-   topics/middleware
-   topics/settings
-   topics/permissions
-   topics/signals
-   changelog.rst
+   overview/overview
+   install/installation
+   how_to_run
+   api_reference/api_reference
+   advanced/advanced
 
-.. Indices and tables
-.. ==================
+Contributing to FBPIC
+---------------------
 
-.. * :ref:`genindex`
-.. * :ref:`modindex`
-.. * :ref:`search`
+FBPIC is open-source, and the source code is hosted `here <http://github.com/fbpic/fbpic>`_, on
+Github.
 
+We welcome contributions to the code! If you wish to contribute,
+please read `this page <https://github.com/fbpic/fbpic/blob/main/CONTRIBUTING.md>`_ .
+
+Research & Attribution
+----------------------
+
+FBPIC was originally developed by Remi Lehe at `Berkeley Lab <http://www.lbl.gov/>`_,
+and Manuel Kirchen at
+`CFEL, Hamburg University <http://lux.cfel.de/>`_. The code also
+benefitted from the contributions of Soeren Jalas (CFEL), Kevin Peters (CFEL),
+Irene Dornmair (CFEL), Laurids Jeppe (CFEL), Igor Andriyash (Laboratoire d’Optique Appliquée),
+Omri Seemann (Weizmann Institute), Daniel Seipt (University of Michigan)
+and Samuel Yoffe (University of Strathclyde).
+
+FBPIC's algorithms are documented in following scientific publications:
+
+    * General description of FBPIC and it's algorithm (original paper):
+      `R. Lehe et al., CPC, 2016 <http://www.sciencedirect.com/science/article/pii/S0010465516300224>`_ (`arXiv <https://arxiv.org/abs/1507.04790>`__)
+    * Boosted-frame technique with Galilean algorithm:
+      `M. Kirchen et al., PoP, 2016 <https://aip.scitation.org/doi/10.1063/1.4964770>`_ (`arXiv <https://arxiv.org/abs/1608.00215>`__) and
+      `R. Lehe et al., PRE, 2016 <https://journals.aps.org/pre/abstract/10.1103/PhysRevE.94.053305>`_ (`arXiv <https://arxiv.org/abs/1608.00227>`__)
+    * Parallel finite-order solver for multi-CPU/GPU simulations:
+      `S. Jalas et al., PoP, 2017 <https://aip.scitation.org/doi/abs/10.1063/1.4978569>`_ (`arXiv <https://arxiv.org/abs/1611.05712>`__)
+    * Parallel finite-order boosted-frame simulations for multi-CPU/GPU simulations:
+      `M. Kirchen et al., PRE, 2020 <https://journals.aps.org/pre/abstract/10.1103/PhysRevE.102.013202>`_
+
+If you use FBPIC for your research project: that's great! We are
+very pleased that the code is useful to you!
+
+If your project even leads to a scientific publication, please consider citing at least FBPIC's original paper.
+If your project uses the more advanced algorithms, please consider citing the respective publications in addition.

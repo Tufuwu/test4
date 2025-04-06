@@ -1,61 +1,56 @@
-from setuptools import find_packages, setup
+#!/bin/env python
 
-__version__ = "2.1.1"
+# Copyright 2016, FBPIC contributors
+# Authors: Remi Lehe, Manuel Kirchen, Kevin Peters, Soeren Jalas
+# License: 3-Clause-BSD-LBNL
+import sys
+from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
+import fbpic # In order to extract the version number
+
+# Obtain the long description from README.md
+with open('./README.md') as f:
+    long_description = f.read()
+# Get the package requirements from the requirements.txt file
+with open('requirements.txt') as f:
+    install_requires = [ line.strip('\n') for line in f.readlines() ]
+
+# Define a custom class to run the py.test with `python setup.py test`
+class PyTest(TestCommand):
+
+    def run_tests(self):
+        import pytest
+        errcode = pytest.main(['--ignore=tests/unautomated', '--durations=10'])
+        sys.exit(errcode)
 
 setup(
-    # package name in pypi
-    name="django-oscar-api",
-    # extract version from module.
-    version=__version__,
-    description="REST API module for django-oscar",
-    long_description=open("README.rst").read(),
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Environment :: Web Environment",
-        "Framework :: Django",
-        "Framework :: Django :: 2.2",
-        "Framework :: Django :: 3.0",
-        "Framework :: Django :: 3.1",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
-        "Operating System :: Unix",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Topic :: Software Development :: Libraries :: Application Frameworks",
-    ],
-    python_requires=">=3.6",
-    keywords="",
-    author="Lars van de Kerkhof, Martijn Jacobs",
-    author_email="lars@permanentmarkers.nl, martijn@devopsconsulting.nl",
-    url="https://github.com/django-oscar/django-oscar-api",
-    license="BSD",
-    packages=find_packages(
-        exclude=[
-            "*tests.unit",
-            "*tests.serializers*",
-            "*tests.doctests*",
-            "*fixtures",
-            "*fixtures*",
-            "*sandbox*",
-        ]
-    ),
-    # include non python files
-    include_package_data=True,
-    zip_safe=False,
-    # specify dependencies
-    install_requires=[
-        "setuptools",
-        "django-oscar>=3.0",
-        "Django>=2.2.13",  # CVE-2020-9402
-        "djangorestframework>=3.9",  # first version to support Django 2.2
-    ],
-    # mark test target to require extras.
-    extras_require={
-        "dev": ["coverage", "mock", "twine", "wheel", "easy_thumbnails"],
-        "lint": ["flake8", "flake8-black", "flake8-bugbear", "black>=19.10b0"],
+    name='fbpic',
+    version=fbpic.__version__,
+    description='Spectral, quasi-3D Particle-In-Cell for CPU and GPU',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    maintainer='Remi Lehe',
+    maintainer_email='remi.lehe@normalesup.org',
+    license='BSD-3-Clause-LBNL',
+    packages=find_packages('.'),
+    tests_require=['more-itertools<6.0.0', 'pytest', 'openpmd_viewer'],
+    cmdclass={'test': PyTest},
+    install_requires=install_requires,
+    extras_require = {
+        'picmi':  ["picmistandard", "numexpr", "periodictable"],
     },
-)
+    include_package_data=True,
+    platforms='any',
+    url='http://github.com/fbpic/fbpic',
+    classifiers=[
+        'Programming Language :: Python',
+        'Development Status :: 3 - Alpha',
+        'Natural Language :: English',
+        'Environment :: Console',
+        'Intended Audience :: Science/Research',
+        'Operating System :: OS Independent',
+        'Topic :: Scientific/Engineering :: Physics',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5'],
+    )
