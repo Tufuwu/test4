@@ -1,62 +1,69 @@
-#!/usr/bin/env python3
+import os
+from setuptools import setup, Command
 
-try:
-    from setuptools import setup, Command
-except ImportError:
-    from distutils.core import setup, Command
+with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
+    README = readme.read()
 
-
-def readme():
-    with open('README.rst') as f:
-        return f.read()
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 
-def get_version(short=False):
-    with open('README.rst') as f:
-        for line in f:
-            if ':Version:' in line:
-                ver = line.split(':')[2].strip()
-                if short:
-                    subver = ver.split('.')
-                    return '%s.%s' % tuple(subver[:2])
-                else:
-                    return ver
+class PyTest(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import subprocess
+        import sys
+
+        errno = subprocess.call([sys.executable, 'runtests.py'])
+        raise SystemExit(errno)
 
 
-setup(name='fgivenx',
-      version=get_version(),
-      description='fgivenx: Functional Posterior Plotter',
-      long_description=readme(),
-      author='Will Handley',
-      author_email='wh260@cam.ac.uk',
-      url='https://github.com/williamjameshandley/fgivenx',
-      packages=['fgivenx', 'fgivenx.test'],
-      install_requires=['matplotlib', 'numpy', 'scipy'],
-      setup_requires=['pytest-runner'],
-      extras_require={
-          'docs': ['sphinx', 'sphinx_rtd_theme', 'numpydoc'],
-          'parallel': ['joblib'],
-          'progress_bar': ['tqdm'],
-          'getdist_chains': ['getdist']
-          },
-      tests_require=['pytest', 'pytest-mpl'],
-      include_package_data=True,
-      license='MIT',
-      classifiers=[
-                   'Development Status :: 5 - Production/Stable',
-                   'Intended Audience :: Developers',
-                   'Intended Audience :: Science/Research',
-                   'Natural Language :: English',
-                   'License :: OSI Approved :: MIT License',
-                   'Programming Language :: Python :: 2.7',
-                   'Programming Language :: Python :: 3.4',
-                   'Programming Language :: Python :: 3.5',
-                   'Programming Language :: Python :: 3.6',
-                   'Topic :: Scientific/Engineering',
-                   'Topic :: Scientific/Engineering :: Astronomy',
-                   'Topic :: Scientific/Engineering :: Physics',
-                   'Topic :: Scientific/Engineering :: Visualization',
-                   'Topic :: Scientific/Engineering :: Information Analysis',
-                   'Topic :: Scientific/Engineering :: Mathematics',
-      ],
-      )
+setup(
+    name='django-q',
+    version='1.3.4',
+    author='Ilan Steemers',
+    author_email='koed00@gmail.com',
+    keywords='django multiprocessing worker scheduler queue',
+    packages=['django_q'],
+    include_package_data=True,
+    url='https://django-q.readthedocs.org',
+    license='MIT',
+    description='A multiprocessing distributed task queue for Django',
+    long_description=README,
+    install_requires=['django>=2.2', 'django-picklefield', 'blessed', 'arrow'],
+    test_requires=['pytest', 'pytest-django', ],
+    cmdclass={'test': PyTest},
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Web Environment',
+        'Framework :: Django',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: POSIX',
+        'Operating System :: MacOS',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: System :: Distributed Computing',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ],
+    entry_points={
+        'djangoq.errorreporters': [
+            'rollbar = django_q_rollbar:Rollbar',
+            'sentry = django_q_sentry:Sentry',
+        ]
+    },
+    extras_require={
+        'rollbar': ["django-q-rollbar>=0.1"],
+        'sentry': ["django-q-sentry>=0.1"],
+    }
+)

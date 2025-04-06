@@ -1,320 +1,259 @@
-=====================================
-fgivenx: Functional Posterior Plotter  
-=====================================
-:fgivenx:  Functional Posterior Plotter 
-:Author: Will Handley
-:Version: 2.2.2
-:Homepage: https://github.com/williamjameshandley/fgivenx
-:Documentation: http://fgivenx.readthedocs.io/
+.. image:: docs/_static/logo.png
+    :align: center
+    :alt: Q logo
+    :target: https://django-q.readthedocs.org/
 
-.. image:: https://github.com/williamjameshandley/fgivenx/workflows/CI/badge.svg?branch=master
-   :target: https://github.com/williamjameshandley/fgivenx/actions?query=workflow%3ACI+branch%3Amaster
-   :alt: Build Status
-.. image:: https://codecov.io/gh/williamjameshandley/fgivenx/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/williamjameshandley/fgivenx
-   :alt: Test Coverage Status
-.. image:: https://badge.fury.io/py/fgivenx.svg
-   :target: https://badge.fury.io/py/fgivenx
-   :alt: PyPi location
-.. image:: https://readthedocs.org/projects/fgivenx/badge/?version=latest
-   :target: https://fgivenx.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
-.. image:: http://joss.theoj.org/papers/cf6f8ac309d6a18b6d6cf08b64aa3f62/status.svg
-   :target: http://joss.theoj.org/papers/cf6f8ac309d6a18b6d6cf08b64aa3f62
-   :alt: Review Status
-.. image:: https://zenodo.org/badge/100947684.svg
-   :target: https://zenodo.org/badge/latestdoi/100947684
-   :alt: Permanent DOI
-.. image:: https://img.shields.io/badge/arXiv-1908.01711-b31b1b.svg
-   :target: https://arxiv.org/abs/1908.01711
-   :alt: Open-access paper
+A multiprocessing distributed task queue for Django
+---------------------------------------------------
 
-Description
-===========
+|image0| |image1| |docs| |image2|
 
-``fgivenx`` is a python package for plotting posteriors of functions. It is
-currently used in astronomy, but will be of use to any scientists performing
-Bayesian analyses which have predictive posteriors that are functions.
+Features
+~~~~~~~~
 
-This package allows one to plot a predictive posterior of a function,
-dependent on sampled parameters. We assume one has a Bayesian posterior
-``Post(theta|D,M)`` described by a set of posterior samples ``{theta_i}~Post``.
-If there is a function parameterised by theta ``y=f(x;theta)``, then this script
-will produce a contour plot of the conditional posterior ``P(y|x,D,M)`` in the
-``(x,y)`` plane.
+-  Multiprocessing worker pool
+-  Asynchronous tasks
+-  Scheduled, cron and repeated tasks
+-  Signed and compressed packages
+-  Failure and success database or cache
+-  Result hooks, groups and chains
+-  Django Admin integration
+-  PaaS compatible with multiple instances
+-  Multi cluster monitor
+-  Redis, Disque, IronMQ, SQS, MongoDB or ORM
+-  Rollbar and Sentry support
 
-The driving routines are ``fgivenx.plot_contours``, ``fgivenx.plot_lines`` and
-``fgivenx.plot_dkl``. The code is compatible with getdist, and has a loading function
-provided by ``fgivenx.samples_from_getdist_chains``.
+Requirements
+~~~~~~~~~~~~
 
-|image0|
+-  `Django <https://www.djangoproject.com>`__ > = 2.2
+-  `Django-picklefield <https://github.com/gintas/django-picklefield>`__
+-  `Arrow <https://github.com/crsmithdev/arrow>`__
+-  `Blessed <https://github.com/jquast/blessed>`__
 
-Getting Started
-===============
+Tested with: Python 3.7, 3.8 Django 2.2.X and 3.1.X
 
-Users can install using pip:
+.. warning:: Since Python 3.7 `async` became a reserved keyword and was refactored to `async_task`
 
-.. code:: bash
+Brokers
+~~~~~~~
+- `Redis <https://django-q.readthedocs.org/en/latest/brokers.html#redis>`__
+- `Disque <https://django-q.readthedocs.org/en/latest/brokers.html#disque>`__
+- `IronMQ <https://django-q.readthedocs.org/en/latest/brokers.html#ironmq>`__
+- `Amazon SQS <https://django-q.readthedocs.org/en/latest/brokers.html#amazon-sqs>`__
+- `MongoDB <https://django-q.readthedocs.org/en/latest/brokers.html#mongodb>`__
+- `Django ORM <https://django-q.readthedocs.org/en/latest/brokers.html#django-orm>`__
 
-   pip install fgivenx
+Installation
+~~~~~~~~~~~~
 
-from source:
+-  Install the latest version with pip::
 
-.. code:: bash
-
-   git clone https://github.com/williamjameshandley/fgivenx
-   cd fgivenx
-   python setup.py install --user
-
-or for those on `Arch linux <https://www.archlinux.org/>`__ it is
-available on the
-`AUR <https://aur.archlinux.org/packages/python-fgivenx/>`__
-
-You can check that things are working by running the test suite (You may
-encounter warnings if the optional dependency ``joblib`` is not installed):
-
-.. code:: bash
-
-   pip install pytest pytest-runner pytest-mpl
-   export MPLBACKEND=Agg
-   pytest <fgivenx-install-location>
-
-   # or, equivalently
-   git clone https://github.com/williamjameshandley/fgivenx
-   cd fgivenx
-   python setup.py test
-
-Check the dependencies listed in the next section are installed. You can then use the
-``fgivenx`` module from your scripts.
-
-Some users of OSX or `Anaconda <https://en.wikipedia.org/wiki/Anaconda_(Python_distribution)>`__ may find ``QueueManagerThread`` errors if `Pillow <https://pypi.org/project/Pillow/>`__ is not installed (run ``pip install pillow``).
-
-If you want to use parallelisation, have progress bars or getdist compatibility
-you should install the additional optional dependencies:
-
-.. code:: bash
-
-   pip install joblib tqdm getdist
-   # or, equivalently
-   pip install -r  requirements.txt
-
-You may encounter warnings if you don't have the optional dependency ``joblib``
-installed.
-
-Dependencies
-=============
-Basic requirements:
-
-* Python 2.7+ or 3.4+
-* `matplotlib <https://pypi.org/project/matplotlib/>`__
-* `numpy <https://pypi.org/project/numpy/>`__
-* `scipy <https://pypi.org/project/scipy/>`__
-
-Documentation:
-
-* `sphinx <https://pypi.org/project/Sphinx/>`__
-* `numpydoc <https://pypi.org/project/numpydoc/>`__
-
-Tests:
-
-* `pytest <https://pypi.org/project/pytest/>`__
-* `pytest-mpl <https://pypi.org/project/pytest-mpl/>`__
-
-Optional extras:
-
-* `joblib <https://pypi.org/project/joblib/>`__ (parallelisation) [`+ pillow <https://pypi.org/project/Pillow/>`__ on some systems]
-* `tqdm <https://pypi.org/project/tqdm/>`__ (progress bars)
-* `getdist <https://pypi.org/project/GetDist/>`__ (reading of getdist compatible files)
+    $ pip install django-q
 
 
-Documentation
-=============
+-  Add `django_q` to your `INSTALLED_APPS` in your projects `settings.py`::
 
-Full Documentation is hosted at
-`ReadTheDocs <http://fgivenx.readthedocs.io/>`__.
-To build your own local copy of the documentation you'll need to install
-`sphinx <https://pypi.org/project/Sphinx/>`__. You can then run:
+       INSTALLED_APPS = (
+           # other apps
+           'django_q',
+       )
 
-.. code:: bash
+-  Run Django migrations to create the database tables::
 
-   cd docs
-   make html
+    $ python manage.py migrate
 
-Citation
-========
+-  Choose a message `broker <https://django-q.readthedocs.org/en/latest/brokers.html>`__ , configure and install the appropriate client library.
 
-If you use ``fgivenx`` to generate plots for a publication, please cite
-as: ::
-
-   Handley, (2018). fgivenx: A Python package for functional posterior
-   plotting . Journal of Open Source Software, 3(28), 849,
-   https://doi.org/10.21105/joss.00849
-
-or using the BibTeX:
-
-.. code:: bibtex
-
-   @article{fgivenx,
-       doi = {10.21105/joss.00849},
-       url = {http://dx.doi.org/10.21105/joss.00849},
-       year  = {2018},
-       month = {Aug},
-       publisher = {The Open Journal},
-       volume = {3},
-       number = {28},
-       author = {Will Handley},
-       title = {fgivenx: Functional Posterior Plotter},
-       journal = {The Journal of Open Source Software}
-   }
-
-Example Usage
-=============
+Read the full documentation at `https://django-q.readthedocs.org <https://django-q.readthedocs.org>`__
 
 
+Configuration
+~~~~~~~~~~~~~
 
-Plot user-generated samples
----------------------------
+All configuration settings are optional. e.g:
 
 .. code:: python
 
-    import numpy
-    import matplotlib.pyplot as plt
-    from fgivenx import plot_contours, plot_lines, plot_dkl
+    # settings.py example
+    Q_CLUSTER = {
+        'name': 'myproject',
+        'workers': 8,
+        'recycle': 500,
+        'timeout': 60,
+        'compress': True,
+        'cpu_affinity': 1,
+        'save_limit': 250,
+        'queue_limit': 500,
+        'label': 'Django Q',
+        'redis': {
+            'host': '127.0.0.1',
+            'port': 6379,
+            'db': 0, }
+    }
 
+For full configuration options, see the `configuration documentation <https://django-q.readthedocs.org/en/latest/configure.html>`__.
 
-    # Model definitions
-    # =================
-    # Define a simple straight line function, parameters theta=(m,c)
-    def f(x, theta):
-        m, c = theta
-        return m * x + c
+Management Commands
+~~~~~~~~~~~~~~~~~~~
 
+Start a cluster with::
 
-    numpy.random.seed(1)
+    $ python manage.py qcluster
 
-    # Posterior samples
-    nsamples = 1000
-    ms = numpy.random.normal(loc=-5, scale=1, size=nsamples)
-    cs = numpy.random.normal(loc=2, scale=1, size=nsamples)
-    samples = numpy.array([(m, c) for m, c in zip(ms, cs)]).copy()
+Monitor your clusters with::
 
-    # Prior samples
-    ms = numpy.random.normal(loc=0, scale=5, size=nsamples)
-    cs = numpy.random.normal(loc=0, scale=5, size=nsamples)
-    prior_samples = numpy.array([(m, c) for m, c in zip(ms, cs)]).copy()
+    $ python manage.py qmonitor
 
-    # Set the x range to plot on
-    xmin, xmax = -2, 2
-    nx = 100
-    x = numpy.linspace(xmin, xmax, nx)
+Check overall statistics with::
 
-    # Set the cache
-    cache = 'cache/test'
-    prior_cache = cache + '_prior'
+    $ python manage.py qinfo
 
-    # Plotting
-    # ========
-    fig, axes = plt.subplots(2, 2)
+Creating Tasks
+~~~~~~~~~~~~~~
 
-    # Sample plot
-    # -----------
-    ax_samples = axes[0, 0]
-    ax_samples.set_ylabel(r'$c$')
-    ax_samples.set_xlabel(r'$m$')
-    ax_samples.plot(prior_samples.T[0], prior_samples.T[1], 'b.')
-    ax_samples.plot(samples.T[0], samples.T[1], 'r.')
-
-    # Line plot
-    # ---------
-    ax_lines = axes[0, 1]
-    ax_lines.set_ylabel(r'$y = m x + c$')
-    ax_lines.set_xlabel(r'$x$')
-    plot_lines(f, x, prior_samples, ax_lines, color='b', cache=prior_cache)
-    plot_lines(f, x, samples, ax_lines, color='r', cache=cache)
-
-    # Predictive posterior plot
-    # -------------------------
-    ax_fgivenx = axes[1, 1]
-    ax_fgivenx.set_ylabel(r'$P(y|x)$')
-    ax_fgivenx.set_xlabel(r'$x$')
-    cbar = plot_contours(f, x, prior_samples, ax_fgivenx,
-                         colors=plt.cm.Blues_r, lines=False,
-                         cache=prior_cache)
-    cbar = plot_contours(f, x, samples, ax_fgivenx, cache=cache)
-
-    # DKL plot
-    # --------
-    ax_dkl = axes[1, 0]
-    ax_dkl.set_ylabel(r'$D_\mathrm{KL}$')
-    ax_dkl.set_xlabel(r'$x$')
-    ax_dkl.set_ylim(bottom=0, top=2.0)
-    plot_dkl(f, x, samples, prior_samples, ax_dkl,
-             cache=cache, prior_cache=prior_cache)
-
-    ax_lines.get_shared_x_axes().join(ax_lines, ax_fgivenx, ax_samples)
-
-    fig.tight_layout()
-    fig.savefig('plot.png')
-
-|image0|
-
-Plot GetDist chains
--------------------
+Use `async_task` from your code to quickly offload tasks:
 
 .. code:: python
 
-    import numpy
-    import matplotlib.pyplot as plt
-    from fgivenx import plot_contours, samples_from_getdist_chains
+    from django_q.tasks import async_task, result
 
-    file_root = './plik_HM_TT_lowl/base_plikHM_TT_lowl'
-    samples, weights = samples_from_getdist_chains(['logA', 'ns'], file_root)
+    # create the task
+    async_task('math.copysign', 2, -2)
 
-    def PPS(k, theta):
-        logA, ns = theta
-        return logA + (ns - 1) * numpy.log(k)
-        
-    k = numpy.logspace(-4,1,100)
-    cbar = plot_contours(PPS, k, samples, weights=weights)
-    cbar = plt.colorbar(cbar,ticks=[0,1,2,3])
-    cbar.set_ticklabels(['',r'$1\sigma$',r'$2\sigma$',r'$3\sigma$'])
-    
-    plt.xscale('log')
-    plt.ylim(2,4)
-    plt.ylabel(r'$\ln\left(10^{10}\mathcal{P}_\mathcal{R}\right)$')
-    plt.xlabel(r'$k / {\rm Mpc}^{-1}$')
-    plt.tight_layout()
-    plt.savefig('planck.png')
+    # or with a reference
+    import math.copysign
 
-|image1|
+    task_id = async_task(copysign, 2, -2)
 
-Contributing
-============
-Want to contribute to ``fgivenx``? Awesome!
-There are many ways you can contribute via the 
-[GitHub repository](https://github.com/williamjameshandley/fgivenx), 
-see below.
+    # get the result
+    task_result = result(task_id)
 
-Opening issues
---------------
-Open an issue to report bugs or to propose new features.
+    # result returns None if the task has not been executed yet
+    # you can wait for it
+    task_result = result(task_id, 200)
 
-Proposing pull requests
------------------------
-Pull requests are very welcome. Note that if you are going to propose drastic
-changes, be sure to open an issue for discussion first, to make sure that your
-PR will be accepted before you spend effort coding it.
+    # but in most cases you will want to use a hook:
 
-.. |image0| image:: https://raw.githubusercontent.com/williamjameshandley/fgivenx/master/plot.png
-.. |image1| image:: https://raw.githubusercontent.com/williamjameshandley/fgivenx/master/planck.png 
+    async_task('math.modf', 2.5, hook='hooks.print_result')
 
-Changelog
-=========
-:v2.2.0:  Paper accepted
-:v2.1.17: 100% coverage
-:v2.1.16: Tests fixes
-:v2.1.15: Additional plot tests
-:v2.1.13: Further bug fix in test suite for image comparison
-:v2.1.12: Bug fix in test suite for image comparison
-:v2.1.11: Documentation upgrades
-:v2.1.10: Added changelog
+    # hooks.py
+    def print_result(task):
+        print(task.result)
+
+For more info see `Tasks <https://django-q.readthedocs.org/en/latest/tasks.html>`__
+
+
+Schedule
+~~~~~~~~
+
+Schedules are regular Django models. You can manage them through the
+Admin page or directly from your code:
+
+.. code:: python
+
+    # Use the schedule function
+    from django_q.tasks import schedule
+
+    schedule('math.copysign',
+             2, -2,
+             hook='hooks.print_result',
+             schedule_type=Schedule.DAILY)
+
+    # Or create the object directly
+    from django_q.models import Schedule
+
+    Schedule.objects.create(func='math.copysign',
+                            hook='hooks.print_result',
+                            args='2,-2',
+                            schedule_type=Schedule.DAILY
+                            )
+
+    # Run a task every 5 minutes, starting at 6 today
+    # for 2 hours
+    import arrow
+
+    schedule('math.hypot',
+             3, 4,
+             schedule_type=Schedule.MINUTES,
+             minutes=5,
+             repeats=24,
+             next_run=arrow.utcnow().replace(hour=18, minute=0))
+
+    # Use a cron expression
+    schedule('math.hypot',
+             3, 4,
+             schedule_type=Schedule.CRON,
+             cron = '0 22 * * 1-5')
+
+For more info check the `Schedules <https://django-q.readthedocs.org/en/latest/schedules.html>`__ documentation.
+
+
+Testing
+~~~~~~~
+
+To run the tests you will need the following in addition to install requirements:
+
+* `py.test <http://pytest.org/latest/>`__
+* `pytest-django <https://github.com/pytest-dev/pytest-django>`__
+* disque from https://github.com/antirez/disque.git
+* Redis
+* MongoDB
+
+The following commands can be used to run the tests:
+
+.. code:: bash
+
+    # Create virtual environment
+    python -m venv venv
+
+    # Install requirements
+    venv/bin/pip install -r requirements.txt
+
+    # Install test dependencies
+    venv/bin/pip install pytest pytest-django
+
+    # Install django-q
+    venv/bin/python setup.py develop
+
+    # Run required services (you need to have docker-compose installed)
+    docker-compose -f test-services-docker-compose.yaml up -d
+
+    # Run tests
+    venv/bin/pytest
+
+    # Stop the services required by tests (when you no longer plan to run tests)
+    docker-compose -f test-services-docker-compose.yaml down
+
+Locale
+~~~~~~
+
+Currently available in English and French.
+Translation pull requests are always welcome.
+
+Todo
+~~~~
+
+-  Better tests and coverage
+-  Less dependencies?
+
+Acknowledgements
+~~~~~~~~~~~~~~~~
+
+-  Django Q was inspired by working with
+   `Django-RQ <https://github.com/ui/django-rq>`__ and
+   `RQ <https://github.com/ui/django-rq>`__
+-  Human readable hashes by
+   `HumanHash <https://github.com/zacharyvoase/humanhash>`__
+-  Redditors feedback at `r/django <https://www.reddit.com/r/django/>`__
+
+.. |image0| image:: https://github.com/koed00/django-q/workflows/Tests/badge.svg?branche=master
+   :target: https://github.com/Koed00/django-q/actions?query=workflow%3Atests
+.. |image1| image:: http://codecov.io/github/Koed00/django-q/coverage.svg?branch=master
+   :target: http://codecov.io/github/Koed00/django-q?branch=master
+.. |image2| image:: http://badges.gitter.im/Join%20Chat.svg
+   :target: https://gitter.im/Koed00/django-q
+.. |docs| image:: https://readthedocs.org/projects/docs/badge/?version=latest
+    :alt: Documentation Status
+    :scale: 100
+    :target: https://django-q.readthedocs.org/
