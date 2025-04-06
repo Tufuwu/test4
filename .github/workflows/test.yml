@@ -1,62 +1,47 @@
-name: build
+name: test
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
-  workflow_call:
+    branches: [ main ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build and Test Package
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+    
     strategy:
       matrix:
-        version:
-          - '3.8'
-          - '3.9'
-          - '3.10'
-          - '3.11'
-          - '3.12'
-        os: [ubuntu-latest, windows-latest]
-        include:
-          - version: '3.12'
-            os: ubuntu-latest
-            upload: true
-    runs-on: ${{ matrix.os }}
+        os: [ubuntu-latest, ubuntu-latest]
+        python-version: ["3.9"]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.version }}
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install packages
-      run: pip install .
-
-    - name: Run tests
-      run: python -m unittest discover -v
-
-    - name: Build documentation
-      run: |-
-        mkdir html
-        git fetch --all
-        python -I -m sphinx_multiversion -W docs html
-        cp assets/gh-pages-redirect.html html/index.html
-
-    - name: Upload the Docs
-      uses: actions/upload-pages-artifact@v3
-      if: matrix.upload
-      with:
-        path: html/
-
-    - name: Install pypa/build
-      run: pip install build
-
-    - name: Build a binary wheel and a source tarball
-      run: python3 -m build
-
-    - name: Store the distribution packages
-      if: matrix.upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-package-distributions
-        path: dist/
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libboost-all-dev python3-setuptools
+          git clone https://github.com/named-data/ndn-cxx.git && cd ndn-cxx
+          git checkout ndn-cxx-0.7.0
+          sudo ./waf configure && sudo ./waf && sudo ./waf install && cd ..
+          git clone https://github.com/named-data/NFD.git && cd NFD
+          git checkout NFD-0.7.0
+          sudo ./waf configure --without-libpcap --without-websocket && sudo ./waf && sudo ./waf install && cd ..
+          sudo ldconfig
+          ndnsec-key-gen test
+          sudo nfd start -c /usr/local/etc/ndn/nfd.conf.sample &
+          pip3 install pytest
+          pip3 install wheel
+          pip3 install .
+      - name: Run tests
+        run: pytest
