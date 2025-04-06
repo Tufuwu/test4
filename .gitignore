@@ -1,9 +1,16 @@
-# Byte-compiled / optimized / DLL files
+*.egg
+*.egg-info/
+*.pyc
+.cache/
+.coverage
+.eggs/
+.mypy_cache/
+.nox/
+.pytest_cache/
+.tox/
 __pycache__/
-*.py[cod]
-*$py.class
-
-# Distribution / packaging
 build/
 dist/
-*.egg-info/
+docs/.doctrees/
+docs/_build/
+venv/
