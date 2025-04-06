@@ -1,5 +1,29 @@
-include LICENSE README.rst CHANGES.rst AUTHORS
-recursive-include docs *
-recursive-include tests *
-recursive-exclude * *.pyc
-prune docs/_build
+include AUTHORS
+include COPYING
+include ChangeLog
+include INSTALL
+include MANIFEST.in
+include README.cptrace
+include TODO
+include tox.ini
+include SYSCALL_PROTOTYPES.codegen.py
+
+include cptrace/Makefile
+include cptrace/cptrace.c
+include cptrace/version.py
+
+include doc/*.rst doc/conf.py doc/make.bat doc/Makefile
+
+include examples/itrace.py
+include examples/simple_dbg.py
+include pyflakes.sh
+include python3.0.patch
+include setup_cptrace.py
+
+# Tests
+include runtests.py
+include test_doc.py
+include tests/test_*.py
+include tests/crash/*.c
+include tests/crash/BSDmakefile
+include tests/crash/Makefile
