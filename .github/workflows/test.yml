@@ -1,45 +1,28 @@
-name: CI
-
-on: [push]
-
+name: Run Test
+on: [push, pull_request]
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  Test:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python: ["3.9"]
+        python-version: ["3.9"]
+        os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup Python
+      - name: Check out repository code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python }}
-      - name: Install flake8 and Tox
-        run: pip install flake8 tox
-      - name: Lint with flake8
-        run: |
-          flake8 stacks --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 stacks --count --exit-zero --max-complexity=10
-      - name: Run Tox
-        run: tox -e py
-  publish:
-    needs: test
-    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel
+          pip install -r .github/requirements.txt
       - name: Build
-        run: python setup.py sdist bdist_wheel
-      - name: Publish
-        uses: pypa/gh-action-pypi-publish@main
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          python setup.py build
+      - name: Test with pytest
+        run: |
+          export PYTHONPATH=$(pwd)/build/lib
+          python -m pytest tests
