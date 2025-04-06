@@ -1,36 +1,76 @@
-from setuptools import setup, find_packages
+#!/usr/bin/env python
+# coding: utf-8
 
-from pipenv.project import Project
-from pipenv.utils import convert_deps_to_pip
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-pfile = Project(chdir=False).parsed_pipfile
-requirements = convert_deps_to_pip(pfile["packages"], r=False)
-test_requirements = convert_deps_to_pip(pfile["dev-packages"], r=False)
+#-----------------------------------------------------------------------------
+# Minimal Python version sanity check (from IPython/Jupyterhub)
+#-----------------------------------------------------------------------------
 
-setup(
-    name="burnysc2",
-    packages=find_packages(exclude=["examples*", "examples"]),
-    version="4.11.2",
-    description="A StarCraft II API Client for Python 3",
-    license="MIT",
-    author="BurnySc2",
-    author_email="gamingburny@gmail.com",
-    url="https://github.com/Burnysc2/python-sc2",
-    keywords=["StarCraft", "StarCraft 2", "StarCraft II", "AI", "Bot"],
-    setup_requires=["pipenv"],
-    install_requires=requirements,
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Education",
-        "Intended Audience :: Science/Research",
-        "Topic :: Games/Entertainment",
-        "Topic :: Games/Entertainment :: Real Time Strategy",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+from __future__ import print_function
+
+import os
+import sys
+
+from setuptools import setup
+from glob import glob
+
+pjoin = os.path.join
+here = os.path.abspath(os.path.dirname(__file__))
+
+# Get the current package version.
+version_ns = {}
+with open(pjoin(here, 'version.py')) as f:
+    exec(f.read(), {}, version_ns)
+
+with open(pjoin(here, 'README.md'), encoding='utf-8') as f:
+    long_desc = f.read()
+
+setup_args = dict(
+    name                = 'batchspawner',
+    scripts             = glob(pjoin('scripts', '*')),
+    packages            = ['batchspawner'],
+    version             = version_ns['__version__'],
+    description         = """Batchspawner: A spawner for Jupyterhub to spawn notebooks using batch resource managers.""",
+    long_description    = long_desc,
+    long_description_content_type = 'text/markdown',
+    author              = "Michael Milligan, Andrea Zonca, Mike Gilbert",
+    author_email        = "milligan@umn.edu",
+    url                 = "http://jupyter.org",
+    license             = "BSD",
+    platforms           = "Linux, Mac OS X",
+    python_requires     = '~=3.3',
+    keywords            = ['Interactive', 'Interpreter', 'Shell', 'Web', 'Jupyter'],
+    classifiers         = [
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
     ],
+    project_urls        = {
+        'Bug Reports':      'https://github.com/jupyterhub/batchspawner/issues',
+        'Source':           'https://github.com/jupyterhub/batchspawner/',
+        'About Jupyterhub': 'http://jupyterhub.readthedocs.io/en/latest/',
+        'Jupyter Project':  'http://jupyter.org',
+    }
 )
+
+# setuptools requirements
+if 'setuptools' in sys.modules:
+    setup_args['install_requires'] = install_requires = []
+    with open('requirements.txt') as f:
+        for line in f.readlines():
+            req = line.strip()
+            if not req or req.startswith(('-e', '#')):
+                continue
+            install_requires.append(req)
+
+
+def main():
+    setup(**setup_args)
+
+if __name__ == '__main__':
+    main()

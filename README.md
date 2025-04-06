@@ -1,88 +1,201 @@
-[![Build Status](https://travis-ci.com/BurnySc2/python-sc2.svg?branch=develop)](https://travis-ci.com/BurnySc2/python-sc2)
+# batchspawner for Jupyterhub
 
-# A StarCraft II API Client for Python 3
+[![Build Status](https://img.shields.io/travis/com/jupyterhub/batchspawner?logo=travis)](https://travis-ci.com/jupyterhub/batchspawner)
 
-An easy-to-use library for writing AI Bots for StarCraft II in Python 3. The ultimate goal is simplicity and ease of use, while still preserving all functionality. A really simple worker rush bot should be no more than twenty lines of code, not two hundred. However, this library intends to provide both high and low level abstractions.
+This is a custom spawner for [Jupyterhub](https://jupyterhub.readthedocs.io/) that is designed for installations on clusters using batch scheduling software.
 
-**This library (currently) covers only the raw scripted interface.** At this time I don't intend to add support for graphics-based interfaces.
+This began as a generalization of [mkgilbert's batchspawner](https://github.com/mkgilbert/slurmspawner) which in turn was inspired by [Andrea Zonca's blog post](http://zonca.github.io/2015/04/jupyterhub-hpc.html 'Run jupyterhub on a Supercomputer') where he explains his implementation for a spawner that uses SSH and Torque. His github repo is found [here](http://www.github.com/zonca/remotespawner 'RemoteSpawner').
 
-The [documentation can be found here](https://burnysc2.github.io/python-sc2/docs/index.html).
-For bot authors, looking directly at the files in the [sc2 folder](/sc2) can also be of benefit: bot_ai.py, unit.py, units.py, client.py, game_info.py and game_state.py. Most functions in those files have docstrings, example usages and type hinting.
-
-I am planning to change this fork more radically than the main repository, for bot performance benefits and to add functions to help new bot authors. This may break older bots in the future, however I try to add deprecationwarnings to give a heads up notification. This means that the [video tutorial made by sentdex](https://pythonprogramming.net/starcraft-ii-ai-python-sc2-tutorial/) is outdated and does no longer directly work with this fork.
-
-For a list of ongoing changes and differences to the main repository of Dentosal, [check here](https://github.com/BurnySc2/python-sc2/issues/4).
+This package formerly included WrapSpawner and ProfilesSpawner, which provide mechanisms for runtime configuration of spawners.  These have been split out and moved to the [`wrapspawner`](https://github.com/jupyterhub/wrapspawner) package.
 
 ## Installation
+1. from root directory of this repo (where setup.py is), run `pip install -e .`
 
-By installing this library you agree to be bound by the terms of the [AI and Machine Learning License](http://blzdistsc2-a.akamaihd.net/AI_AND_MACHINE_LEARNING_LICENSE.html).
+   If you don't actually need an editable version, you can simply run
+      `pip install batchspawner`
 
-For this fork, you'll need Python 3.7 or newer.
+2. add lines in jupyterhub_config.py for the spawner you intend to use, e.g.
 
-Install the pypi package:
-```
-pip install --upgrade pipenv burnysc2
-```
-or directly from develop branch:
-```
-pip install pipenv
-pip install --upgrade --force-reinstall https://github.com/BurnySc2/python-sc2/archive/develop.zip
-```
-Both commands will use the `sc2` library folder, so you will not be able to have Dentosal's and this fork installed at the same time, unless you use virtual environments or pipenv.
+   ```python
+      c = get_config()
+      c.JupyterHub.spawner_class = 'batchspawner.TorqueSpawner'
+      import batchspawner    # Even though not used, needed to register batchspawner interface
+   ```
+3. Depending on the spawner, additional configuration will likely be needed.
 
-You'll need an StarCraft II executable. If you are running Windows or macOS, just install the normal SC2 from blizzard app. [The free starter edition works too.](https://us.battle.net/account/sc2/starter-edition/). Linux users get the best experience by installing the Windows version of StarCraft II with [Wine](https://www.winehq.org). Linux user can also use the [Linux binary](https://github.com/Blizzard/s2client-proto#downloads), but it's headless so you cannot actually see the game.
+## Batch Spawners
 
-You probably want some maps too. Official map downloads are available from [Blizzard/s2client-proto](https://github.com/Blizzard/s2client-proto#downloads). Notice: the map files are to be extracted into *subdirectories* of the `install-dir/Maps` directory.
-Maps that are run on the [SC2 AI Ladder](http://sc2ai.net/) and [SC2 AI Arena](https://ai-arena.net/) can be downloaded [from the sc2ai wiki](http://wiki.sc2ai.net/Ladder_Maps) and [the ai-arena wiki](https://ai-arena.net/wiki/getting-started/#wiki-toc-maps).
+For information on the specific spawners, see [SPAWNERS.md](SPAWNERS.md).
 
-### Running
+### Overview
 
-After installing the library, a StarCraft II executable, and some maps, you're ready to get started. Simply run a bot file to fire up an instance of StarCraft II with the bot running. For example:
+This file contains an abstraction layer for batch job queueing systems (`BatchSpawnerBase`), and implements
+Jupyterhub spawners for Torque, Moab, SLURM, SGE, HTCondor, LSF, and eventually others.
+Common attributes of batch submission / resource manager environments will include notions of:
+  * queue names, resource manager addresses
+  * resource limits including runtime, number of processes, memory
+  * singleuser child process running on (usually remote) host not known until runtime
+  * job submission and monitoring via resource manager utilities
+  * remote execution via submission of templated scripts
+  * job names instead of PIDs
 
-```
-python3 examples/protoss/cannon_rush.py
-```
+`BatchSpawnerBase` provides several general mechanisms:
+  * configurable traits `req_foo` that are exposed as `{foo}` in job template scripts.  Templates (submit scripts in particular) may also use the full power of [jinja2](http://jinja.pocoo.org/).  Templates are automatically detected if a `{{` or `{%` is present, otherwise str.format() used.
+  * configurable command templates for submitting/querying/cancelling jobs
+  * a generic concept of job-ID and ID-based job state tracking
+  * overrideable hooks for subclasses to plug in logic at numerous points
 
-If you installed StarCraft II on Linux with Wine, set the `SC2PF` environment variable to `WineLinux`:
+### Example
 
-```
-SC2PF=WineLinux python3 examples/protoss/cannon_rush.py
-```
+Every effort has been made to accommodate highly diverse systems through configuration
+only. This example consists of the (lightly edited) configuration used by the author
+to run Jupyter notebooks on an academic supercomputer cluster.
 
-## Example
+   ```python
+   # Select the Torque backend and increase the timeout since batch jobs may take time to start
+   import batchspawner
+   c.JupyterHub.spawner_class = 'batchspawner.TorqueSpawner'
+   c.Spawner.http_timeout = 120
 
-As promised, worker rush in less than twenty lines:
+   #------------------------------------------------------------------------------
+   # BatchSpawnerBase configuration
+   #    These are simply setting parameters used in the job script template below
+   #------------------------------------------------------------------------------
+   c.BatchSpawnerBase.req_nprocs = '2'
+   c.BatchSpawnerBase.req_queue = 'mesabi'
+   c.BatchSpawnerBase.req_host = 'mesabi.xyz.edu'
+   c.BatchSpawnerBase.req_runtime = '12:00:00'
+   c.BatchSpawnerBase.req_memory = '4gb'
+   #------------------------------------------------------------------------------
+   # TorqueSpawner configuration
+   #    The script below is nearly identical to the default template, but we needed
+   #    to add a line for our local environment. For most sites the default templates
+   #    should be a good starting point.
+   #------------------------------------------------------------------------------
+   c.TorqueSpawner.batch_script = '''#!/bin/sh
+   #PBS -q {queue}@{host}
+   #PBS -l walltime={runtime}
+   #PBS -l nodes=1:ppn={nprocs}
+   #PBS -l mem={memory}
+   #PBS -N jupyterhub-singleuser
+   #PBS -v {keepvars}
+   module load python3
+   {cmd}
+   '''
+   # For our site we need to munge the execution hostname returned by qstat
+   c.TorqueSpawner.state_exechost_exp = r'int-\1.mesabi.xyz.edu'
+   ```
 
-```python
-import sc2
-from sc2 import run_game, maps, Race, Difficulty
-from sc2.player import Bot, Computer
+### Security
 
-class WorkerRushBot(sc2.BotAI):
-    async def on_step(self, iteration: int):
-        if iteration == 0:
-            for worker in self.workers:
-                self.do(worker.attack(self.enemy_start_locations[0]))
-
-run_game(maps.get("Abyssal Reef LE"), [
-    Bot(Race.Zerg, WorkerRushBot()),
-    Computer(Race.Protoss, Difficulty.Medium)
-], realtime=True)
-```
-
-This is probably the simplest bot that has any realistic chances of winning the game. I have ran it against the medium AI a few times, and once in a while, it wins.
-
-You can find more examples in the [`examples/`](/examples) folder.
-
-## Community - Help and support
-
-You have questions but don't want to create an issue? Join the [Starcraft 2 AI Discord server](https://discordapp.com/invite/zXHU4wM) or [ai-arena.net Discord server](https://discord.gg/yDBzbtC). Questions about this repository can be asked in text channel #python. There are discussions and questions about SC2 bot programming and this repository every day.
-
-## Bug reports, feature requests and ideas
-
-If you have any issues, ideas or feedback, please create [a new issue](https://github.com/BurnySc2/python-sc2/issues/new). Pull requests are also welcome!
+Unless otherwise stated for a specific spawner, assume that spawners
+*do* evaluate shell environment for users and thus the [security
+requirements of JupyterHub security for untrusted
+users](https://jupyterhub.readthedocs.io/en/stable/reference/websecurity.html)
+are not fulfilled because some (most?) spawners *do* start a user
+shell which will execute arbitrary user environment configuration
+(``.profile``, ``.bashrc`` and the like) unless users do not have
+access to their own cluster user account.  This is something which we
+are working on.
 
 
-## Contributing & style guidelines
+## Provide different configurations of BatchSpawner
 
-Git commit messages use [imperative-style messages](https://stackoverflow.com/a/3580764/2867076), start with capital letter and do not have trailing commas.
+### Overview
+
+`ProfilesSpawner`, available as part of the [`wrapspawner`](https://github.com/jupyterhub/wrapspawner)
+package, allows the Jupyterhub administrator to define a set of different spawning configurations,
+both different spawners and different configurations of the same spawner.
+The user is then presented a dropdown menu for choosing the most suitable configuration for their needs.
+
+This method provides an easy and safe way to provide different configurations of `BatchSpawner` to the
+users, see an example below.
+
+### Example
+
+The following is based on the author's configuration (at the same site as the example above)
+showing how to give users access to multiple job configurations on the batch scheduled
+clusters, as well as an option to run a local notebook directly on the jupyterhub server.
+
+   ```python
+   # Same initial setup as the previous example
+   import batchspawner
+   c.JupyterHub.spawner_class = 'wrapspawner.ProfilesSpawner'
+   c.Spawner.http_timeout = 120
+   #------------------------------------------------------------------------------
+   # BatchSpawnerBase configuration
+   #   Providing default values that we may omit in the profiles
+   #------------------------------------------------------------------------------
+   c.BatchSpawnerBase.req_host = 'mesabi.xyz.edu'
+   c.BatchSpawnerBase.req_runtime = '12:00:00'
+   c.TorqueSpawner.state_exechost_exp = r'in-\1.mesabi.xyz.edu'
+   #------------------------------------------------------------------------------
+   # ProfilesSpawner configuration
+   #------------------------------------------------------------------------------
+   # List of profiles to offer for selection. Signature is:
+   #   List(Tuple( Unicode, Unicode, Type(Spawner), Dict ))
+   # corresponding to profile display name, unique key, Spawner class,
+   # dictionary of spawner config options.
+   #
+   # The first three values will be exposed in the input_template as {display},
+   # {key}, and {type}
+   #
+   c.ProfilesSpawner.profiles = [
+      ( "Local server", 'local', 'jupyterhub.spawner.LocalProcessSpawner', {'ip':'0.0.0.0'} ),
+      ('Mesabi - 2 cores, 4 GB, 8 hours', 'mesabi2c4g12h', 'batchspawner.TorqueSpawner',
+         dict(req_nprocs='2', req_queue='mesabi', req_runtime='8:00:00', req_memory='4gb')),
+      ('Mesabi - 12 cores, 128 GB, 4 hours', 'mesabi128gb', 'batchspawner.TorqueSpawner',
+         dict(req_nprocs='12', req_queue='ram256g', req_runtime='4:00:00', req_memory='125gb')),
+      ('Mesabi - 2 cores, 4 GB, 24 hours', 'mesabi2c4gb24h', 'batchspawner.TorqueSpawner',
+         dict(req_nprocs='2', req_queue='mesabi', req_runtime='24:00:00', req_memory='4gb')),
+      ('Interactive Cluster - 2 cores, 4 GB, 8 hours', 'lab', 'batchspawner.TorqueSpawner',
+         dict(req_nprocs='2', req_host='labhost.xyz.edu', req_queue='lab',
+             req_runtime='8:00:00', req_memory='4gb', state_exechost_exp='')),
+      ]
+   c.ProfilesSpawner.ip = '0.0.0.0'
+   ```
+
+
+## Debugging batchspawner
+
+Sometimes it can be hard to debug batchspawner, but it's not really
+once you know how the pieces interact.  Check the following places for
+error messages:
+
+* Check the JupyterHub logs for errors.
+
+* Check the JupyterHub logs for the batch script that got submitted
+  and the command used to submit it.  Are these correct?  (Note that
+  there are submission environment variables too, which aren't
+  displayed.)
+
+* At this point, it's a matter of checking the batch system.  Is the
+  job ever scheduled?  Does it run?  Does it succeed?  Check the batch
+  system status and output of the job.  The most comon failure
+  patterns are a) job never starting due to bad scheduler options, b)
+  job waiting in the queue beyond the `start_timeout`, causing
+  JupyterHub to kill the job.
+
+* At this point the job starts.  Does it fail immediately, or before
+  Jupyter starts?  Check the scheduler output files (stdout/stderr of
+  the job), wherever it is stored.  To debug the job script, you can
+  add debugging into the batch script, such as an `env` or `set
+  -x`.
+
+* At this point Jupyter itself starts - check its error messages.  Is
+  it starting with the right options?  Can it communicate with the
+  hub?  At this point there usually isn't anything
+  batchspawner-specific, with the one exception below.  The error log
+  would be in the batch script output (same file as above).  There may
+  also be clues in the JupyterHub logfile.
+
+Common problems:
+
+* Did you `import batchspawner` in the `jupyterhub_config.py` file?
+  This is needed in order to activate the batchspawer API in
+  JupyterHub.
+
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
