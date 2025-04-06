@@ -1,25 +1,52 @@
-#!/usr/bin/env python3
+import os
 
-import sys
-try:
-  from setuptools import setup
-except ImportError:
-  from distutils.core import setup
+from setuptools import find_packages, setup
 
-if not sys.version_info[0] == 3:
-    sys.exit("Python 2.x is not supported; Python 3.x is required.")
+import version
 
-########################################
+readme_path = os.path.join(os.path.dirname(__file__), "README.md")
+with open(readme_path, "r") as fp:
+    readme_text = fp.read()
 
-setup(name="gp-saml-gui",
-      version='0.1',
-      description=" Interactively authenticate to GlobalProtect VPNs that require SAML",
-      long_description=open("README.md").read(),
-      author="Daniel Lenski",
-      author_email="dlenski@gmail.com",
-      license='GPL v3 or later',
-      install_requires=list(open("requirements.txt")),
-      url="https://github.com/dlenski/gp-saml-gui",
-      py_modules = ['gp_saml_gui'],
-      entry_points={ 'console_scripts': [ 'gp-saml-gui=gp_saml_gui:main' ] },
-      )
+version_for_setup_py = version.get_project_version("myhoard/version.py")
+version_for_setup_py = ".dev".join(version_for_setup_py.split("-", 2)[:2])
+
+setup(
+    name="myhoard",
+    version=version_for_setup_py,
+    zip_safe=False,
+    packages=find_packages(exclude=["test"]),
+    install_requires=[
+        "cryptography",
+        "pghoard",
+        "PyMySQL",
+    ],
+    extras_require={},
+    dependency_links=[],
+    package_data={},
+    entry_points={
+        "console_scripts": [
+            "myhoard = myhoard.myhoard:main",
+            "myhoard_mysql_env_update = myhoard.update_mysql_environment:main",
+        ],
+    },
+    author="Rauli Ikonen",
+    author_email="rauli@aiven.io",
+    license="Apache 2.0",
+    platforms=["POSIX"],
+    description="MySQL streaming backup service",
+    long_description=readme_text,
+    url="https://github.com/aiven/myhoard/",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: System Administrators",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Database :: Database Engines/Servers",
+        "Topic :: Software Development :: Libraries",
+    ],
+)
