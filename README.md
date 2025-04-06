@@ -1,136 +1,66 @@
-# InfluxAlchemy
+# apiron
 
-[![pytest](https://github.com/amancevice/influxalchemy/workflows/pytest/badge.svg)](https://github.com/amancevice/influxalchemy/actions)
-[![PyPI Version](https://badge.fury.io/py/influxalchemy.svg)](https://badge.fury.io/py/influxalchemy)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/fd0e15a31b2ed8a0ccca/test_coverage)](https://codeclimate.com/github/amancevice/influxalchemy/test_coverage)
-[![Maintainability](https://api.codeclimate.com/v1/badges/fd0e15a31b2ed8a0ccca/maintainability)](https://codeclimate.com/github/amancevice/influxalchemy/maintainability)
+[![PyPI version](https://badge.fury.io/py/apiron.svg)](https://pypi.org/project/apiron/#history)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/apiron.svg)](https://pypi.org/project/apiron/)
+[![Build status](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)](https://github.com/ithaka/apiron/actions)
+[![Documentation Status](https://readthedocs.org/projects/apiron/badge/?version=latest)](https://apiron.readthedocs.io)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](code-of-conduct.md)
 
-Query InfluxDB using SQLAlchemy-style syntax
+`apiron` helps you cook a tasty client for RESTful APIs. Just don't wash it with SOAP.
 
+<img src="https://github.com/ithaka/apiron/raw/dev/docs/_static/cast-iron-skillet.png" alt="Pie in a cast iron skillet" width="200">
 
-## Installation
+Gathering data from multiple services has become a ubiquitous task for web application developers.
+The complexity can grow quickly:
+calling an API endpoint with multiple parameter sets,
+calling multiple API endpoints,
+calling multiple endpoints in multiple APIs.
+While the business logic can get hairy,
+the code to interact with those APIs doesn't have to.
 
-```bash
-pip install influxalchemy
-```
-
-
-## Usage
-
-```python
-import influxdb
-import influxalchemy
-```
-
-
-### Define InfluxAlchemy Measurements
-
-```python
-class Widgets(influxalchemy.Measurement):
-    __measurement__ = 'widgets'
+`apiron` provides declarative, structured configuration of services and endpoints
+with a unified interface for interacting with them.
 
 
-class Wombats(influxalchemy.Measurement):
-    __measurement__ = 'wombats'
-```
+## Defining a service
 
-The class-attribute `__measurement__` can be omitted and will default to the class name if absent.
-
-
-### Open InfluxAlchemy Connection
-
+A service definition requires a domain
+and one or more endpoints with which to interact:
 
 ```python
-db = influxdb.DataFrameClient(database="example")
-flux = influxalchemy.InfluxAlchemy(db)
+from apiron import JsonEndpoint, Service
+
+class GitHub(Service):
+    domain = 'https://api.github.com'
+    user = JsonEndpoint(path='/users/{username}')
+    repo = JsonEndpoint(path='/repos/{org}/{repo}')
 ```
 
 
-## Query InfluxDB
+## Interacting with a service
 
-
-### Query Single Measurement
+Once your service definition is in place, you can interact with its endpoints:
 
 ```python
-# SELECT * FROM widgets;
-flux.query(Widgets)
+response = GitHub.user(username='defunkt')
+# {"name": "Chris Wanstrath", ...}
+
+response = GitHub.repo(org='github', repo='hub')
+# {"description": "hub helps you win at git.", ...}
 ```
 
-
-### Query Ad Hoc Measurement
-
-```python
-# SELECT * from /.*/;
-flux.query(influxalchemy.Measurement.new("/.*/"))
-```
+To learn more about building clients, head over to [the docs](https://apiron.readthedocs.io).
 
 
-### Select Fields of Measurement
+## Contributing
 
-```python
-# SELECT tag1, field2 FROM widgets;
-flux.query(Widgets.tag1, Widgets.field2)
-```
+We are happy to consider contributions via pull request,
+especially if they address an existing bug or vulnerability.
+Please read our [contribution guidelines](./.github/CONTRIBUTING.md) before getting started.
 
+## License
 
-### Query Across Measurements
+This package is available under the MIT license.
+For more information, [view the full license and copyright notice](./LICENSE).
 
-```python
-# SELECT * FROM /widgets|wombats/;
-flux.query(Widgets | Wombats)
-```
-
-
-### Filter Tags
-
-```python
-# SELECT * FROM widgets WHERE tag1 = 'fizz';
-flux.query(Widgets).filter(Widgets.tag1 == "fizz")
-```
-
-
-### Filter Tags with 'like'
-
-```python
-# SELECT * FROM widgets WHERE tag1 =~ /z$/;
-flux.query(Widgets).filter(Widgets.tag1.like("/z$/"))
-```
-
-
-### Chain Filters
-
-```python
-clause1 = Widgets.tag1 == "fizz"
-clause2 = Widgets.tag2 == "buzz"
-
-# SELECT * FROM widgets WHERE tag1 = 'fizz' AND tag2 = 'buzz';
-flux.query(Widgets).filter(clause1 & clause2)
-
-# SELECT * FROM widgets WHERE tag1 = 'fizz' OR tag2 = 'buzz';
-flux.query(Widgets).filter(clause1 | clause2)
-```
-
-
-### Group By
-
-```python
-# SELECT * FROM widgets GROUP BY time(1d);
-flux.query(Widgets).group_by("time(1d)")
-
-# SELECT * FROM widgets GROUP BY tag1;
-flux.query(Widgets).group_by(Widgets.tag1)
-```
-
-
-### Time
-
-```python
-# SELECT * FROM widgets WHERE (time > now() - 7d);
-flux.query(Widgets).filter(Widgets.time > "now() - 7d")
-
-# SELECT * FROM widgets WHERE time >= '2016-01-01' AND time <= now() - 7d;
-d = date(2016, 1, 1)
-flux.query(Widgets).filter(Widgets.time.between(d, "now() - 7d"))
-```
-
-Note that naive datetime object will be assumed in UTC timezone.
+Copyright 2018-2021 Ithaka Harbors, Inc.
