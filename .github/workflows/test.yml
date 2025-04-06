@@ -1,20 +1,43 @@
-name: Test Suite
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Main
 
 on:
-  - pull_request
+  push:
+    branches:
+      - "*"
+      - "*/*"
+  pull_request:
+    branches:
+      - "*"
+      - "*/*"
 
 jobs:
-  tox:
-    name: Tests
-    runs-on: ubuntu-latest
+  job_lint:
+    name: Linting (Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: ["ubuntu-latest"]
+        python-version: ["3.9"]
+
     steps:
-    - name: Check out code
-      uses: actions/checkout@v2
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install Tox
-      run: pip install tox
-    - name: Run tests
-      run: tox
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Do linting
+        run: |
+          mypy -p plugin
+          flake8 plugin
+          black --check .

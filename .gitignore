@@ -1,26 +1,9 @@
-tests_functional/proof/results/*
-.coverage
-.noseids
-charm_tools.egg-info
-dependencies
-tags
-bin
-include
-lib
-local
-man
-/build
-/dist
-.ropeproject/
-.tox/
-*.pyc
-*.sw[nop]
-.venv/
-*.snap
-charm_source.tar.bz2
-parts/
-prime/
-stage/
-snap/*.snapcraft
-VERSION
-docs/_build
+# OS
+.DS_Store
+Desktop.ini
+Thumbs.db
+
+# Python
+*.py[cod]
+.mypy_cache/
+__pycache__/
