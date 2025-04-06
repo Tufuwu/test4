@@ -1,39 +1,81 @@
-help:
-	@echo '    init'
-	@echo '        install pipenv and all project dependencies'
-	@echo '    test'
-	@echo '        run all tests'
+VERSION = $(shell egrep "^VERSION" setup.py | awk '{print $$3}')
+VENV_DIR = tests/.venv
 
-init:
-	@echo 'Install python dependencies'
-	pip install pipenv
-	pip install autopep8
-	pipenv install
-	pipenv shell
-	python setup.py install
+sdist: oz.spec.in
+	python3 setup.py sdist
 
-test:
-	@echo 'Run all tests'
-	nosetests
+oz.spec: sdist
 
-build:
-	python setup.py sdist bdist_wheel
+signed-tarball: sdist
+	gpg --detach-sign --armor -o dist/oz-$(VERSION).tar.gz.sign dist/oz-$(VERSION).tar.gz
 
-test_upload:
-	python -m twine upload -r testpypi dist/*
+signed-rpm: oz.spec
+	rpmbuild -ba oz.spec --sign --define "_sourcedir `pwd`/dist"
 
-upload:
-	python -m twine upload dist/*
+rpm: oz.spec
+	rpmbuild -ba oz.spec --define "_sourcedir `pwd`/dist"
+
+srpm: oz.spec
+	rpmbuild -bs oz.spec --define "_sourcedir `pwd`/dist"
+
+deb:
+	debuild -i -uc -us -b
+
+release: signed-rpm signed-tarball deb
+
+man2html:
+	@for file in oz-install oz-customize oz-generate-icicle oz-cleanup-cache oz-examples; do \
+		echo "Generating $$file HTML page from man" ; \
+		groff -mandoc -mwww man/$$file.? -T html > man/$$file.html ; \
+	done
+
+$(VENV_DIR):
+	@virtualenv --system-site-packages $(VENV_DIR)
+	@pip-python -E $(VENV_DIR) install pytest
+	@[[ "$$PWD" =~ \ |\' ]] && ( \
+	echo "Resolving potential problems where '$$PWD' contains spaces" ; \
+	for MATCH in $$(grep '^#!"/' $(VENV_DIR)/bin/* -l) ; do \
+		sed -i '1s|^#!".*/\([^/]*\)"|#!/usr/bin/env \1|' "$$MATCH" ; \
+	done ) || true
+
+virtualenv: $(VENV_DIR)
+
+unittests:
+	@[ -f $(VENV_DIR)/bin/activate ] && source $(VENV_DIR)/bin/activate ; python3 setup.py test
+	@(type deactivate 2>/dev/null | grep -q 'function') && deactivate || true
+
+tests: unittests
+
+container-unittests-fedora:
+	docker rm -f oz-tests-fedora
+	docker build -f Containerfile.tests.fedora -t oz-tests-fedora-image .
+	docker run --name oz-tests-fedora oz-tests-fedora-image
+	docker cp oz-tests-fedora:/oz/coverage.xml .
+
+container-unittests-el7:
+	docker rm -f oz-tests-el7
+	docker build -f Containerfile.tests.el7 -t oz-tests-el7-image .
+	docker run --name oz-tests-el7 oz-tests-el7-image
+
+container-unittests: container-unittests-fedora container-unittests-el7
+
+test-coverage:
+	python-coverage run --source oz /usr/bin/py.test --verbose tests
+	python-coverage html
+	xdg-open htmlcov/index.html
+
+pylint:
+	pylint oz oz-install oz-customize oz-cleanup-cache oz-generate-icicle
+
+flake8:
+	flake8 oz oz-install oz-customize oz-cleanup-cache oz-generate-icicle
+
+container-clean:
+	docker rm -f oz-tests-fedora
+	docker rm -f oz-tests-el7
+	docker image rm -f -i oz-tests-fedora-image oz-tests-el7-image
 
 clean:
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -type d -name __pycache__ -exec rm -r {} \+
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info
-	rm -rf .tox
-	rm -rf .pytest_cache .coverage
+	rm -rf MANIFEST build dist usr *~ oz.spec *.pyc oz/*~ oz/*.pyc examples/*~ oz/auto/*~ man/*~ docs/*~ man/*.html $(VENV_DIR) tests/tdl/*~ tests/factory/*~ tests/results.xml htmlcov
 
-lint:
-	autopep8 random_word --recursive --in-place --pep8-passes 2000 --verbose
+.PHONY: sdist oz.spec signed-tarball signed-rpm rpm srpm deb release man2html virtualenv unittests container-unittests-fedora container-unittests-el7 container-unittests tests test-coverage pylint clean container-clean
