@@ -1,64 +1,48 @@
-name: Build documentation and deploy to Pages
+name: main
 
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
-
-# Allow one concurrent deployment
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+on: [push, pull_request]
 
 jobs:
-  # Build job
   build:
-    # At a minimum this job should upload artifacts using actions/upload-pages-artifact
-    # Specify runner + deployment step
+
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-          cache: "pip" # caching pip dependencies
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-      - name: Build documentation
-        run: |
-          cd ./documentation/src/
-          ./boxes2rst generators.inc
-          make html #linkcheck
-          cp index.html ../build/
-          cd ../build/ && ls && ls html/
-          cp -r ../../static .
-          rm -rf doctrees
-          touch .nojekyll    
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: ./documentation/build/
+    - uses: actions/checkout@v2
 
-  # Deploy job
-  deploy:
-    # Add a dependency to the build job
-    needs: build
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
 
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
+    - name: Install Poetry
+      run: curl -sSL https://install.python-poetry.org | python3 -
 
-    # Deploy to the github-pages environment
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    - name: Check dependencies
+      run: make doctor
 
-    # Specify runner + deployment step
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+    - uses: actions/cache@v4
+      with:
+        path: .venv
+        key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+
+    - name: Install dependencies
+      run: make install
+
+    - name: Test code
+      run: make test-repeat
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v4
+      with:
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Check code
+      run: make check
+
+    - name: Check documentation
+      run: make mkdocs notebooks
