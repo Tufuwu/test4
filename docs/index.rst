@@ -1,15 +1,17 @@
-.. include:: ../README.rst
+.. msoffcrypto-tool documentation master file, created by
+   sphinx-quickstart on Sun May 13 00:50:02 2018.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
-.. include:: internals.rst
-
-Show me the code
-----------------
-Check the code to see details.
+msoffcrypto-tool
+============================================
 
 .. toctree::
    :maxdepth: 2
-
-   api
+   :caption: Contents:
+    
+   cli
+   msoffcrypto
 
 Indices and tables
 ==================
