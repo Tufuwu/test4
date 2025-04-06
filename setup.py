@@ -1,79 +1,82 @@
-# -*- coding: utf-8 -*-
-u"""
-Copyright 2015 Telefónica Investigación y Desarrollo, S.A.U.
-This file is part of Toolium.
+# Copyright 2019-2020 Canonical Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+"""Setup script for the Operator Framework."""
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
-
-from setuptools import setup
-
-
-def read_file(filepath):
-    with open(filepath) as f:
-        return f.read()
+from importlib.util import spec_from_file_location, module_from_spec
+from pathlib import Path
+from setuptools import setup, find_packages
 
 
-def get_long_description():
-    """Get README content and update rst urls
-
-    :returns: long description
-    """
-    # Get readme content
-    readme = read_file('README.rst')
-
-    # Change rst urls to ReadTheDocs html urls
-    docs_url = 'http://toolium.readthedocs.org/en/latest'
-    description = readme.replace('/CHANGELOG.rst', '{}/changelog.html'.format(docs_url))
-    for doc in ['driver_configuration', 'page_objects', 'bdd_integration', 'visual_testing', 'tests_result_analysis']:
-        description = description.replace('/docs/{}.rst'.format(doc), '{}/{}.html'.format(docs_url, doc))
-    return description
+def _read_me() -> str:
+    """Return the README content from the file."""
+    with open("README.md", "rt", encoding="utf8") as fh:
+        readme = fh.read()
+    return readme
 
 
-setup(
-    name='toolium',
-    version=read_file('VERSION').strip(),
-    packages=['toolium', 'toolium.pageobjects', 'toolium.pageelements', 'toolium.lettuce', 'toolium.behave',
-              'toolium.utils'],
-    package_data={'': ['resources/VisualTestsTemplate.html', 'resources/VisualTests.js', 'resources/VisualTests.css']},
-    install_requires=read_file('requirements.txt').splitlines(),
-    setup_requires=['pytest-runner'],
-    tests_require=read_file('requirements_dev.txt').splitlines(),
-    test_suite='toolium.test',
-    author='Rubén González Alonso, Telefónica I+D',
-    author_email='ruben.gonzalezalonso@telefonica.com',
-    url='https://github.com/telefonica/toolium',
-    description='Wrapper tool of Selenium and Appium libraries to test web and mobile applications in a single project',
-    long_description=get_long_description(),
-    keywords='selenium appium webdriver web_automation mobile_automation page_object visual_testing bdd lettuce behave pytest',
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Other Audience',
-        'License :: OSI Approved :: Apache Software License',
-        'Natural Language :: English',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Software Development :: Quality Assurance',
-        'Topic :: Software Development :: Testing',
-    ],
-    license='Apache 2.0',
-)
+def _get_version() -> str:
+    """Get the version via ops/version.py, without loading ops/__init__.py."""
+    spec = spec_from_file_location('ops.version', 'ops/version.py')
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    return module.version
+
+
+version = _get_version()
+version_path = Path("ops/version.py")
+version_backup = Path("ops/version.py~")
+if version_backup.exists():
+    # unlink(missing_ok=True) is a 3.8-ish
+    version_backup.unlink()
+version_path.rename(version_backup)
+try:
+    with version_path.open("wt", encoding="utf8") as fh:
+        fh.write('''\
+# this is a generated file
+
+version = {!r}
+'''.format(version))
+
+    setup(
+        name="ops",
+        version=version,
+        description="The Python library behind great charms",
+        long_description=_read_me(),
+        long_description_content_type="text/markdown",
+        license="Apache-2.0",
+        url="https://github.com/canonical/operator",
+        author="The Charmcraft team at Canonical Ltd.",
+        author_email="charmcraft@lists.launchpad.net",
+        packages=find_packages(include=('ops', 'ops.*')),
+        classifiers=[
+            "Programming Language :: Python :: 3",
+            "License :: OSI Approved :: Apache Software License",
+            "Development Status :: 4 - Beta",
+
+            "Intended Audience :: Developers",
+            "Intended Audience :: System Administrators",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: POSIX :: Linux",
+            # include Windows once we're running tests there also
+            # "Operating System :: Microsoft :: Windows",
+        ],
+        python_requires='>=3.5',
+        install_requires=["PyYAML"],
+    )
+
+finally:
+    version_path.unlink()
+    version_backup.rename(version_path)

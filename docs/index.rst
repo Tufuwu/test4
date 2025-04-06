@@ -1,39 +1,56 @@
-.. Toolium documentation master file, created by
-   sphinx-quickstart on Mon Mar 31 17:27:40 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
-.. include:: ../README.rst
-    :end-before: Main Features
-
-Main Features
--------------
-
-- :ref:`Choosing driver through a configuration file <driver_configuration>`
-- :ref:`Page Object pattern <page_objects>`
-- :ref:`BDD integration <bdd_integration>`
-- :ref:`Visual testing solution <visual_testing>`
-- :ref:`Tests result analysis <tests_result_analysis>`
-
-Library Reference
------------------
+Welcome to The Operator Framework's documentation!
+==================================================
 
 .. toctree::
-   :hidden:
+   :maxdepth: 2
+   :caption: Contents:
 
-   driver_configuration.rst
-   page_objects.rst
-   bdd_integration.rst
-   visual_testing.rst
-   tests_result_analysis.rst
-   Changelog <changelog.rst>
+ops package
+===========
 
-.. toctree::
-   :maxdepth: 4
+.. automodule:: ops
 
-   toolium.rst
+Submodules
+----------
 
-Indices and Tables
+ops.charm module
+----------------
+
+.. automodule:: ops.charm
+
+ops.framework module
+--------------------
+
+.. automodule:: ops.framework
+
+ops.jujuversion module
+----------------------
+
+.. automodule:: ops.jujuversion
+
+ops.log module
+--------------
+
+.. automodule:: ops.log
+
+ops.main module
+---------------
+
+.. automodule:: ops.main
+
+ops.model module
+----------------
+
+.. automodule:: ops.model
+
+ops.testing module
+------------------
+
+.. automodule:: ops.testing
+
+
+Indices and tables
 ==================
 
 * :ref:`genindex`
