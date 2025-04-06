@@ -1,53 +1,35 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2016-2019 Frederic Guillot
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+#!/usr/bin/env python
+from setuptools import setup, find_packages
 
-from setuptools import setup
+install_requires = ["Django>=2.2", "psycopg2-binary"]
 
-
-def readme():
-    with open('README.rst') as f:
-        return f.read()
+extras_require = {
+    "dev": ["pytest>=3.6", "pytest-cov", "pytest-django", "coveralls", "flake8"]
+}
 
 
 setup(
-    name='kanboard',
-    version='1.1.1',
-    description='Client library for Kanboard API',
-    long_description=readme(),
-    keywords='kanboard api client',
-    url='https://github.com/kanboard/python-api-client',
-    author='Frederic Guillot',
-    author_email='fred@kanboard.net',
-    license='MIT',
-    py_modules=['kanboard'],
-    test_suite='test_kanboard',
+    name="opencivicdata",
+    version="3.2.0",
+    author="James Turk",
+    author_email="james@openstates.org",
+    license="BSD",
+    description="python opencivicdata library",
+    long_description="",
+    url="",
+    packages=find_packages(),
+    include_package_data=True,
+    install_requires=install_requires,
+    extras_require=extras_require,
+    platforms=["any"],
     classifiers=[
-        'Intended Audience :: Developers',
-        'Intended Audience :: Information Technology',
-        'Natural Language :: English',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-    ]
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+    ],
 )
