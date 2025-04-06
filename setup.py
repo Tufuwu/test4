@@ -1,45 +1,29 @@
-from setuptools import setup, find_packages
+#!/usr/bin/env python3
+import sys
+try:
+  from setuptools import setup
+except ImportError:
+  from distutils.core import setup
 
+if sys.version_info < (3,4):
+    sys.exit("Python 3.4+ is required; you are using %s" % sys.version)
 
-setup(
-    name='fingerprints',
-    version='0.6.6',
-    description="A library to generate entity fingerprints.",
-    long_description="",
-    classifiers=[
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-    ],
-    keywords='names people companies normalisation',
-    author='Friedrich Lindenberg',
-    author_email='friedrich@pudo.org',
-    url='http://github.com/alephdata/fingerprints',
-    license='MIT',
-    packages=find_packages(exclude=['ez_setup', 'examples', 'test']),
-    namespace_packages=[],
-    package_data={
-        '': ['fingerprints/data/types.yml']
-    },
-    include_package_data=True,
-    zip_safe=False,
-    test_suite='nose.collector',
-    install_requires=[
-        'normality>=0.4.0',
-        'pyyaml',
-        'six'
-    ],
-    tests_require=[
-        'nose',
-        'coverage',
-        'wheel'
-    ],
-    entry_points={
-    }
-)
+setup(name="aztec_code_generator",
+      version="0.6",
+      description='Aztec Code generator in Python',
+      long_description=open('description.rst').read(),
+      author='Dmitry Alimov',
+      author_email="dvalimov@gmail.com",
+      install_requires=open('requirements.txt').readlines(),
+      extras_require={
+          "Image": [
+              "pillow>=3.0,<6.0; python_version < '3.5'",
+              "pillow>=3.0,<8.0; python_version >= '3.5' and python_version < '3.6'",
+              "pillow>=8.0; python_version >= '3.6'",
+          ]
+      },
+      tests_require=open('requirements-test.txt').readlines(),
+      license='MIT',
+      url="https://github.com/dlenski/aztec_code_generator",
+      py_modules=["aztec_code_generator"],
+      )
