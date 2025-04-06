@@ -1,114 +1,148 @@
-# keep in sync with: https://github.com/kitconcept/buildout/edit/master/Makefile
-# update by running 'make update'
-SHELL := /bin/bash
-CURRENT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+PROJ=amqp
+PGPIDENT="Celery Security Team"
+PYTHON=python
+PYTEST=py.test
+GIT=git
+TOX=tox
+ICONV=iconv
+FLAKE8=flake8
+FLAKEPLUS=flakeplus
+PYDOCSTYLE=pydocstyle
+SPHINX2RST=sphinx2rst
 
-version = 3
+TESTDIR=t
+SPHINX_DIR=docs/
+SPHINX_BUILDDIR="${SPHINX_DIR}/_build"
+README=README.rst
+README_SRC="docs/templates/readme.txt"
+CONTRIBUTING=CONTRIBUTING.rst
+CONTRIBUTING_SRC="docs/contributing.rst"
+SPHINX_HTMLDIR="${SPHINX_BUILDDIR}/html"
+DOCUMENTATION=Documentation
+FLAKEPLUSTARGET=2.7
 
-# We like colors
-# From: https://coderwall.com/p/izxssa/colored-makefile-for-golang-projects
-RED=`tput setaf 1`
-GREEN=`tput setaf 2`
-RESET=`tput sgr0`
-YELLOW=`tput setaf 3`
+all: help
 
-all: .installed.cfg
+help:
+	@echo "docs                 - Build documentation."
+	@echo "test-all             - Run tests for all supported python versions."
+	@echo "distcheck ---------- - Check distribution for problems."
+	@echo "  test               - Run unittests using current python."
+	@echo "  lint ------------  - Check codebase for problems."
+	@echo "    apicheck         - Check API reference coverage."
+	@echo "    readmecheck      - Check README.rst encoding."
+	@echo "    contribcheck     - Check CONTRIBUTING.rst encoding"
+	@echo "    flakes --------  - Check code for syntax and style errors."
+	@echo "      flakecheck     - Run flake8 on the source code."
+	@echo "      flakepluscheck - Run flakeplus on the source code."
+	@echo "      pep257check    - Run pep257 on the source code."
+	@echo "readme               - Regenerate README.rst file."
+	@echo "contrib              - Regenerate CONTRIBUTING.rst file"
+	@echo "clean-dist --------- - Clean all distribution build artifacts."
+	@echo "  clean-git-force    - Remove all uncomitted files."
+	@echo "  clean ------------ - Non-destructive clean"
+	@echo "    clean-pyc        - Remove .pyc/__pycache__ files"
+	@echo "    clean-docs       - Remove documentation build artifacts."
+	@echo "    clean-build      - Remove setup artifacts."
+	@echo "bump                 - Bump patch version number."
+	@echo "bump-minor           - Bump minor version number."
+	@echo "bump-major           - Bump major version number."
+	@echo "release              - Make PyPI release."
 
-# Add the following 'help' target to your Makefile
-# And add help text after each target name starting with '\#\#'
-.PHONY: help
-help: ## This help message
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+clean: clean-docs clean-pyc clean-build
 
-.PHONY: Update Makefile and Buildout
-update: ## Update Make and Buildout
-	wget -O Makefile https://raw.githubusercontent.com/kitconcept/buildout/master/Makefile
-	wget -O requirements.txt https://raw.githubusercontent.com/kitconcept/buildout/master/requirements.txt
-	wget -O plone-4.3.x.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/plone-4.3.x.cfg
-	wget -O plone-5.1.x.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/plone-5.1.x.cfg
-	wget -O plone-5.2.x.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/plone-5.2.x.cfg
-	wget -O ci.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/ci.cfg
-	wget -O versions.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/versions.cfg
+clean-dist: clean clean-git-force
 
-.installed.cfg: bin/buildout *.cfg
-	bin/buildout
+bump:
+	bumpversion patch
 
-bin/buildout: bin/pip
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/pip install black || true
-	@touch -c $@
+bump-minor:
+	bumpversion minor
 
-bin/python bin/pip:
-	python$(version) -m venv . || virtualenv --clear --python=python$(version) .
+bump-major:
+	bumpversion major
 
-py2:
-	virtualenv --clear --python=python2 .
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
+release:
+	python setup.py register sdist bdist_wheel upload --sign --identity="$(PGPIDENT)"
 
-.PHONY: Build Plone 4.3
-build-plone-4.3: py2 ## Build Plone 4.3
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-4.3.x.cfg
+Documentation:
+	(cd "$(SPHINX_DIR)"; $(MAKE) html)
+	mv "$(SPHINX_HTMLDIR)" $(DOCUMENTATION)
 
-.PHONY: Build Plone 5.0
-build-plone-5.0: py2 ## Build Plone 5.0
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-5.0.x.cfg
+docs: Documentation
 
-.PHONY: Build Plone 5.1
-build-plone-5.1: py2  ## Build Plone 5.1
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-5.1.x.cfg
+clean-docs:
+	-rm -rf "$(SPHINX_BUILDDIR)"
 
-.PHONY: Build Plone 5.2
-build-plone-5.2: .installed.cfg  ## Build Plone 5.2
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-5.2.x.cfg
+lint: flakecheck apicheck readmecheck
 
-.PHONY: Build Plone 5.2 Performance
-build-plone-5.2-performance: .installed.cfg  ## Build Plone 5.2
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-5.2.x-performance.cfg
+apicheck:
+	(cd "$(SPHINX_DIR)"; $(MAKE) apicheck)
 
-.PHONY: Test
-test:  ## Test
-	bin/test
+flakecheck:
+	$(FLAKE8) "$(PROJ)" "$(TESTDIR)"
 
-.PHONY: Test Performance
-test-performance:
-	jmeter -n -t performance.jmx -l jmeter.jtl
+flakediag:
+	-$(MAKE) flakecheck
 
-.PHONY: Code Analysis
-code-analysis:  ## Code Analysis
-	bin/code-analysis
-	if [ -f "bin/black" ]; then bin/black src/ --check ; fi
+flakepluscheck:
+	$(FLAKEPLUS) --$(FLAKEPLUSTARGET) "$(PROJ)" "$(TESTDIR)"
 
-.PHONY: Black
-black:  ## Black
-	bin/code-analysis
-	if [ -f "bin/black" ]; then bin/black src/ ; fi
+flakeplusdiag:
+	-$(MAKE) flakepluscheck
 
-.PHONY: Build Docs
-docs:  ## Build Docs
-	bin/sphinxbuilder
+pep257check:
+	$(PYDOCSTYLE) "$(PROJ)"
 
-.PHONY: Test Release
-test-release:  ## Run Pyroma and Check Manifest
-	bin/pyroma -n 10 -d .
+flakes: flakediag flakeplusdiag pep257check
 
-.PHONY: Release
-release:  ## Release
-	bin/fullrelease
+clean-readme:
+	-rm -f $(README)
 
-.PHONY: Clean
-clean:  ## Clean
-	git clean -Xdf
+readmecheck:
+	$(ICONV) -f ascii -t ascii $(README) >/dev/null
 
-.PHONY: all clean
+$(README):
+	$(SPHINX2RST) "$(README_SRC)" --ascii > $@
+
+readme: clean-readme $(README) readmecheck
+
+clean-contrib:
+	-rm -f "$(CONTRIBUTING)"
+
+$(CONTRIBUTING):
+	$(SPHINX2RST) "$(CONTRIBUTING_SRC)" > $@
+
+contrib: clean-contrib $(CONTRIBUTING)
+
+clean-pyc:
+	-find . -type f -a \( -name "*.pyc" -o -name "*$$py.class" \) | xargs rm
+	-find . -type d -name "__pycache__" | xargs rm -r
+
+removepyc: clean-pyc
+
+clean-build:
+	rm -rf build/ dist/ .eggs/ *.egg-info/ .tox/ .coverage cover/
+
+clean-git:
+	$(GIT) clean -xdn
+
+clean-git-force:
+	$(GIT) clean -xdf
+
+test-all: clean-pyc
+	$(TOX)
+
+test:
+	$(PYTHON) setup.py test
+
+cov:
+	(cd $(TESTDIR); $(PYTEST) -xv --cov="$(PROJ)" --cov-report=html)
+	mv $(TESTDIR)/htmlcov .
+
+build:
+	$(PYTHON) setup.py sdist bdist_wheel
+
+distcheck: lint test clean
+
+dist: readme contrib clean-dist build

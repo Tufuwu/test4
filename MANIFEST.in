@@ -1,12 +1,11 @@
-graft src/plone/rest
-include *.rst
-exclude *.cfg
-exclude *.yml
-exclude bootstrap-buildout.py
-exclude Makefile
-exclude requirements.txt
-exclude CODEOWNERS
-global-exclude *.pyc
-include pyproject.toml
-recursive-exclude news *
-exclude news
+include README.rst Changelog LICENSE
+recursive-include docs *
+recursive-include demo *.py
+recursive-include extra README *.py
+recursive-include requirements *.txt
+recursive-include t *.py
+
+recursive-exclude docs/_build *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * .*.sw*

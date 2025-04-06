@@ -1,331 +1,208 @@
-.. image:: https://img.shields.io/coveralls/github/plone/plone.rest.svg
-   :alt: Coveralls github
-   :target: https://coveralls.io/github/plone/plone.restapi
+=====================================================================
+ Python AMQP 0.9.1 client library
+=====================================================================
+
+|build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
+
+:Version: 5.0.5
+:Web: https://amqp.readthedocs.io/
+:Download: https://pypi.org/project/amqp/
+:Source: http://github.com/celery/py-amqp/
+:Keywords: amqp, rabbitmq
+
+About
+=====
+
+This is a fork of amqplib_ which was originally written by Barry Pederson.
+It is maintained by the Celery_ project, and used by `kombu`_ as a pure python
+alternative when `librabbitmq`_ is not available.
+
+This library should be API compatible with `librabbitmq`_.
+
+.. _amqplib: https://pypi.org/project/amqplib/
+.. _Celery: http://celeryproject.org/
+.. _kombu: https://kombu.readthedocs.io/
+.. _librabbitmq: https://pypi.org/project/librabbitmq/
+
+Differences from `amqplib`_
+===========================
+
+- Supports draining events from multiple channels (``Connection.drain_events``)
+- Support for timeouts
+- Channels are restored after channel error, instead of having to close the
+  connection.
+- Support for heartbeats
+
+    - ``Connection.heartbeat_tick(rate=2)`` must called at regular intervals
+      (half of the heartbeat value if rate is 2).
+    - Or some other scheme by using ``Connection.send_heartbeat``.
+- Supports RabbitMQ extensions:
+    - Consumer Cancel Notifications
+        - by default a cancel results in ``ChannelError`` being raised
+        - but not if a ``on_cancel`` callback is passed to ``basic_consume``.
+    - Publisher confirms
+        - ``Channel.confirm_select()`` enables publisher confirms.
+        - ``Channel.events['basic_ack'].append(my_callback)`` adds a callback
+          to be called when a message is confirmed. This callback is then
+          called with the signature ``(delivery_tag, multiple)``.
+    - Exchange-to-exchange bindings: ``exchange_bind`` / ``exchange_unbind``.
+        - ``Channel.confirm_select()`` enables publisher confirms.
+        - ``Channel.events['basic_ack'].append(my_callback)`` adds a callback
+          to be called when a message is confirmed. This callback is then
+          called with the signature ``(delivery_tag, multiple)``.
+    - Authentication Failure Notifications
+        Instead of just closing the connection abruptly on invalid
+        credentials, py-amqp will raise an ``AccessRefused`` error
+        when connected to rabbitmq-server 3.2.0 or greater.
+- Support for ``basic_return``
+- Uses AMQP 0-9-1 instead of 0-8.
+    - ``Channel.access_request`` and ``ticket`` arguments to methods
+      **removed**.
+    - Supports the ``arguments`` argument to ``basic_consume``.
+    - ``internal`` argument to ``exchange_declare`` removed.
+    - ``auto_delete`` argument to ``exchange_declare`` deprecated
+    - ``insist`` argument to ``Connection`` removed.
+    - ``Channel.alerts`` has been removed.
+    - Support for ``Channel.basic_recover_async``.
+    - ``Channel.basic_recover`` deprecated.
+- Exceptions renamed to have idiomatic names:
+    - ``AMQPException`` -> ``AMQPError``
+    - ``AMQPConnectionException`` -> ConnectionError``
+    - ``AMQPChannelException`` -> ChannelError``
+    - ``Connection.known_hosts`` removed.
+    - ``Connection`` no longer supports redirects.
+    - ``exchange`` argument to ``queue_bind`` can now be empty
+      to use the "default exchange".
+- Adds ``Connection.is_alive`` that tries to detect
+  whether the connection can still be used.
+- Adds ``Connection.connection_errors`` and ``.channel_errors``,
+  a list of recoverable errors.
+- Exposes the underlying socket as ``Connection.sock``.
+- Adds ``Channel.no_ack_consumers`` to keep track of consumer tags
+  that set the no_ack flag.
+- Slightly better at error recovery
 
-.. image:: https://landscape.io/github/plone/plone.rest/master/landscape.svg?style=flat
-  :target: https://landscape.io/github/plone/plone.rest/master
-  :alt: Code Health
+Quick overview
+==============
 
-.. image:: https://img.shields.io/pypi/status/plone.rest.svg
-    :target: https://pypi.python.org/pypi/plone.rest/
-    :alt: Egg Status
+Simple producer publishing messages to ``test`` queue using default exchange:
 
-.. image:: https://img.shields.io/pypi/v/plone.rest.svg
-    :target: https://pypi.python.org/pypi/plone.rest/
-    :alt: Latest Version
+.. code:: python
 
-.. image:: https://img.shields.io/pypi/l/plone.rest.svg
-    :target: https://pypi.python.org/pypi/plone.rest/
-    :alt: License
+    import amqp
 
+    with amqp.Connection('broker.example.com') as c:
+        ch = c.channel()
+        ch.basic_publish(amqp.Message('Hello World'), routing_key='test')
 
-==========
-Plone REST
-==========
+Producer publishing to ``test_exchange`` exchange with publisher confirms enabled and using virtual_host ``test_vhost``:
 
-Purpose
--------
+.. code:: python
 
-plone.rest allows you to use HTTP verbs such as GET, POST, PUT, DELETE, etc. in `Plone <https://www.plone.org>`_.
+    import amqp
 
-REST stands for `Representational State Transfer <http://en.wikipedia.org/wiki/Representational_state_transfer>`_.
-It is a software architectural principle to create loosely coupled web APIs.
+    with amqp.Connection(
+        'broker.example.com', exchange='test_exchange',
+        confirm_publish=True, virtual_host='test_vhost'
+    ) as c:
+        ch = c.channel()
+        ch.basic_publish(amqp.Message('Hello World'), routing_key='test')
 
-plone.rest provides the basic infrastructure that allows us to build RESTful endpoints in Plone.
+Consumer with acknowledgments enabled:
 
-The reason for separating this infrastructure into a separate package from the 'main' full `Plone REST API <https://github.com/plone/plone.restapi>`_ is so you can create alternative endpoints tailored to specific usecases. A number of these specific endpoints are already in active use.
+.. code:: python
 
+    import amqp
 
-Audience
---------
+    with amqp.Connection('broker.example.com') as c:
+        ch = c.channel()
+        def on_message(message):
+            print('Received message (delivery tag: {}): {}'.format(message.delivery_tag, message.body))
+            ch.basic_ack(message.delivery_tag)
+        ch.basic_consume(queue='test', callback=on_message)
+        while True:
+            c.drain_events()
 
-plone.rest is for experienced web developers who want to build their own HTTP/REST endpoints on top of Plone.
 
-If you want to **use** a ready-made full RESTful Plone API, you should use `plone.restapi <https://github.com/plone/plone.restapi>`_.
-That package uses, and depends upon, this one.
+Consumer with acknowledgments disabled:
 
+.. code:: python
 
-Features
---------
+    import amqp
 
-* Registering RESTful service endpoints for the following HTTP verbs:
+    with amqp.Connection('broker.example.com') as c:
+        ch = c.channel()
+        def on_message(message):
+            print('Received message (delivery tag: {}): {}'.format(message.delivery_tag, message.body))
+        ch.basic_consume(queue='test', callback=on_message, no_ack=True)
+        while True:
+            c.drain_events()
 
-  * GET
-  * POST
-  * PUT
-  * DELETE
-  * PATCH
-  * OPTIONS
+Speedups
+========
 
-* Support for Dexterity and Archetypes-based content objects
-* Content negotiation: Services can be registered for arbitrary media types (e.g. 'application/json').
-* Named services allows to register service endpoints for custom URLs
+This library has **experimental** support of speedups. Speedups are implemented using Cython. To enable speedups, ``CELERY_ENABLE_SPEEDUPS`` environment variable must be set during building/installation.
+Currently speedups can be installed:
 
+1. using source package (using ``--no-binary`` switch):
 
-Registering RESTful Service Endpoints
--------------------------------------
+.. code-block::
+CELERY_ENABLE_SPEEDUPS=true pip install --no-binary :all: amqp
 
-plone.rest allows you to register HTTP verbs for Plone content with ZCML.
 
-This is how you would register a PATCH request on Dexterity content:
+2. building directly source code:
 
-.. code-block:: xml
+.. code-block::
+CELERY_ENABLE_SPEEDUPS=true python setup.py install
 
-  <plone:service
-    method="PATCH"
-    accept="application/json"
-    for="plone.dexterity.interfaces.IDexterityContent"
-    factory=".service.Patch"
-    permission="cmf.ModifyPortalContent"
-    />
+Further
+=======
 
-You have to specify the HTTP verb (GET, POST, PUT, DELETE, HEAD, OPTIONS), the
-media type used for content negotiation, the interface for the content objects,
-the factory class that actually returns the content and the permission required
-to access the service.
+- Differences between AMQP 0.8 and 0.9.1
 
-The factory class needs to inherit from the plone.rest 'Service' class and to implement a render method that returns the body of the response::
+    http://www.rabbitmq.com/amqp-0-8-to-0-9-1.html
 
-  from plone.rest import Service
+- AMQP 0.9.1 Quick Reference
 
-  class Patch(Service):
+    http://www.rabbitmq.com/amqp-0-9-1-quickref.html
 
-      def render(self):
-          return '{"message": "PATCH: Hello World!"}'
+- RabbitMQ Extensions
 
+    http://www.rabbitmq.com/extensions.html
 
-Content Negotiation
--------------------
+- For more information about AMQP, visit
 
-To access the service endpoint we just created we have to send a GET request to a Dexterity object by setting the 'Accept' header to 'application/json'::
+    http://www.amqp.org
 
-  PATCH /Plone/doc1 HTTP/1.1
-  Host: localhost:8080
-  Accept: application/json
+- For other Python client libraries see:
 
-The server then will respond with '200 OK'::
+    http://www.rabbitmq.com/devtools.html#python-dev
 
-  HTTP/1.1 200 OK
-  Content-Type: application/json
+.. |build-status| image:: https://api.travis-ci.com/celery/py-amqp.png?branch=master
+    :alt: Build status
+    :target: https://travis-ci.com/celery/py-amqp
 
-  {
-    "message": "PATCH: Hello World!"
-  }
+.. |coverage| image:: https://codecov.io/github/celery/py-amqp/coverage.svg?branch=master
+    :target: https://codecov.io/github/celery/py-amqp?branch=master
 
-You can try this out on the command line:
+.. |license| image:: https://img.shields.io/pypi/l/amqp.svg
+    :alt: BSD License
+    :target: https://opensource.org/licenses/BSD-3-Clause
 
-.. code-block:: console
+.. |wheel| image:: https://img.shields.io/pypi/wheel/amqp.svg
+    :alt: Python AMQP can be installed via wheel
+    :target: https://pypi.org/project/amqp/
 
-    $ http --auth admin:admin PATCH localhost:8080/Plone/doc1 Accept:application/json
+.. |pyversion| image:: https://img.shields.io/pypi/pyversions/amqp.svg
+    :alt: Supported Python versions.
+    :target: https://pypi.org/project/amqp/
 
-.. note:: You have to install httpie (pip install httpie) to make this example work.
+.. |pyimp| image:: https://img.shields.io/pypi/implementation/amqp.svg
+    :alt: Support Python implementations.
+    :target: https://pypi.org/project/amqp/
+    
+py-amqp as part of the Tidelift Subscription
+=======
 
-Here is a list of examples for all supported HTTP verbs:
+The maintainers of py-amqp and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/pypi-amqp?utm_source=pypi-amqp&utm_medium=referral&utm_campaign=readme&utm_term=repo)
 
-GET::
-
-  $ http --auth admin:admin GET localhost:8080/Plone/doc1 Accept:application/json
-
-POST::
-
-  $ http --auth admin:admin POST localhost:8080/Plone/doc1 Accept:application/json
-
-PUT::
-
-  $ http --auth admin:admin PUT localhost:8080/Plone/doc1 Accept:application/json
-
-DELETE::
-
-  $ http --auth admin:admin DELETE localhost:8080/Plone/doc1 Accept:application/json
-
-PATCH::
-
-  $ http --auth admin:admin PATCH localhost:8080/Plone/doc1 Accept:application/json
-
-OPTIONS::
-
-  $ http --auth admin:admin OPTIONS localhost:8080/Plone/doc1 Accept:application/json
-
-
-Named Services
---------------
-
-Named services can be registered by providing a 'name' attribute in the service directive:
-
-.. code-block:: xml
-
-  <plone:service
-    method="GET"
-    accept="application/json"
-    for="Products.CMFPlone.interfaces.IPloneSiteRoot"
-    factory=".service.Search"
-    name="search"
-    permission="zope2.View"
-    />
-
-This registers a service endpoint accessible at the site root using the
-following request::
-
-  GET /Plone/search HTTP/1.1
-  Host: localhost:8080
-  Accept: application/json
-
-
-Additional Path Segments
-------------------------
-
-To handle additional path segments after the service url like `/Plone/myservice/1/2`
-a service has to implement `IPublishTraverse`. The following example simply
-stores all path segments in an array in `self.params`.
-
-.. code-block:: python
-
-  from plone.rest import Service
-  from zope.interface import implements
-  from zope.publisher.interfaces import IPublishTraverse
-
-  class MyService(Service):
-
-      implements(IPublishTraverse)
-
-      def __init__(self, context, request):
-          super(MyService, self).__init__(context, request)
-          self.params = []
-
-      def publishTraverse(self, request, name):
-          self.params.append(name)
-          return self
-
-      def render(self):
-          return {'service': 'named get', 'params': self.params}
-
-
-See also the implementation of the workflow transition endpoint in
-plone.restapi for an other example.
-
-
-CORS
-----
-
-plone.rest allows you to define CORS policies for services in ZCML. The
-following example defines a policy for all services.
-
-.. code-block:: xml
-
-  <plone:CORSPolicy
-    allow_origin="http://example.net"
-    allow_methods="DELETE,GET,OPTIONS,PATCH,POST,PUT"
-    allow_credentials="true"
-    expose_headers="Content-Length,X-My-Header"
-    allow_headers="Accept,Authorization,Content-Type,X-Custom-Header"
-    max_age="3600"
-    />
-
-CORS policies can be bound to specific interfaces of content objects and to
-specific browser layers. This allows us to define different policies for
-different content types or to override existing policies. The following example
-defines a policy for the site root.
-
-.. code-block:: xml
-
-  <plone:CORSPolicy
-    for="Products.CMFPlone.interfaces.IPloneSiteRoot"
-    layer="myproduct.interfaces.IMyBrowserLayer"
-    allow_origin="*"
-    allow_methods="GET"
-    />
-
-The CORSPolicy directive supports the following options:
-
-allow_origin
-  Origins that are allowed to access the resource. Either a comma separated
-  list of origins, e.g. "http://example.net,http://mydomain.com" or "*".
-
-allow_methods
-  A comma separated list of HTTP method names that are allowed by this CORS
-  policy, e.g. "DELETE,GET,OPTIONS,PATCH,POST,PUT". If not specified, all
-  methods for which there's a service registerd are allowed.
-
-allow_credentials
-  Indicates whether the resource supports user credentials in the request.
-
-allow_headers
-  A comma separated list of request headers allowed to be sent by the client,
-  e.g. "X-My-Header"
-
-expose_headers
-  A comma separated list of response headers clients can access,
-  e.g. "Content-Length,X-My-Header".
-
-max_age
-  Indicates how long the results of a preflight request can be cached.
-
-for
-  Specifies the interface for which the CORS policy is registered. If this
-  attribute is not specified, the CORS policy applies to all objects.
-
-layer
-  A browser layer for which this CORS policy is registered. Useful for
-  overriding existing policies or for making them available only if a specific
-  add-on has been installed.
-
-
-Installation
-------------
-
-Install plone.rest by adding it to your buildout::
-
-   [buildout]
-
-    ...
-
-    eggs =
-        plone.rest
-
-and then running "bin/buildout"
-
-
-Redirects
----------
-
-plone.rest will handle redirects created by ``plone.app.redirector`` pretty
-much the same way as regular Plone.
-
-If a redirect exists for a given URL, a ``GET`` request will be answered with
-``301``, and the new location for the resource is indicated in the ``Location``
-header::
-
-  HTTP/1.1 301 Moved Permanently
-
-  Content-Type: application/json
-  Location: http://localhost:8080/Plone/my-folder-new-location
-
-Any other request method than GET (``POST``, ``PATCH``, ...) will be answered
-with ``308 Permanent Redirect``. This status code instructs the client that
-it should NOT switch the method, but retry (if desired) the request with the
-*same* method at the new location.
-
-In practice, both the Python ``requests`` library a well as Postman seem to
-honour this behavior by default.
-
-
-Contribute
-----------
-
-- Issue Tracker: https://github.com/plone/plone.rest/issues
-- Source Code: https://github.com/plone/plone.rest
-- Documentation: https://pypi.python.org/pypi/plone.rest
-
-
-Support
--------
-
-This package is maintained by Timo Stollenwerk <tisto@plone.org> and Ramon Navarro Bosch <ramon.nb@gmail.com>.
-
-If you are having issues, please `let us know <https://github.com/plone/plone.rest/issues>`_.
-
-
-License
--------
-
-The project is licensed under the GPLv2.

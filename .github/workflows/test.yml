@@ -1,60 +1,70 @@
-name: plone.rest CI
-on: [push]
+name: CI
+on: [pull_request, push]
 jobs:
-  build:
+  #################### Linters and checkers ####################
+  lint:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         python-version: ["3.9"]
-        plone-version: [5.2, 5.1, 4.3]
-        exclude:
-          - python-version: 3.9
-            plone-version: 4.3
-          - python-version: 3.9
-            plone-version: 5.1
-
     steps:
-
-      # git checkout
-      - uses: actions/checkout@v2
-
-      # python setup
+      - name: Check out code from GitHub
+        uses: actions/checkout@v2.3.4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        id: python
+        uses: actions/setup-python@v2.2.1
         with:
           python-version: ${{ matrix.python-version }}
-
-      # python cache
-      - uses: actions/cache@v4
+      - name: Install dependencies
+        run: pip install --upgrade pip setuptools wheel tox tox-docker
+      - name: Run flake8
+        run: tox -v -e py-flake8 -- -v
+      - name: Run pydocstyle
+        run: tox -v -e py-pydocstyle -- -v
+      - name: Run apicheck
+        run: tox -v -e py-apicheck -- -v
+  #################### Unittests ####################
+  unittest:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+      - name: Check out code from GitHub
+        uses: actions/checkout@v2.3.4
+      - name: Set up Python ${{ matrix.python-version }}
+        id: python
+        uses: actions/setup-python@v2.2.1
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      # python install
-      - run: pip install virtualenv
-      - run: pip install wheel
-      - name: pip install
-        run: pip install -r requirements.txt
-      - name: choose Plone version
-        run: sed -ie "s#plone-x.x.x.cfg#plone-${{ matrix.plone-version }}.x.cfg#" ci.cfg
-
-      # buildout
-      - name: buildout
-        run: buildout -t 10 -c ci.cfg
-        env:
-          CI: true
-
-      # black
-      - name: black
-        run: if [ "${{ matrix.plone-version }}" == "5.2" ] && [ ${{ matrix.python-version }} == '3.7' ]; then pip install black && black src/ --check; fi
-
-      # code analysis
-      - name: black
-        run: bin/code-analysis
-
-      # test
-      - name: test
-        run: bin/test
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install --upgrade pip setuptools wheel tox tox-docker
+      - name: Run unittest
+        run: tox -v -e ${{ matrix.python-version }}-unit -- -v
+  #################### Integration tests ####################
+  integration:
+    needs: [lint, unittest]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+      - name: Check out code from GitHub
+        uses: actions/checkout@v2.3.4
+      - name: Build rabbitmq:tls container
+        run: docker build -t rabbitmq:tls .
+      - name: Set up Python ${{ matrix.python-version }}
+        id: python
+        uses: actions/setup-python@v2.2.1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install --upgrade pip setuptools wheel tox tox-docker
+      - name: Run integration tests
+        run: tox -v -e ${{ matrix.python-version }}-integration-rabbitmq -- -v
+      - name: Run integration tests with speedups enabled
+        run: |
+          CELERY_ENABLE_SPEEDUPS=1 python setup.py develop
+          tox -v -e ${{ matrix.python-version }}-integration-rabbitmq -- -v
+        if: ${{ matrix.python-version != 'pypy3'}}
