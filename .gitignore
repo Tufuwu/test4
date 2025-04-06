@@ -1,97 +1,45 @@
-# Compiled source #
-###################
-*.com
-*.class
-*.dll
-*.exe
-*.o
+*.py[cod]
+
+# C extensions
 *.so
-*.pyc
 
-# Packages #
-############
-# it's better to unpack these files and commit the raw source
-# git has its own built in compression methods
-*.7z
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
 
-# Logs and databases #
-######################
-*.log
-*.sql
-*.sqlite
+# Installer logs
+pip-log.txt
 
-# OS generated files #
-######################
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-Icon?
-ehthumbs.db
-Thumbs.db
-
-## Ignore Eclipse stuff
-*.pydevproject
-.project
-.metadata
-bin/**
-tmp/**
-tmp/**/*
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-.classpath
-.settings/
-.loadpath
-
-# External tool builders
-.externalToolBuilders/
-#
-# # Locally stored "Eclipse launch configurations"
-*.launch
-#
-# # CDT-specific
-.cproject
-#
-# # PDT-specific
-.buildpath
-
-# Ignore intellij stuff
-**/.idea
-
-# Ignore vagrant folders
-.vagrant
-
-# Docker compose executable
-docker-compose
-
-# Python cache
-.cache/
-
-# Docs build directory
-docs/_build/
-
-# Pytest cache
-.pytest_cache/
-
-app/celerybeat-schedule
-
-# No coverage files
+# Unit test / coverage reports
+.cache
 .coverage
+.tox
+nosetests.xml
+htmlcov/
 
-# Local postgres data
-postgres_data/
+# Translations
+*.mo
 
-# Poetry virtualenv path
-.venv
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
 
-node_modules/
-dist/
+# Test data
+*.gif
+*.jpg
+*.mp4
+*.png
+*.xml
+testimages.zip
