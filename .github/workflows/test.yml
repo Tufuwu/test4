@@ -1,44 +1,50 @@
-name: tests
+# This workflow tests Abelfunctions against various versions of SageMath
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+name: Test
+
+on: [push]
 
 jobs:
   build:
-
-    name: Run tests
+    env:
+      SAGE: /home/runner/SageMath/sage
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9"]
-
+       include:
+         - SAGE_TARBALL: sage-8.6-Ubuntu_18.04-x86_64.tar.bz2
+           SAGE_SERVER: http://mirrors.mit.edu/sage/linux/64bit/old
+         - SAGE_TARBALL: sage-8.7-Ubuntu_18.04-x86_64.tar.bz2
+           SAGE_SERVER: http://mirrors.mit.edu/sage/linux/64bit/old
+         - SAGE_TARBALL: sage-8.8-Ubuntu_18.04-x86_64.tar.bz2
+           SAGE_SERVER: http://mirrors.mit.edu/sage/linux/64bit/old
+         - SAGE_TARBALL: sage-8.9-Ubuntu_18.04-x86_64.tar.bz2
+           SAGE_SERVER: http://mirrors.mit.edu/sage/linux/64bit/old
+         - SAGE_TARBALL: sage-9.0-Ubuntu_18.04-x86_64.tar.bz2
+           SAGE_SERVER: http://mirrors.mit.edu/sage/linux/64bit/old
+         - SAGE_TARBALL: sage-9.1-Ubuntu_18.04-x86_64.tar.bz2
+           SAGE_SERVER: http://mirrors.mit.edu/sage/linux/64bit
+         - SAGE_TARBALL: sage-9.2-Ubuntu_18.04-x86_64.tar.bz2
+           SAGE_SERVER: http://mirrors.mit.edu/sage/linux/64bit
+         - SAGE_TARBALL: sage-9.3-Ubuntu_18.04-x86_64.tar.bz2
+           SAGE_SERVER: http://mirrors.mit.edu/sage/linux/64bit
     steps:
-    - uses: actions/checkout@v3
+      - name: Install apt packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install aria2 pbzip2
+      - name: Download SageMath
+        run: cd ${HOME} && aria2c ${{ matrix.SAGE_SERVER }}/${{ matrix.SAGE_TARBALL }}
+      - name: Extract SageMath
+        run: cd ${HOME} && pbzip2 -dc ${HOME}/${{ matrix.SAGE_TARBALL }} | tar xf -
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Python test dependencies
+        run: ${SAGE} -pip install -r test-requirements.txt
+      - name: Install Abelfunctions
+        run: ${SAGE} setup.py build_ext --inplace
+      - name: Run tests
+        run: ${SAGE} runtests.py -v
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install flake8 mypy pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Run tests with pytest
-      run: |
-        python -m pytest -v
-
-    - name: Lint with flake8
-      run: |
-        python -m flake8 . --count --statistics
-    
-    - name: Run mypy
-      run: |
-        python -m mypy --strict simple_pid
