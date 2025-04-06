@@ -1,4 +1,5 @@
-enum34; python_version < "3.4"
-build
-twine
-pytest
+ansible>=2.8.0
+graphviz==0.14.1
+colour==0.1.5
+lxml==4.5.2
+packaging==20.4

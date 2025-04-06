@@ -1,48 +1,61 @@
-name: Test
+name: Testing
 
-on: [push, pull_request, workflow_dispatch]
-
-env:
-  FORCE_COLOR: 1
+on:
+  - push
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
+  pytest:
+    name: Tests Py${{ matrix.python-version }} - Ansible ${{ matrix.ansible-version }}
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         python-version: ["3.9"]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        ansible-version: [ 2.8.6, 2.9.0, 2.9.14 ]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
+        name: Setup Python ${{ matrix.python-version }}
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Get pip cache dir
-        id: pip-cache
+      - name: Install prereqs
         run: |
-          echo "::set-output name=dir::$(pip cache dir)"
+          pip install ansible==${{ matrix.ansible-version }} virtualenv setuptools wheel coveralls
+          pip install -r tests/requirements_tests.txt
+          sudo apt-get install -y graphviz
 
-      - name: Cache
-        uses: actions/cache@v4
+      - name: Pytest
+        env:
+          PY_COLORS: "1"
+        run: make test
+
+      - name: Upload generated SVGs as artefacts
+        uses: actions/upload-artifact@v4
         with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key:
-            ${{ matrix.os }}-${{ matrix.python-version }}-v1-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ matrix.os }}-${{ matrix.python-version }}-v1-
+          name: generated-svgs-py${{ matrix.python-version }}-ansible${{ matrix.ansible-version }}
+          path: tests/generated_svg/
+          if-no-files-found: error # the tests should generate SVGs files
 
-      - name: Install dependencies
-        run: |
-          python -m pip install -U pip
-          python -m pip install -U wheel
-          python -m pip install -Ur requirements.txt
-          python setup.py install
+      - name: Test installation in virtualenv
+        run: make test_install
 
-      - name: Test
-        run: |
-          make tests
+      - name: Upload Coverage
+        run: cd tests && coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_FLAG_NAME: py${{ matrix.python-version }}-ansible${{ matrix.ansible-version }}
+          COVERALLS_PARALLEL: true
+
+  coveralls:
+    runs-on: ubuntu-latest
+    name: Finish coverage
+    needs: pytest
+    container: python:3-slim # just need a simple python container to finish the coverage
+    steps:
+      - name: Coveralls finish
+        run: pip install coveralls && coveralls --finish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
