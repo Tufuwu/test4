@@ -1,290 +1,194 @@
-<a name="v3.0.0"></a>
-## v3.0.0 (2019-10-13)
-
-
-#### Breaking Changes
-
-*   MicroPy Class refactor renamed core attributes ([bd24ada6](bd24ada6))
-*   All Data Path references moved to `micropy.data` module
-
-#### Features
-
-*   Add Flag for Skipping Template Checks ([863c97ca](863c97ca))
-*   Search/Retrieve Stubs Directly from micropy-stubs ([0717f373](0717f373))
-*   Update MicropyCli Stub Sources ([437d32e9](437d32e9))
-*   Refactor MicroPy Class for Better State Management ([711244be](711244be))
-*   Updated micropython-stubber to latest version
-
-#### Bug Fixes
-
-*   Project Fails to Init due to Checks on Windows ([06b894ff](06b894ff), closes [#59](59))
-*   Stub Package Url fails to resolve on Windows ([3397465e](3397465e))
-*   Handle Chunked Content Length on Package Download ([f1dfe5ac](f1dfe5ac))
-*   Package urls not resolving correctly ([55f3d34e](55f3d34e))
-*   Fails to load Project if Template Files are Missing (#55) ([f8c14c91](f8c14c91))
-
-#### Performance
-
-*   Lazy Load Stubs ([bd24ada6](bd24ada6))
-*   Lazy Load Current Active Project ([54b33d51](54b33d51))
-*   Cache Remote Stub Package Sources
-*   Cache Remote Stub Search Queries
-*   Removed unnecessary network requests on startup
-*   Overall Code Cleanup
-
-
-
-<a name="v2.2.0"></a>
-## v2.2.0 (2019-09-28)
-
-
-#### Performance
-
-* **stubs:**  Cache Available Stubs for Searching ([998b125a](998b125a))
-
-#### Features
-
-*   Template Checks, MS-Python Version Warning (#52) ([fc151f6b](fc151f6b))
-* **cli:**  Automatic Update Alerts (#54) ([1f33abef](1f33abef))
-* **vscode:**  Ensure Jedi is Disabled in VSCode Template ([efce877a](efce877a))
-
-
-
-<a name="v2.1.1"></a>
-### v2.1.1 (2019-09-22)
-
-
-#### Bug Fixes
-
-* **hotfix:**  Remove workspaceRoot var from VSCode Settings (#51) ([d4ddf139](d4ddf139), closes [#50](50))
-
-#### Breaking Changes
-
-* Requires >= `ms-python.python@2019.9.34474` for VSCode Integration **Only**
-
-#### Notes
-
-*   Relicensed under MIT ([f2f191b5](f2f191b5))
-
-
-<a name="v2.1.0"></a>
-## v2.1.0 (2019-09-01)
-
-
-#### Features
-
-* **log:**  Cap Log File at 2MB ([2d8ad6d6](2d8ad6d6))
-* **project:**
-  *  Init Project with Micropy Dev Dependency ([1d2fac85](1d2fac85))
-  *  Git Ignore Template Option ([12ce75c6](12ce75c6))
-
-#### Bug Fixes
-
-* **project:**  Requirement Files skipped on First Init ([25decf8d](25decf8d))
-* **windows:**  Support User Level Directory Linking (#45) ([d67aea80](d67aea80))
-
-
-
-<a name="v2.0.2"></a>
-### v2.0.2 (2019-08-21)
-
-
-#### Bug Fixes
-
-* **dep:**  Require appropriate Click version ([6f75e191](6f75e191), closes [#40](40))
-* **windows:**  Warn User if MicroPy Lacks Admin Privs ([9e8f3141](9e8f3141))
-
-
-
-<a name="v2.0.1"></a>
-### v2.0.1 (2019-07-26)
-
-
-#### Bug Fixes
-
-* **stubs:**  Reduce Schema Strictness ([9343ba1b](9343ba1b))
-
-
-
-<a name="v2.0.0"></a>
-## v2.0.0 (2019-07-26)
-
-
-#### Bug Fixes
-
-* **dep:**  Broken Docutils Dependency ([ecfc7419](ecfc7419))
-* **project:**  Only modules install correctly ([87fe8ef9](87fe8ef9))
-
-#### Features
-
-*   Add Optional Pyminifier Dep for Stub Creation ([befa4404](befa4404))
-* **cli:**
-  *  Verbosity Flag for Stub Creation ([f93c8b1e](f93c8b1e))
-  *  Install Python Packages for Project ([16cd13cb](16cd13cb))
-* **dep:**
-  *  Packaging Module Requirement ([36992f7b](36992f7b))
-  *  Update Tox to latest ([177f7592](177f7592))
-  *  Update Stubber to Process Branch ([da9fb6b3](da9fb6b3))
-* **project:**
-  *  Update requirements.txt Files on Install ([00f5a923](00f5a923))
-  *  Install from Requirements.txt ([ac236c62](ac236c62))
-  *  Project Config in Info File ([22600153](22600153))
-  *  Template Update Functionality ([f4b91f72](f4b91f72))
-  *  Retrieve and Stub Project Requirements ([0ecf6af9](0ecf6af9))
-  *  Make Templates Optional via CLI (#30) ([eb460d3f](eb460d3f))
-* **pyb:**  Handle Pyboard Output and Errors ([26136c69](26136c69))
-* **stubs:**  Minify Stubber Before Executing ([2b6cdd26](2b6cdd26))
-* **util:**  Generate Stub from File Utility ([aac79e36](aac79e36))
-
-
-
-<a name="v1.1.3"></a>
-### v1.1.3 (2019-07-20)
-
-
-#### Bug Fixes
-
-*   ValueError raised after Creating Project in Windows (#33) ([ac1c0f73](ac1c0f73))
-*   Unicode Error raised when logging on Windows (#32) ([2eb5a456](2eb5a456), closes [#31](31))
-
-
-
-<a name="v1.1.2"></a>
-### v1.1.2 (2019-07-19)
-
-
-#### Bug Fixes
-
-* **stubs:**  Ensure Firmware Stubs Load First ([0c50d9ab](0c50d9ab))
-
-
-
-<a name="v1.1.1"></a>
-### v1.1.1 (2019-07-17)
-
-
-#### Bug Fixes
-
-*   Temp Hotfix for False Stub Duplication ([49e4ad26](49e4ad26))
-
-
-
-<a name="v1.1.0"></a>
-## v1.1.0 (2019-07-17)
-
-
-#### Features
-
-* **cli:**
-  *  List Project Stubs if in Project Directory ([71eb0ce1](71eb0ce1))
-  *  Stubs now list by Firmware ([34271b9e](34271b9e))
-  *  Create Formatted Strings from Logger ([58ee3ec0](58ee3ec0))
-  *  Added --force flag when adding stubs ([618adbfc](618adbfc))
-* **project:**
-  *  Micropy Project Info File (#29) ([49420ca4](49420ca4), closes [#9](9))
-  *  Micropy Project Folder (#28) ([977ff1f8](977ff1f8))
-
-#### Bug Fixes
-
-* **cli:**
-  *  Stub List always prints Unknown ([52d20459](52d20459))
-  *  Made Stub Search Case Insensitive ([f7144c7e](f7144c7e))
-* **stubs:**  FileExistsError when adding existing Stub ([f9858f98](f9858f98))
-
-
-
-<a name="v1.0.0"></a>
-## v1.0.0 (2019-07-11)
-
-
-#### Performance
-
-* **cli:**  Only Instantiate MicroPy when needed ([865afd6b](865afd6b))
-
-#### Features
-
-* **cli:**
-  *  Search Available Stubs (#27) ([1622a619](1622a619))
-  *  Stream Downloads with Progress Bar ([b3d1401d](b3d1401d))
-  *  Minified Cli Output Style ([2435097d](2435097d))
-* **stubs:**
-  *  Updated micropython-stubber to latest ([d927e601](d927e601))
-  *  Update Stubs to Use New Stubber Schema (#23) ([f55b5da1](f55b5da1))
-  *  Update Stub Creation (#26) ([4f1f5bc2](4f1f5bc2))
-  *  Added Stub Stdout Verbosity ([65338667](65338667))
-  *  Add Firmware Frozen Modules to Templates ([5452756d](5452756d))
-  *  Implemented Local and Remote Stub Sources (#18) ([98ab23ef](98ab23ef))
-  *  Device Stubs Firmware Resolution (#25) ([b9a2357f](b9a2357f))
-  *  Add Device Frozen Modules to Templates (#24) ([218c41cb](218c41cb))
-  *  Add Stubs from Repositories (#21) ([df9fde52](df9fde52))
-  *  Replaced Stubs with Stub "Packages" ([8111618f](8111618f))
-  *  Stub Repositories (#20) ([58acfe70](58acfe70))
-* **util:**  Generic Utility Functions and Module Cleanup ([6e066547](6e066547))
-
-#### Bug Fixes
-
-* **cli:**
-  * Create Stubs Help Formatting ([4439ebe2](4439ebe2))
-  * Init Crashes if no Stubs are Loaded ([5547eb76](5547eb76))
-* **log:**  Output Highlight Bug, Cleanup ([fd6b2439](fd6b2439))
-* **stub:**  Stub Name without Firmware ([94f5f78c](94f5f78c))
-* **stubs:**
-  *  Firmware not showing as Installed in Stub Search ([db1f74aa](db1f74aa))
-  *  Fix Existing Firmware Reinstall ([5c8e0261](5c8e0261))
-
-
-
-<a name="v0.3.0"></a>
-## v0.3.0 (2019-06-26)
-
-
-#### Features
-
-* **cli:**  Version Flag ([0f9abf1c](0f9abf1c))
-* **log:**  New Cli Output Style, Log Class Methods ([0b257e6f](0b257e6f))
-* **pyb:**  PyboardWrapper Utility (#13) ([5f7d2cfe](5f7d2cfe))
-* **stubs:**  Stub Manager (#5) ([097b4529](097b4529))
-* **utils:**  Utils Module and Validator Utility  (#4) ([be2c9c67](be2c9c67))
-
-
-
-<a name="v0.2.0"></a>
-## v0.2.0 (2019-06-14)
-
-
-#### Features
-
-* **log:**
-  *  Added Proper Log Formatting, cleaned messages before write. ([6c2fb25c](6c2fb25c))
-  *  Added Logging to Template Module ([2e3f51a5](2e3f51a5))
-* **project:**  Drop Cookiecutter for Purely Jinja2 (#3) ([ef2d0ef3](ef2d0ef3))
-
-#### Bug Fixes
-
-* **project:** Fixed providing relative paths to `micropy init` ([ef2d0ef3](ef2d0ef3))
-* **log:** Fixed Unicode and other characters being written to log ([6c2fb25c](6c2fb25c))
-
-
-
-<a name="v0.1.1"></a>
-### v0.1.1 (2019-06-10)
-
-
-#### Bug Fixes
-
-* **setup:**
-  *  Fixed missing cookiecutter package requirement ([22ab97cb](22ab97cb))
-  *  Fixed Pypi misinformation, cleaned up dist-management files ([e6624072](e6624072))
-  *  Fix Missing .vscode Template Files ([806ce7c5](806ce7c5))
-
-
-<a name="v0.1.0"></a>
-### v0.1.0 (2019-06-9)
-
-
-#### Features
-
-* Initial Release!
-
-
-
+## Release notes
+
+### 0.12.7 -- Oct 27, 2020
+* Fix case sensitivity issues to adapt to MySQL 8+.  PR #819
+* Fix pymysql regression bug (#814) PR #816
+* Adapted attribute types now have dtype=object in all recarray results. PR #811 
+
+### 0.12.6 -- May 15, 2020
+* Add `order_by` to `dj.kill` (#668, #779) PR #775, #783
+* Add explicit S3 bucket and file storage location existence checks (#748) PR #781
+* Modify `_update` to allow nullable updates for strings/date (#664) PR #760
+* Avoid logging events on auxiliary tables (#737) PR #753
+* Add `kill_quick` and expand display to include host (#740) PR #741
+* Bugfix - pandas insert fails due to additional `index` field (#666) PR #776
+* Bugfix - `delete_external_files=True` does not remove from S3 (#686) PR #781
+* Bugfix - pandas fetch throws error when `fetch_format='frame'` PR #774
+
+### 0.12.5 -- Feb 24, 2020
+* Rename module `dj.schema` into `dj.schemas`. `dj.schema` remains an alias for class `dj.Schema`. (#731) PR #732
+* `dj.create_virtual_module` is now called `dj.VirtualModule` (#731) PR #732
+* Bugfix - SSL `KeyError` on failed connection (#716) PR #725
+* Bugfix - Unable to run unit tests using nosetests (#723) PR #724
+* Bugfix - `suppress_errors` does not suppress loss of connection error (#720) PR #721
+
+### 0.12.4 -- Jan 14, 2020
+* Support for simple scalar datatypes in blobs (#690) PR #709
+* Add support for the `serial` data type in declarations: alias for `bigint unsigned auto_increment` PR #713
+* Improve the log table to avoid primary key collisions PR #713
+* Improve documentation in README PR #713
+
+### 0.12.3 -- Nov 22, 2019
+* Bugfix - networkx 2.4 causes error in diagrams (#675) PR #705
+* Bugfix - include table definition in doc string and help (#698, #699) PR #706
+* Bugfix - job reservation fails when native python datatype support is disabled (#701) PR #702
+
+### 0.12.2 -- Nov 11, 2019
+* Bugfix - Convoluted error thrown if there is a reference to a non-existent table attribute (#691) PR #696
+* Bugfix - Insert into external does not trim leading slash if defined in `dj.config['stores']['<store>']['location']` (#692) PR #693
+
+### 0.12.1 -- Nov 2, 2019
+* Bugfix - AttributeAdapter converts into a string (#684) PR #688
+
+### 0.12.0 -- Oct 31, 2019
+* Dropped support for Python 3.4
+* Support secure connections with TLS (aka SSL) PR #620
+* Convert numpy array from python object to appropriate data type if all elements are of the same type (#587) PR #608
+* Remove expression requirement to have additional attributes (#604) PR #604
+* Support for filepath datatype (#481) PR #603, #659
+* Support file attachment datatype (#480, #592, #637) PR #659
+* Fetch return a dict array when specifying `as_dict=True` for specified attributes. (#595) PR #593
+* Support of ellipsis in `proj`:  `query_expression.proj(.., '-movie')` (#499) PR #578
+* Expand support of blob serialization (#572, #520, #427, #392, #244, #594) PR #577
+* Support for alter (#110) PR #573
+* Support for `conda install datajoint` via `conda-forge` channel (#293)
+* `dj.conn()` accepts a `port` keyword argument (#563) PR #571
+* Support for UUID datatype (#562) PR #567
+* `query_expr.fetch("KEY", as_dict=False)` returns results as `np.recarray`(#414) PR #574
+* `dj.ERD` is now called `dj.Diagram` (#255, #546) PR #565
+* `dj.Diagram` underlines "distinguished" classes (#378) PR #557
+* Accept alias for supported MySQL datatypes (#544) PR #545
+* Support for pandas in `fetch` (#459, #537) PR #534
+* Support for ordering by "KEY" in `fetch` (#541) PR #534
+* Add config to enable python native blobs PR #672, #676
+* Add secure option for external storage (#663) PR #674, #676
+* Add blob migration utility from DJ011 to DJ012 PR #673
+* Improved external storage - a migration script needed from version 0.11  (#467, #475, #480, #497) PR #532
+* Increase default display rows (#523) PR #526
+* Bugfixes (#521, #205, #279, #477, #570, #581, #597, #596, #618, #633, #643, #644, #647, #648, #650, #656)
+* Minor improvements (#538)
+
+### 0.11.3 -- Jul 26, 2019
+* Fix incompatibility with pyparsing 2.4.1 (#629) PR #631
+
+### 0.11.2 -- Jul 25, 2019
+* Fix #628 - incompatibility with pyparsing 2.4.1
+
+### 0.11.1 -- Nov 15, 2018
+* Fix ordering of attributes in proj (#483 and #516)
+* Prohibit direct insert into auto-populated tables (#511)
+
+### 0.11.0 -- Oct 25, 2018
+* Full support of dependencies with renamed attributes using projection syntax (#300, #345, #436, #506, #507)
+* Rename internal class and module names to comply with terminology in documentation (#494, #500)
+* Full support of secondary indexes (#498, 500)
+* ERD no longer shows numbers in nodes corresponding to derived dependencies (#478, #500)
+* Full support of unique and nullable dependencies (#254, #301, #493, #495, #500)
+* Improve memory management in `populate` (#461, #486)
+* Fix query errors and redundancies (#456, #463, #482)
+
+### 0.10.1  -- Aug 28, 2018
+* Fix ERD Tooltip message (#431)
+* Networkx 2.0 support (#443)
+* Fix insert from query with skip_duplicates=True (#451)
+* Sped up queries (#458)
+* Bugfix in restriction of the form (A & B) * B (#463)
+* Improved error messages (#466)
+
+### 0.10.0 -- Jan 10, 2018 
+* Deletes are more efficient (#424)
+* ERD shows table definition on tooltip hover in Jupyter (#422) 
+* S3 external storage
+* Garbage collection for external sorage
+* Most operators and methods of tables can be invoked as class methods rather than instance methods (#407)
+* The schema decorator object no longer requires locals() to specify the context
+* Compatibility with pymysql 0.8.0+
+* More efficient loading of dependencies (#403)
+
+### 0.9.0 -- Nov 17, 2017
+* Made graphviz installation optional
+* Implement file-based external storage
+* Implement union operator +
+* Implement file-based external storage
+
+### 0.8.0 -- Jul 26, 2017 
+Documentation and tutorials available at https://docs.datajoint.io and https://tutorials.datajoint.io
+* improved the ERD graphics and features using the graphviz libraries (#207, #333)
+* improved password handling logic (#322, #321)
+* the use of the `contents` property to populate tables now only works in `dj.Lookup` classes (#310).
+* allow suppressing the display of size of query results through the `show_tuple_count` configuration option (#309)
+* implemented renamed foreign keys to spec (#333)
+* added the `limit` keyword argument to populate (#329)
+* reduced the number of displayed messages (#308)
+* added `size_on_disk` property for dj.Schema() objects (#323)
+* job keys are entered in the jobs table (#316, #243)
+* simplified the `fetch` and `fetch1` syntax, deprecating the `fetch[...]` syntax (#319)
+* the jobs tables now store the connection ids to allow identifying abandoned jobs (#288, #317)
+
+### 0.5.0 (#298) -- Mar 8, 2017
+* All fetched integers are now 64-bit long and all fetched floats are double precision.
+* Added `dj.create_virtual_module`
+
+### 0.4.10 (#286) -- Feb 6, 2017
+* Removed Vagrant and Readthedocs support 
+* Explicit saving of configuration (issue #284)
+
+### 0.4.9 (#285) -- Feb 2, 2017
+* Fixed setup.py for pip install 
+
+### 0.4.7 (#281) -- Jan 24, 2017
+* Fixed issues related to order of attributes in projection.
+
+### 0.4.6 (#277) -- Dec 22, 2016
+* Proper handling of interruptions during populate
+
+### 0.4.5 (#274) -- Dec 20, 2016
+* Populate reports how many keys remain to be populated at the start.
+
+### 0.4.3  (#271) -- Dec 6, 2016
+* Fixed aggregation issues (#270)
+* datajoint no longer attempts to connect to server at import time
+* dropped support of view (reversed #257)
+* more elegant handling of insufficient privileges (#268)
+
+### 0.4.2 (#267)  -- Dec 6, 2016
+* improved table appearance in Jupyter
+
+### 0.4.1 (#266) -- Oct 28, 2016
+* bugfix for very long error messages
+
+### 0.3.9 -- Sep 27, 2016
+* Added support for datatype `YEAR`
+* Fixed issues with `dj.U` and the `aggr` operator (#246, #247)
+
+### 0.3.8  -- Aug 2, 2016
+* added the `_update` method in `base_relation`. It allows updating values in existing tuples.
+* bugfix in reading values of type double.  Previously it was cast as float32. 
+
+### 0.3.7  -- Jul 31, 2016
+* added parameter `ignore_extra_fields` in `insert` 
+* `insert(..., skip_duplicates=True)` now relies on `SELECT IGNORE`.  Previously it explicitly checked if tuple already exists.
+* table previews now include blob attributes displaying the string <BLOB>
+
+### 0.3.6  -- Jul 30, 2016
+* bugfix in `schema.spawn_missing_classes`.  Previously, spawned part classes would not show in ERDs.
+* dj.key now causes fetch to return as a list of dicts.  Previously it was a recarray.
+
+### 0.3.5
+* `dj.set_password()` now asks for user confirmation before changing the password.
+* fixed issue #228
+
+### 0.3.4
+* Added method the `ERD.add_parts` method, which adds the part tables of all tables currently in the ERD.
+* `ERD() + arg` and `ERD() - arg` can now accept relation classes as arg.
+
+### 0.3.3
+* Suppressed warnings (redirected them to logging).  Previoiusly, scipy would throw warnings in ERD, for example.
+* Added ERD.from_sequence as a shortcut to combining the ERDs of multiple sources
+* ERD() no longer text the context argument.
+* ERD.draw() now takes an optional context argument.  By default uses the caller's locals.
+
+### 0.3.2.   
+* Fixed issue #223:  `insert` can insert relations without fetching.
+* ERD() now takes the `context` argument, which specifies in which context to look for classes. The default is taken from the argument (schema or relation).
+* ERD.draw() no longer has the `prefix` argument: class names are shown as found in the context.

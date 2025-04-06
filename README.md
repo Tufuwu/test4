@@ -1,195 +1,141 @@
-# Micropy Cli [![PyPI][pypi-img]][pypi-url] [![PyPI - Python Version][pypiv-img]][pypi-url] [![Travis (.com)][travis-img]][travis-url] [![Coverage Status][cover-img]][cover-url]
+[![DOI](https://zenodo.org/badge/16774/datajoint/datajoint-python.svg)](https://zenodo.org/badge/latestdoi/16774/datajoint/datajoint-python)
+[![Build Status](https://travis-ci.org/datajoint/datajoint-python.svg?branch=master)](https://travis-ci.org/datajoint/datajoint-python)
+[![Coverage Status](https://coveralls.io/repos/datajoint/datajoint-python/badge.svg?branch=master&service=github)](https://coveralls.io/github/datajoint/datajoint-python?branch=master)
+[![PyPI version](https://badge.fury.io/py/datajoint.svg)](http://badge.fury.io/py/datajoint)
+[![Requirements Status](https://requires.io/github/datajoint/datajoint-python/requirements.svg?branch=master)](https://requires.io/github/datajoint/datajoint-python/requirements/?branch=master)
+[![Join the chat at https://gitter.im/datajoint/datajoint-python](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/datajoint/datajoint-python?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# Welcome to DataJoint for Python!
+DataJoint for Python is a framework for scientific workflow management based on relational principles. DataJoint is built on the foundation of the relational data model and prescribes a consistent method for organizing, populating, computing, and querying data.
 
-Micropy Cli is a project management/generation tool for writing [Micropython](https://micropython.org/) code in modern IDEs such as VSCode.
-Its primary goal is to automate the process of creating a workspace complete with:
+DataJoint was initially developed in 2009 by Dimitri Yatsenko in Andreas Tolias' Lab for the distributed processing and management of large volumes of data streaming from regular experiments. Starting in 2011, DataJoint has been available as an open-source project adopted by other labs and improved through contributions from several developers.
 
-* **Linting** compatible with Micropython
-* VSCode **Intellisense**
-* **Autocompletion**
-* Dependency Management
-* VCS Compatibility
-
-
-<p align='center'>
-    <img width='95%' src='.github/img/micropy.svg' alt="Micropy Demo SVG">
-</p>
-
-[pypi-img]: https://img.shields.io/pypi/v/micropy-cli.svg?style=popout-square
-[pypi-url]: https://pypi.org/project/micropy-cli/
-[pypiv-img]: https://img.shields.io/pypi/pyversions/micropy-cli.svg?style=popout-square
-[travis-img]: https://img.shields.io/travis/com/BradenM/micropy-cli/master.svg?style=popout-square
-[travis-url]: https://travis-ci.com/BradenM/micropy-cli
-[cover-img]: https://coveralls.io/repos/github/BradenM/micropy-cli/badge.svg
-[cover-url]: https://coveralls.io/github/BradenM/micropy-cli
+Vathes LLC supports DataJoint for Python as an open-source project and everyone is welcome to contribute.
+Its DataJoint Neuro (https://djneuro.io) business provides support to neuroscience labs for developing and executing custom data pipelines.
 
 ## Installation
-
-You can download and install the latest version of this software from the Python package index (PyPI) as follows:
-
-`pip install --upgrade micropy-cli`
-
-### VSCode Integration
-
-If you plan on using `micropy-cli` for it's VSCode related features, you must install the `vscode-python` extension:
-
-`code --install-extension ms-python.python`
-
-You can find the offical page [here](https://marketplace.visualstudio.com/items?itemName=ms-python.python).
-
-> Note: As of `micropy-cli v2.1.1`, you must use version `2019.9.34474` of `vscode-python` or higher. See [#50](https://github.com/BradenM/micropy-cli/issues/50) for details.
-
-
-## Usage
-
-```sh
-Usage: micropy [OPTIONS] COMMAND [ARGS]...
-
-  CLI Application for creating/managing Micropython Projects.
-
-Options:
-  --version  Show the version and exit.
-  --help     Show this message and exit.
-
-Commands:
-  init     Create new Micropython Project
-  install  Install Project Requirements
-  stubs    Manage Micropy Stubs
+```
+pip3 install datajoint
 ```
 
-### Creating a Project
+If you already have an older version of DataJoint installed using `pip`, upgrade with
+```bash
+pip3 install --upgrade datajoint
+```
+## Python Native Blobs
 
-Creating a new project folder is as simple as:
+DataJoint 0.12 adds full support for all native python data types in blobs: tuples, lists, sets, dicts, strings, bytes, `None`, and all their recursive combinations.
+The new blobs are a superset of the old functionality and are fully backward compatible.
+In previous versions, only MATLAB-style numerical arrays were fully supported.
+Some Python datatypes such as dicts were coerced into numpy recarrays and then fetched as such.
 
-1. Executing `micropy init <PROJECT NAME>`
-2. Selecting which templates to use
-3. Selecting your target device/firmware
-4. Boom. Your workspace is ready.
+However, since some Python types were coerced into MATLAB types, old blobs and new blobs may now be fetched as different types of objects even if they were inserted the same way. 
+For example, new `dict` objects will be returned as `dict` while the same types of objects inserted with `datajoint 0.11` will be recarrays.
 
-<p align='center'>
-    <img src='https://github.com/BradenM/micropy-cli/raw/master/.github/img/demo.gif' alt="Micropy Demo">
-</p>
+Since this is a big change, we chose to disable full blob support by default as a temporary precaution, which will be removed in version 0.13.
 
+You may enable it by setting the `enable_python_native_blobs` flag in `dj.config`. 
 
-#### Micropy Project Environment
+```python
+import datajoint as dj
+dj.config["enable_python_native_blobs"] = True
+```
 
-When creating a project with `micropy-cli`, two special items are added:
+You can safely enable this setting if both of the following are true:
 
-* A `.micropy/` folder
-* A `micropy.json` file
+  * The only kinds of blobs your pipeline have inserted previously were numerical arrays.
+  * You do not need to share blob data between Python and MATLAB.
 
-The `.micropy/` contains symlinks from your project to your `$HOME/.micropy/stubs` folder. By doing this, micropy can reference the required stub files for your project as relative to it, rather than using absolute paths to `$HOME/.micropy`. How does this benefit you? Thanks to this feature, you can feel free to push common setting files such as `settings.json` and `.pylint.rc` to your remote git repository. This way, others who clone your repo can achieve a matching workspace in their local environment.
+Otherwise, read the following explanation.
 
-> Note: The generated `.micropy/` folder should be *IGNORED* by your VCS. It is created locally for each environment via the `micropy.json` file.
+DataJoint v0.12 expands DataJoint's blob serialization mechanism with
+improved support for complex native python datatypes, such as dictionaries
+and lists of strings.
 
-The `micropy.json` file contains information micropy needs in order to resolve your projects required files when other clone your repo. Think of it as a `package.json` for micropython.
+Prior to DataJoint v0.12, certain python native datatypes such as
+dictionaries were 'squashed' into numpy structured arrays when saved into
+blob attributes. This facilitated easier data sharing between MATLAB
+and Python for certain record types. However, this created a discrepancy
+between insert and fetch datatypes which could cause problems in other
+portions of users pipelines.
 
-#### Cloning a Micropy Environment
+DataJoint v0.12, removes the squashing behavior, instead encoding native python datatypes in blobs directly. 
+However, this change creates a compatibility problem for pipelines 
+which previously relied on the type squashing behavior since records 
+saved via the old squashing format will continue to fetch
+as structured arrays, whereas new record inserted in DataJoint 0.12 with
+`enable_python_native_blobs` would result in records returned as the
+appropriate native python type (dict, etc).  
+Furthermore, DataJoint for MATLAB does not yet support unpacking native Python datatypes.
 
-To setup a Micropy environment locally, simply:
+With `dj.config["enable_python_native_blobs"]` set to `False` (default), 
+any attempt to insert any datatype other than a numpy array will result in an exception.
+This is meant to get users to read this message in order to allow proper testing
+and migration of pre-0.12 pipelines to 0.12 in a safe manner.
 
-* Install `micropy-cli`
-* Navigate to the project directory
-* Execute `micropy`
+The exact process to update a specific pipeline will vary depending on
+the situation, but generally the following strategies may apply:
 
-Micropy will automatically configure and install any stubs required by a project thanks to its `micropy.json` file.
+  * Altering code to directly store numpy structured arrays or plain
+    multidimensional arrays. This strategy is likely best one for those 
+    tables requiring compatibility with MATLAB.
+  * Adjust code to deal with both structured array and native fetched data
+    for those tables that are populated with `dict`s in blobs in pre-0.12 version. 
+    In this case, insert logic is not adjusted, but downstream consumers
+    are adjusted to handle records saved under the old and new schemes.
+  * Migrate data into a fresh schema, fetching the old data, converting blobs to 
+    a uniform data type and re-inserting.
+  * Drop/Recompute imported/computed tables to ensure they are in the new
+    format.
 
-### Project Dependencies
+As always, be sure that your data is safely backed up before modifying any
+important DataJoint schema or records.
 
-While all modules that are included in your targeted micropython firmware are available with autocompletion, intellisense, and linting, most projects require external dependencies.
+## Documentation and Tutorials
+A number of labs are currently adopting DataJoint and we are quickly getting the documentation in shape in February 2017.
 
-Currently, handling dependencies with micropython is a bit tricky. Maybe you can install a cpython version of your requirement? Maybe you could just copy and paste it? What if it needs to be frozen?
+* https://datajoint.io  -- start page
+* https://docs.datajoint.io -- up-to-date documentation
+* https://tutorials.datajoint.io -- step-by-step tutorials
+* https://catalog.datajoint.io -- catalog of example pipelines
 
-Micropy handles all these issues for you automatically. Not only does it track your project's dependencies, it keeps both `requirements.txt` and `dev-requirements.txt` updated, enables autocompletion/intellisense for each dep, and allows you to import them just as you would on your device.
-
-This allows you to include your requirement however you want, whether that be as a frozen module in your custom built firmware, or simply in the `/lib` folder on your device.
-
-#### Installing Packages
-
-To add a package as a requirement for your project, run:
-
-`micropy install <PACKAGE_NAMES>`
-
-while in your project's root directory.
-
-This will automatically execute the following:
-
-* Source `PACKAGE_NAMES` from pypi, as a url, or a local path
-* Retrieve the module/package and stub it, adding it to your local `.micropy` folder.
-* Add requirement to your `micropy.json`
-* Update `requirements.txt`
-
-To install dev packages that are not needed on your device, but are needed for local development, add the `--dev` flag. This will do everything above **except** stub the requirement.
-
-You can also install all requirements found in `micropy.json`/`requirements.txt`/`dev-requirements.txt` by executing `micropy install` without passing any packages. Micropy will automatically do this when setting up a local environment of an existing micropy project.
-
-#### Example
-
-Lets say your new project will depend on [picoweb](https://pypi.org/project/picoweb/) and [blynklib](https://pypi.org/project/blynklib/). Plus, you'd like to use [rshell](https://pypi.org/project/rshell/) to communicate directly with your device. After creating your project via `micropy init`, you can install your requirements as so:
-
-<p align='center'>
-    <img width="70%" src='.github/img/install_demo.svg' alt="Micropy Pkg Install Demo">
-</p>
-
-Now you or anybody cloning your project can import those requirements normally, and have the benefits of all the features micropy brings:
-
-<p align='center'>
-    <img width="70%" src='https://github.com/BradenM/micropy-cli/raw/master/.github/img/deps_demo.gif' alt="Micropy Deps Demo">
-</p>
-
-
-### Stub Management
-
-Stub files are the magic behind how micropy allows features such as linting, Intellisense, and autocompletion to work. To achieve the best results with MicropyCli, its important that you first add the appropriate stubs for the device/firmware your project uses.
-
-> Note: When working in a micropy project, all stub related commands will also be executed on the active project. (i.e if in a project and you run `micropy stubs add <stub-name>`, then that stub retrieved AND added to the active project.)
-
-#### Adding Stubs
-
-Adding stubs to Micropy is a breeze. Simply run: `micropy stubs add <STUB_NAME>`
-By sourcing [micropy-stubs](https://github.com/BradenM/micropy-stubs), MicroPy has several premade stub packages to choose from.
-
-These packages generally use the following naming schema:
-
-`<device>-<firmware>-<version>`
-
-For example, running `micropy stubs add esp32-micropython-1.11.0` will install the following:
-* Micropython Specific Stubs
-* ESP32 Micropython v1.11 Device Specific Stubs
-* Frozen Modules for both device and firmware
-
-You can search stubs that are made available to Micropy via `micropy stubs search <QUERY>`
-
-Alternatively, using `micropy stubs add <PATH>`, you can manually add stubs to Micropy.
-For manual stub generation, please see [Josvel/micropython-stubber](https://github.com/Josverl/micropython-stubber).
-
-#### Creating Stubs
-
-Using `micropy stubs create <PORT/IP_ADDRESS>`, MicropyCli can automatically generate and add stubs from any Micropython device you have on hand. This can be done over both USB and WiFi.
-
-> Note: For stub creation, micropy-cli has additional dependencies.
->
-> These can be installed by executing: `pip install micropy-cli[create_stubs]`
+## Running Tests Locally
 
 
-#### Viewing Stubs
+* Create an `.env` with desired development environment values e.g.
+``` sh
+PY_VER=3.7
+ALPINE_VER=3.10
+MYSQL_VER=5.7
+MINIO_VER=RELEASE.2019-09-26T19-42-35Z
+UID=1000
+GID=1000
+```
+* `cp local-docker-compose.yml docker-compose.yml`
+* `docker-compose up -d` (Note configured `JUPYTER_PASSWORD`)
+* Select a means of running Tests e.g. Docker Terminal, or Local Terminal (see bottom)
+* Add entry in `/etc/hosts` for `127.0.0.1 fakeservices.datajoint.io`
+* Run desired tests. Some examples are as follows:
 
-To list stubs you have installed, simply run `micropy stubs list`.
-
-To search for stubs for your device, use `micropy stubs search <QUERY>`.
-
-## See Also
-
-* [VSCode IntelliSense, Autocompletion & Linting capabilities](https://lemariva.com/blog/2019/08/micropython-vsc-ide-intellisense)
-    - An awesome article written by [lemariva](https://github.com/lemariva). It covers creating a micropython project environment from scratch using `micropy-cli` and [pymakr-vsc](pymakr-vsc). Great place to start if you're new to this!
+| Use Case                     | Shell Code                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| Run all tests                | `nosetests -vsw tests --with-coverage --cover-package=datajoint`                                                              |
+| Run one specific class test       | `nosetests -vs --tests=tests.test_fetch:TestFetch.test_getattribute_for_fetch1`                                                           |
+| Run one specific basic test        | `nosetests -vs --tests=tests.test_external_class:test_insert_and_fetch`                                   |
 
 
-## Acknowledgements
+### Launch Docker Terminal
+* Shell into `datajoint-python_app_1` i.e. `docker exec -it datajoint-python_app_1 sh`
 
-### Micropython-Stubber
-[Josvel/micropython-stubber](https://github.com/Josverl/micropython-stubber)
 
-Josverl's Repo is full of information regarding Micropython compatibility with VSCode and more. To find out more about how this process works, take a look at it.
+### Launch Local Terminal
+* See `datajoint-python_app` environment variables in `local-docker-compose.yml`
+* Launch local terminal
+* `export` environment variables in shell
+* Add entry in `/etc/hosts` for `127.0.0.1 fakeservices.datajoint.io`
 
-micropy-cli and [micropy-stubs](https://github.com/BradenM/micropy-stubs) depend on micropython-stubber for its ability to generate frozen modules, create stubs on a pyboard, and more.
 
+### Launch Jupyter Notebook for Interactive Use
+* Navigate to `localhost:8888`
+* Input Jupyter password
+* Launch a notebook i.e. `New > Python 3`
