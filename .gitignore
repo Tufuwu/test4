@@ -1,28 +1,13 @@
+# Python
 *.pyc
+/*.egg-info
+/.eggs
+/dist
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-.idea/*
-.pytest_cache/*
-.tags*
-.vscode/
+# coverage
+/.coverage
+/htmlcov
 
-# pytest coverage plugin
-.coverage
-
-.tool-versions
+# tests
+*.vcd
+*.gtkw

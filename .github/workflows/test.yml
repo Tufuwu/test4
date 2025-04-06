@@ -1,28 +1,26 @@
-name: Tests
-
 on:
-  push:
+  push: {}
   pull_request:
-
+    types: [opened, reopened, synchronize]
+name: CI
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         python-version: ["3.9"]
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Check out source code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-        cache: pip
-        cache-dependency-path: |
-          requirements.txt
-          test_requirements.txt
     - name: Install dependencies
-      run: make init
-    - name: Test
-      run: make test
+      run: |
+        pip install -e .
+    - name: Run tests
+      run: |
+        python -m unittest discover
