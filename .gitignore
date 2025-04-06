@@ -1,74 +1,15 @@
-*.py[cod]
 .DS_Store
-# C extensions
-*.so
-
-# Packages
-*.egg
-*.egg-info
-build
-eggs
-parts
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-MANIFEST
-
-# Installer logs
-pip-log.txt
-npm-debug.log
-pip-selfcheck.json
-
-# Unit test / coverage reports
+*.pyc
+starfish.egg-info/
+*.ipynb_checkpoints
 .coverage
-.tox
-nosetests.xml
-htmlcov
-.cache
-.pytest_cache
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# SQLite
-test_exp_framework
-
-# npm
-node_modules/
-
-# dolphin
-.directory
-libpeerconnection.log
-
-# setuptools
-dist
-
-# IDE Files
-atlassian-ide-plugin.xml
-.idea/
-*.swp
-*.kate-swp
-.ropeproject/
-.vscode/
-
-# Python3 Venv Files
+.coverage.*
+.mypy_cache/
+.pytest_cache/
+build/
+dist/
 .venv/
-bin/
-include/
-lib/
-lib64
-pyvenv.cfg
-share/
-venv/
-.python-version
-
-# Cython
-*.c
+.eggs/
+docs/source/gallery/
+docs/source/generated/
+.idea/
