@@ -1,68 +1,59 @@
-# setuptools installation of GromacsWrapper
-# Copyright (c) 2008-2011 Oliver Beckstein <orbeckst@gmail.com>
-# Released under the GNU Public License 3 (or higher, your choice)
-#
-# See the files INSTALL and README for details or visit
-# https://github.com/Becksteinlab/GromacsWrapper
-from __future__ import with_statement
-from setuptools import setup, find_packages
+import sys
+from pathlib import Path
 
-import versioneer
+from setuptools import setup
+from os import path
 
-with open("README.rst") as readme:
-    long_description = readme.read()
+sys.path.append(str(Path(__file__).parent))
+import pdfminer as package
 
 
-setup(name="GromacsWrapper",
-      version=versioneer.get_version(),
-      cmdclass=versioneer.get_cmdclass(),
-      description="A Python wrapper around the Gromacs tools.",
-      long_description=long_description,
-      author="Oliver Beckstein",
-      author_email="orbeckst@gmail.com",
-      license="GPLv3",
-      url="https://github.com/Becksteinlab/GromacsWrapper",
-      download_url="https://github.com/Becksteinlab/GromacsWrapper/downloads",
-      keywords="science Gromacs analysis 'molecular dynamics'",
-      classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Console',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: POSIX',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: Microsoft :: Windows ',
+with open(path.join(path.abspath(path.dirname(__file__)), 'README.md')) as f:
+    readme = f.read()
+
+setup(
+    name='pdfminer.six',
+    version=package.__version__,
+    packages=['pdfminer'],
+    package_data={'pdfminer': ['cmap/*.pickle.gz', 'py.typed']},
+    install_requires=[
+        'chardet ; python_version > "3.0"',
+        'cryptography',
+    ],
+    extras_require={
+        "dev": ["pytest", "nox", "mypy == 0.931"],
+        "docs": ["sphinx", "sphinx-argparse"],
+    },
+    description='PDF parser and analyzer',
+    long_description=readme,
+    long_description_content_type='text/markdown',
+    license='MIT/X',
+    author='Yusuke Shinyama + Philippe Guglielmetti',
+    author_email='pdfminer@goulu.net',
+    url='https://github.com/pdfminer/pdfminer.six',
+    scripts=[
+        'tools/pdf2txt.py',
+        'tools/dumppdf.py',
+    ],
+    keywords=[
+        'pdf parser',
+        'pdf converter',
+        'layout analysis',
+        'text mining',
+    ],
+    python_requires='>=3.6',
+    classifiers=[
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-        'Topic :: Scientific/Engineering :: Bio-Informatics',
-        'Topic :: Scientific/Engineering :: Chemistry',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-      ],
-      packages=find_packages(
-          exclude=['scripts', 'tests', 'tests.*', 'extras', 'doc/examples']),
-      scripts=[
-          'scripts/gw-join_parts.py',
-          'scripts/gw-merge_topologies.py',
-          'scripts/gw-forcefield.py',
-          'scripts/gw-partial_tempering.py',
-      ],
-      package_data={'gromacs': ['templates/*.sge', 'templates/*.pbs',  # template files
-                                'templates/*.ll', 'templates/*.sh',
-                                'templates/*.mdp', 'templates/*.cfg'
-                                ],
-                    },
-      install_requires=['numpy>=1.0',
-                        'six',          # towards py 3 compatibility
-                        'numkit',       # numerical helpers
-                        'matplotlib',
-                        ],
-      tests_require=['pytest', 'numpy>=1.0', 'pandas>=0.17'],
-      zip_safe=True,
-      )
+        'Programming Language :: Python :: 3 :: Only',
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Text Processing',
+    ],
+)
