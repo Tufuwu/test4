@@ -1,7 +1,14 @@
-# Python Stuff
 *.pyc
-.venv/
-
-# Sublime Stuff
-*.sublime-project
-*.sublime-workspace
+.tox
+ijson.egg-info
+*.so
+build
+*.whl
+*.egg
+.coverage
+dist
+.project
+.pydevproject
+.settings
+.cproject
+.autotools
