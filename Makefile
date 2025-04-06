@@ -1,22 +1,26 @@
-# Pjuu Makefile
-# Used for quickly testing, running and ensuring code quality
-# during development.
+all: clean inplace test
+	find skfuzzy -name "*version.py" | xargs rm -f
+	find skfuzzy -name "*.pyc" | xargs rm -f
 
-all: flake test coverage
+inplace:
+	python setup.py build_src --inplace build_ext --inplace
+
+clean-pyc:
+	find skfuzzy -name "*.pyc" | xargs rm -f
+
+clean-build:
+	rm -rf ./build
+
+clean-version:
+	find skfuzzy -name "*version.py" | xargs rm -f
+
+clean-cov:
+	rm -rf ./coverage ./.coverage ./htmlcov
+
+clean: clean-build clean-pyc clean-version clean-cov
 
 test:
-	@echo 'Running test suite...'
-	coverage run --source=pjuu --omit=pjuu/wsgi.py,pjuu/celery_app.py,*.html,*.txt --branch run_tests.py
-	coverage xml
+	nosetests -s -v skfuzzy
 
-coverage:
-	@echo 'Generating code coverage report...'
-	coverage report
-
-flake:
-	@echo 'Checking coding standards...'
-	flake8 --exclude=docs,venv,venv3,venvpypy .
-
-run:
-	@echo 'Starting Pjuu (Gunicorn with Gevent)...'
-	gunicorn -b 0.0.0.0:5000 -w 1 -k gevent --reload dev_server:application
+coverage: clean-cov
+	nosetests skfuzzy --with-coverage --cover-package=skfuzzy

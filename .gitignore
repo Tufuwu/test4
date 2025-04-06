@@ -1,72 +1,32 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*.bak
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-env/
-venv/
-venv3/
-venvpypy/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# PyInstaller
-# Usually these files are written by a python script from a template
-# before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Editor files
-.DS_Store
+*.pyc
 *~
-.idea/
-*.sublime*
+*#
+*egg-info
+*.so
+*.bak
+*.c
+*.new
+*.md5
+*.old
+*.DS_Store
+docs/source/api
+docs/api
+docs/build
+build
+dist
+skfuzzy/version.py
 *.swp
-tags
-
-# Vagrant
-.vagrant
-
-# VSCode
-.vscode
-
-.env
+.coverage
+docs/source/auto_examples/*.py
+docs/source/auto_examples/*.txt
+docs/source/auto_examples/notebook
+docs/source/auto_examples/images/plot_*.png
+docs/source/auto_examples/images/thumb
+docs/source/auto_examples/applications/
+docs/source/_static/random.js
+*.log
+*.ipynb_checkpoints*
+*_build*
+docs/logo/*.png
+docs/source/gitwash
+.idea/

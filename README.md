@@ -1,93 +1,78 @@
-# Pjuu
+scikit-fuzzy
+============
 
-An open-source social networking application which runs https://pjuu.com
+`scikit-fuzzy` is a fuzzy logic toolkit for SciPy.
 
-![](https://github.com/pjuu/pjuu/workflows/main/badge.svg?branch=master) [![codecov.io](http://codecov.io/github/pjuu/pjuu/coverage.svg?branch=master)](http://codecov.io/github/pjuu/pjuu?branch=master) [![Requirements Status](https://requires.io/github/pjuu/pjuu/requirements.svg?branch=master)](https://requires.io/github/pjuu/pjuu/requirements/?branch=master) [![License](https://img.shields.io/badge/license-AGPLv3-brightgreen.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
+The goals of scikit-fuzzy are:
+* To provide the community with a robust toolkit of independently developed and
+  implemented fuzzy logic algorithms
+* To increase the attractiveness of scientific Python as a valid alternative to
+  closed-source options.
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pjuu/pjuu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+Please cite [![DOI](https://zenodo.org/badge/8872608.svg)](https://zenodo.org/badge/latestdoi/8872608)
+if you find scikit-fuzzy useful.  A formal paper describing this package is in
+preparation.
+
+Source
+------
+
+https://github.com/scikit-fuzzy/scikit-fuzzy
+
+Documentation
+-------------
+
+The documentation of the library can be found here: https://scikit-fuzzy.github.io
+
+Online Discussion & Mailing List
+--------------------------------
+
+Please join the discussion in our public chat room on Gitter.im
+[![Gitter](https://badges.gitter.im/JoinChat.svg)](https://gitter.im/scikit-fuzzy/scikit-fuzzy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+or view/post on the Google Groups mailing list
+http://groups.google.com/group/scikit-fuzzy
+
+Installation
+------------
+
+Scikit-Fuzzy depends on
+  
+  * Matplotlib >= 3.1
+  * NumPy >= 1.6
+  * SciPy >= 0.9
+  * NetworkX >= 1.9
+
+and is available on PyPi! The latest stable release can always be obtained
+and installed simply by running
+
+    $ pip install -U scikit-fuzzy
+
+which will also work to upgrade existing installations to the latest release.
 
 
-This is an open source project released under the GNU AGPLv3 license. See LICENSE for more details or visit the official GNU page at http://www.gnu.org/licenses/agpl-3.0.html.
+If you prefer to install from source or develop this package, you can fork and
+clone this repository then install SciKit-Fuzzy by running
 
-### About
+	$ python setup.py install
 
-This is the primary code base for https://pjuu.com, the website is deployed directly from this respository.
+or develop locally by running
 
-The main goal of Pjuu as an application is privacy.
+	$ python setup.py develop
 
-Pjuu is written in Python3/Flask and uses Redis and MongoDB as the data stores.
+If you prefer, you can use SciKit-Fuzzy without installing by simply exporting
+this path to your PYTHONPATH variable.
 
-### Getting started
+License
+-------
 
-Getting started with Pjuu or deploying it yourself is quite easy if you are familiar with Python. We will only cover development here and the following documentation is for Debian 9 (Stretch) Linux (we are big fans). Pjuu should work with and any other Linux distribution, however you will need to change the commands to fit your envionment. It has also been tested with FreeBSD, but this is beyond the scope of the README.
+Please read LICENSE.txt in this directory.
 
-For a fresh installation these commands will setup the environment:
+IEEE Rounding for Matlab users
+------------------------------
 
-```
-$ sudo apt-get update
-
-$ sudo apt-get install build-essential python3-dev python-virtualenv python-setuptools libmagickwand-dev redis-server mongodb
-
-$ git clone https://github.com/pjuu/pjuu.git
-
-$ cd pjuu
-
-$ virtualenv -p python3 venv
-
-$ source venv/bin/activate
-
-$ pip install -r requirements-dev.txt
-```
-
-#### Testing
-
-To run the unit tests with coverage the following commands can be used:
-
-```
-$ make test
-```
-
-To obtain a code coverage report
-
-```
-$ make coverage
-```
-
-Checking code quality and PEP8 compliance:
-
-```
-$ make flake
-```
-
-#### Development server
-
-To Run the development server (Gunicorn with Gevent) type the following command:
-
-```
-$ make run
-```
-
-You can then view the site by visiting: http://localhost:5000
-
-You can now play with the code base :)
-
-#### Creating test accounts
-
-**IMPORTANT Note:**
-While testing You do NOT need to setup an SMTP server. To activate your account you can look in the response header for X-Pjuu-Token. If you copy this and visit `/activate/<token>` that will have the same effect as clicking the link in the activate account email. The same applies for any other action requiring confirmation (forgotten password), it will however be a different URL you need to append the token to.
-
-This only works if `TESTING = True` in your settings.
-
-### Contributing
-
-We are open to all pull requests. Spend some time taking a look around, locate a bug, design issue or spelling mistake then send us a pull request :)
-
-### Security
-
-All software has bugs in and Pjuu is no different. These may have security implications. If you find one that you suspect could allow you to do something you shouldn't be able to please do not post it as an issue on Github. We would really appreciate it if you could send an e-mail to security@pjuu.com with the relevant details.
-
-### Credits
-
-James Rand - illustrating the original Otter logo.
-
-Jonathan Trengrove - modernizing the Otter logo.
+It should be noted that Matlab rounds incorrectly. The IEEE standard (which is
+how this package behaves) requires rounding to the nearest EVEN number if
+exactly between, e.g. 1.5 --> 2; 2.5 --> 2; 3.5 --> 4; 4.5 --> 4, etc. This
+minimizes systematic rounding error. Thus, if re-implementing algorithms from
+Matlab code, slight inconsistencies in rounded results are expected. These are
+not bugs, and will not be fixed.
