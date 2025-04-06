@@ -1,347 +1,205 @@
-django-fluent-blogs
-===================
+strongTNC
+=========
 
-.. image:: https://github.com/django-fluent/django-fluent-blogs/actions/workflows/tests.yaml/badge.svg?branch=master
-    :target: https://github.com/django-fluent/django-fluent-blogs/actions/workflows/tests.yaml
-.. image:: https://img.shields.io/pypi/v/django-fluent-blogs.svg
-    :target: https://pypi.python.org/pypi/django-fluent-blogs/
-.. image:: https://img.shields.io/pypi/l/django-fluent-blogs.svg
-    :target: https://pypi.python.org/pypi/django-fluent-blogs/
-.. image:: https://img.shields.io/codecov/c/github/django-fluent/django-fluent-blogs/master.svg
-    :target: https://codecov.io/github/django-fluent/django-fluent-blogs?branch=master
+.. image:: https://github.com/strongswan/strongTNC/workflows/CI/badge.svg
+   :target: https://github.com/strongswan/strongTNC/actions?query=workflow%3ACI
+   :alt: Build status
 
-This is a basic blogging engine, with the following features:
+.. image:: https://coveralls.io/repos/github/strongswan/strongTNC/badge.svg?branch=master
+   :target: https://coveralls.io/github/strongswan/strongTNC?branch=master
+   :alt: Test coverage
 
-* Archive views by date, author, category and tags.
-* Contents filled by django-fluent-contents_
-* RSS and Atom feeds
-* Granularity in templates to override layouts.
-* Abstract base model for custom blog models.
-
-Used applications:
-
-* Categories based on django-categories-i18n_ (or django-categories_).
-* *Optional* comments based on django-contrib-comments_
-* *Optional* multilingual support based on django-parler_.
-* *Optional* integration with django-taggit_ and django-taggit-autocomplete-modified_ for tag support
-* *Optional* integration with django-fluent-comments_ for Ajax-based comments
-* *Optional* integration with django-fluent-pages_
-* *Optional* integration with django.contrib.sitemaps_
-
-TODO:
-
-* Have integration with blog publication protocols (like django-blog-zinnia_ provides), built in a similar way like django.contrib.syndication_ works.
+strongTNC is a Trusted Network Connect (TNC) extension for the strongSwan VPN
+solution. It allows the definition and enforcement of TNC policies that apply
+to all VPN clients and must be fulfilled with each connection attempt.
 
 
-Installation
-============
+Development Setup
+-----------------
 
-First install the module, preferably in a virtual environment:
+strongTNC uses Django (currently version 3.2.7) requiring Python 3. It is
+recommended to use the pip_ and virtualenv_ tools to ease the dependency
+management. They can be installed via your package manager on most Linux
+distributions.
 
-.. code-block:: bash
+If you're new to these tools: Pip is the de-facto Python package manager
+(similar to apt-get or yum). And virtualenv is a tool that allows you to have
+multiple Python installations side-by-side, inside a directory. A quickstart
+guide can be found `here
+<https://blog.dbrgn.ch/2012/9/18/virtualenv-quickstart/>`__.
 
-    pip install django-fluent-blogs
+**Non-Python Dependencies**
 
-    # Install the plugins of fluent-contents that you use:
-    pip install django-fluent-contents[text]
+You need to install the following packages in order to be able to build all the
+needed Python dependencies:
 
-    # Optional: to add tagging support + autocomplete use:
-    pip install django-taggit django-taggit-autocomplete-modified
+- python headers (Debian: ``python-dev``)
+- libxml (Debian: ``libxml2-dev``)
+- libxslt (Debian: ``libxslt-dev``)
 
+**Environment, Dependencies**
 
-Configuration
--------------
+First, create a virtualenv::
 
-Add the applications to ``settings.py``:
+    cd /path/to/strongTNC/
+    virtualenv --no-site-packages VIRTUAL
+    source VIRTUAL/bin/activate
 
-.. code-block:: python
+Then install the dependencies::
 
-    INSTALLED_APPS += (
-        # Blog engine
-        'fluent_blogs',
+    pip install -r requirements.txt
 
-        # The content plugins
-        'fluent_contents',
-        'fluent_contents.plugins.text',
+**Configuration**
 
-        # Support libs
-        'categories_i18n',
-        'django_wysiwyg',
-        'slug_preview',
+Create a local `settings.ini` file::
 
-        # Optional commenting support
-        'django_comments',
+    cp config/settings.sample.ini config/settings.ini
+    $EDITOR config/settings.ini
 
-        # Optional tagging
-        'taggit',
-        'taggit_autocomplete_modified',
-    )
+If this is not a production setup, change the ``DEBUG`` setting in
+``settings.ini`` from 0 to 1.
 
-    DJANGO_WYSIWYG_FLAVOR = "yui_advanced"
+Create the databases::
 
-Note that not all applications are required;
-tagging is optional, and so are the various ``fluent_contents.plugin.*`` packages.
-
-Include the apps in ``urls.py``:
-
-.. code-block:: python
-
-    urlpatterns += patterns('',
-        url(r'^admin/util/taggit_autocomplete_modified/', include('taggit_autocomplete_modified.urls')),
-        url(r'^blog/comments/', include('django_comments.urls')),
-        url(r'^blog/', include('fluent_blogs.urls')),
-    )
-
-The database can be created afterwards::
-
+    ./manage.py migrate --database meta
     ./manage.py migrate
 
-In case additional plugins of django-fluent-contents_ are used, follow their
-`installation instructions <http://django-fluent-contents.readthedocs.org/en/latest/plugins/index.html>`_ as well.
-Typically this includes:
+Set the default passwords::
 
-* adding the package name to ``INSTALLED_APPS``.
-* running ``pip install django-fluent-contents[pluginname]``
-* running  ``./manage.py syncdb``
+    ./manage.py setpassword
 
+If you want to use the Django-Admin view (``/admin``), create a superuser account::
 
-Configuring the templates
--------------------------
+    ./manage.py createsuperuser --database meta
 
-To display the blog contents, a ``fluent_blogs/base.html`` file needs to be created.
-This will be used to map the output of the module to your site templates.
+In case you want to change the password of a user::
 
-The base template needs to have the blocks:
+    ./manage.py changepassword admin-user --database meta
 
-* ``content`` - displays the main content
-* ``title`` - the ``<head>`` title fragment.
-* ``link`` - displays ``<link>`` tags for RSS feeds.
-* ``script`` - includes additional ``<script>`` tags.
-* ``meta-description`` - the ``value`` of the meta-description tag.
-* ``meta-keywords`` - the ``value`` for the meta-keywords tag.
-* ``og-type`` - the OpenGraph type for Facebook (optional)
-* ``og-description`` the OpenGraph description for Facebook (optional)
+**Development**
 
-The ``fluent_blogs/base.html`` template could simply remap the block names to the site's ``base.html`` template.
-For example:
+Now you can start the development server. ::
 
-.. code-block:: html+django
+    ./manage.py runserver
 
-    {% extends "base.html" %}
+The web interface should be available on ``http://localhost:8000/``.
 
-    {% block headtitle %}{% block title %}{% endblock %}{% endblock %}
+**Debugging**
 
-    {% block main %}
-        {# This area is filled with the blog archive/details:
-        {% block content %}{% endblock %}
+If you want to use the django debug toolbar, install it via pip::
 
-        {# Add any common layout, e.g. a sidebar here #}
-    {% endblock %}
+    pip install django-debug-toolbar
 
-When all other block names are already available in the site's ``base.html`` template,
-this example should be sufficient.
+Then start the server with the setting ``[debug] DEBUG_TOOLBAR = 1`` (in
+``settings.ini``).
 
-The filename of the base template can also be changed by defining the  ``FLUENT_BLOGS_BASE_TEMPLATE`` setting.
-
-Comments
-~~~~~~~~
-
-The commenting support can be based on django-contrib-comments_, or any other system of your choice.
-To integrate django-contrib-comments_ with your site theme, also create a ``comments/base.html`` template that maps the blocks:
-
-* ``title``
-* ``content``
-* ``extrahead`` (only for django-fluent-comments_)
+To print all executed SQL queries to stdout, start the server with the setting
+``[debug] SQL_DEBUG = 1`` (in ``settings.ini``).
 
 
-Adding pages to the sitemap
----------------------------
+Testing
+-------
 
-Optionally, the blog pages can be included in the sitemap.
-Add the following in ``urls.py``:
+Install pytest & dependencies::
 
-.. code-block:: python
+    pip install -r requirements-tests.txt
 
-    from fluent_blogs.sitemaps import EntrySitemap, CategoryArchiveSitemap, AuthorArchiveSitemap, TagArchiveSitemap
+Run the tests::
 
-    sitemaps = {
-        'blog_entries': EntrySitemap,
-        'blog_categories': CategoryArchiveSitemap,
-        'blog_authors': AuthorArchiveSitemap,
-        'blog_tags': TagArchiveSitemap,
+    ./runtests.py
+
+Run a specific test file::
+
+    ./runtests.py tests/<filename>
+
+Run only tests matching a specific pattern::
+
+    ./runtests.py -k <pattern>
+
+Run only tests that failed the last time::
+
+    ./runtests.py --lf
+
+Run tests without coverage::
+
+    ./runtests.py --no-cov
+
+
+XMPP-Grid Publishing Interface
+------------------------------
+
+strongTNC can publish real-time information on new SWID tags::
+
+    Published item strongswan.org__Debian_7.11-armv7l-smbclient-2~3.6.6-6~deb7u15 to sacm/swidtags:
+    {
+      "tagId": "Debian_7.11-armv7l-smbclient-2~3.6.6-6~deb7u15",
+      "versionStr": "2:3.6.6-6+deb7u15",
+      "packageName": "smbclient",
+      "uri": "https://tnc.strongswan.org/api/swid-tags/10550/"
     }
 
-    urlpatterns += patterns('',
-        url(r'^sitemap.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}),
-    )
+and push ``create`` (action: 1) or ``remove`` (action: 2) SWIMA events received from endpoints::
+
+    Published item 270aea08-d972-478c-b414-23abb0e82f1d332 to sacm/events:
+    {
+      "device": {
+        "description": "Raspi 3",
+        "value": "565feb9e8462870dba884ce540a0768d68829873"
+      },
+      "action": 1,
+      "tag": {
+        "recordId": 1413,
+        "sourceId": 1,
+        "softwareId": "strongswan.org__Debian_7.11-armv7l-smbclient-2~3.6.6-6~deb7u15"
+      },
+      "event": {
+        "timestamp": "2017-11-22T15:04:35Z",
+        "epoch": "1594045818",
+        "eid": "82"
+      }
+    }
+
+in JSON format to an XMPP-Grid by setting ``[xmpp] USE_XMPP = 1`` and configuring
+various parameters (in ``settings.ini``). Here is an example configuration::
+
+    [xmpp]
+    USE_XMPP = 1
+    jid: tnc@strongswan.org
+    password: <password>
+    pubsub_server: pubsub.strongswan.org
+    cacert: /etc/swanctl/x509ca/strongswanCaCert.pem
+    use_ipv6: 0
+    node_events: sacm/events
+    node_swidtags: sacm/swidtags
+    rest_uri: https://tnc.strongswan.org
 
 
-Integration with django-fluent-pages:
--------------------------------------
+License
+-------
 
-To integrate with the page types of django-fluent-pages_, don't include ``fluent_blogs.urls`` in the URLconf:
+::
 
-.. code-block:: python
+    Copyright (C) 2013 Marco Tanner, Stefan Rohner
+    Copyright (C) 2014 Christian Fässler, Danilo Bargen, Jonas Furrer
+    Copyright (C) 2013-2017 Tobias Brunner
+    Copyright (C) 2013-2019 Andreas Steffen
+    HSR University of Applied Sciences Rapperswil
 
-    urlpatterns += patterns('',
-        url(r'^admin/util/taggit_autocomplete_modified/', include('taggit_autocomplete_modified.urls')),
-        url(r'^blog/comments/', include('django_comments.urls')),   # or fluent_comments.urls
-    )
+    This file is part of strongTNC.  strongTNC is free software: you can
+    redistribute it and/or modify it under the terms of the GNU Affero General
+    Public License as published by the Free Software Foundation, either version
+    3 of the License, or (at your option) any later version.
 
-Instead, add a page type instead:
+    strongTNC is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for
+    more details.
 
-.. code-block:: python
+    You should have received a copy of the GNU Affero General Public License
+    along with strongTNC.  If not, see <http://www.gnu.org/licenses/>.
 
-    INSTALLED_APPS += (
-        'fluent_pages',
-        'fluent_blogs.pagetypes.blogpage',
-    )
-
-A "Blog" page can now be created in the page tree of django-fluent-pages_
-at the desired URL path.
-
-
-Integration with django-fluent-comments:
-----------------------------------------
-
-To use Ajax-based commenting features of django-fluent-comments_, include it in ``settings.py``:
-
-.. code-block:: python
-
-    INSTALLED_APPS += (
-        'fluent_blogs',
-        'fluent_comments',      # Before django_comments
-        'django_comments',
-
-        ...
-    )
-
-Include the proper module in ``urls.py``:
-
-.. code-block:: python
-
-    urlpatterns += patterns('',
-        url(r'^blog/comments/', include('fluent_comments.urls')),
-
-        ...
-    )
-
-This module will detect the installation, and enable the moderation features and include
-the required CSS and JavaScript files to have a Ajax-based commenting system.
+TLDR: This project is distributed under the AGPLv3, see ``LICENSE`` file.
 
 
-Integration with other commenting systems
------------------------------------------
-
-To use a different commenting system instead of django-contrib-comments_ (e.g. DISQUS_ or Facebook-comments_), override the following templates:
-
-* ``fluent_blogs/entry_detail/comments.html``
-
-These CSS/JavaScript includes are generated using:
-
-* ``fluent_blogs/entry_detail/comments_css.html``
-* ``fluent_blogs/entry_detail/comments_script.html``
-
-
-Overriding the blog layout
---------------------------
-
-To change the layout of the blog , the following templates can be overwritten:
-
-In the archive/list page:
-
-* ``fluent_blogs/entry_archive.html`` - the starting point, which includes all sub templates:
-* ``fluent_blogs/entry_archive/item.html`` - a single list item (extends ``fluent_blogs/entry_contents_base.html``).
-* ``fluent_blogs/entry_archive/empty.html`` - the default message when there are no entries.
-* ``fluent_blogs/entry_archive/pagination.html`` - the pagination at the bottom of the page.
-
-In the detail page:
-
-* ``fluent_blogs/entry_detail.html`` - the starting point, which includes all sub templates:
-* ``fluent_blogs/entry_detail/contents.html`` - the entry contents (extends ``fluent_blogs/entry_contents_base.html``).
-* ``fluent_blogs/entry_detail/widgets.html`` - space to add Social Media buttons.
-* ``fluent_blogs/entry_detail/comments.html`` - the comments.
-* ``fluent_blogs/entry_detail/navigation.html`` - the entry navigation links
-* ``fluent_blogs/entry_detail/page_footer.html`` - space below the comments to add Social Media buttons.
-* ``fluent_blogs/entry_detail/comments_css.html``
-* ``fluent_blogs/entry_detail/comments_script.html``
-
-Common appearance:
-
-* ``fluent_blogs/entry_contents_base.html`` - the common appearance of entries in the archive and detail page.
-* ``fluent_blogs/base.html`` - the base template, e.g. to introduce a common sidebar.
-
-
-Shared entry layout
-~~~~~~~~~~~~~~~~~~~
-
-When the layout of individual entries is shared with
-
-* By default, the contents ``fluent_blogs/entry_archive/item.html`` and , based on ``fluent_blogs/entry_archive/item.html`` by default
-
-
-Custom entry models
--------------------
-
-This applications supports the use of custom models for the blog entries.
-Include the following setting in your project:
-
-.. code-block:: python
-
-    FLUENT_BLOGS_ENTRY_MODEL = 'myapp.ModelName'
-
-This application will use the custom model for feeds, views and the sitemap.
-The model can either inherit from the following classes:
-
-* ``fluent_blogs.models.Entry`` (the default entry)
-* ``fluent_blogs.base_models.AbstractEntry`` (the default entry, as abstract model)
-* A mix of ``fluent_blogs.base_models.AbstractEntryBase`` combined with:
-
- * ``fluent_blogs.base_models.ExcerptEntryMixin``
- * ``fluent_blogs.base_models.ContentsEntryMixin``
- * ``fluent_blogs.base_models.CommentsEntryMixin``
- * ``fluent_blogs.base_models.CategoriesEntryMixin``
- * ``fluent_blogs.base_models.TagsEntryMixin``
-
-When a custom model is used, the admin needs to be registered manually.
-The admin can inherit from either:
-
-* ``fluent_blogs.admin.AbstractEntryBaseAdmin``
-* ``fluent_blogs.admin.EntryAdmin``
-
-The views are still rendered using the same templates, but you can also override:
-
-* ``myapp/modelname_archive_*.html``
-* ``myapp/modelname_detail.html``
-* ``myapp/modelname_feed_description.html``
-
-
-Contributing
-------------
-
-This module is designed to be generic, and easy to plug into your site.
-In case there is anything you didn't like about it, or think it's not
-flexible enough, please let us know. We'd love to improve it!
-
-If you have any other valuable contribution, suggestion or idea,
-please let us know as well because we will look into it.
-Pull requests are welcome too. :-)
-
-
-
-.. _DISQUS: http://disqus.com/
-.. _django-blog-zinnia: http://django-blog-zinnia.com/documentation/
-.. _django.contrib.syndication: https://docs.djangoproject.com/en/dev/ref/contrib/syndication/
-.. _django-contrib-comments: https://django-contrib-comments.readthedocs.io/
-.. _django.contrib.sitemaps: https://docs.djangoproject.com/en/dev/ref/contrib/sitemaps/
-.. _django-categories: https://github.com/callowayproject/django-categories
-.. _django-categories-i18n: https://github.com/django-parler/django-categories-i18n
-.. _django-fluent-comments: https://github.com/django-fluent/django-fluent-comments
-.. _django-fluent-contents: https://github.com/django-fluent/django-fluent-contents
-.. _django-fluent-pages: https://github.com/django-fluent/django-fluent-pages
-.. _django-parler: https://github.com/django-parler/django-parler
-.. _django-polymorphic: https://github.com/bconstantin/django_polymorphic
-.. _django-taggit: https://github.com/alex/django-taggit
-.. _django-taggit-autocomplete-modified: http://packages.python.org/django-taggit-autocomplete-modified/
-.. _Facebook-comments: https://developers.facebook.com/docs/reference/plugins/comments/
-
+.. _pip: https://github.com/pypa/pip
+.. _virtualenv: http://www.virtualenv.org/en/latest/

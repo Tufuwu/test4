@@ -1,54 +1,32 @@
-name: CI Testing
-on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
+name: CI
+
+on: [push,pull_request]
 
 jobs:
-  test:
-    name: "Python ${{ matrix.python }} Django ${{ matrix.django }}"
+  build:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
-      # max-parallel: 8  # default is max available
-      fail-fast: false
       matrix:
-        include:
-          # Django 2.2
-          - django: "2.2"
-            python: "3.9"
-          # Django 3.1
-          - django: "3.1"
-            python: "3.9"
-          # Django 3.2
-          - django: "3.2"
-            python: "3.9"
-          # Django 4.0
-          - django: "4.0b1"
-            python: "3.9"
-
+        python-version: ["3.9"]
     steps:
-      - name: Install gettext
-        run: sudo apt-get install -y gettext
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Install Packages
-        run: |
-          python -m pip install -U pip
-          python -m pip install "Django~=${{ matrix.django }}" codecov -e .[tests]
-
-      - name: Run Tests
-        run: |
-          echo "Python ${{ matrix.python }} / Django ${{ matrix.django }}"
-          coverage run --rcfile=.coveragerc runtests.py
-          codecov
-        continue-on-error: ${{ contains(matrix.django, '4.0') }}
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip coveralls
+        pip install -r requirements-tests.txt
+    - name: Prepare config
+      run: |
+        cp config/settings.sample.ini config/settings.ini
+        sed -i 's/DEBUG\s*=\s*0/DEBUG = 1/' config/settings.ini
+    - name: Run unit tests
+      run: ./runtests.py
+    - name: Submit coverage
+      if: ${{ success() }}
+      run: |
+        coveralls --service=github
