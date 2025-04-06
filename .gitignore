@@ -1,49 +1,64 @@
-# From https://github.com/github/gitignore/blob/master/Python.gitignore
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Pyc/pyo files.
-*.py[co]
+# C extensions
+*.so
 
-# Packages
+# Distribution / packaging
+.Python
+env/
+venv/
 *.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
+*.egg-info/
+?eggs/
+dist/
+build/
+parts/
+var/
+sdist/
+develop-eggs/
 .installed.cfg
-.venv
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
 # Installer logs
 pip-log.txt
+pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache
 nosetests.xml
 coverage.xml
-.coverage
-htmlcov
+junit.xml
+*,cover
+.hypothesis/
 
-#Translations
-# *.mo
-# ^^^ No, django needs the .mo files as it doesn't compile them on the fly.
+# Translations
+*.mo
+*.pot
 
-#Mr Developer
+# Django stuff:
+*.log
+
+# Mr Developer
 .mr.developer.cfg
-src
+.project
+.pydevproject
+.idea
 
-# Ignore generated config files
-etc/*.nginx.conf
-etc/*.logrotate
+# Sphinx documentation
+docs/_build/
 
-# Ignore ide's
-.idea/
-.vscode
-
-# ignore docs
-docs/_*
-
-notebooks
-*.ipynb
+# PyBuilder
+target/
