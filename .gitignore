@@ -1,0 +1,38 @@
+# Default Atom output path
+output
+
+# Default cache location
+.cache
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# egg
+*.egg-info
+
+# Tox
+.tox/
+
+# Sphinx
+docs/_build
+
+# Scrapy stuff
+.scrapy
+
+# virtualenv
+venv/
+
+# custom config
+feeds.cfg
+
+# pyenv
+.python-version
+
+# vim tags
+tags
+
+# distribution
+build/
+dist/
