@@ -1,46 +1,63 @@
-# python-lora
+![PyTeal logo](https://github.com/algorand/pyteal/blob/master/docs/pyteal.png?raw=true)
 
-Python wrapper for LoRa payloads from Thingpark/Actility, allowing decryption of the payload.
 
-- Depends on [cryptography]
-- Based on crypto code in [Lora-net/LoRaMac-node]
-- Tested with python 2.7, 3.5, 3.6, 3.7, 3.8, 3.9
-- Available on [pypi]
+# PyTeal: Algorand Smart Contracts in Python
 
-## Usage
+[![Build Status](https://travis-ci.com/algorand/pyteal.svg?branch=master)](https://travis-ci.com/algorand/pyteal)
+[![PyPI version](https://badge.fury.io/py/pyteal.svg)](https://badge.fury.io/py/pyteal)
+[![Documentation Status](https://readthedocs.org/projects/pyteal/badge/?version=latest)](https://pyteal.readthedocs.io/en/latest/?badge=latest)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-`pip install python-lora`
+PyTeal is a Python language binding for [Algorand Smart Contracts (ASC1s)](https://developer.algorand.org/docs/features/asc1/). 
 
-[cryptography] requires [cffi] which in turn requires `libffi-dev` and `python-dev`.
+Algorand Smart Contracts are implemented using a new language that is stack-based, 
+called [Transaction Execution Approval Language (TEAL)](https://developer.algorand.org/docs/features/asc1/teal/). 
 
-```python
-from lora.payload import LoRaPayload
+However, TEAL is essentially an assembly language. With PyTeal, developers can express smart contract logic purely using Python. 
+PyTeal provides high level, functional programming style abstractions over TEAL and does type checking at construction time.
 
-xmlstr = '''<?xml version="1.0" encoding="UTF-8"?>
-<DevEUI_uplink xmlns="http://uri.actility.com/lora">[...]
-<FCntUp>2</FCntUp>[...]
-<payload_hex>[...]</payload_hex>[...]
-</DevEUI_uplink>'''
+### Install 
 
-payload = LoRaPayload(xmlstr)
+PyTeal requires Python version >= 3.6.
 
-key = 'AABBCCDDEEFFAABBCCDDEEFFAABBCCDD'
-dev_addr = '00112233'
-plaintext = payload.decrypt(key, dev_addr)
-```
+#### Recommended: Install from PyPi
 
-You can also use `loramac_decrypt` without the XML wrapper to decode a hex-encoded `FRMPayload`:
-```python
->>> from lora.crypto import loramac_decrypt
->>> payload = '11daf7a44d5e2bbe557176e9e6c8da'
->>> sequence_counter = 2
->>> key = 'AABBCCDDEEFFAABBCCDDEEFFAABBCCDD'
->>> dev_addr = '00112233'
->>> loramac_decrypt(payload, sequence_counter, key, dev_addr)
-[222, 59, 24, 8, 7, 155, 237, 158, 103, 125, 93, 34, 161, 204, 33]
-```
+Install the latest official release from PyPi:
 
-[cryptography]: https://cryptography.io/
-[cffi]: https://cffi.readthedocs.org/en/latest/
-[pypi]: https://pypi.python.org/pypi/python-lora
-[Lora-net/LoRaMac-node]: https://github.com/Lora-net/LoRaMac-node/blob/master/src/mac/LoRaMacCrypto.c#L108
+* `pip install pyteal`
+
+#### Install Latest Commit
+
+If needed, it's possible to install directly from the latest commit on master to use unreleased features:
+
+> **WARNING:** Unreleased code is experimental and may not be backwards compatible or function properly. Use extreme caution when installing PyTeal this way.
+
+* `pip install git+https://github.com/algorand/pyteal`
+
+### Documentation
+
+[PyTeal Docs](https://pyteal.readthedocs.io/)
+
+### Development Setup
+
+Setup venv (one time):
+ * `python3 -m venv venv`
+
+Active venv:
+ * `. venv/bin/activate` (if your shell is bash/zsh)
+ * `. venv/bin/activate.fish` (if your shell is fish)
+
+Pip install PyTeal in editable state
+ * `pip install -e .`
+
+Install dependencies:
+* `pip install -r requirements.txt`
+ 
+Type checking using mypy:
+* `mypy pyteal`
+
+Run tests:
+* `pytest`
+
+Format code:
+* `black .`
