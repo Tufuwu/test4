@@ -1,30 +1,29 @@
-# virtual environment
-venv/
-venv3
+*.py[co]
 
-# compiled python
-*.pyc
-
-# generated files
-output/
-
-# package installation files
-repo_stat.egg-info/
-
-
-#csv export unittest output folder
-test/csv_outs
-
-# pycharm project
-.idea
-# Visual Studio files 
-.vscode
-
-# pip install --develop files
-build
+# Packages
+*.egg
+*.egg-info
 dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+.eggs
+# Installer logs
+pip-log.txt
 
-# stdeb files
-deb_dist/
-*.tar.gz
-/.mailmap
+# Unit test / coverage reports
+.coverage
+.tox
+.mypy_cache
+htmlcov
+
+#Translations
+*.mo
+
+#Mr Developer
+.mr.developer.cfg

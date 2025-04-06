@@ -1,182 +1,91 @@
-# [repostat](https://github.com/vifactor/repostat)
-Python3-compatible Git repository analyser and HTML-report generator 
-with [nvd3](http://nvd3.org/) -driven interactive metrics visualisations.
-
-**May not work with Python 3.9+!** See https://github.com/vifactor/repostat/issues/198
-
-Initially, a fork of [gitstats](https://github.com/hoxu/gitstats) tool.
-
----
-Check how a *repostat*'s report looks like by going to:
-
-https://repostat.imfast.io/
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3548989.svg)](https://doi.org/10.5281/zenodo.3548989)
+![Codecov](https://img.shields.io/codecov/c/github/cgevans/scikits-bootstrap)
+![PyPI](https://img.shields.io/pypi/v/scikits-bootstrap)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/cgevans/scikits-bootstrap)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/scikits-bootstrap)
 
 
-## Installation
-Starting from v2.0.0, *repostat* is installable from [PyPi](https://pypi.org/project/repostat-app/)
-under the name *repostat-app*. Installation should be as simple as:
-```bash
-pip3 install repostat-app
-```
-#### Newest and older versions
-- To install a development version with newest changes from
-[*repostat*'s github repository](https://github.com/vifactor/repostat),
-the following command may be executed:
-    ```bash
-    sudo pip3 install git+https://github.com/vifactor/repostat
-    ```
-    This command installs *repostat* from HEAD of `master` branch.
 
-- To install *repostat* at specific tag or branch, use the following syntax
-    ```bash
-    sudo pip3 install git+https://github.com/vifactor/repostat@<branch|tag>
-    ```
-*NOTE:*
-Versions prior to v2.0.0 have additional system-dependencies, e.g.
-`gnuplot`.
+scikits-bootstrap
+=================
 
-### OS-specific requirements
+Scikits.bootstrap provides bootstrap confidence interval algorithms for Numpy/Scipy/Pandas.  It originally required scipy, but no longer needs it.
 
-#### Linux installation
-![Repostat for Ubuntu 20.04](https://github.com/vifactor/repostat/workflows/Repostat%20for%20Ubuntu%2020.04/badge.svg)
+It also provides an algorithm which estimates the probability that the statistics
+lies satisfies some criteria, e.g. lies in some interval.
 
-`python3-pip` must be in the system and then installation via `pip`
-works fine.
+At present, it is rather feature-incomplete and in flux. However, the functions
+that have been written should be relatively stable as far as results.
 
-#### Mac OS (Catalina) installation
-![Repostat for Mac OS](https://github.com/vifactor/repostat/workflows/Repostat%20for%20Mac%20OS/badge.svg)
+Much of the code has been written based off the descriptions from Efron and
+Tibshirani's Introduction to the Bootstrap, and results should match the results
+obtained from following those explanations. However, the current ABC code is
+based off of the modified-BSD-licensed R port of the Efron bootstrap code, as
+I do not believe I currently have a sufficient understanding of the ABC method
+to write the code independently.
 
-Prior to installing repostat one needs to make sure to have
-*right version* of libgit2 in the system. This can be achieved
-- following [pygit2 installation](https://www.pygit2.org/install.html#id13) instructions
-- (not recommended) installing it via Homebrew
-```bash
-$ brew update
-$ brew install libgit2
-```
-Then, install *repostat* via:
-```
-$ pip3 install repostat-app
-```
+In any case, please contact me (Constantine Evans <cevans@evanslabs.org>) with
+any questions or suggestions. I'm trying to add documentation, and will
+be adding tests as well. I'm especially interested, however, in how the API
+should actually look; please let me know if you think the package should be
+organized differently.
 
-*NOTE*:
-1) Homebrew-way to install packages is slow and may break system dependencies.
-2) repostat's [CI for OSX](https://github.com/vifactor/repostat/blob/master/.github/workflows/repostat_macos.yml)
-builds libgit2 from source.
+The package is licensed under the BSD 3-Clause License. It is supported in part
+by the Evans Foundation.
 
-### Windows installation
-![Repostat for Windows](https://github.com/vifactor/repostat/workflows/Repostat%20for%20Windows%202019/badge.svg)
+Version Info
+============
 
-Once there is python v3.6+ in the system path, *repostat* can be installed via:
-```shell script
-python -m pip install repostat-app
-```
+- HEAD: Randomness is now generated via a numpy.random Generator.  Anything
+        that relied on using numpy.random.seed to obtain deterministic results
+        will fail (mostly of relevance for testing).  Seeds (or Generators) can
+        now be passed to relevant functions with the `seed` argument, but note
+        that changes in Numpy's random number generation means this will not
+        give the same results that would be obtained using `numpy.random.seed`
+        to set the seed in previous versions.
 
-*NOTE*: On Windows 10+, symlink to `general.html` is not generated, when
-*repostat* launched by an unprivileged user. 
-___
-## Usage
-```bash
-repostat [--help] [--version] [--config_file CONFIG_FILE_PATH]
-                 git_repository_path report_output_path
-```
-Run `repostat --help` for details.
+  Numba is now supported in some instances (np.average or np.mean as
+  statfunction, 1-D data), using use_numba=True.  Pypy3 is also supported.
+  Typing information has been added.
 
-### Configuration file
+  Handling of multiple data sets (tuples/etc of arrays) now can be specified
+        as multi="paired" (the previous handling), where the sets must be of the
+        same length, and samples are taken keeping corresponding points connected,
+        or multi="independent", treating data sets as independent and sampling them
+        seperately (in which case they may be different sizes).
 
-A report can be customized using a JSON settings file. The file is passed
-using the `--config-file` option as follows:
+- v1.0.1: Licensing information added.
+
+- v1.0.0: scikits.bootstrap now uses pyerf, which means that it doesn't actually
+        need scipy at all.  It should work with PyPy, has some improved error
+        and warning messages, and should be a bit faster in many cases.  The old
+        ci_abc function has been removed: use method='abc' instead.
+
+- v0.3.3: Bug fixes.  Warnings have been cleaned up, and are implemented for BCa
+        when all statistic values are equal (a common confusion in prior versions).
+        Related numpy warnings are now suppressed.  Some tests on Python 2 were
+        fixed, and the PyPI website link is now correct.
+
+- v0.3.2: This version contains various fixes to allow compatibility with Python
+        3.3. While I have not used the package extensively with Python 3, all
+        tests now pass, and importing works properly. The compatibility changes
+        slightly modify the output of bootstrap_indexes, from a Python list to
+        a Numpy array that can be iterated over in the same manner. This should
+        only be important in extremely unusual situations.
+
+
+
+Installation and Usage
+======================
+
+scikits.bootstrap is tested on Python 3.6 - 3.9, and PyPy 3.  The package can be installed using pip.
+
+`pip install scikits.bootstrap`
+
+Usage example for python 3.x:
 
 ```
-repostat --config-file <path_to_config.json> <repo_path> <out_path>
+import scikits.bootstrap as boot
+import numpy as np
+boot.ci(np.random.rand(100), np.average)
 ```
-Configuration file might contain following fields (all are optional):
-```json
-{
-    "max_domains": 10,
-    "max_authors": 7,
-    "max_plot_authors_count": 10,
-    "max_authors_of_months": 6,
-    "authors_top": 5,
-    "colormap": "classic",
-    "max_recent_tags": -1,
-    "orphaned_extension_count": 2,
-    "time_sampling": "W"
-}
-```
-Detailed information about role of the fields is below.
-
-#### Authors page configuration
-
-These values are usually adjusted to accommodate projects with various number
-of contributors and activity levels, to avoid showing too much or too little
-information.
-
-* `max_domains`: number of e-mail domains to show in author stats
-* `max_authors`: number of authors in the "top authors" table 
-(other authors are listed without detailed stats)
-* `max_plot_authors_count`: number of authors to include in plots
-in "Authors"-page (rest of the authors will be grouped as "Others"). 
-* `max_authors_of_months`: number of months for which "author of 
-the month" should be displayed
-* `authors_top`: number of authors to show for each month/year in the
-author of month/year list
-* `orphaned_extension_count`: max file extension count to be 
-considered as `orphaned` and displayed in report in the corresponding
-category (default: 0, i.e. all extensions are displayed)
-
-#### Colorscheme configuration
-
-The colors of the thread "heat maps" tables in the activity page can be customized
-using the "colormap" option. The allowed values are:
-
-* `classic`: (default) uses shades of red only, like gitstats
-* `plasma`: uses the ["plasma" colormap](https://bids.github.io/colormap/)
-* `viridis`: uses the ["viridis" colormap](https://bids.github.io/colormap/)
-* `clrscc`: uses a selection of colors from https://clrs.cc/
-
-#### History plots sampling
-is controlled by `"time_sampling"` field in configuration file and
-defines how timeseries , e.g. number of files over a
-repository history, are sampled. By default, weekly-sampling is used.
-For old repositories one might want to increase that value to
-month or even quarter.
-Accepted values for `"time_sampling"` are the [Pandas' Offset aliases](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
-
-#### Tags rendering
-
-Some git repositories contain thousands of tags most of which are not 
-worth to check. Since v.1.3.0 there is a possibility to limit the number 
-of tags displayed in "Tags" tab of the HTML report or even hide the tab.
-
-The feature is controlled by "max_recent_tags" field
-
-If JSON file has following content `{ [...], "max_recent_tags": 8 }`,
-the report will contain the 8 most recent tags in "Tags" page. Setting the
-field `max_recent_tags` to zero will not render "Tags" page at all. If
-no such field is provided in JSON settings, the report will contain a "Tags"
-page with all tags in the analysed repository.
-
-### Additional features
-
-#### Mailmap
-Starting from v1.1.2+ repostat supports [git mailmap](https://git-scm.com/docs/git-check-mailmap). 
-Two things are required in order to make the feature working:
-- have pygit2 v.0.28+ installed
-- create and fill .mailmap file (e.g. in the root of your repository)
-
-#### Relocatable reports
-By default, images, css- and js-files required for html report
-rendering do not get copied to a report directory. Html pages contain 
-absolute paths to assets located in *repostat*'s package installation
-directory.
-
-Starting from v.1.0.x, the `--copy-assets` command-line option forces
-program to copy assets to generated report and embed relative paths
-in the generated html-files.
-
-## How to contribute
-
-Bug reports and feature requests as well as pull requests are welcome.
-Please, check the ["Issues"](https://github.com/vifactor/repostat/issues)
-on github to find something you would like to work on.
