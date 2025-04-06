@@ -1,121 +1,74 @@
-name: NESTML build
-on: push
+name: tox-pytest
+
+on: [ push, pull_request ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-
     steps:
-      # Checkout the repository contents
-      - name: Checkout NESTML code
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      # Setup Python version
-      - name: Setup Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
+    - name: Compile Zenodo datastore DOIs for cache invalidation
+      run: grep -e '.*10\.\(5281\|5072\)/zenodo\..*' src/pudl/workspace/datastore.py | sed -e 's/",*$//g' | sed -e 's/^.*"//g' | sort > datastore-dois.txt
 
-      # Install dependencies
-      - name: Install apt dependencies
-        run: |
-          sudo apt-get install libltdl7-dev libgsl0-dev libncurses5-dev libreadline6-dev pkg-config
-          sudo apt-get install python3-all-dev python3-matplotlib python3-numpy python3-scipy
+    - name: Restore Zenodo datastore from cache if possible
+      uses: actions/cache@v4
+      id: cache-zenodo-datastore
+      with:
+        path: ~/pudl-work/data/
+        key: zenodo-datastore-${{ hashFiles('datastore-dois.txt') }}
+        restore-keys: |
+          zenodo-datastore-
 
-      # Install Java
-      - name: Install Java 8
-        uses: actions/setup-java@v1
-        with:
-          java-version: '8.0.x'
-          java-package: jre
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
 
-      # Install Antlr4
-      - name: Install Antlr4
-        run: |
-          wget http://www.antlr.org/download/antlr-4.8-complete.jar
-          echo \#\!/bin/bash > antlr4
-          echo java -cp \"`pwd`/antlr-4.8-complete.jar:$CLASSPATH\" org.antlr.v4.Tool \"\$@\" >> antlr4
-          echo >> antlr4
-          chmod +x antlr4
-          echo PATH=$PATH:`pwd` >> $GITHUB_ENV
+    - name: Install dependencies
+      run: |
+        sudo apt-get install libsnappy-dev
+        python -m pip install --upgrade pip
+        pip install tox
 
-      # Install Python dependencies
-      - name: Python dependecies
-        run: |
-          python -m pip install --upgrade pip pytest
-          python -m pip install -r requirements.txt
-          python -m pip install pycodestyle
+    - name: Log pre-test Zenodo datastore contents
+      run: |
+        mkdir -p ~/pudl-work/data/
+        find ~/pudl-work/data/
 
-      - name: Install latest ode-toolbox
-        run: |
-          python -m pip uninstall --yes odetoolbox
-          python -m pip install git+https://github.com/nest/ode-toolbox.git
+    - name: Run PyTest with Tox
+      env:
+        API_KEY_EIA: ${{ secrets.API_KEY_EIA }}
+      run: tox -ve ci -- --fast
 
-      - name: Install NESTML
-        run: |
-          echo PYTHONPATH=`pwd` >> $GITHUB_ENV
-          python setup.py install
+    - name: Log post-test Zenodo datastore contents
+      run: find ~/pudl-work/data/
 
-      - name: Generate Lexer and Parser using Antlr4
-        run: |
-          cd $GITHUB_WORKSPACE
-          find pynestml/generated -not -name __init__.py -a -not -name generated -delete
-          cd pynestml/grammars
-          ./generate_lexer_parser
+    - name: Upload test coverage report to CodeCov
+      uses: codecov/codecov-action@v1
 
-      # Static code analysis
-      - name: Static code style analysis
-        run: |
-          python3 extras/codeanalysis/check_copyright_headers.py && python3 -m pycodestyle $GITHUB_WORKSPACE -v --ignore=E241,E501,E303,E714,E713,E714,E252,W503 --exclude=$GITHUB_WORKSPACE/doc,$GITHUB_WORKSPACE/.git,$GITHUB_WORKSPACE/NESTML.egg-info,$GITHUB_WORKSPACE/pynestml/generated,$GITHUB_WORKSPACE/extras,$GITHUB_WORKSPACE/build,$GITHUB_WORKSPACE/.github
+    - name: Archive test coverage report at GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-report
+        path: coverage.xml
 
-      # Tests
-      - name: Run unit tests
-        run: |
-          pytest -s -o norecursedirs='*'  -o log_cli=true -o log_cli_level="DEBUG" tests
-
-      # Install NEST simulator
-      - name: NEST simulator
-        run: |
-          python -m pip install cython pytest-xdist
-          echo "GITHUB_WORKSPACE = $GITHUB_WORKSPACE"
-          cd $GITHUB_WORKSPACE/..
-          NEST_SIMULATOR=$(pwd)/nest-simulator
-          NEST_INSTALL=$(pwd)/nest_install
-          echo "NEST_SIMULATOR = $NEST_SIMULATOR"
-          echo "NEST_INSTALL = $NEST_INSTALL"
-
-          git clone --depth=1 https://github.com/nest/nest-simulator
-
-          mkdir nest_install
-          echo "NEST_INSTALL=$NEST_INSTALL" >> $GITHUB_ENV
-          cd nest_install
-          cmake -DCMAKE_INSTALL_PREFIX=$NEST_INSTALL $NEST_SIMULATOR
-          make && make install
-
-      # Install NESTML (repeated)
-      - name: Install NESTML
-        run: |
-          export PYTHONPATH=${{ env.PYTHONPATH }}:${{ env.NEST_INSTALL }}/lib/python3.8/site-packages:/opt/hostedtoolcache/Python/3.8.7/x64/lib/python3.8/site-packages
-          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-          python setup.py install
-
-      # Integration tests
-      - name: Setup integration tests
-        run: |
-          cd $GITHUB_WORKSPACE
-          nestml --input_path models --target_path target --suffix _nestml --logging_level INFO --module_name nestml_allmodels_module
-          cd target
-          echo "NEST_INSTALL = ${{ env.NEST_INSTALL }}"
-          cmake -Dwith-nest=${{ env.NEST_INSTALL }}/bin/nest-config .
-          make && make install
-
-      - name: Run integration tests
-        run: |
-          cd $GITHUB_WORKSPACE
-          rc=0
-          for fn in $GITHUB_WORKSPACE/tests/nest_tests/*.py; do
-              pytest -s -o log_cli=true -o log_cli_level="DEBUG" ${fn} || rc=1
-          done;
-          exit $rc
+    - name: Inform the Codemonkeys
+      uses: 8398a7/action-slack@v3
+      with:
+        status: custom
+        fields: workflow,job,commit,repo,ref,author,took
+        custom_payload: |
+          {
+            username: 'action-slack',
+            icon_emoji: ':octocat:',
+            attachments: [{
+              color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
+              text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} ${{ job.status }} in ${process.env.AS_TOOK}`,
+            }]
+          }
+      env:
+        GITHUB_TOKEN: ${{ github.token }} # required
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
+        MATRIX_CONTEXT: ${{ toJson(matrix) }} # required
+      if: always() # Pick up events even if the job fails or is canceled.
