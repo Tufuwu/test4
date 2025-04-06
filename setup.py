@@ -1,50 +1,52 @@
-from importlib.machinery import SourceFileLoader
-from pathlib import Path
-from setuptools import setup
+#!/usr/bin/env python
 
-THIS_DIR = Path(__file__).resolve().parent
-long_description = THIS_DIR.joinpath('README.md').read_text()
+from setuptools import find_packages, setup
 
-# avoid loading the package before requirements are installed:
-version = SourceFileLoader('version', 'watchgod/version.py').load_module()
+
+# Get version without importing, which avoids dependency issues
+def get_version():
+    import re
+
+    with open("chardet/version.py") as version_file:
+        return re.search(
+            r"""__version__\s+=\s+(['"])(?P<version>.+?)\1""", version_file.read()
+        ).group("version")
+
+
+def readme():
+    with open("README.rst") as f:
+        return f.read()
+
 
 setup(
-    name='watchgod',
-    version=str(version.VERSION),
-    description='Simple, modern file watching and code reload in python.',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
+    name="chardet",
+    version=get_version(),
+    description="Universal encoding detector for Python 2 and 3",
+    long_description=readme(),
+    author="Mark Pilgrim",
+    author_email="mark@diveintomark.org",
+    maintainer="Daniel Blanchard",
+    maintainer_email="dan.blanchard@gmail.com",
+    url="https://github.com/chardet/chardet",
+    license="LGPL",
+    keywords=["encoding", "i18n", "xml"],
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: MacOS',
-        'Environment :: MacOS X',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: System :: Filesystems',
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Text Processing :: Linguistic",
     ],
-    author='Samuel Colvin',
-    author_email='s@muelcolvin.com',
-    url='https://github.com/samuelcolvin/watchgod',
-    entry_points="""
-        [console_scripts]
-        watchgod=watchgod.cli:cli
-    """,
-    license='MIT',
-    packages=['watchgod'],
-    package_data={'watchgod': ['py.typed']},
-    python_requires='>=3.5',
-    zip_safe=True,
+    packages=find_packages(),
+    python_requires=">=3.6",
+    entry_points={"console_scripts": ["chardetect = chardet.cli.chardetect:main"]},
 )
