@@ -1,26 +1,56 @@
-all: clean inplace test
-	find skfuzzy -name "*version.py" | xargs rm -f
-	find skfuzzy -name "*.pyc" | xargs rm -f
+PYTHON=python3
+SETUPFLAGS=
+COMPILEFLAGS=
+INSTALLFLAGS=
+
+.PHONY: inplace all rebuild test_inplace test fulltests clean distclean
+.PHONY: sdist install black
+
+all: inplace black README.html README.md
+
+README.md: README.txt CHANGES.txt
+	pandoc --from=rst --to=gfm README.txt > $@
+	pandoc --from=rst --to=gfm CHANGES.txt >> $@
+	sed -i ':a;N;$$!ba;s/\n\[!/[!/g' $@
+
+README.html: README.txt CHANGES.txt void.css
+	@echo | cat README.txt - CHANGES.txt | \
+	    rst2html --verbose --exit-status=1 --stylesheet=void.css \
+            > README.html
 
 inplace:
-	python setup.py build_src --inplace build_ext --inplace
+	$(PYTHON) setup.py $(SETUPFLAGS) build_ext -i $(COMPILEFLAGS)
 
-clean-pyc:
-	find skfuzzy -name "*.pyc" | xargs rm -f
+rebuild: clean all
 
-clean-build:
-	rm -rf ./build
+test_inplace: inplace
+	$(PYTHON) -m tests
 
-clean-version:
-	find skfuzzy -name "*version.py" | xargs rm -f
+test: test_inplace
 
-clean-cov:
-	rm -rf ./coverage ./.coverage ./htmlcov
+black:
+	black $(CURDIR) || true
 
-clean: clean-build clean-pyc clean-version clean-cov
+clean:
+	@find . \( -name '*.o' -or -name '*.so' -or -name '*.sl' -or \
+	           -name '*.py[cod]' -or -name README.html \) \
+	    -and -type f -delete
+	@rm -f .coverage .coverage.* coverage.xml
 
-test:
-	nosetests -s -v skfuzzy
+distclean: clean
+	@rm -rf build
+	@rm -rf dist
+	@find . \( -name '~*' -or -name '*.orig' -or -name '*.bak' -or \
+	          -name 'core*' \) -and -type f  -delete
 
-coverage: clean-cov
-	nosetests skfuzzy --with-coverage --cover-package=skfuzzy
+whitespace:
+	@find \( -name '*.rst' -or -name '*.py' -or -name '*.xml' \) | \
+	    xargs sed -i 's/[ \t]*$$//'
+
+
+packages: README.html README.md
+	$(PYTHON) setup.py packages
+
+install:
+	$(PYTHON) setup.py $(SETUPFLAGS) build $(COMPILEFLAGS)
+	$(PYTHON) setup.py install $(INSTALLFLAGS)

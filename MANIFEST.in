@@ -1,14 +1,9 @@
-include setup.cfg
-include setup*.py
+include setup.py
+include README.txt CHANGES.txt LICENSE README.html
+include void.css
 include MANIFEST.in
-include *.txt
-include Makefile
-recursive-include skfuzzy *.pyx *.pxd *.pxi *.py *.c *.h *.ini *.md5 *.npy *.txt
+include setup.py Makefile
+include tests.py
+recursive-include xmltestdata *.xml
+recursive-include other *.php *.pl *.rb *.py *.txt
 
-include docs/Makefile
-recursive-include docs/source *.txt
-recursive-include docs/tools *.txt
-recursive-include docs/source/_templates *.html
-recursive-include docs *.py
-prune docs/build
-prune docs/gh-pages

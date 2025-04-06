@@ -1,13 +1,10 @@
-# Configuration for coverage.py
-
 [run]
 branch = True
-source = skfuzzy
-include = */skfuzzy/*
-omit =
-    */setup.py
+source =
+    defusedxml/
+    tests.py
 
-[report]
-exclude_lines =
-    def __repr__
-    if __name__ == .__main__.:
+[paths]
+source =
+   defusedxml/
+   .tox/py*/lib/python*/site-packages/defusedxml/
