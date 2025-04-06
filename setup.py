@@ -1,59 +1,75 @@
-import re
-from os import path
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from setuptools import find_packages
 from setuptools import setup
 
-
-# read() and find_version() taken from jezdez's python apps, ex:
-# https://github.com/jezdez/django_compressor/blob/develop/setup.py
+import ricecooker
 
 
-def read(*parts):
-    return open(path.join(path.dirname(__file__), *parts)).read()
+readme = open('README.md').read()
 
+with open('docs/history.rst') as history_file:
+    history = history_file.read()
 
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+requirements = [
+    "pytest>=3.0.2",
+    "requests>=2.11.1",
+    "le_utils>=0.1.26",
+    "validators",                             # TODO: check if this is necessary
+    "requests_file",
+    "beautifulsoup4>=4.6.3,<4.9.0",   # pinned to match versions in le-pycaption
+    "pressurecooker>=0.0.30",
+    "selenium==3.0.1",
+    "youtube-dl>=2020.6.16.1",
+    "html5lib",
+    "cachecontrol==0.12.0",
+    "lockfile==0.12.2",                       # TODO: check if this is necessary
+    "css-html-js-minify==2.2.2",
+    "mock==2.0.0",
+    "pypdf2>=1.26.0",
+    "dictdiffer>=0.8.0",
+    "Pillow==5.4.1",
+    "colorlog>=4.1.0,<4.2",
+    "PyYAML>=5.3.1",
+    "Jinja2>=2.10"
+]
 
+test_requirements = [
+    # TODO: put package test requirements here
+]
 
 setup(
-    name='django-timezone-field',
-    version=find_version('timezone_field', '__init__.py'),
-    author='Mike Fogel',
-    author_email='mike@fogel.ca',
-    description=(
-        'A Django app providing database and form fields for '
-        'pytz timezone objects.'
-    ),
-    long_description=read('README.rst'),
-    url='http://github.com/mfogel/django-timezone-field/',
-    license='BSD',
-    packages=[
-        'timezone_field',
-    ],
-    install_requires=['django>=2.2', 'pytz'],
-    extras_require={
-        'rest_framework': ['djangorestframework>=3.0.0']
+    name='ricecooker',
+    version=ricecooker.__version__,
+    description="API for adding content to the Kolibri content curation server",
+    long_description=readme + '\n\n' + history,
+    long_description_content_type='text/markdown',
+    author="Learning Equality",
+    author_email='dev@learningequality.org',
+    url='https://github.com/learningequality/ricecooker',
+    packages=find_packages(),
+    package_dir={'ricecooker':'ricecooker'},
+    entry_points = {
+        'console_scripts': [
+            'corrections = ricecooker.utils.corrections:correctionsmain',
+            'jiro = ricecooker.cli:main'
+        ],
     },
-    python_requires='>=3.5',
+    include_package_data=True,
+    install_requires=requirements,
+    license="MIT license",
+    zip_safe=False,
+    keywords='ricecooker',
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Web Environment',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
+        'Development Status :: 5 - Production/Stable',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Utilities',
-        'Framework :: Django',
+        'Natural Language :: English',
+        'Topic :: Education',
     ],
+    test_suite='tests',
+    tests_require=test_requirements
 )

@@ -1,2 +1,15 @@
-include LICENSE.txt MANIFEST.in README.rst
-recursive-exclude tests *
+
+include AUTHORS.rst
+include CONTRIBUTING.rst
+include HISTORY.rst
+include LICENSE
+include README.md
+
+recursive-include tests *
+recursive-exclude tests/testcontent *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+recursive-include docs *.md *.rst conf.py Makefile make.bat *.jpg *.png *.gif
+
+recursive-exclude docs/tutorial/storage *
