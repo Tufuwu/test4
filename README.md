@@ -1,174 +1,163 @@
-[![](https://img.shields.io/pypi/pyversions/django-extra-settings.svg?color=3776AB&logo=python&logoColor=white)](https://www.python.org/)
-[![](https://img.shields.io/pypi/djversions/django-extra-settings?color=0C4B33&logo=django&logoColor=white&label=django)](https://www.djangoproject.com/)
+# django-timezone-field
 
-[![](https://img.shields.io/pypi/v/django-extra-settings.svg?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/django-extra-settings/)
-[![](https://pepy.tech/badge/django-extra-settings)](https://pepy.tech/project/django-extra-settings)
-[![](https://img.shields.io/github/stars/fabiocaccamo/django-extra-settings?logo=github)](https://github.com/fabiocaccamo/django-extra-settings/)
-[![](https://badges.pufler.dev/visits/fabiocaccamo/django-extra-settings?label=visitors&color=blue)](https://badges.pufler.dev)
-[![](https://img.shields.io/pypi/l/django-extra-settings.svg?color=blue)](https://github.com/fabiocaccamo/django-extra-settings/blob/master/LICENSE.txt)
+[![CI](https://github.com/mfogel/django-timezone-field/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mfogel/django-timezone-field/actions)
+[![codecov](https://codecov.io/gh/mfogel/django-timezone-field/branch/main/graph/badge.svg?token=Rwekzmim3l)](https://codecov.io/gh/mfogel/django-timezone-field)
+[![downloads](https://img.shields.io/pypi/dm/django-timezone-field.svg)](https://pypi.python.org/pypi/django-timezone-field/)
 
-[![](https://img.shields.io/github/workflow/status/fabiocaccamo/django-extra-settings/Python%20package?label=build&logo=github)](https://github.com/fabiocaccamo/django-extra-settings)
-[![](https://img.shields.io/codecov/c/gh/fabiocaccamo/django-extra-settings?logo=codecov)](https://codecov.io/gh/fabiocaccamo/django-extra-settings)
-[![](https://img.shields.io/codacy/grade/554c0505ed9844f3865bee975d1b894c?logo=codacy)](https://www.codacy.com/app/fabiocaccamo/django-extra-settings)
-[![](https://img.shields.io/codeclimate/maintainability/fabiocaccamo/django-extra-settings?logo=code-climate)](https://codeclimate.com/github/fabiocaccamo/django-extra-settings/)
-[![](https://requires.io/github/fabiocaccamo/django-extra-settings/requirements.svg?branch=master)](https://requires.io/github/fabiocaccamo/django-extra-settings/requirements/?branch=master)
+A Django app providing database, form and serializer fields for [pytz](http://pypi.python.org/pypi/pytz/) timezone objects.
 
-# django-extra-settings
-config and manage typed extra settings using just the django admin.
+## Examples
 
-![](https://user-images.githubusercontent.com/1035294/74425761-81325400-4e54-11ea-9095-3d64e1420bfe.gif)
+### Database Field
+
+```py
+import pytz
+from django.db import models
+from timezone_field import TimeZoneField
+
+class MyModel(models.Model):
+    tz1 = TimeZoneField(default='Europe/London')            # defaults supported
+    tz2 = TimeZoneField()                                   # in ModelForm displays like "America/Los Angeles"
+    tz3 = TimeZoneField(choices_display='WITH_GMT_OFFSET')  # in ModelForm displays like "GMT-08:00 America/Los Angeles"
+
+my_model = MyModel(
+    tz1='America/Los_Angeles',    # assignment of a string
+    tz2=pytz.timezone('Turkey'),  # assignment of a pytz.DstTzInfo
+    tz3=pytz.UTC,                 # assignment of pytz.UTC singleton
+)
+my_model.full_clean() # validates against pytz.common_timezones by default
+my_model.save()       # values stored in DB as strings
+my_model.tz1          # values retrieved as pytz objects: <DstTzInfo 'America/Los_Angeles' PST-1 day, 16:00:00 STD>
+```
+
+### Form Field
+
+```py
+from django import forms
+from timezone_field import TimeZoneFormField
+
+class MyForm(forms.Form):
+    tz = TimeZoneFormField()                                    # displays like "America/Los Angeles"
+    tz2 = TimeZoneFormField(choices_display='WITH_GMT_OFFSET')  # displays like "GMT-08:00 America/Los Angeles"
+
+my_form = MyForm({'tz': 'America/Los_Angeles'})
+my_form.full_clean()        # validates against pytz.common_timezones by default
+my_form.cleaned_data['tz']  # values retrieved as pytz objects: <DstTzInfo 'America/Los_Angeles' PST-1 day, 16:00:00 STD>
+```
+
+### REST Framework Serializer Field
+
+```py
+import pytz
+from rest_framework import serializers
+from timezone_field.rest_framework import TimeZoneSerializerField
+
+class MySerializer(serializers.Serializer):
+    tz1 = TimeZoneSerializerField()
+    tz2 = TimeZoneSerializerField()
+
+my_serializer = MySerializer(data={
+    'tz1': 'America/Argentina/Buenos_Aires',
+    'tz2': pytz.timezone('America/Argentina/Buenos_Aires'),
+})
+my_serializer.is_valid()            # true
+my_serializer.validated_data['tz1'] # <DstTzInfo 'America/Argentina/Buenos_Aires' LMT-1 day, 20:06:00 STD>
+my_serializer.validated_data['tz2'] # <DstTzInfo 'America/Argentina/Buenos_Aires' LMT-1 day, 20:06:00 STD>
+```
 
 ## Installation
--   Run `pip install django-extra-settings`
--   Add `extra_settings` to `settings.INSTALLED_APPS`
--   Run ``python manage.py migrate``
--   Run ``python manage.py collectstatic``
--   Restart your application server
 
-## Usage
+1.  Install from [`pypi`](https://pypi.org/project/django-timezone-field/)
 
-### Admin
-Just go to the admin where you can:
--   Create a new setting
--   Update an existing setting
--   Delete an existing setting
+    ```sh
+    pip install django-timezone-field
+    ```
 
-### Settings
-All these settings are optional, if not defined in ``settings.py`` the default values (listed below) will be used.
+1.  Add `timezone_field` to your django project's [`settings.INSTALLED_APPS`](https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps)
 
-```python
-# if True the template tag will fallback to django.conf.settings,
-# very useful to retrieve conf settings such as DEBUG.
-EXTRA_SETTINGS_FALLBACK_TO_CONF_SETTINGS = True
+    ```py
+    INSTALLED_APPS = [..., 'timezone_field', ...]
+    ```
+
+## Running the tests
+
+From the repository root, with [`poetry`](https://python-poetry.org/)
+
+```sh
+poetry install
+DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=. poetry run django-admin test
 ```
 
-```python
-# the upload_to path value of settings of type 'file'
-EXTRA_SETTINGS_FILE_UPLOAD_TO = 'files'
-```
+## Changelog
 
-```python
-# the upload_to path value of settings of type 'image'
-EXTRA_SETTINGS_IMAGE_UPLOAD_TO = 'images'
-```
+#### Unreleased
 
-### Admin
-Just go to the admin where you can:
--   Create a new setting
--   Update an existing setting
--   Delete an existing setting
+* Officially support for django 3.2
 
-### Python
-You can **create**, **read**, **update** and **delete** settings programmatically:
+#### 4.1.2 (2021-03-17)
 
-#### Create
-```python
-from extra_settings.models import Setting
+* Avoid `NonExistentTimeError` during DST transition ([#70](https://github.com/mfogel/django-timezone-field/issues/70))
 
-setting_obj = Setting(
-    name='SETTING_NAME',
-    value_type=Setting.TYPE_STRING,
-    value='django-extra-settings',
-)
-setting_obj.save()
-```
+#### 4.1.1 (2020-11-28)
 
-#### Read
-```python
-from extra_settings.models import Setting
+* Don't import `rest_framework` from package root ([#67](https://github.com/mfogel/django-timezone-field/issues/67))
 
-value = Setting.get('SETTING_NAME', default='django-extra-settings')
-```
+#### 4.1 (2020-11-28)
 
-#### Update
-```python
-from extra_settings.models import Setting
+* Add Django REST Framework serializer field
+* Add new `choices_display` kwarg with supported values `WITH_GMT_OFFSET` and `STANDARD`
+* Deprecate `display_GMT_offset` kwarg
 
-setting_obj = Setting(
-    name='SETTING_NAME',
-    value_type=Setting.TYPE_BOOL,
-    value=True,
-)
-setting_obj.value = False
-setting_obj.save()
-```
+#### 4.0 (2019-12-03)
 
-#### Delete
-```python
-from extra_settings.models import Setting
+* Add support for django 3.0, python 3.8
+* Drop support for django 1.11, 2.0, 2.1, python 2.7, 3.4
 
-Setting.objects.filter(name='SETTING_NAME').delete()
-```
+#### 3.1 (2019-10-02)
 
-This is the list of the currently supported setting types you may need to use:
+* Officially support django 2.2 (already worked)
+* Add option to display TZ offsets in form field ([#46](https://github.com/mfogel/django-timezone-field/issues/46))
 
--   `Setting.TYPE_BOOL`
--   `Setting.TYPE_DATE`
--   `Setting.TYPE_DATETIME`
--   `Setting.TYPE_DECIMAL`
--   `Setting.TYPE_DURATION`
--   `Setting.TYPE_EMAIL`
--   `Setting.TYPE_FILE`
--   `Setting.TYPE_FLOAT`
--   `Setting.TYPE_IMAGE`
--   `Setting.TYPE_INT`
--   `Setting.TYPE_STRING`
--   `Setting.TYPE_TEXT`
--   `Setting.TYPE_TIME`
--   `Setting.TYPE_URL`
+#### 3.0 (2018-09-15)
 
-### Templates
-You can retrieve settings in templates:
-```html
-{% load extra_settings %}
+* Support django 1.11, 2.0, 2.1
+* Add support for python 3.7
+* Change default human-readable timezone names to exclude underscores ([#32](https://github.com/mfogel/django-timezone-field/issues/32) & [#37](https://github.com/mfogel/django-timezone-field/issues/37))
 
-{% get_setting 'SETTING_NAME' default='django-extra-settings' %}
-```
+#### 2.1 (2018-03-01)
 
-## Testing
-```bash
-# create python virtual environment
-virtualenv testing_django_extra_settings
+* Add support for django 1.10, 1.11
+* Add support for python 3.6
+* Add wheel support
+* Support bytes in DB fields ([#38](https://github.com/mfogel/django-timezone-field/issues/38) & [#39](https://github.com/mfogel/django-timezone-field/issues/39))
 
-# activate virtualenv
-cd testing_django_extra_settings && . bin/activate
+#### 2.0 (2016-01-31)
 
-# clone repo
-git clone https://github.com/fabiocaccamo/django-extra-settings.git src && cd src
+* Drop support for django 1.7, add support for django 1.9
+* Drop support for python 3.2, 3.3, add support for python 3.5
+* Remove tests from source distribution
 
-# install dependencies
-pip install -r requirements.txt
-pip install -r requirements-test.txt
+#### 1.3 (2015-10-12)
 
-# run tests
-tox
-# or
-python setup.py test
-# or
-python -m django test --settings "tests.settings"
-```
+* Drop support for django 1.6, add support for django 1.8
+* Various [bug fixes](https://github.com/mfogel/django-timezone-field/issues?q=milestone%3A1.3)
 
-## License
-Released under [MIT License](LICENSE.txt).
+#### 1.2 (2015-02-05)
 
----
+* For form field, changed default list of accepted timezones from `pytz.all_timezones` to `pytz.common_timezones`, to match DB field behavior.
 
-## See also
+#### 1.1 (2014-10-05)
 
-- [`django-admin-interface`](https://github.com/fabiocaccamo/django-admin-interface) - the default admin interface made customizable by the admin itself. popup windows replaced by modals. 🧙 ⚡
+* Django 1.7 compatibility
+* Added support for formatting `choices` kwarg as `[[<str>, <str>], ...]`, in addition to previous format of `[[<pytz.timezone>, <str>], ...]`.
+* Changed default list of accepted timezones from `pytz.all_timezones` to `pytz.common_timezones`. If you have timezones in your DB that are in `pytz.all_timezones` but not in `pytz.common_timezones`, this is a backward-incompatible change. Old behavior can be restored by specifying `choices=[(tz, tz) for tz in pytz.all_timezones]` in your model definition.
 
-- [`django-colorfield`](https://github.com/fabiocaccamo/django-colorfield) - simple color field for models with a nice color-picker in the admin. 🎨
+#### 1.0 (2013-08-04)
 
-- [`django-maintenance-mode`](https://github.com/fabiocaccamo/django-maintenance-mode) - shows a 503 error page when maintenance-mode is on. 🚧 🛠️
+* Initial release as `timezone_field`.
 
-- [`django-redirects`](https://github.com/fabiocaccamo/django-redirects) - redirects with full control. ↪️
+## Credits
 
-- [`django-treenode`](https://github.com/fabiocaccamo/django-treenode) - probably the best abstract model / admin for your tree based stuff. 🌳
+Originally adapted from [Brian Rosner's django-timezones](https://github.com/brosner/django-timezones).
 
-- [`python-benedict`](https://github.com/fabiocaccamo/python-benedict) - dict subclass with keylist/keypath support, I/O shortcuts (base64, csv, json, pickle, plist, query-string, toml, xml, yaml) and many utilities. 📘
-
-- [`python-codicefiscale`](https://github.com/fabiocaccamo/python-codicefiscale) - encode/decode Italian fiscal codes - codifica/decodifica del Codice Fiscale. 🇮🇹 💳
-
-- [`python-fontbro`](https://github.com/fabiocaccamo/python-fontbro) - friendly font operations. 🧢
-
-- [`python-fsutil`](https://github.com/fabiocaccamo/python-fsutil) - file-system utilities for lazy devs. 🧟‍♂️
+Made possible thanks to the work of the [contributors](https://github.com/mfogel/django-timezone-field/graphs/contributors).

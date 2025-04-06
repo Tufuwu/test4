@@ -1,95 +1,98 @@
-# -*- coding: utf-8 -*-
+"""
+Django settings for tests project.
 
-import django
+For more information on this file, see
+https://docs.djangoproject.com/en/1.7/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/1.7/ref/settings/
+"""
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'django-extra-settings'
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
-ALLOWED_HOSTS = ['*']
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'unused'
 
-EXTRA_SETTINGS_TEST_FALLBACK_VALUE = 'fallback-value'
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+TEMPLATE_DEBUG = True
+
+ALLOWED_HOSTS = []
+
 
 # Application definition
-INSTALLED_APPS = [
-    'extra_settings',
-]
 
-INSTALLED_APPS += [
-    'django.contrib.admin',
+INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.messages',
     'django.contrib.sessions',
-]
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'timezone_field',
+    'tests',
+    'rest_framework'
+)
 
-if django.VERSION < (2, 0):
-    MIDDLEWARE_CLASSES = [
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware'
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-    ]
-else:
-    MIDDLEWARE = [
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-    ]
+MIDDLEWARE_CLASSES = (
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
 
-TEMPLATES = [{
-    'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [],
-    'APP_DIRS': True,
-    'OPTIONS': {
-        'context_processors': [
-            'django.contrib.auth.context_processors.auth',
-            'django.template.context_processors.request',
-            'django.contrib.messages.context_processors.messages',
-        ]
-    },
-},]
+WSGI_APPLICATION = 'tests.wsgi.application'
 
-database_engine = os.environ.get('DATABASE_ENGINE', 'sqlite')
-database_config = {
-    'sqlite': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    },
-    # 'mysql': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'extra_settings',
-    #     'USER': 'mysql',
-    #     'PASSWORD': 'mysql',
-    #     'HOST': '',
-    #     'PORT': '',
-    # },
-    'postgres': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'extra_settings',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': '',
-        'PORT': '',
-    },
-}
 
-github_workflow = os.environ.get('GITHUB_WORKFLOW')
-if github_workflow:
-    database_config['postgres']['NAME'] = 'postgres'
-    database_config['postgres']['HOST'] = '127.0.0.1'
-    database_config['postgres']['PORT'] = '5432'
+# Database
+# https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-DATABASES = {
-    'default': database_config.get(database_engine),
-}
+db_engine = os.environ.get('DB_ENGINE', 'sqlite')
+
+if db_engine == 'sqlite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+        },
+    }
+if db_engine == 'postgres':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            "HOST": os.environ.get("POSTGRES_HOST"),
+            "PORT": os.environ.get("POSTGRES_PORT", 5432),
+            "NAME": os.environ.get("POSTGRES_DB", "timezone_field_tests"),
+            "USER": os.environ.get("POSTGRES_USER", "postgres"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+        },
+    }
+
+# Internationalization
+# https://docs.djangoproject.com/en/1.7/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_L10N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.7/howto/static-files/
+
+STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
-MEDIA_ROOT = os.path.join(BASE_DIR, 'extra_settings/public/media/')
-MEDIA_URL = '/media/'
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'extra_settings/public/static/')
-STATIC_URL = '/static/'

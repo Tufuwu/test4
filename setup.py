@@ -1,74 +1,59 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+import re
+from os import path
+from setuptools import setup
 
-from setuptools import find_packages, setup
 
-import os, sys
+# read() and find_version() taken from jezdez's python apps, ex:
+# https://github.com/jezdez/django_compressor/blob/develop/setup.py
 
-exec(open('extra_settings/version.py').read())
 
-github_url = 'https://github.com/fabiocaccamo'
-package_name = 'django-extra-settings'
-package_url = '{}/{}'.format(github_url, package_name)
-package_path = os.path.abspath(os.path.dirname(__file__))
-long_description_file_path = os.path.join(package_path, 'README.md')
-long_description_content_type = 'text/markdown'
-long_description = ''
-try:
-    long_description_file_options = {} if sys.version_info[0] < 3 else { 'encoding':'utf-8' }
-    with open(long_description_file_path, 'r', **long_description_file_options) as f:
-        long_description = f.read()
-except IOError:
-    pass
+def read(*parts):
+    return open(path.join(path.dirname(__file__), *parts)).read()
+
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 setup(
-    name=package_name,
-    packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    include_package_data=True,
-    version=__version__,
-    description='easily manage typed extra settings using the django admin.',
-    long_description=long_description,
-    long_description_content_type=long_description_content_type,
-    author='Fabio Caccamo',
-    author_email='fabio.caccamo@gmail.com',
-    url=package_url,
-    download_url='{}/archive/{}.tar.gz'.format(package_url, __version__),
-    keywords=['django', 'admin', 'extra', 'settings', 'options', 'conf',
-              'config', 'editable', 'custom', 'dynamic', 'typed', 'constance'],
-    requires=['django(>=1.8)'],
-    install_requires=[
-        'six >= 1.9.0, < 2.0.0',
+    name='django-timezone-field',
+    version=find_version('timezone_field', '__init__.py'),
+    author='Mike Fogel',
+    author_email='mike@fogel.ca',
+    description=(
+        'A Django app providing database and form fields for '
+        'pytz timezone objects.'
+    ),
+    long_description=read('README.rst'),
+    url='http://github.com/mfogel/django-timezone-field/',
+    license='BSD',
+    packages=[
+        'timezone_field',
     ],
+    install_requires=['django>=2.2', 'pytz'],
+    extras_require={
+        'rest_framework': ['djangorestframework>=3.0.0']
+    },
+    python_requires='>=3.5',
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
-        'Framework :: Django',
-        'Framework :: Django :: 1.8',
-        'Framework :: Django :: 1.9',
-        'Framework :: Django :: 1.10',
-        'Framework :: Django :: 1.11',
-        'Framework :: Django :: 2.0',
-        'Framework :: Django :: 2.1',
-        'Framework :: Django :: 2.2',
-        'Framework :: Django :: 3.0',
-        'Framework :: Django :: 3.1',
-        'Framework :: Django :: 3.2',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
+        'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Topic :: Software Development :: Build Tools',
+        'Topic :: Utilities',
+        'Framework :: Django',
     ],
-    license='MIT',
-    test_suite='runtests.runtests'
 )
