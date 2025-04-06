@@ -1,63 +1,56 @@
-name: test
+# -- SOURCE: https://github.com/marketplace/actions/setup-python
+# SEE: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: tests
 on:
-  pull_request:
   push:
-    branches:
-      - main
-      - v*.x
-env:
-  OMP_NUM_THREADS: 1
-  VECLIB_MAXIMUM_THREADS: 1
+  pull_request:
+    branches: [ main ]
+
 jobs:
   test:
-    name: ${{ matrix.os }}, Py${{ matrix.python-version }}
+    # -- EXAMPLE: runs-on: ubuntu-latest
     runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.9"]
-        include:
-          - os: windows-latest
-            dep: 'psutil'
       fail-fast: false
+      matrix:
+        # PREPARED: os: [ubuntu-latest, macos-latest, windows-latest]
+        # PREPARED: python-version: ["3.9"]
+        # PREPARED: os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
+        python-version: ["3.9"]
+        exclude:
+          - os: windows-latest
+            python-version: "3.9"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      # DISABLED: name: Setup Python ${{ matrix.python-version }} on platform=${{ matrix.os }}
+      - uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+          cache: 'pip'
+          cache-dependency-path: 'py.requirements/*.txt'
+      # DISABLED:
+      # - name: Show Python version
+      #  run: python --version
+      - name: Install Python package dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade .[docs,matrix_scipy,matrix_mkl,export_mpl,import_gmsh] coverage ${{ matrix.dep }}
-      - name: Test
+          python -m pip install -U pip setuptools wheel
+          pip install --upgrade -r py.requirements/ci.github.testing.txt
+          pip install -e .
+      - name: Run tests
+        run: pytest
+      - name: Run behave tests
         run: |
-          python -m coverage run -m unittest -b
-          python -m coverage xml
-      - name: Upload coverage
-        uses: codecov/codecov-action@v1
+          behave --format=progress features
+          behave --format=progress tools/test-features
+          behave --format=progress issue.features
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
         with:
-          fail_ci_if_error: true
-  test-old-numpy:
-    name: 'ubuntu-latest, Py3.6, Numpy 1.15'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Python 3.6
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.9
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade .[matrix_mkl,export_mpl,import_gmsh] numpy==1.15 coverage
-      - name: Test
-        run: |
-          python -m coverage run -m unittest -b
-          python -m coverage xml
-      - name: Upload coverage
-        uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: true
+          name: test reports
+          path: |
+            build/testing/report.xml
+            build/testing/report.html
+        if: ${{ job.status == 'failure' }}
+        # MAYBE: if: ${{ always() }}

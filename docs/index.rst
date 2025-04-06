@@ -1,42 +1,66 @@
-Welcome to Nutils
-=================
+Welcome to behave!
+==================
 
-Nutils is a Free and Open Source Python programming library for Finite Element
-Method computations, developed by `Evalf Computing <http://evalf.com/>`_ and
-distributed under the permissive MIT license. Key features are a readable,
-math centric syntax, an object oriented design, strict separation of
-topology and geometry, and high level function manipulations with support
-for automatic differentiation.
+behave is behaviour-driven development, Python style.
 
-Nutils provides the tools required to construct a typical simulation workflow
-in just a few lines of Python code, while at the same time leaving full
-flexibility to build novel workflows or interact with third party tools. With
-native support for Isogeometric Analysis (IGA), the Finite Cell method (FCM),
-multi-physics, mixed methods, and hierarchical refinement, Nutils is at the
-forefront of numerical discretization science. Efficient under-the-hood
-vectorization and built-in parallellisation provide for an effortless
-transition from academic research projects to full scale, real world
-applications.
+|behave_logo|
 
+Behavior-driven development (or BDD) is an agile software development
+technique that encourages collaboration between developers, QA and
+non-technical or business participants in a software project. We have
+a page further describing this :doc:`philosophy <philosophy>`.
+
+:pypi:`behave` uses tests written in a natural language style,
+backed up by Python code.
+
+Once you've :doc:`installed <install>` *behave*, we recommend reading the
+
+* :doc:`tutorial <tutorial>` first and then
+* :doc:`feature test setup <gherkin>`,
+* :doc:`behave API <api>` and
+* :doc:`related software <related>` (things that you can combine with :pypi:`behave`)
+* finally: :doc:`how to use and configure <behave>` the :pypi:`behave` tool.
+
+There is also a :doc:`comparison <comparison>` with the other tools available.
 
 Contents
 --------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   intro
+   install
    tutorial
-   examples
-   changelog
-   nutils
-   notes
+   philosophy
+   gherkin
+   tag_expressions
+   behave
+   api
+   fixtures
+   usecase_django
+   usecase_flask
+   practical_tips
+   comparison
+   new_and_noteworthy
+   more_info
+   contributing
+   appendix
+
+.. seealso::
+
+    * `behave.example`_: `Behave Examples and Tutorials`_ (HTML)
+    * Peter Parente: `BDD and Behave <https://tott-meetup.readthedocs.io/en/latest/sessions/behave.html>`_ (tutorial)
+
+.. _behave.example: https://github.com/behave/behave.example
+.. _`Behave Examples and Tutorials`: http://behave.github.io/behave.example/
 
 
 Indices and tables
-------------------
+==================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
 
+.. |behave_logo| image:: _static/behave_logo1.png
+.. include:: _common_extlinks.rst
