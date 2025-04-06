@@ -1,11 +1,9 @@
+# OS
+.DS_Store
+Desktop.ini
+Thumbs.db
+
+# Python
 *.py[cod]
-*.swp
-*.swo
-*.egg
-*.egg-info
-.cache/
-.coverage*
-.tox
-coverage.xml
-dist/
-site/
+.mypy_cache/
+__pycache__/
