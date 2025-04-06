@@ -1,61 +1,81 @@
-# Copyright 2016-2018 Dirk Thomas
-# Licensed under the Apache License, Version 2.0
+import io
 
-import os
-import sys
+from setuptools import find_packages, setup
 
-from pkg_resources import parse_version
-from setuptools import setup
+version = '1.9.0.dev0'
 
-minimum_version = '3.5'
-if (
-    parse_version('%d.%d' % (sys.version_info.major, sys.version_info.minor)) <
-    parse_version(minimum_version)
-):
-    sys.exit('This package requires at least Python ' + minimum_version)
+# Please update tox.ini when modifying dependency version requirements
+install_requires = [
+    # load_pem_private/public_key (>=0.6)
+    # rsa_recover_prime_factors (>=0.8)
+    'cryptography>=0.8',
+    # Connection.set_tlsext_host_name (>=0.13)
+    'PyOpenSSL>=0.13',
+    # For pkg_resources. >=1.0 so pip resolves it to a version cryptography
+    # will tolerate; see #2599:
+    'setuptools>=1.0',
+]
 
-cmdclass = {}
-try:
-    from stdeb.command.sdist_dsc import sdist_dsc
-except ImportError:
-    pass
-else:
-    class CustomSdistDebCommand(sdist_dsc):
-        """Weird approach to apply the Debian patches during packaging."""
+testing_requires = [
+    'coverage>=4.0',
+    'flake8',
+    'mypy',
+    'pytest-cov',
+    'pytest-flake8>=0.5',
+    'pytest>=2.8.0',
+]
 
-        def run(self):  # noqa: D102
-            from stdeb.command import sdist_dsc
-            build_dsc = sdist_dsc.build_dsc
+dev_extras = [
+    'pytest',
+    'tox',
+]
 
-            def custom_build_dsc(*args, **kwargs):
-                nonlocal build_dsc
-                debinfo = self.get_debinfo()
-                repackaged_dirname = \
-                    debinfo.source + '-' + debinfo.upstream_version
-                dst_directory = os.path.join(
-                    self.dist_dir, repackaged_dirname, 'debian', 'patches')
-                os.makedirs(dst_directory, exist_ok=True)
-                # read patch
-                with open('debian/patches/setup.cfg.patch', 'r') as h:
-                    lines = h.read().splitlines()
-                print(
-                    "writing customized patch '%s'" %
-                    os.path.join(dst_directory, 'setup.cfg.patch'))
-                # write patch with modified path
-                with open(
-                    os.path.join(dst_directory, 'setup.cfg.patch'), 'w'
-                ) as h:
-                    for line in lines:
-                        if line.startswith('--- ') or line.startswith('+++ '):
-                            line = \
-                                line[0:4] + repackaged_dirname + '/' + line[4:]
-                        h.write(line + '\n')
-                with open(os.path.join(dst_directory, 'series'), 'w') as h:
-                    h.write('setup.cfg.patch\n')
-                return build_dsc(*args, **kwargs)
+docs_extras = [
+    'Sphinx>=1.0',  # autodoc_member_order = 'bysource', autodoc_default_flags
+    'sphinx_rtd_theme',
+]
 
-            sdist_dsc.build_dsc = custom_build_dsc
-            super().run()
-    cmdclass['sdist_dsc'] = CustomSdistDebCommand
 
-setup(cmdclass=cmdclass)
+with io.open('README.rst', encoding='UTF-8') as f:
+    long_description = f.read()
+
+
+setup(
+    name='josepy',
+    version=version,
+    description='JOSE protocol implementation in Python',
+    long_description=long_description,
+    url='https://github.com/certbot/josepy',
+    author="Certbot Project",
+    author_email='client-dev@letsencrypt.org',
+    license='Apache License 2.0',
+    python_requires='>=3.6',
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Security',
+    ],
+
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
+    include_package_data=True,
+    install_requires=install_requires,
+    extras_require={
+        'dev': dev_extras,
+        'docs': docs_extras,
+        'tests': testing_requires,
+    },
+    entry_points={
+        'console_scripts': [
+            'jws = josepy.jws:CLI.run',
+        ],
+    },
+)

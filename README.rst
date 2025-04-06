@@ -1,7 +1,14 @@
-colcon - collective construction
-================================
+JOSE protocol implementation in Python using cryptography
 
-``colcon`` is a command line tool to improve the workflow of building, testing and using multiple software packages.
-It automates the process, handles the ordering and sets up the environment to use the packages.
+.. image:: https://travis-ci.com/certbot/josepy.svg?branch=master
+  :target: https://travis-ci.com/certbot/josepy
 
-For more information see `colcon.readthedocs.io <https://colcon.readthedocs.io>`_.
+.. image:: https://codecov.io/gh/certbot/josepy/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/certbot/josepy
+
+.. image:: https://readthedocs.org/projects/josepy/badge/?version=latest
+  :target: http://josepy.readthedocs.io/en/latest/?badge=latest
+
+Originally developed as part of the ACME_ protocol implementation.
+
+.. _ACME: https://pypi.python.org/pypi/acme
