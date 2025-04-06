@@ -1,59 +1,50 @@
-name: ParallelCluster CI
+name: Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
+  getchange:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.changes.outputs.matrix }}
+    steps:
+      - id: changes
+        run: |
+          URL="https://api.github.com/repos/sherlock-project/sherlock/pulls/${{ github.event.pull_request.number }}/files"
+          FILES=$(curl -s -X GET -G $URL | jq -r '.[] | .filename')
+          if echo $FILES | grep -q ".json"; then
+            echo "::set-output name=matrix::{\"include\":[{\"python\":\"3.8\"}]}"
+          else
+            echo "::set-output name=matrix::{\"include\":[{\"python\":\"3.6\" },{\"python\":\"3.7\"},{\"python\":\"3.8\"}]}"
+          fi
   build:
-    runs-on: ${{ matrix.os }}
+    needs: [getchange]
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        name:
-          - Python 3.6 Tests
-          - Python 3.7 Tests
-          - Python 3.8 Tests
-          - Python 3.9 Tests
-          - Python 3.8 Tests Coverage
-          - Code Checks
-          - CloudFormation Templates Checks
-        include:
-          - name: Python 3.6 Tests
-            python: 3.9
-            toxdir: cli
-            toxenv: py36-nocov
-          - name: Python 3.7 Tests
-            python: 3.9
-            toxdir: cli
-            toxenv: py37-nocov
-          - name: Python 3.8 Tests
-            python: 3.9
-            toxdir: cli
-            toxenv: py38-nocov
-          - name: Python 3.9 Tests
-            python: 3.9
-            toxdir: cli
-            toxenv: py39-nocov
-          - name: Python 3.8 Tests Coverage
-            python: 3.9
-            toxdir: cli
-            toxenv: py38-cov
-          - name: Code Checks
-            python: 3.9
-            toxdir: cli
-            toxenv: code-linters
-          - name: CloudFormation Templates Checks
-            python: 3.9
-            toxdir: cli
-            toxenv: cfn-format-check,cfn-lint,cfn-tests
+      matrix: ${{ fromJson(needs.getchange.outputs.matrix) }}
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-      - name: Install Tox and any other packages
-        run: pip install tox
-      - name: Run Tox
-        run: cd ${{ matrix.toxdir }} && tox -e ${{ matrix.toxenv }}
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint With flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Sherlock Site Detect Tests
+      run: |
+        cd sherlock && python -m unittest tests.all.SherlockDetectTests --verbose

@@ -1,16 +1,29 @@
-*.pyc
-*.pyo
-*.class
-*~
-*#
-dist/
-build/
-*.egg-info/
+# Virtual Environment
+venv/
+
+# Editor Configurations
+.vscode/
 .idea/
+
+# Python
+__pycache__/
+
+# Pip
+src/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Output files, except requirements.txt
+*.txt
+!requirements.txt
+
+# Comma-Separated Values (CSV) Reports
+*.csv
+
+# Excluded sites list
+tests/.excluded_sites
+
+# MacOS Folder Metadata File
 .DS_Store
-.tox/
-*.iml
-.coverage
-assets/
-report.html
-tests_outputs/

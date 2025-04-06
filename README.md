@@ -1,136 +1,209 @@
-AWS ParallelCluster - HPC for the Cloud
-=======================================
+<p align=center>
 
-[![Build Status](https://img.shields.io/travis/aws/aws-parallelcluster)](https://travis-ci.org/aws/aws-parallelcluster/)
-[![PyPI Version](https://img.shields.io/pypi/v/aws-parallelcluster)](https://pypi.org/project/aws-parallelcluster/)
-[![Spack Version](https://img.shields.io/spack/v/aws-parallelcluster)](https://spack.readthedocs.io/en/latest/package_list.html#aws-parallelcluster)
-[![Conda Verseion](https://img.shields.io/conda/vn/conda-forge/aws-parallelcluster)](https://anaconda.org/conda-forge/aws-parallelcluster)
+  <img src="https://user-images.githubusercontent.com/27065646/53551960-ae4dff80-3b3a-11e9-9075-cef786c69364.png"/>
 
-AWS ParallelCluster is an AWS supported Open Source cluster management tool that makes it easy for you to deploy and
-manage High Performance Computing (HPC) clusters in the AWS cloud.
-Built on the Open Source CfnCluster project, AWS ParallelCluster enables you to quickly build an HPC compute environment in AWS.
-It automatically sets up the required compute resources and a shared filesystem and offers a variety of batch schedulers such as AWS Batch, SGE, Torque, and Slurm.
-AWS ParallelCluster facilitates both quick start proof of concepts (POCs) and production deployments.
-You can build higher level workflows, such as a Genomics portal that automates the entire DNA sequencing workflow, on top of AWS ParallelCluster.
+  <br>
+  <span>Hunt down social media accounts by username across <a href="https://github.com/theyahya/sherlock/blob/master/sites.md">social networks</a></span>
+  <br>
+  <a target="_blank" href="https://www.python.org/downloads/" title="Python version"><img src="https://img.shields.io/badge/python-%3E=_3.6-green.svg"></a>
+  <a target="_blank" href="LICENSE" title="License: MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
+  <a target="_blank" href="https://github.com/sherlock-project/sherlock/actions" title="Test Status"><img src="https://github.com/sherlock-project/sherlock/workflows/Tests/badge.svg?branch=master"></a>
+  <a target="_blank" href="https://twitter.com/intent/tweet?text=%F0%9F%94%8E%20Find%20usernames%20across%20social%20networks%20&url=https://github.com/sherlock-project/sherlock&hashtags=hacking,%20osint,%20bugbounty,%20reconnaissance" title="Share on Tweeter"><img src="https://img.shields.io/twitter/url/http/shields.io.svg?style=social"></a>
+  <a target="_blank" href="http://sherlock-project.github.io/"><img alt="Website" src="https://img.shields.io/website-up-down-green-red/http/sherlock-project.github.io/..svg"></a>
+  <a target="_blank" href="https://microbadger.com/images/theyahya/sherlock"><img alt="docker image" src="https://images.microbadger.com/badges/version/theyahya/sherlock.svg"></a>
+</p>
 
-Quick Start
------------
-**IMPORTANT**: you will need an **Amazon EC2 Key Pair** to be able to complete the following steps.
-Please see the [Official AWS Guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html).
+<p align="center">
+  <a href="#demo">Demo</a>
+  &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+  <a href="#installation">Installation</a>
+  &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+  <a href="#usage">Usage</a>
+  &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+  <a href="#docker-notes">Docker Notes</a>
+  &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+  <a href="#adding-new-sites">Adding New Sites</a>
+</p>
 
-First, make sure you have installed the [AWS Command Line Interface](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html):
+<p align="center">
+<a href="https://asciinema.org/a/223115">
+<img src="./images/sherlock_preview.gif"/>
+</a>
+</p>
+
+
+
+
+## Demo
+
+Use this link to test Sherlock directly in your browser:
+https://elody.com/scenario/plan/16/
+
+## Installation
+
+**NOTE**: Python 3.6 or higher is required.
+
+```bash
+# clone the repo
+$ git clone https://github.com/sherlock-project/sherlock.git
+
+# change the working directory to sherlock
+$ cd sherlock
+
+# install python3 and python3-pip if they are not installed
+
+# install the requirements
+$ python3 -m pip install -r requirements.txt
+```
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.png)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/sherlock-project/sherlock&tutorial=README.md)
+
+## Usage
+
+```bash
+$ python3 sherlock --help
+usage: sherlock [-h] [--version] [--verbose] [--rank]
+                [--folderoutput FOLDEROUTPUT] [--output OUTPUT] [--tor]
+                [--unique-tor] [--csv] [--site SITE_NAME] [--proxy PROXY_URL]
+                [--json JSON_FILE] [--timeout TIMEOUT] [--print-found]
+                [--no-color] [--browse]
+                USERNAMES [USERNAMES ...]
+
+Sherlock: Find Usernames Across Social Networks (Version 0.12.0)
+
+positional arguments:
+  USERNAMES             One or more usernames to check with social networks.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             Display version information and dependencies.
+  --verbose, -v, -d, --debug
+                        Display extra debugging information and metrics.
+  --rank, -r            Present websites ordered by their Alexa.com global
+                        rank in popularity.
+  --folderoutput FOLDEROUTPUT, -fo FOLDEROUTPUT
+                        If using multiple usernames, the output of the results
+                        will be saved to this folder.
+  --output OUTPUT, -o OUTPUT
+                        If using single username, the output of the result
+                        will be saved to this file.
+  --tor, -t             Make requests over Tor; increases runtime; requires
+                        Tor to be installed and in system path.
+  --unique-tor, -u      Make requests over Tor with new Tor circuit after each
+                        request; increases runtime; requires Tor to be
+                        installed and in system path.
+  --csv                 Create Comma-Separated Values (CSV) File.
+  --site SITE_NAME      Limit analysis to just the listed sites. Add multiple
+                        options to specify more than one site.
+  --proxy PROXY_URL, -p PROXY_URL
+                        Make requests over a proxy. e.g.
+                        socks5://127.0.0.1:1080
+  --json JSON_FILE, -j JSON_FILE
+                        Load data from a JSON file or an online, valid, JSON
+                        file.
+  --timeout TIMEOUT     Time (in seconds) to wait for response to requests.
+                        Default timeout of 60.0s.A longer timeout will be more
+                        likely to get results from slow sites.On the other
+                        hand, this may cause a long delay to gather all
+                        results.
+  --print-found         Do not output sites where the username was not found.
+  --no-color            Don't color terminal output
+  --browse, -b          Browse to all results on default bowser.
+```
+
+To search for only one user:
+```
+python3 sherlock user123
+```
+
+To search for more than one user:
+```
+python3 sherlock user1 user2 user3
+```
+
+Accounts found will be stored in an individual text file with the corresponding username (e.g ```user123.txt```).
+
+## Anaconda (Windows) Notes
+If you are using Anaconda in Windows, using 'python3' might not work. Use 'python' instead.
+
+## Docker Notes
+If docker is installed you can build an image and run this as a container.
 
 ```
-$ pip install awscli
+docker build -t mysherlock-image .
 ```
 
-Then you can install AWS ParallelCluster:
+Once the image is built, sherlock can be invoked by running the following:
 
 ```
-$ pip install aws-parallelcluster
+docker run --rm -t mysherlock-image user123
 ```
 
-Next, configure your aws credentials and default region:
+The optional ```--rm``` flag removes the container filesystem on completion to prevent cruft build-up. See: https://docs.docker.com/engine/reference/run/#clean-up---rm
+
+The optional ```-t``` flag allocates a pseudo-TTY which allows colored output. See: https://docs.docker.com/engine/reference/run/#foreground
+
+Use the following command to access the saved results:
 
 ```
-$ aws configure
-AWS Access Key ID [None]: YOUR_KEY
-AWS Secret Access Key [None]: YOUR_SECRET
-Default region name [us-east-1]:
-Default output format [None]:
+docker run --rm -t -v "$PWD/results:/opt/sherlock/results" mysherlock-image -o /opt/sherlock/results/text.txt user123
 ```
 
-Then, run ``pcluster configure``. A list of valid options will be displayed for each
-configuration parameter. Type an option number and press ``Enter`` to select a specific option,
-or just press ``Enter`` to accept the default option.
+The ```-v "$PWD/results:/opt/sherlock/results"``` option tells docker to create (or use) the folder `results` in the
+present working directory and to mount it at `/opt/sherlock/results` on the docker container.
+The `-o /opt/sherlock/results/text.txt` option tells `sherlock` to output the result.
 
+Or you can use "Docker Hub" to run `sherlock`:
 ```
-$ pcluster configure
-INFO: Configuration file /dir/conf_file will be written.
-Press CTRL-C to interrupt the procedure.
-
-
-Allowed values for AWS Region ID:
-1. eu-north-1
-...
-15. us-west-1
-16. us-west-2
-AWS Region ID [us-east-1]:
+docker run theyahya/sherlock user123
 ```
 
-Be sure to select a region containing the EC2 key pair you wish to use. You can also import a public key using
-[these instructions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#how-to-generate-your-own-key-and-import-it-to-aws).
+### Using `docker-compose`
 
-During the process you will be asked to set up your networking environment. The wizard will offer you the choice of
-using an existing VPC or creating a new one on the fly.
+You can use the `docker-compose.yml` file from the repository and use this command:
 
 ```
-Automate VPC creation? (y/n) [n]:
+docker-compose run sherlock -o /opt/sherlock/results/text.txt user123
 ```
 
-Enter ``n`` if you already have a VPC suitable for the cluster. Otherwise you can let ``pcluster configure``
-create a VPC for you. The same choice is given for the subnet: you can select a valid subnet ID for
-both the head node and compute nodes, or you can let ``pcluster configure`` set up everything for you.
-The same choice is given for the subnet configuration: you can select a valid subnet ID for both
-the head node and compute nodes, or you can let pcluster configure set up everything for you.
-In the latter case, just select the configuration you prefer.
+## Adding New Sites
+
+Please look at the Wiki entry on
+[adding new sites](https://github.com/TheYahya/sherlock/wiki/Adding-Sites-To-Sherlock)
+to understand the issues.
+
+**NOTE**: Sherlock is not accepting adult sites in the standard list.
+
+## Tests
+Thank you for contributing to Sherlock!
+
+Before creating a pull request with new development, please run the tests
+to ensure that everything is working great.  It would also be a good idea to run the tests
+before starting development to distinguish problems between your
+environment and the Sherlock software.
+
+The following is an example of the command line to run all the tests for
+Sherlock.  This invocation hides the progress text that Sherlock normally
+outputs, and instead shows the verbose output of the tests.
 
 ```
-Automate Subnet creation? (y/n) [y]: y
-Allowed values for Network Configuration:
-1. Head node in a public subnet and compute fleet in a private subnet
-2. Head node and compute fleet in the same public subnet
+$ cd sherlock
+$ python3 -m unittest tests.all --verbose
 ```
 
+Note that we do currently have 100% test coverage.  Unfortunately, some of
+the sites that Sherlock checks are not always reliable, so it is common
+to get response problems.  Any problems in connection will show up as
+warnings in the tests instead of true errors.
 
-At the end of the process a message like this one will be shown:
+If some sites are failing due to connection problems (site is down, in maintenance, etc)
+you can exclude them from tests by creating a `tests/.excluded_sites` file with a
+list of sites to ignore (one site name per line).
 
-```
-Configuration file written to /dir/conf_file
-You can edit your configuration file or simply run 'pcluster create -c /dir/conf_file cluster-name' to create your cluster
-```
+## Stargazers over time
 
+[![Stargazers over time](https://starcharts.herokuapp.com/TheYahya/sherlock.svg)](https://starcharts.herokuapp.com/TheYahya/sherlock)
 
-Now you can create your first cluster:
+## License
 
-```
-$ pcluster create myfirstcluster
-```
-
-
-After the cluster finishes creating, log in:
-
-```
-$ pcluster ssh myfirstcluster
-```
-
-You can view the running compute hosts:
-
-```
-$ qhost
-```
-
-For more information on any of these steps see the [Getting Started Guide](https://docs.aws.amazon.com/parallelcluster/latest/ug/getting_started.html).
-
-Documentation
--------------
-
-We've been working hard to greatly improve the [Documentation](https://docs.aws.amazon.com/parallelcluster/latest/ug/), it's now published in 10 languages, one of the many benefits of being hosted on AWS Docs. Of most interest to new users is
-the [Getting Started Guide](https://docs.aws.amazon.com/parallelcluster/latest/ug/getting_started.html).
-
-If you have changes you would like to see in the docs, please either submit feedback using the feedback link at the bottom
-of each page or create an issue or pull request for the project at:
-https://github.com/awsdocs/aws-parallelcluster-user-guide.
-
-Issues
-------
-
-Please open a GitHub issue for any feedback or issues:
-https://github.com/aws/aws-parallelcluster/issues.  There is also an active AWS
-HPC forum which may be helpful: https://forums.aws.amazon.com/forum.jspa?forumID=192.
-
-Changes
--------
-
-### CfnCluster to AWS ParallelCluster
-In Version `2.0.0`, we changed the name of CfnCluster to AWS ParallelCluster. With that name change we released several new features, which you can read about in the [Change Log](https://github.com/aws/aws-parallelcluster/blob/develop/CHANGELOG.md#200).
+MIT © Sherlock Project<br/>
+Original Creator - [Siddharth Dushantha](https://github.com/sdushantha)
