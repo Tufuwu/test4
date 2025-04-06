@@ -1,39 +1,49 @@
-#!/usr/bin/env python
+# setup.py
 
-from setuptools import setup
-from setuptools import find_packages
-import re
+import pathlib
+from setuptools import setup, find_packages
 
-
-def find_version():
-    return re.search(r"^__version__ = '(.*)'$",
-                     open('cantools/version.py', 'r').read(),
-                     re.MULTILINE).group(1)
-
-
-setup(name='cantools',
-      version=find_version(),
-      description='CAN BUS tools.',
-      long_description=open('README.rst', 'r').read(),
-      author='Erik Moqvist',
-      author_email='erik.moqvist@gmail.com',
-      license='MIT',
-      classifiers=[
-          'License :: OSI Approved :: MIT License',
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 3',
-      ],
-      keywords=['can', 'can bus', 'dbc', 'kcd', 'automotive'],
-      url='https://github.com/eerimoq/cantools',
-      packages=find_packages(exclude=['tests']),
-      install_requires=[
-          'bitstruct>=6.0.0',
-          'python-can>=2.2.0',
-          'textparser>=0.21.1',
-          'diskcache',
-          'argparse_addons'
-      ],
-      test_suite="tests",
-      entry_points = {
-          'console_scripts': ['cantools=cantools.__init__:_main']
-      })
+setup(
+    name='gsheets',
+    version='0.6.dev0',
+    author='Sebastian Bank',
+    author_email='sebastian.bank@uni-leipzig.de',
+    description='Pythonic wrapper for the Google Sheets API',
+    keywords='spreadhseets google api v4 wrapper csv pandas',
+    license='MIT',
+    url='https://github.com/xflr6/gsheets',
+    project_urls={
+        'Documentation': 'https://gsheets.readthedocs.io',
+        'Changelog': 'https://gsheets.readthedocs.io/en/latest/changelog.html',
+        'Issue Tracker': 'https://github.com/xflr6/gsheets/issues',
+        'CI': 'https://github.com/xflr6/gsheets/actions',
+        'Coverage': 'https://codecov.io/gh/xflr6/gsheets',
+    },
+    packages=find_packages(),
+    platforms='any',
+    python_requires='>=3.6',
+    install_requires=[
+        'google-api-python-client',
+        'oauth2client>=1.5.0',
+    ],
+    extras_require={
+        'dev': ['tox>=3', 'flake8', 'pep8-naming', 'wheel', 'twine'],
+        'test': ['mock>=3', 'pytest>=4', 'pytest-mock>=2', 'pytest-cov'],
+        'docs': ['sphinx>=1.8', 'sphinx-rtd-theme'],
+    },
+    long_description=pathlib.Path('README.rst').read_text(encoding='utf-8'),
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Office/Business :: Financial :: Spreadsheet',
+    ],
+)
