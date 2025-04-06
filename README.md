@@ -1,75 +1,55 @@
-# Arista eAPI Python Library
+# xdg
 
-[![Build Status](https://travis-ci.org/arista-eosplus/pyeapi.svg?branch=develop)](https://travis-ci.org/arista-eosplus/pyeapi) [![Coverage Status](https://coveralls.io/repos/github/arista-eosplus/pyeapi/badge.svg?branch=develop)](https://coveralls.io/github/arista-eosplus/pyeapi?branch=develop) [![Documentation Status](https://readthedocs.org/projects/pyeapi/badge/?version=latest)](http://readthedocs.org/docs/pyeapi/en/latest/?badge=latest)
+`xdg` is a tiny Python module which provides the variables defined by the [XDG
+Base Directory Specification][spec], to save you from duplicating the same
+snippet of logic in every Python utility you write that deals with user cache,
+configuration, or data files. It has no external dependencies.
 
-The Python library for Arista's eAPI command API implementation provides a
-client API work using eAPI and communicating with EOS nodes.  The Python
-library can be used to communicate with EOS either locally (on-box) or remotely
-(off-box).  It uses a standard INI-style configuration file to specify one or
-more nodes and connection properties.
+## Installation
 
-The pyeapi library also provides an API layer for building native Python
-objects to interact with the destination nodes. The API layer is a convenient
-implementation for working with the EOS configuration and is extensible for
-developing custom implementations.
+To install the latest release from [PyPI], use [pip]:
 
-This library is freely provided to the open source community for building
-robust applications using Arista EOS.  Support is provided as best effort
-through Github issues.
+```bash
+pip install xdg
+```
 
-## Documentation
+In Python projects using [Poetry] or [Pipenv] for dependency management, add
+`xdg` as a dependency with `poetry add xdg` or `pipenv install xdg`.
+Alternatively, since `xdg` is only a single file you may prefer to just copy
+`src/xdg/__init__.py` from the source distribution into your project.
 
-* [Quickstart] [quickstart]
-* [Installation] [install]
-* [Modules] [modules]
-* [Release Notes] [rns]
-* [Contribute] [contribute]
+## Usage
 
-### Building Local Documentation
+```python
+from xdg import (XDG_CACHE_HOME, XDG_CONFIG_DIRS, XDG_CONFIG_HOME,
+                 XDG_DATA_DIRS, XDG_DATA_HOME, XDG_RUNTIME_DIR)
+```
 
-If you cannot access readthedocs.org you have the option of building the
-documentation locally.
+`XDG_CACHE_HOME`, `XDG_CONFIG_HOME`, and `XDG_DATA_HOME` are [`pathlib.Path`
+objects][path] containing the value of the environment variable of the same
+name, or the default defined in the specification if the environment variable is
+unset or empty.
 
-1. ``pip install -r dev-requirements.txt``
-2. ``cd docs``
-3. ``make html``
-4. ``open _build/html/index.html``
+`XDG_CONFIG_DIRS` and `XDG_DATA_DIRS` are lists of `pathlib.Path` objects
+containing the value of the environment variable of the same name split on
+colons, or the default defined in the specification if the environment variable
+is unset or empty.
 
-# License
+`XDG_RUNTIME_DIR` is a `pathlib.Path` object containing the value of the
+environment variable of the same name, or `None` if the environment variable is
+unset.
 
-Copyright (c) 2015, Arista Networks EOS+
-All rights reserved.
+## Copyright
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+Copyright © 2016-2019 [Scott Stevenson].
 
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
+`xdg` is distributed under the terms of the [ISC licence].
 
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-
-* Neither the name of the Arista nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-[pyeapi]: https://github.com/arista-eosplus/pyeapi
-[quickstart]: http://pyeapi.readthedocs.org/en/master/quickstart.html
-[install]: http://pyeapi.readthedocs.org/en/master/install.html
-[contribute]: http://pyeapi.readthedocs.org/en/master/contribute.html
-[modules]: http://pyeapi.readthedocs.org/en/master/modules.html
-[support]: http://pyeapi.readthedocs.org/en/master/support.html
-[rns]: http://pyeapi.readthedocs.org/en/master/release-notes.html
+[isc licence]: https://opensource.org/licenses/ISC
+[path]: https://docs.python.org/3/library/pathlib.html#pathlib.Path
+[pip]: https://pip.pypa.io/en/stable/
+[pipenv]: https://docs.pipenv.org/
+[poetry]: https://poetry.eustace.io/
+[pypi]: https://pypi.org/project/xdg/
+[scott stevenson]: https://scott.stevenson.io
+[spec]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
