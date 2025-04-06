@@ -1,7 +1,0 @@
-docutils
-mock
-Pygments
-pytest
-pytest-cov
-pytest-flake8
-Sphinx

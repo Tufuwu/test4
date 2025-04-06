@@ -1,45 +1,14 @@
-*.py[cod]
-
-# C extensions
-*.so
-
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-MANIFEST
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.xml
-
-# Translations
+dist/*
+bpython.egg-info/*
+*.pyc
+tags
+_trial_temp
 *.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
+build/*
 env
-env3
-__pycache__
-venv
-
-.cache
-docs/_build
+.DS_Store
 .idea/
+doc/sphinx/build/*
+bpython/_version.py
+venv/
+.venv/

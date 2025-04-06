@@ -1,72 +1,186 @@
-schedule
-========
+.. image:: https://img.shields.io/pypi/v/bpython
+    :target: https://pypi.org/project/bpython
+
+.. image:: https://travis-ci.org/bpython/bpython.svg?branch=master
+    :target: https://travis-ci.org/bpython/bpython
+
+.. image:: https://readthedocs.org/projects/bpython/badge/?version=latest
+    :target: https://docs.bpython-interpreter.org/en/latest/
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/ambv/black
 
 
-.. image:: https://github.com/dbader/schedule/workflows/Tests/badge.svg
-        :target: https://github.com/dbader/schedule/actions?query=workflow%3ATests+branch%3Amaster
+***********************************************************************
+bpython: A fancy curses interface to the Python interactive interpreter
+***********************************************************************
 
-.. image:: https://coveralls.io/repos/dbader/schedule/badge.svg?branch=master
-        :target: https://coveralls.io/r/dbader/schedule
+`bpython`_ is a lightweight Python interpreter that adds several features common
+to IDEs. These features include **syntax highlighting**, **expected parameter
+list**, **auto-indentation**, and **autocompletion**. (See below for example
+usage).
 
-.. image:: https://img.shields.io/pypi/v/schedule.svg
-        :target: https://pypi.python.org/pypi/schedule
+.. image:: https://bpython-interpreter.org/images/math.gif
+  :alt: bpython
+  :width: 566
+  :height: 348
+  :align: center
 
-Python job scheduling for humans.
+bpython does **not** aim to be a complete IDE - the focus is on implementing a
+few ideas in a practical, useful, and lightweight manner.
 
-An in-process scheduler for periodic jobs that uses the builder pattern
-for configuration. Schedule lets you run Python functions (or any other
-callable) periodically at pre-determined intervals using a simple,
-human-friendly syntax.
+bpython is a great replacement to any occasion where you would normally use the
+vanilla Python interpreter - testing out solutions to people's problems on IRC,
+quickly testing a method of doing something without creating a temporary file,
+etc..
 
-Inspired by `Adam Wiggins' <https://github.com/adamwiggins>`_ article `"Rethinking Cron" <https://adam.herokuapp.com/past/2010/4/13/rethinking_cron/>`_ and the `clockwork <https://github.com/Rykian/clockwork>`_ Ruby module.
+You can find more about bpython - including `full documentation`_ - at our
+`homepage`_.
 
-Features
---------
-- A simple to use API for scheduling jobs.
-- Very lightweight and no external dependencies.
-- Excellent test coverage.
-- Tested on Python 2.7, 3.5, and 3.6
+.. contents::
+  :local:
+    :depth: 1
+    :backlinks: none
 
-Usage
------
+==========================
+Installation & Basic Usage
+==========================
+If you have `pip`_ installed, you can simply run:
 
 .. code-block:: bash
 
-    $ pip install schedule
+    $ pip install bpython
 
-.. code-block:: python
+Start bpython by typing ``bpython`` in your terminal. You can exit bpython by
+using the ``exit()`` command or by pressing control-D like regular interactive
+Python.
 
-    import schedule
-    import time
+===================
+Features & Examples
+===================
+* Readline-like autocomplete, with suggestions displayed as you type.
 
-    def job():
-        print("I'm working...")
+* In-line syntax highlighting.  This uses Pygments for lexing the code as you
+  type, and colours appropriately.
 
-    schedule.every(10).minutes.do(job)
-    schedule.every().hour.do(job)
-    schedule.every().day.at("10:30").do(job)
-    schedule.every(5).to(10).minutes.do(job)
-    schedule.every().monday.do(job)
-    schedule.every().wednesday.at("13:15").do(job)
-    schedule.every().minute.at(":17").do(job)
+* Expected parameter list.  As in a lot of modern IDEs, bpython will attempt to
+  display a list of parameters for any function you call. The inspect module is
+  tried first, which works with any Python function, and then pydoc if that
+  fails.
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+* Rewind.  This isn't called "Undo" because it would be misleading, but "Rewind"
+  is probably as bad. The idea is that the code entered is kept in memory and
+  when the Rewind function is called, the last line is popped and the entire
+  session is re-evaluated.  Use <control-R> to rewind.
 
-Documentation
+* Edit the current line or your entire session in an editor. F7 opens the current
+  session in a text editor, and if modifications are made, the session is rerun
+  with these changes.
+
+* Pastebin code/write to file.  Use the <F8> key to upload the screen's contents
+  to pastebin, with a URL returned.
+
+* Reload imported Python modules.  Use <F6> to clear sys.modules and rerun your
+  session to test changes to code in a module you're working on.
+
+=============
+Configuration
+=============
+See the sample-config file for a list of available options.  You should save
+your config file as **~/.config/bpython/config** (i.e.
+``$XDG_CONFIG_HOME/bpython/config``) or specify at the command line::
+
+  bpython --config /path/to/bpython/config
+
+============
+Dependencies
+============
+* Pygments
+* requests
+* curtsies >= 0.3.3
+* greenlet
+* Sphinx >= 1.5 (optional, for the documentation)
+* babel (optional, for internationalization)
+* watchdog (optional, for monitoring imported modules for changes)
+* jedi (optional, for experimental multiline completion)
+
+bpython-urwid
 -------------
+``bpython-urwid`` requires the following additional packages:
 
-Schedule's documentation lives at `schedule.readthedocs.io <https://schedule.readthedocs.io/>`_.
+* urwid
 
-Please also check the FAQ there with common questions.
+==========
+Known Bugs
+==========
+For known bugs please see bpython's `known issues and FAQ`_ page.
+
+======================
+Contact & Contributing
+======================
+I hope you find it useful and please feel free to submit any bugs/patches
+suggestions to `Robert`_ or place them on the GitHub
+`issues tracker`_.
+
+For any other ways of communicating with bpython users and devs you can find us
+at the community page on the `project homepage`_, or in the `community`_.
+
+Hope to see you there!
+
+===================
+CLI Windows Support
+===================
+
+Dependencies
+------------
+`Curses`_ Use the appropriate version compiled by Christoph Gohlke.
+
+`pyreadline`_ Use the version in the cheeseshop.
+
+Recommended
+-----------
+Obtain the less program from GnuUtils. This makes the pager work as intended.
+It can be obtained from cygwin or GnuWin32 or msys
+
+Current version is tested with
+------------------------------
+* Curses 2.2
+* pyreadline 1.7
+
+Curses Notes
+------------
+The curses used has a bug where the colours are displayed incorrectly:
+
+* red  is swapped with blue
+* cyan is swapped with yellow
+
+To correct this I have provided a windows.theme file.
+
+This curses implementation has 16 colors (dark and light versions of the
+colours)
 
 
-Meta
-----
+============
+Alternatives
+============
 
-Daniel Bader - `@dbader_org <https://twitter.com/dbader_org>`_ - mail@dbader.org
+`ptpython`_
 
-Distributed under the MIT license. See `LICENSE.txt <https://github.com/dbader/schedule/blob/master/LICENSE.txt>`_ for more information.
+`IPython`_
 
-https://github.com/dbader/schedule
+Feel free to get in touch if you know of any other alternatives that people
+may be interested to try.
+
+.. _ptpython: https://github.com/jonathanslenders/ptpython
+.. _ipython: https://ipython.org/
+.. _homepage: http://www.bpython-interpreter.org
+.. _full documentation: http://docs.bpython-interpreter.org/
+.. _issues tracker: http://github.com/bpython/bpython/issues/
+.. _pip: https://pip.pypa.io/en/latest/index.html
+.. _project homepage: http://bpython-interpreter.org
+.. _community: http://docs.bpython-interpreter.org/community.html
+.. _Robert: robertanthonyfarrell@gmail.com
+.. _bpython: http://www.bpython-interpreter.org/
+.. _Curses: http://www.lfd.uci.edu/~gohlke/pythonlibs/
+.. _pyreadline: http://pypi.python.org/pypi/pyreadline/
+.. _known issues and FAQ: http://bpython-interpreter.org/known-issues-and-faq.html
