@@ -1,32 +1,31 @@
-name: Tests
+name: core
 
-on: [push, pull_request]
-
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ["3.9"]
-
+          python-version: ["3.9"]
     steps:
-
-      - uses: actions/checkout@v1
-
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade poetry
-          poetry install
-
-      - name: Run tests
-        run: |
-          poetry run flake8 --ignore E501,W503 example/
-          poetry run flake8 --ignore E501,W503 tests/
-          poetry run pytest
+    - uses: actions/checkout@v2
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install astunparse pytest
+    - name: Setup
+      run: |
+        python setup.py install
+    - name: Testing sequential
+      run: |
+        pytest
