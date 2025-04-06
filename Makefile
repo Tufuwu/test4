@@ -1,50 +1,63 @@
-# Shell to use with Make
-SHELL := /bin/bash
+# Python-Markdown makefile
 
-# Set important Paths
-PROJECT := yellowbrick
-LOCALPATH := $(CURDIR)/$(PROJECT)
+.PHONY : help
+help:
+	@echo 'Usage: make <subcommand>'
+	@echo ''
+	@echo 'Subcommands:'
+	@echo '    install       Install Python-Markdown locally'
+	@echo '    deploy        Register and upload a new release to PyPI'
+	@echo '    build         Build a source distribution'
+	@echo '    build-win     Build a Windows exe distribution'
+	@echo '    docs          Build documentation'
+	@echo '    test          Run all tests'
+	@echo '    clean         Clean up the source directories'
 
-# Export targets not associated with files
-.PHONY: test coverage pip clean publish uml build deploy install
-
-# Clean build files
-clean:
-	find . -name "*.pyc" -print0 | xargs -0 rm -rf
-	find . -name "__pycache__" -print0 | xargs -0 rm -rf
-	find . -name "*-failed-diff.png" -print0 | xargs -0 rm -rf
-	-rm -rf htmlcov
-	-rm -rf .coverage
-	-rm -rf build
-	-rm -rf dist
-	-rm -rf $(PROJECT).egg-info
-	-rm -rf .eggs
-	-rm -rf site
-	-rm -rf classes_$(PROJECT).png
-	-rm -rf packages_$(PROJECT).png
-	-rm -rf docs/_build
-
-# Targets for testing
-test:
-	python setup.py test
-
-# Publish to gh-pages
-publish:
-	git subtree push --prefix=deploy origin gh-pages
-
-# Draw UML diagrams
-uml:
-	pyreverse -ASmy -k -o png -p $(PROJECT) $(LOCALPATH)
-
-# Build the universal wheel and source distribution
-build:
-	python setup.py sdist bdist_wheel
-
-# Install the package from source
+.PHONY : install
 install:
 	python setup.py install
 
-# Deploy to PyPI
+.PHONY : deploy
 deploy:
-	python setup.py register
+	rm -rf build
+	rm -rf dist
+	python setup.py bdist_wheel sdist --formats gztar
 	twine upload dist/*
+
+.PHONY : build
+build:
+	rm -rf build
+	rm -rf dist
+	python setup.py bdist_wheel sdist --formats gztar
+
+.PHONY : build-win
+build-win:
+	python setup.py bdist_wininst
+
+.PHONY : docs
+docs:
+	mkdocs build --clean
+
+.PHONY : test
+test:
+	coverage run --source=markdown -m unittest discover tests
+	coverage report --show-missing
+
+.PHONY : clean
+clean:
+	rm -f MANIFEST
+	rm -f test-output.html
+	rm -f *.pyc
+	rm -f markdown/*.pyc
+	rm -f markdown/extensions/*.pyc
+	rm -f *.bak
+	rm -f markdown/*.bak
+	rm -f markdown/extensions/*.bak
+	rm -f *.swp
+	rm -f markdown/*.swp
+	rm -f markdown/extensions/*.swp
+	rm -rf build
+	rm -rf dist
+	rm -rf tmp
+	rm -rf site
+	# git clean -dfx'
