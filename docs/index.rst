@@ -1,44 +1,39 @@
-..
-    Copyright (C) 2018 CERN.
+ScanCode.io documentation
+=========================
 
-    invenio-app-ils is free software; you can redistribute it and/or modify it
-    under the terms of the MIT License; see LICENSE file for more details.
-
-
-.. include:: ../README.rst
-
-User's Guide
-------------
-
-This part of the documentation will show you how to get started in using
-invenio-app-ils.
+ScanCode.io is a server to script and automate software composition analysis
+with ScanPipe pipelines.
+First application is for Docker container and VM composition analysis.
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
+    :caption: Getting Started
 
-   installation
-   configuration
-   usage
-
-API Reference
--------------
-
-If you are looking for information on a specific function, class or method,
-this part of the documentation is for you.
+    introduction
+    installation
+    docker-image
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
+    :caption: Tutorial
 
-Additional Notes
-----------------
-
-Notes on how to contribute, legal information and changes are here for the
-interested.
+    scanpipe-tutorial-1
+    scanpipe-tutorial-2
 
 .. toctree::
-   :maxdepth: 1
+    :maxdepth: 2
+    :caption: Reference Documentation
 
-   contributing
-   changes
-   license
-   authors
+    scanpipe-concepts
+    scanpipe-pipelines
+    scanpipe-pipes
+    scanpipe-command-line
+    scanpipe-api
+    scancodeio-settings
+    offline-installation
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`search`
