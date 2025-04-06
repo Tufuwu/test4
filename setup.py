@@ -1,37 +1,31 @@
+"""setup module"""
 from setuptools import setup, find_packages
+import os
 
-try:
-    long_description = open('README.md').read()
-except FileNotFoundError:
-    long_description = ''
+from pywnedpasswords import __version__
+
+readme_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "README.md")
+with open(readme_file) as f:
+    readme = f.read()
 
 setup(
-    name='pytorch_memlab',
-    version='0.2.4',
-    licence='MIT',
-    description='A lab to do simple and accurate memory experiments on pytorch',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    classifiers=[
-        "Programming Language :: Python",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        ],
-    keywords='pytorch memory profile',
-    author='Kaiyu Shi',
-    author_email='skyisno.1@gmail.com',
-    url='https://github.com/Stonesjtu/pytorch_memlab',
-    license='MIT',
-    include_package_data=True,
-    zip_safe=True,
-    install_requires=[
-        'setuptools',
-        'calmsize',
-        'pandas>=0.18',
-        'torch>=1.4',
-    ],
-    extras_require={
-        'ipython': ['IPython>=0.13'],
-        'test': ['pytest'],
-    },
+    name="pywnedpasswords",
+    version=__version__,
+    description="Client for HIBP passwords api using K-Anonymity method",
+    long_description=readme,
+    long_description_content_type="text/markdown",
+    url="http://github.com/xmatthias/pywnedpasswords",
+    author="Matthias Voppichler",
+    author_email="xmatthias@outlook.com",
+    license="MIT",
+    entry_points="""
+      [console_scripts]
+      pywnedpasswords=pywnedpasswords.pywnedpasswords:main
+      """,
+    python_requires=">=3",
     packages=find_packages(),
+    install_requires=["requests>=2"],
+    zip_safe=False,
+    keywords=["pwnedpasswords", "passwords", "pwned", "security"],
+    project_urls={"Source Code": "http://github.com/xmatthias/pywnedpasswords"},
 )

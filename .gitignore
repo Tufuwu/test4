@@ -1,11 +1,3 @@
-#### joe made this: http://goel.io/joe
-
-#####=== IPythonNotebook ===#####
-# Temporary data
-.ipynb_checkpoints/
-
-#####=== Python ===#####
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -16,7 +8,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -28,9 +19,11 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -50,7 +43,9 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*,cover
+*.cover
+.hypothesis/
+.pytest_cache/
 
 # Translations
 *.mo
@@ -58,6 +53,16 @@ coverage.xml
 
 # Django stuff:
 *.log
+.static_storage/
+.media/
+local_settings.py
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
 
 # Sphinx documentation
 docs/_build/
@@ -65,56 +70,38 @@ docs/_build/
 # PyBuilder
 target/
 
-#####=== JetBrains ===#####
-# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio
+# Jupyter Notebook
+.ipynb_checkpoints
 
-*.iml
+# pyenv
+.python-version
 
-## Directory-based project format:
-.idea/
-# if you remove the above rule, at least ignore the following:
+# celery beat schedule file
+celerybeat-schedule
 
-# User-specific stuff:
-# .idea/workspace.xml
-# .idea/tasks.xml
-# .idea/dictionaries
+# SageMath parsed files
+*.sage.py
 
-# Sensitive or high-churn files:
-# .idea/dataSources.ids
-# .idea/dataSources.xml
-# .idea/sqlDataSources.xml
-# .idea/dynamic.xml
-# .idea/uiDesigner.xml
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Gradle:
-# .idea/gradle.xml
-# .idea/libraries
+# Spyder project settings
+.spyderproject
+.spyproject
 
-# Mongo Explorer plugin:
-# .idea/mongoSettings.xml
-
-## File-based project format:
-*.ipr
-*.iws
-
-## Plugin-specific files:
-
-# IntelliJ
-/out/
-
-# mpeltonen/sbt-idea plugin
-.idea_modules/
-
-# JIRA plugin
-atlassian-ide-plugin.xml
-
-# Crashlytics plugin (for Android Studio and IntelliJ)
-com_crashlytics_export_strings.xml
-crashlytics.properties
-crashlytics-build.properties
-
+# Rope project settings
 .ropeproject
 
-#####=== VSCode ===#####
+# mkdocs documentation
+/site
 
+# mypy
+.mypy_cache/
+# vs code
 .vscode
