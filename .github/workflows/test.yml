@@ -1,37 +1,39 @@
-name: CI
+#
+# This software may be modified and distributed under the terms
+# of the MIT license.  See the LICENSE file for details.
+
+name: CI Tests
+
 on:
-  workflow_dispatch:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
-    tags: '*'
+  pull_request:
+    branches:
+      - main
+
 jobs:
   test:
-    name: chembl_structure_pipeline (${{ matrix.os }}, ${{ matrix.python-version }}, ${{ matrix.rdkit-version }})
-    runs-on: ${{ matrix.os }}
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.9"]
-        rdkit-version: ["2021.03"]
+        python: ["3.9"]
+      fail-fast: false
+
     steps:
       - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
-          channels: conda-forge
-          activate-environment: cspipeline
-          auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-      - name: Install RDKit and nose
-        shell: bash -l {0}
-        run: conda install rdkit=${{ matrix.rdkit-version }} nose
-      - name: Install chembl_structure_pipeline
-        shell: bash -l {0}
-        run: python setup.py install
+          python-version: ${{ matrix.python }}
+
+      - name: Update Pip
+        run: pip install --upgrade pip setuptools
+
+      - name: Install Tox
+        run: pip install tox
+
       - name: Run tests
-        shell: bash -l {0}
-        run: nosetests --with-doctest
+        run: tox -e py
