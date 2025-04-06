@@ -1,53 +1,61 @@
+#!/usr/bin/env python
+import os
+import sys
 import re
+# from distutils.core import setup
+from setuptools import setup
 
-from setuptools import find_packages, setup
+VERSION = "0.9.8"
 
-with open("README.md") as fl:
-    LONG_DESCRIPTION = fl.read()
+if __name__ == "__main__":
 
+    if "--format=msi" in sys.argv or "bdist_msi" in sys.argv:
+        # hack the version name to a format msi doesn't have trouble with
+        VERSION = VERSION.replace("-alpha", "a")
+        VERSION = VERSION.replace("-beta", "b")
+        VERSION = VERSION.replace("-rc", "r")
 
-def get_version():
-    version_file = open("django_prometheus/__init__.py", "r").read()
-    version_match = re.search(
-        r'^__version__ = [\'"]([^\'"]*)[\'"]', version_file, re.MULTILINE
-    )
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+    fname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "README.md")
+    with open(fname, "r") as readme:
+        long_desc = readme.read()
+        # Strip out CI badges for PyPI releases
+        long_desc = re.sub(r"\[!\[Build Status(.*?)\n", "", long_desc)
 
-
-setup(
-    name="django-prometheus",
-    version=get_version(),
-    author="Uriel Corfa",
-    author_email="uriel@corfa.fr",
-    description=("Django middlewares to monitor your application with Prometheus.io."),
-    license="Apache",
-    keywords="django monitoring prometheus",
-    url="http://github.com/korfuri/django-prometheus",
-    packages=find_packages(exclude=["tests",]),
-    test_suite="django_prometheus.tests",
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/markdown",
-    tests_require=["pytest", "pytest-django"],
-    setup_requires=["pytest-runner"],
-    options={"bdist_wheel": {"universal": "1"}},
-    install_requires=["prometheus-client>=0.7",],
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Information Technology",
-        "Intended Audience :: System Administrators",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Framework :: Django :: 2.2",
-        "Framework :: Django :: 3.0",
-        "Framework :: Django :: 3.1",
-        "Framework :: Django :: 3.2",
-        "Topic :: System :: Monitoring",
-        "License :: OSI Approved :: Apache Software License",
-    ],
-)
+    setupdata = {
+        "name":  "PySDL2",
+        "version": VERSION,
+        "description": "Python SDL2 bindings",
+        "long_description": long_desc,
+        "long_description_content_type": "text/markdown",
+        "author": "Marcus von Appen",
+        "author_email": "marcus@sysfault.org",
+        "license": "Public Domain / zlib",
+        "url": "https://github.com/marcusva/py-sdl2",
+        "download_url": "https://pypi.python.org/pypi/PySDL2",
+        "package_dir": {"sdl2.examples": "examples"},
+        "package_data": {"sdl2.test": ["resources/*.*"],
+                         "sdl2.examples": ["resources/*.*"]},
+        "packages": ["sdl2",
+                     "sdl2.ext",
+                     "sdl2.test",
+                     "sdl2.examples"
+                     ],
+        "classifiers": [
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: Public Domain",
+            "License :: OSI Approved :: zlib/libpng License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            ],
+        }
+    setup(**setupdata)

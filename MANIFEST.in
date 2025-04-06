@@ -1,2 +1,5 @@
-include LICENSE
-include README.md
+graft doc
+graft util
+graft examples
+include *.bat Makefile
+include *.txt *.rst *.md
