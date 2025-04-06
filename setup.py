@@ -1,19 +1,37 @@
-#!/usr/bin/env python3
+import os
+import numpy as np
+from setuptools import find_packages, setup
+from setuptools.extension import Extension
+from Cython.Build import cythonize
 
-from setuptools import setup
-from setuptools import find_packages
+extensions = [
+    Extension('pulse2percept.fast_retina', ['pulse2percept/fast_retina.pyx'],
+              include_dirs=[np.get_include()],
+              extra_compile_args=['-O3'])
+]
+
+# Get version and release info, which is all stored in pulse2percept/version.py
+ver_file = os.path.join('pulse2percept', 'version.py')
+with open(ver_file) as f:
+    exec(f.read())
+
+opts = dict(name=NAME,
+            maintainer=MAINTAINER,
+            maintainer_email=MAINTAINER_EMAIL,
+            description=DESCRIPTION,
+            long_description=LONG_DESCRIPTION,
+            url=URL,
+            download_url=DOWNLOAD_URL,
+            license=LICENSE,
+            classifiers=CLASSIFIERS,
+            author=AUTHOR,
+            author_email=AUTHOR_EMAIL,
+            platforms=PLATFORMS,
+            version=VERSION,
+            packages=find_packages(),
+            ext_modules=cythonize(extensions),
+            install_requires=REQUIRES)
 
 
-setup(
-    name="litesdcard",
-	description="Small footprint and configurable SD Card core",
-	author="Florent Kermarrec, Pierre-Olivier Vauboin",
-	author_email="florent@enjoy-digital.fr, po@lambdaconcept.com",
-	url="http://enjoy-digital.fr",
-	download_url="https://github.com/enjoy-digital/litesdcard",
-	test_suite="test",
-    license="BSD",
-    python_requires="~=3.6",
-    packages=find_packages(exclude=("test*", "sim*", "doc*", "examples*")),
-    include_package_data=True,
-)
+if __name__ == '__main__':
+    setup(**opts)
