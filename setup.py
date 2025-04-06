@@ -1,151 +1,101 @@
-# Copyright (C) 2007 Giampaolo Rodola' <g.rodola@gmail.com>.
-# Use of this source code is governed by MIT license that can be
-# found in the LICENSE file.
-
-"""pyftpdlib installer.
-
-$ python setup.py install
-"""
-
-from __future__ import print_function
+from setuptools import setup
+from setuptools import Distribution
+from os.path import join
+import pyang
+import glob
 import os
+import re
 import sys
-import textwrap
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+import tempfile
 
+modules_iana = glob.glob(os.path.join('modules', 'iana', '*.yang'))
+modules_ietf = glob.glob(os.path.join('modules', 'ietf', '*.yang'))
+xslt = glob.glob(os.path.join('xslt', '*.xsl'))
+schema = glob.glob(os.path.join('schema', '*.rng'))
+images = glob.glob(os.path.join('tools', 'images', '*'))
+man1 = glob.glob(os.path.join('man', 'man1', '*.1'))
 
-def get_version():
-    INIT = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                        'pyftpdlib', '__init__.py'))
-    with open(INIT, 'r') as f:
-        for line in f:
-            if line.startswith('__ver__'):
-                ret = eval(line.strip().split(' = ')[1])
-                assert ret.count('.') == 2, ret
-                for num in ret.split('.'):
-                    assert num.isdigit(), ret
-                return ret
-        raise ValueError("couldn't find version string")
+class PyangDist(Distribution):
 
+      """The purpose of this subclass of Distribution is to extend the
+      install procedure with preprocessing of shell scripts and man
+      pages so that they reflect the actual installation prefix, which
+      may be changed through the --prefix option.
+      """
 
-def term_supports_colors():
-    try:
-        import curses
-        assert sys.stderr.isatty()
-        curses.setupterm()
-        assert curses.tigetnum("colors") > 0
-    except Exception:
-        return False
-    else:
-        return True
+      def preprocess_files(self, prefix):
+            """Change the installation prefix where necessary.
+            """
+            if prefix is None: return
+            files = ("bin/yang2dsdl", "man/man1/yang2dsdl.1",
+                     "pyang/plugins/jsonxsl.py")
+            regex = re.compile("^(.*)/usr/local(.*)$")
+            for f in files:
+                  inf = open(f)
+                  cnt = inf.readlines()
+                  inf.close()
+                  ouf = open(f,"w")
+                  for line in cnt:
+                        mo = regex.search(line)
+                        if mo is None:
+                              ouf.write(line)
+                        else:
+                              ouf.write(mo.group(1) + prefix + mo.group(2) +
+                                        "\n")
+                  ouf.close()
 
+      def run_commands(self):
+            opts = self.command_options
+            if "install" in opts:
+                  self.preprocess_files(opts["install"].get("prefix",
+                                                            ("", None))[1])
+            Distribution.run_commands(self)
 
-def hilite(s, ok=True, bold=False):
-    """Return an highlighted version of 's'."""
-    if not term_supports_colors():
-        return s
-    else:
-        attr = []
-        if ok is None:  # no color
-            pass
-        elif ok:
-            attr.append('32')  # green
-        else:
-            attr.append('31')  # red
-        if bold:
-            attr.append('1')
-        return '\x1b[%sm%s\x1b[0m' % (';'.join(attr), s)
+# If the installation is on windows, place pyang.bat file in Scripts directory
+script_files = []
+if os.name == "nt":
+    pyang_bat_file = "{}/{}.bat".format(tempfile.gettempdir(), "pyang")
+    with open(pyang_bat_file, 'w') as script:
+        script.write('@echo off\npython %~dp0pyang %*\n')
+    script_files = ['bin/pyang', 'bin/yang2html',
+                    'bin/yang2dsdl', 'bin/json2xml', pyang_bat_file]
+else:
+    script_files = ['bin/pyang', 'bin/yang2html',
+                    'bin/yang2dsdl', 'bin/json2xml']
 
-
-if sys.version_info < (2, 6):
-    sys.exit('python version not supported (< 2.6)')
-
-require_pysendfile = (os.name == 'posix' and sys.version_info < (3, 3))
-
-extras_require = {'ssl': ["PyOpenSSL"]}
-if require_pysendfile:
-    extras_require.update({'sendfile': ['pysendfile']})
-
-VERSION = get_version()
-
-
-def main():
-    setup(
-        name='pyftpdlib',
-        version=get_version(),
-        description='Very fast asynchronous FTP server library',
-        long_description=open('README.rst').read(),
-        license='MIT',
-        platforms='Platform Independent',
-        author="Giampaolo Rodola'",
-        author_email='g.rodola@gmail.com',
-        url='https://github.com/giampaolo/pyftpdlib/',
-        packages=['pyftpdlib', 'pyftpdlib.test'],
-        scripts=['scripts/ftpbench'],
-        package_data={
-            "pyftpdlib.test": [
-                "README",
-                'keycert.pem',
-            ],
-        },
-        keywords=['ftp', 'ftps', 'server', 'ftpd', 'daemon', 'python', 'ssl',
-                  'sendfile', 'asynchronous', 'nonblocking', 'eventdriven',
-                  'rfc959', 'rfc1123', 'rfc2228', 'rfc2428', 'rfc2640',
-                  'rfc3659'],
-        extras_require=extras_require,
-        classifiers=[
+setup(name='pyang',
+      version=pyang.__version__,
+      author='Martin Bjorklund',
+      author_email='mbj@tail-f.com',
+      description="A YANG (RFC 6020/7950) validator and converter",
+      long_description="An extensible  YANG (RFC 6020/7950) validator." + \
+      " Provides a framework for plugins that can convert YANG modules" + \
+      "to other formats.",
+      url='https://github.com/mbj4668/pyang',
+      install_requires = ["lxml"],
+      license='BSD',
+      classifiers=[
             'Development Status :: 5 - Production/Stable',
-            'Environment :: Console',
-            'Intended Audience :: Developers',
-            'Intended Audience :: System Administrators',
-            'License :: OSI Approved :: MIT License',
-            'Operating System :: OS Independent',
-            'Programming Language :: Python',
-            'Topic :: Internet :: File Transfer Protocol (FTP)',
-            'Topic :: Software Development :: Libraries :: Python Modules',
-            'Topic :: System :: Filesystems',
-            'Programming Language :: Python',
+            'License :: OSI Approved :: BSD License',
             'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.4',
-            'Programming Language :: Python :: 3.5',
-            'Programming Language :: Python :: 3.6',
-        ],
-    )
+            ],
+      keywords='YANG validator',
+      distclass=PyangDist,
+      scripts=script_files,
+      packages=['pyang', 'pyang.plugins', 'pyang.translators', 'pyang.transforms'],
+      data_files=[
+            ('share/man/man1', man1),
+            ('share/yang/modules/iana', modules_iana),
+            ('share/yang/modules/ietf', modules_ietf),
+            ('share/yang/xslt', xslt),
+            ('share/yang/images', images),
+            ('share/yang/schema', schema),
+            ('etc/bash_completion.d', ['etc/bash_completion.d/pyang']),
+            ]
+      )
 
-    # suggest to install pysendfile
-    if require_pysendfile:
-        try:
-            # os.sendfile() appeared in python 3.3
-            # http://bugs.python.org/issue10882
-            if not hasattr(os, 'sendfile'):
-                # fallback on using third-party pysendfile module
-                # https://github.com/giampaolo/pysendfile/
-                import sendfile
-                if hasattr(sendfile, 'has_sf_hdtr'):  # old 1.2.4 version
-                    raise ImportError
-        except ImportError:
-            msg = textwrap.dedent("""
-                'pysendfile' third-party module is not installed. This is not
-                essential but it considerably speeds up file transfers.
-                You can install it with 'pip install pysendfile'.
-                More at: https://github.com/giampaolo/pysendfile""")
-            print(hilite(msg, ok=False), file=sys.stderr)
-
-    try:
-        from OpenSSL import SSL  # NOQA
-    except ImportError:
-        msg = textwrap.dedent("""
-            'pyopenssl' third-party module is not installed. This means
-            FTPS support will be disabled. You can install it with:
-            'pip install pyopenssl'.""")
-        print(hilite(msg, ok=False), file=sys.stderr)
-
-
-if __name__ == '__main__':
-    main()
+# Remove Bat file
+if os.name == "nt":
+    os.remove(pyang_bat_file)
