@@ -1,56 +1,136 @@
-# spectrum_utils
+# InfluxAlchemy
 
-[![conda](https://img.shields.io/conda/vn/bioconda/spectrum_utils?color=green)](http://bioconda.github.io/recipes/spectrum_utils/README.html)
-[![PyPI](https://img.shields.io/pypi/v/spectrum_utils?color=green)](https://pypi.org/project/spectrum_utils/)
-[![Build status](https://github.com/bittremieux/spectrum_utils/workflows/tests/badge.svg)](https://github.com/bittremieux/spectrum_utils/actions?query=workflow:tests)
-[![docs](https://readthedocs.org/projects/spectrum_utils/badge/?version=latest)](https://spectrum_utils.readthedocs.io/en/latest/?badge=latest)
+[![pytest](https://github.com/amancevice/influxalchemy/workflows/pytest/badge.svg)](https://github.com/amancevice/influxalchemy/actions)
+[![PyPI Version](https://badge.fury.io/py/influxalchemy.svg)](https://badge.fury.io/py/influxalchemy)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/fd0e15a31b2ed8a0ccca/test_coverage)](https://codeclimate.com/github/amancevice/influxalchemy/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/fd0e15a31b2ed8a0ccca/maintainability)](https://codeclimate.com/github/amancevice/influxalchemy/maintainability)
 
-spectrum_utils is a Python package for efficient MS/MS spectrum processing and
-visualization.
+Query InfluxDB using SQLAlchemy-style syntax
 
-spectrum_utils contains the following features:
-
-- Spectrum processing
-    - Precursor & noise peak removal
-    - Intensity filtering
-    - Intensity scaling
-    - Peak annotations
-        - Modification-aware (static & variable) peptide fragments
-        - SMILES-based molecules
-        - Custom strings
-- Spectrum plotting
-    - Fully customizable individual spectrum plots
-    - Mirror plot of matching spectra
-    - Interactive spectrum plots
-
-![spectrum_utils](spectrum_utils.png)
 
 ## Installation
 
-spectrum_utils requires Python version 3.6+ and can be installed with pip or
-conda.
+```bash
+pip install influxalchemy
+```
 
-Using conda:
 
-    conda install -c bioconda spectrum_utils
+## Usage
 
-Using pip:
+```python
+import influxdb
+import influxalchemy
+```
 
-    pip install spectrum_utils
 
-## Documentation
+### Define InfluxAlchemy Measurements
 
-Please see the [documentation](https://spectrum-utils.readthedocs.io/) for
-detailed installation instructions, usage examples, the API reference, and more
-information.
+```python
+class Widgets(influxalchemy.Measurement):
+    __measurement__ = 'widgets'
 
-## Citation
- 
-spectrum_utils is freely available as open source under the
-[Apache 2.0 license](http://opensource.org/licenses/Apache-2.0).
 
-When using spectrum_utils please cite the following manuscript:
- 
-Wout Bittremieux. "spectrum_utils: A Python package for mass spectrometry data
-processing and visualization." _Analytical Chemistry_ 92 (1) 659-661 (2020)
-doi:[10.1021/acs.analchem.9b04884](https://doi.org/10.1021/acs.analchem.9b04884).
+class Wombats(influxalchemy.Measurement):
+    __measurement__ = 'wombats'
+```
+
+The class-attribute `__measurement__` can be omitted and will default to the class name if absent.
+
+
+### Open InfluxAlchemy Connection
+
+
+```python
+db = influxdb.DataFrameClient(database="example")
+flux = influxalchemy.InfluxAlchemy(db)
+```
+
+
+## Query InfluxDB
+
+
+### Query Single Measurement
+
+```python
+# SELECT * FROM widgets;
+flux.query(Widgets)
+```
+
+
+### Query Ad Hoc Measurement
+
+```python
+# SELECT * from /.*/;
+flux.query(influxalchemy.Measurement.new("/.*/"))
+```
+
+
+### Select Fields of Measurement
+
+```python
+# SELECT tag1, field2 FROM widgets;
+flux.query(Widgets.tag1, Widgets.field2)
+```
+
+
+### Query Across Measurements
+
+```python
+# SELECT * FROM /widgets|wombats/;
+flux.query(Widgets | Wombats)
+```
+
+
+### Filter Tags
+
+```python
+# SELECT * FROM widgets WHERE tag1 = 'fizz';
+flux.query(Widgets).filter(Widgets.tag1 == "fizz")
+```
+
+
+### Filter Tags with 'like'
+
+```python
+# SELECT * FROM widgets WHERE tag1 =~ /z$/;
+flux.query(Widgets).filter(Widgets.tag1.like("/z$/"))
+```
+
+
+### Chain Filters
+
+```python
+clause1 = Widgets.tag1 == "fizz"
+clause2 = Widgets.tag2 == "buzz"
+
+# SELECT * FROM widgets WHERE tag1 = 'fizz' AND tag2 = 'buzz';
+flux.query(Widgets).filter(clause1 & clause2)
+
+# SELECT * FROM widgets WHERE tag1 = 'fizz' OR tag2 = 'buzz';
+flux.query(Widgets).filter(clause1 | clause2)
+```
+
+
+### Group By
+
+```python
+# SELECT * FROM widgets GROUP BY time(1d);
+flux.query(Widgets).group_by("time(1d)")
+
+# SELECT * FROM widgets GROUP BY tag1;
+flux.query(Widgets).group_by(Widgets.tag1)
+```
+
+
+### Time
+
+```python
+# SELECT * FROM widgets WHERE (time > now() - 7d);
+flux.query(Widgets).filter(Widgets.time > "now() - 7d")
+
+# SELECT * FROM widgets WHERE time >= '2016-01-01' AND time <= now() - 7d;
+d = date(2016, 1, 1)
+flux.query(Widgets).filter(Widgets.time.between(d, "now() - 7d"))
+```
+
+Note that naive datetime object will be assumed in UTC timezone.

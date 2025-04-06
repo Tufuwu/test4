@@ -1,47 +1,42 @@
-# This workflow will install Python dependencies, run tests, and lint with a
-# single version of Python. For more information see:
-# https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: tests
+name: pytest
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+  push:
+    branches:
+      - main
   schedule:
-  - cron: "0 0 1 1/1 *" # Run monthly.
+    - cron: "11 21 * * *"
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
+  pytest:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9"]
+        python: ["3.9"]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-cov wheel
-        pip install -e .
-    - name: Lint with flake8
-      run: |
-        # Stop the build if there are Python syntax errors or undefined names.
-        flake8 . --count --extend-exclude ./docs/conf.py --show-source --statistics
-        # exit-zero treats all errors as warnings.
-        flake8 . --count --extend-exclude ./docs/conf.py --exit-zero --max-complexity=10 --statistics
-    - name: Run unit and system tests
-      run: |
-        pytest --cov=spectrum_utils ./tests/
-    - name: Upload coverage to codecov
-      uses: codecov/codecov-action@v1
-      with:
-        fail_ci_if_error: true
+      - uses: actions/checkout@v1
+
+      - uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Setup code climate
+        uses: amancevice/code-climate-action@v0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          command: before-build
+
+      - run: pip install . flake8 pytest pytest-cov
+      - run: flake8
+      - run: pytest
+
+      - name: Send coverage
+        uses: amancevice/code-climate-action@v0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          command: after-build
