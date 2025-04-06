@@ -1,22 +1,19 @@
-# Makefile for creating a new release of the package and uploading it to PyPI
-# This way is preferred to manual because it also resets config.json
+BIKESHED ?= bikeshed
+BIKESHED_ARGS ?= --print=plain
 
-PYTHON = python3
-CONFIG = sentinelhub.config
+.PHONY: lint watch
 
-help:
-	@echo "Use 'make upload' to reset config.json and upload the package to PyPi"
+index.html: index.bs messages_appendix.html
+	$(BIKESHED) $(BIKESHED_ARGS) spec $<
 
-reset-config:
-	$(CONFIG) --reset
+messages_appendix.html: messages_appendix.cddl scripts/pygmentize_dir.py scripts/cddl_lexer.py scripts/openscreen_cddl_dfns.py
+	./scripts/pygmentize_dir.py
 
-upload: reset-config
-	rm -r dist | true
-	$(PYTHON) setup.py sdist
-	twine upload --skip-existing dist/*
+lint: index.bs
+	$(BIKESHED) $(BIKESHED_ARGS) --dry-run --force spec --line-numbers $<
 
-# For testing:
-test-upload: reset-config
-	rm -r dist | true
-	$(PYTHON) setup.py sdist
-	twine upload --repository testpypi --skip-existing dist/*
+watch: index.bs
+	@echo 'Browse to file://${PWD}/index.html'
+	$(BIKESHED) $(BIKESHED_ARGS) watch $<
+
+
