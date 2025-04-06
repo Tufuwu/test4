@@ -1,132 +1,89 @@
-**DISCLAIMER:** This is not an official Google product.
+[![PyPI version](https://badge.fury.io/py/alns.svg)](https://badge.fury.io/py/alns)
+[![ALNS](https://github.com/N-Wouda/ALNS/actions/workflows/alns.yml/badge.svg)](https://github.com/N-Wouda/ALNS/actions/workflows/alns.yml)
+[![codecov](https://codecov.io/gh/N-Wouda/ALNS/branch/master/graph/badge.svg)](https://codecov.io/gh/N-Wouda/ALNS)
 
-# OpenHTF
-The open-source hardware testing framework.
-
-[![Build Status](https://github.com/google/openhtf/actions/workflows/build_and_deploy.yml/badge.svg?branch=master)](https://github.com/google/openhtf/actions?branch=master)
-[![Coverage Status](https://coveralls.io/repos/google/openhtf/badge.svg?branch=master&service=github)](https://coveralls.io/github/google/openhtf?branch=master)
-
-[Issue Stats](http://issuestats.com/github/google/openhtf)
-
-## Overview
-OpenHTF is a Python library that provides a set of convenient abstractions
-designed to remove as much boilerplate as possible from hardware test setup and
-execution, so test engineers can focus primarily on test logic. It aspires to
-do so in a lightweight and minimalistic fashion. It is general enough to be
-useful in a variety of hardware testing scenarios, from the lab bench to the
-manufacturing floor.
-
-
-## Installing OpenHTF
-**NOTE:** We recommend using [virtualenv](https://virtualenv.pypa.io) to create
-an isolated Python environments for your projects, so as to protect system-wide
-Python packages the OS depends upon. The installation instructions assume you've
-_already_ created a virtualenv and activated it if you wish to do so.
-
-
-### Option 1: Installing via 'pip' (recommended)
-The most straightforward way to get the `openhtf` Python package into your
-Python environment is simply to install it via
-[pip](https://pypi.python.org/pypi). This will install the most recent
-production release.
-
-```bash
-pip install openhtf
+This package offers a general, well-documented and tested
+implementation of the adaptive large neighbourhood search (ALNS)
+meta-heuristic, based on the description given in [Pisinger and Ropke
+(2010)][1]. It may be installed in the usual way as
+```
+pip install alns
 ```
 
+### Examples
+If you wish to dive right in, the `examples/` directory contains example notebooks
+showing how the ALNS library may be used. These include:
 
-### Option 2: Installing from Source
-If you want to install from source instead (for example, if you want some new
-feature that hasn't made it to the production release yet), you can download
-[the source code](https://github.com/google/openhtf) via
-[git](https://git-scm.com/) or other means, and install the `openhtf` package
-into your Python environment using the standard `setup.py` script.
+- The travelling salesman problem (TSP), [here][2]. We solve an
+  instance of 131 cities to within 2.1% of optimality, using simple
+  destroy and repair heuristics with a post-processing step.
+- The cutting-stock problem (CSP), [here][4]. We solve an instance with
+  180 beams over 165 distinct sizes to within 1.35% of optimality in
+  only a very limited number of iterations.
+- The resource-constrained project scheduling problem, [here][6]. We solve an
+  instance with 90 jobs and 4 resources to within 4% of the best known solution,
+  using a number of different operators and enhancement techniques from the 
+  literature.
 
-```bash
-python setup.py install
-```
+Finally, the weight schemes and acceptance criteria notebook gives an overview
+of various options available in the `alns` package (explained below). In the
+notebook we use these different options to solve a toy 0/1-knapsack problem. The
+notebook is a good starting point for when you want to use the different schemes
+and criteria yourself. It is available [here][5].
 
+## How to use
+The `alns` package exposes two classes, `ALNS` and `State`. The first
+may be used to run the ALNS algorithm, the second may be subclassed to
+store a solution state - all it requires is to define an `objective`
+member function, returning an objective value.
 
-## Using OpenHTF
-The fastest way to get started is to take a look in the `examples/` directory,
-where you'll find sample test scripts and plugs. In addition, many of OpenHTF's
-modules are fairly well documented inline through the use of docstrings.
+The ALNS algorithm must be supplied with a _weight scheme_ and an _acceptance
+criterion_.
 
-Note: some of the `examples/` require protocol buffer code to be generated via
-`python setup.py build` command.  This requires protocol buffer compiler
-library to be installed
-([additional instructions](CONTRIBUTING.md#setting-up-your-dev-environment)).
+### Weight scheme
+The weight scheme determines how to select destroy and repair operators in each
+iteration of the ALNS algorithm. Several have already been implemented for you,
+in `alns.weight_schemes`:
 
-## Nomenclature
-OpenHTF uses certain nomenclature internally for several of its core concepts.
-Some of the more important terms are listed here for clarity.
+- `SimpleWeights`. This weight scheme applies a convex combination of the 
+   existing weight vector, and a reward given for the current candidate 
+   solution.
+- `SegmentedWeights`. This weight scheme divides the iteration horizon into
+   segments. In each segment, scores are summed for each operator. At the end
+   of each segment, the weight vector is updated as a convex combination of 
+   the existing weight vector, and these summed scores.
 
+Each weight scheme inherits from `WeightScheme`, which may be used to write 
+your own.
 
-### DUT (Device Under Test)
-DUT refers to an individual piece of hardware being evaluated, exercised, or
-tested.
+### Acceptance criterion
+The acceptance criterion determines the acceptance of a new solution state at
+each iteration. An overview of common acceptance criteria is given in
+[Santini et al. (2018)][3]. Several have already been implemented for you, in
+`alns.criteria`:
 
+- `HillClimbing`. The simplest acceptance criterion, hill-climbing solely
+  accepts solutions improving the objective value.
+- `RecordToRecordTravel`. This criterion accepts solutions when the improvement
+  meets some updating threshold.
+- `SimulatedAnnealing`. This criterion accepts solutions when the
+  scaled probability is bigger than some random number, using an
+  updating temperature.
 
-### Test
-The top-level abstraction that OpenHTF deals with is the test. A test is just
-a series of steps performed on/with a DUT, usually along with some
-data-gathering or measurement steps. In the OpenHTF paradigm, tests are
-expressed as regular Python programs (.py files) that import and instantiate the
-'Test' class from the openhtf module. That way test code is as straightforward
-as possible to read and write. This also provides for the flexibility to do
-anything in a test that can normally be done in Python. Superficially, what
-distinguishes an OpenHTF test from any other Python program is that the OpenHTF
-test imports the openhtf package, instantiates the ```Test``` class, and calls
-its ```Execute()``` function. From there, OpenHTF manages the setup, execution,
-and teardown of the test, keeps track of anything gathered, and provides a
-pass/fail result.
+Each acceptance criterion inherits from `AcceptanceCriterion`, which may
+be used to write your own.
 
-At times it may be necessary to disambiguate between different common readings
-of the word _test_. In such scenarios we use the following more precise terms:
-  
-  * **test run** - A single start-to-finish execution of a specific test.
-  * **test recipe** - A test definition that may be executed multiple times,
-    each time as a distinct test run.
-  * **test script** - A .py file that contains a test recipe.
+## References
+- Pisinger, D., and Ropke, S. (2010). Large Neighborhood Search. In M.
+  Gendreau (Ed.), _Handbook of Metaheuristics_ (2 ed., pp. 399-420).
+  Springer.
+- Santini, A., Ropke, S. & Hvattum, L.M. (2018). A comparison of
+  acceptance criteria for the adaptive large neighbourhood search
+  metaheuristic. *Journal of Heuristics* 24 (5): 783-815.
 
-
-### Station
-_Stations_ capture the notion that a given test ran at some point and may run
-again. It loosely reflects the idea of physical test stations that process
-multiple DUTs over time. OpenHTF writes a breadcrumb to the filesystem (in a
-directory that can be set using the `--rundir` flag) each time a test runs, and
-all tests that have the same name are considered to be of the same station. This
-way the web frontend can display a consolidated list of known tests as a list of
-stations.
-
-
-### Phase
-OpenHTF tests are broken down into logical blocks called _phases_. Phases are no
-more than normal Python callables (usually functions) combined with the needed
-metadata. Writing an OpenHTF test is just a matter of writing a bunch of phase
-functions and specifying the order in which they should be executed.
-
-
-### Measurement
-OpenHTF gathers data about a DUT in the form of _measurements_. Usually,
-measurements are declared along with a specification that describes what
-constitutes a "passing" value. If OpenHTF finishes the test run and one or more
-measurements were out of that spec, the result of the whole test run will be
-considered a fail.
-
-
-### Attachment
-Sometimes may want to capture additional data that is more complex or free-form
-than a measurement. An _attachment_ can link arbitrary binary data to a
-test record, along with an optional MIME type.
-
-
-### Plug
-The essence of an OpenHTF test is to interact with a DUT to exercise it in
-various ways and observe the result. Sometimes this is done by communicating
-directly with the DUT, and other times it's done by communicating with a piece
-of test equipment to which the DUT is attached in some way. A _plug_ is a piece
-of code written to enable OpenHTF to interact with a particular type of hardware,
-whether that be a DUT itself or a piece of test equipment. OpenHTF comes
-packaged with a growing collection of useful plugs, but supports the
-creation of custom plugs as well.
+[1]: http://orbit.dtu.dk/en/publications/large-neighborhood-search(61a1b7ca-4bf7-4355-96ba-03fcdf021f8f).html
+[2]: https://github.com/N-Wouda/ALNS/blob/master/examples/travelling_salesman_problem.ipynb
+[3]: https://link.springer.com/article/10.1007%2Fs10732-018-9377-x
+[4]: https://github.com/N-Wouda/ALNS/blob/master/examples/cutting_stock_problem.ipynb
+[5]: https://github.com/N-Wouda/ALNS/blob/master/examples/weight_schemes_acceptance_criteria.ipynb
+[6]: https://github.com/N-Wouda/ALNS/blob/master/examples/resource_constrained_project_scheduling_problem.ipynb
