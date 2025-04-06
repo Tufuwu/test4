@@ -1,70 +1,58 @@
-Introduction: what is pss?
---------------------------
+========
+pyosmium
+========
 
-**pss** is a power-tool for searching inside source code files. **pss**
-searches recursively within a directory tree, knows which extensions and
-file names to search and which to ignore, automatically skips directories
-you wouldn't want to search in (for example ``.svn`` or ``.git``), colors
-its output in a helpful way, and does much more.
+This library provides Python bindings for the `Libosmium`_ C++
+library, a library for working with OpenStreetMap data in a fast and flexible
+manner.
 
-If you're familiar with the **ack** tool, then you will find **pss** very
-similar (see https://github.com/eliben/pss/wiki/pss-and-ack).
+.. _Libosmium: https://github.com/osmcode/libosmium
 
-Pre-requisites
---------------
+Installation
+============
 
-**pss** needs only Python to run. It works with Python versions 2.6, 2.7 and
-3.2+ on Linux and Windows. Some testing was done on Mac OS X and FreeBSD as
-well.
+pyosmium can be installed with pip:
 
-Installing
-----------
+    pip install osmium
 
-**pss** can be installed from PyPi (Python package index)::
+The Pypi source package already comes bundled with a matching version of
+libosmium, protozero and pybind11. Pyosmium additionally depends on
+expat, libz, libbz2 and Boost variant and iterator. You need to install
+development packages for these libraries. On Debian/Ubuntu do::
 
-    > pip install pss
+    sudo apt-get install build-essential cmake libboost-dev \
+                       libexpat1-dev zlib1g-dev libbz2-dev
 
-Alternatively, you can download the source distribution either from PyPi or
-from the main Github project page. When you unzip the source distribution, run::
 
-    > python setup.py install
+Python >= 2.7 is supported but a version >= 3.3 is strongly recommended.
 
-Running without installing
---------------------------
+Documentation
+=============
 
-**pss** supports direct invocation even without installing it. This may
-be useful if you're on a machine without administrator rights, or want to
-experiment with a source distribution of **pss**.
+The documentation for the latest release is available at
+`osmcode.org`_.
 
-Just unzip the **pss** distribution into some directory. Let's assume its full
-path is ``/path/to/pss``. You can now run::
+If you find bugs or have feature requests, please report those in the
+`Github issue tracker`_. For general questions about using pyosmium you
+can contanct the `OSM development mailing list`_ or ask on `OSM help`_.
 
-    > /path/to/python /path/to/pss
+.. _osmcode.org: http://docs.osmcode.org/pyosmium/latest
+.. _Github issue tracker: https://github.com/osmcode/pyosmium/issues/
+.. _OSM development mailing list: https://lists.openstreetmap.org/listinfo/dev
+.. _OSM help: https://help.openstreetmap.org/
 
-And this will invoke **pss** as expected. This command can also be tied to an
-alias or placed in a shell (or batch) script for convenience.
+Examples
+========
 
-How to use it?
---------------
+The package contains an `example` directory with small examples on how to use
+the library. They are mostly ports of the examples in Libosmium and
+osmium-contrib.
 
-**pss** is meant to be executed from the command line. Running it with no
-arguments or with ``-h`` will print a detailed usage message.
+Fineprint
+=========
 
-For some detailed usage examples, check out the
-Usage wiki page - https://github.com/eliben/pss/wiki/Usage-samples
+Pyosmium is available under the BSD 2-Clause License. See LICENSE.TXT.
 
-License
--------
+The source code can be found on `GitHub`_.
 
-**pss** is open-source software. Its code is in the public domain. See the
-``LICENSE`` file for more details.
-
-CI Status
----------
-
-**pss** has automatic testing enabled through the convenient
-`Travis CI project <https://travis-ci.org>`_. Here is the latest build status:
-
-.. image:: https://travis-ci.org/eliben/pss.png?branch=master
-  :align: center
-  :target: https://travis-ci.org/eliben/pss
+.. _GitHub: https://github.com/osmcode/pyosmium
