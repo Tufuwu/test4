@@ -1,62 +1,65 @@
-# Changelog
-All notable changes to this project will be documented in this file.
+v0.7.0 (in development)
+-----------------------
+- Support Python 3.9
+- Drop support for Python 3.5
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+v0.6.0 (2020-10-13)
+-------------------
+- Support Python 3.8
+- `%s` now matches any sequence of exactly three digits.  Previously, it
+  matched either '0' or any sequence of digits not beginning with '0'.  Thanks
+  to [@chosak](https://github.com/chosak) for the patch.
 
-## [0.5.0](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.5.0) - 2021-12-06
--   Added `samples` options support.
+v0.5.0 (2019-05-21)
+-------------------
+- Improved the routine for assembling `request_time` from
+  `request_time_fields`:
+    - If the month is only available as a full or abbreviated name and the name
+      is not in English, try looking it up in the current locale
+    - If the year is only available in abbreviated form (the `%y` directive)
+      without a century (`%C`), treat years less than 69 as part of the
+      twenty-first century and other years as part of the twentieth
+    - When necessary, use the values of the `%G`, `%g`, `%u`, `%V`, `%U`, `%W`,
+      and `%w` time directives to derive the date
+    - If `%Z` equals `"GMT"`, `"UTC"`, or one of the names in `time.tzname`,
+      produce an aware `datetime`
+- `%{%n}t` and `%{%t}t` now match any amount of any whitespace, in order to
+  match `strptime(3)`'s behavior
+- **Breaking**: Renamed the `request_time_fields` keys for `%{%G}t` and
+  `%{%g}t` from `"week_year"` and `"abbrev_week_year"` to `"iso_year"` and
+  `"abbrev_iso_year"`, respectively
+- `%{%p}t` can now match the empty string (its value in certain locales)
+- `%{%Z}t` can now match the empty string
 
-## [0.4.5](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.4.5) - 2021-10-12
--   Fixed widget backward-compatibility with older django versions.
+v0.4.0 (2019-05-19)
+-------------------
+- Support the `%{c}h` log directive
+- `%f` and `%R` can now be `None`
+- **Bugfix**: `%u` can now match the string `""` (two double quotes)
+- Support `mod_ssl`'s `%{*}c` and `%{*}x` directives
+- Support the `%{hextid}P` directive (as a hexadecimal integer)
+- Support the `%L` and `%{c}L` directives
+- Parameters to `%{*}p`, `%{*}P`, and `%{*}T` are now treated
+  case-insensitively in order to mirror Apache's behavior
+- Refined some directives to better match only the values emitted by Apache:
+    - `%l` and `%m` no longer accept whitespace
+    - `%s` and `%{tid}P` now only match unsigned integers
+    - `%{*}C` no longer accepts semicolons or leading or trailing spaces
+    - `%q` no longer accepts whitespace or pound/hash signs
 
-## [0.4.4](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.4.4) - 2021-10-08
--   Fixed widget backward-compatibility with older django versions.
+v0.3.0 (2019-05-12)
+-------------------
+- Gave `LogEntry` a `directives` attribute for looking up directive values by
+  the corresponding log format directives
 
-## [0.4.3](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.4.3) - 2021-09-16
--   Fixed subclasses of `forms.Widget` must provide a `render()` method. #70
+v0.2.0 (2019-05-09)
+-------------------
+- Changed the capitalization of "User-agent" in the log format string constants
+  to "User-Agent"
+- The `cookies`, `env_vars`, `headers_in`, `headers_out`, `notes`,
+  `trailers_in`, and `trailers_out` attributes of `LogEntry` are now all
+  case-insensitive `dict`s.
 
-## [0.4.2](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.4.2) - 2021-07-12
--   Fixed disable colorfield in `ModelForm` (thanks to [@rcatajar](https://github.com/rcatajar)). #67 #69
-
-## [0.4.1](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.4.1) - 2021-01-19
--   Fixed 500 error caused by palette `choices`. #65
-
-## [0.4.0](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.4.0) - 2021-01-14
--   Added `hex` (default) and `hexa` color format support. #58 #59
--   Added palette support using field `choices`. #19
--   Updated `jscolor` library version to `2.4.5`.
-
-## [0.3.2](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.3.2) - 2020-07-07
--   Used `load` event instead of `window.onload` callback.
-
-## [0.3.1](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.3.1) - 2020-06-17
--   Updated jscolor to 2.1.1 version. #57
--   Fixed self invoking anonymous function expression.
-
-## [0.3.0](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.3.0) - 2020-04-07
--   Fixed `default`, `blank` and `null` attrs support. #53 #54
--   Fixed `jscolor` not working on inlines added dynamically (only when `extra=0`)
-
-## [0.2.2](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.2.2) - 2020-04-02
--   Fixed colopicker not working on inlines added dynamically (only when `jquery` is loaded by the browser after `colorfield`). #52
-
-## [0.2.1](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.2.1) - 2020-02-21
--   Fixed colopicker not working on inlines added dynamically.
--   Fixed failed lookup for key [class]. #7
-
-## [0.2.0](https://github.com/fabiocaccamo/django-colorfield/releases/tag/0.2.0) - 2020-02-17
--   Fixed whole inline model required. #7
--   Fixed `README.md` missing in package. #46
--   Refactored `ColorField` and `ColorWidget`. #39, #43
--   Updated `jscolor` version to `2.0.5`.
--   Bumped min `django` version to `1.7`.
--   Added test suite *(not tests)* with `tox` and `travis`.
-
-## 0.1.16
--   Remove warnings about `ugettext_lazy` usage.
-
-## 0.1.13
--   Use not minified jscolor when `DEBUG=true`
--   Fix rendering when `value is None`
--   Use `{required: false}` js color option when the form field is not required. This forces to stop using the `{hash: true}` option for jscolor. To make this change retrocompatible, anchor is appended at the `Widget` level.
+v0.1.0 (2019-05-06)
+-------------------
+Initial release
