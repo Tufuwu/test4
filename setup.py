@@ -1,47 +1,75 @@
-from os import path
+import os.path
+import re
+import sys
+from setuptools import setup, Extension
+from distutils.command.install import INSTALL_SCHEMES
 
-from setuptools import find_packages, setup
+for scheme in INSTALL_SCHEMES.values():
+    scheme['data'] = scheme['purelib']
 
-# META
-##############################################################################
-AUTHORS = "F. Dangel, F. Kunstner"
-NAME = "backpack-for-pytorch"
-PACKAGES = find_packages()
 
-DESCRIPTION = "BackPACK: Packing more into backprop"
-LONG_DESCR = """
-    BackPACK is built on top of PyTorch.
-    It efficiently computes quantities other than the gradient.
+setsc = Extension("guppy.sets.setsc", [
+                      "src/sets/sets.c",
+                      "src/sets/bitset.c",
+                      "src/sets/nodeset.c"
+                  ])
 
-    Website: https://backpack.pt
-    Code: https://github.com/f-dangel/backpack
-    Documentation: https://readthedocs.org/projects/backpack/
-    Bug reports & feature requests: https://github.com/f-dangel/backpack/issues
-    """
+heapyc = Extension("guppy.heapy.heapyc", [
+                       'src/heapy/heapyc.c',
+                       'src/heapy/stdtypes.c'
+                   ])
 
-VERSION = "1.2.0"
-URL = "https://github.com/f-dangel/backpack"
-LICENSE = "MIT"
 
-# DEPENDENCIES
-##############################################################################
-REQUIREMENTS_FILE = "requirements.txt"
-REQUIREMENTS_PATH = path.join(path.abspath(__file__), REQUIREMENTS_FILE)
+def doit():
+    if sys.version_info.major < 3:
+        print('''\
+setup.py: Error: This guppy package only supports Python 3.
+You can find the original Python 2 version, Guppy-PE, here:
+http://guppy-pe.sourceforge.net/''', file=sys.stderr)
+        sys.exit(1)
+    if sys.implementation.name != 'cpython':
+        print('''\
+setup.py: Warning: This guppy package only supports CPython.
+Compilation failure expected, but continuting anyways...''', file=sys.stderr)
 
-with open(REQUIREMENTS_FILE) as f:
-    requirements = f.read().splitlines()
+    with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
+        long_description = f.read()
 
-setup(
-    author=AUTHORS,
-    name=NAME,
-    version=VERSION,
-    description=DESCRIPTION,
-    long_description=LONG_DESCR,
-    long_description_content_type="text/markdown",
-    install_requires=requirements,
-    url=URL,
-    license=LICENSE,
-    packages=PACKAGES,
-    zip_safe=False,
-    python_requires=">=3.6",
-)
+    with open('guppy/_version.py', 'r') as versionfile:
+        version = re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]$',
+                            versionfile.read(), re.M)
+        version = version.group(1)
+
+    setup(name="guppy3",
+          version=version,
+          description="Guppy 3 -- Guppy-PE ported to Python 3",
+          long_description=long_description,
+          long_description_content_type='text/markdown',
+          author="YiFei Zhu",
+          author_email="zhuyifei1999@gmail.com",
+          url="https://github.com/zhuyifei1999/guppy3/",
+          license='MIT',
+          packages=[
+              "guppy",
+              "guppy.etc",
+              "guppy.gsl",
+              "guppy.heapy",
+              "guppy.heapy.test",
+              "guppy.sets",
+          ],
+          ext_modules=[setsc, heapyc],
+          python_requires='>=3.6',
+          classifiers=[
+              "Programming Language :: Python :: 3",
+              "Programming Language :: Python :: Implementation :: CPython",
+              "Programming Language :: C",
+              "License :: OSI Approved :: MIT License",
+              "Operating System :: OS Independent",
+              "Development Status :: 4 - Beta",
+              "Topic :: Software Development :: Debuggers",
+              "Environment :: Console",
+              "Intended Audience :: Developers",
+          ])
+
+
+doit()
