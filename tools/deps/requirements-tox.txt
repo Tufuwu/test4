@@ -1,0 +1,61 @@
+#
+# Modules needed by every developers.
+# This file is used to build test environments.
+#
+appdirs==1.4.4 \
+    --hash=sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128 \
+    --hash=sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41
+    # via virtualenv
+colorama==0.4.4; sys_platform == "win32" \
+    --hash=sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2
+    # via tox
+distlib==0.3.2 \
+    --hash=sha256:23e223426b28491b1ced97dc3bbe183027419dfc7982b4fa2f05d5f3ff10711c \
+    --hash=sha256:106fef6dc37dd8c0e2c0a60d3fca3e77460a48907f335fa28420463a6f799736
+    # via virtualenv
+filelock==3.0.12 \
+    --hash=sha256:929b7d63ec5b7d6b71b0fa5ac14e030b3f70b75747cef1b10da9b879fef15836
+    # via tox
+importlib-metadata==4.5.0 \
+    --hash=sha256:833b26fb89d5de469b24a390e9df088d4e52e4ba33b01dc5e0e4f41b81a16c00 \
+    --hash=sha256:b142cc1dd1342f31ff04bb7d022492b09920cb64fed867cd3ea6f80fe3ebd139
+    # via tox
+packaging==20.9 \
+    --hash=sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a \
+    --hash=sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5
+    # via tox
+pluggy==0.13.1 \
+    --hash=sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d
+    # via tox
+py==1.10.0 \
+    --hash=sha256:3b80836aa6d1feeaa108e046da6423ab8f6ceda6468545ae8d02d9d58d18818a \
+    --hash=sha256:21b81bda15b66ef5e1a777a21c4dcd9c20ad3efd0b3f817e7a809035269e1bd3
+    # via tox
+pyparsing==2.4.7 \
+    --hash=sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b \
+    --hash=sha256:c203ec8783bf771a155b207279b9bccb8dea02d8f0c9e5f8ead507bc3246ecc1
+    # via packaging
+six==1.16.0 \
+    --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254 \
+    --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926
+    # via tox
+toml==0.10.2 \
+    --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
+    --hash=sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f
+    # via tox
+tox==3.23.1 \
+    --hash=sha256:b0b5818049a1c1997599d42012a637a33f24c62ab8187223fdd318fa8522637b \
+    --hash=sha256:307a81ddb82bd463971a273f33e9533a24ed22185f27db8ce3386bff27d324e3
+typing-extensions==3.10.0.0 \
+    --hash=sha256:0ac0f89795dd19de6b97debb0c6af1c70987fd80a2d62d1958f7e56fcc31b497 \
+    --hash=sha256:779383f6086d90c99ae41cf0ff39aac8a7937a9283ce0a414e5dd782f4c94a84 \
+    --hash=sha256:50b6f157849174217d0656f99dc82fe932884fb250826c18350e159ec6cdf342
+    # via importlib-metadata
+virtualenv==20.4.7 \
+    --hash=sha256:2b0126166ea7c9c3661f5b8e06773d28f83322de7a3ff7d06f0aed18c9de6a76 \
+    --hash=sha256:14fdf849f80dbb29a4eb6caa9875d476ee2a5cf76a5f5415fa2f1606010ab467
+    # via tox
+zipp==3.4.1 \
+    --hash=sha256:51cb66cc54621609dd593d1787f286ee42a5c0adbb4b29abea5a63edc3e03098 \
+    --hash=sha256:3607921face881ba3e026887d8150cca609d517579abe052ac81fc5aeffdbd76
+    # via importlib-metadata

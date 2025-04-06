@@ -1,0 +1,33 @@
+#
+# Modules needed by every developers.
+# This file is used to create build and test environments.
+#
+click==8.0.1 \
+    --hash=sha256:fba402a4a47334742d782209a7c79bc448911afe1149d07bdabdf480b3e2f4b6 \
+    --hash=sha256:8c04c11192119b1ef78ea049e0a6f0463e4c48ef00a30160c704337586f3ad7a
+    # via pip-tools
+colorama==0.4.4 ; sys_platform == "win32" \
+    --hash=sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2 \
+    --hash=sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b
+    # via click
+pep517==0.10.0 \
+    --hash=sha256:eba39d201ef937584ad3343df3581069085bacc95454c80188291d5b3ac7a249 \
+    --hash=sha256:ac59f3f6b9726a49e15a649474539442cf76e0697e39df4869d25e68e880931b
+    # via pip-tools
+pip==21.1.2 \
+    --hash=sha256:f8ea1baa693b61c8ad1c1d8715e59ab2b93cd3c4769bacab84afcc4279e7a70e \
+    --hash=sha256:eb5df6b9ab0af50fe1098a52fd439b04730b6e066887ff7497357b9ebd19f79b
+pip-tools==6.1.0  \
+    --hash=sha256:197e3f8839095ccec3ad1ef410e0804c07d9f17dff1c340fb417ca2b63feacc9 \
+    --hash=sha256:400bf77e29cca48c31abc210042932bb52dcc138ef4ea4d52c5db429aa8ae6ee
+six==1.16.0 \
+    --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254 \
+    --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926
+    # via pip-tools
+toml==0.10.2 \
+    --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
+    --hash=sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f
+    # via pep517
+wheel==0.36.2 \
+    --hash=sha256:78b5b185f0e5763c26ca1e324373aadd49182ca90e825f7853f4b2509215dc0e \
+    --hash=sha256:e11eefd162658ea59a60a0f6c7d493a7190ea4b9a85e335b33489d9f17e0245e

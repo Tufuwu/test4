@@ -1,0 +1,68 @@
+<project name="drive-tests" default="run-drive-tests" xmlns:nx="urn:nuxeo-build" xmlns:artifact="urn:nuxeo-artifact">
+  <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
+  <taskdef resource="org/nuxeo/build/artifact/antlib.xml" uri="urn:nuxeo-artifact" />
+  <taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+  <property name="out.dir" value="${maven.project.build.directory}-${platform}" />
+  <property environment="env"/>
+
+  <target name="add-custom-template" unless="env.ENABLE_CONVERTERS">
+    <echo level="info">Disabling all converters ...</echo>
+    <echo level="info">To enable server converters, you have to set the ENABLE_CONVERTERS envar.</echo>
+    <antcall target="set-conf">
+      <param name="name" value="nuxeo.templates" />
+      <param name="value" value="postgresql,custom" />
+    </antcall>
+  </target>
+
+  <target name="enable-custom-template" unless="env.ENABLE_CONVERTERS">
+    <echo level="info">Activating the custom template to turn OFF all converters ...</echo>
+    <copy todir="${out.dir}/tomcat/templates/custom" verbose="true" overwrite="true">
+      <fileset dir="custom"/>
+    </copy>
+  </target>
+
+  <target name="prepare-tomcat-logs" depends="_init" if="is.tomcat" unless="env.ENABLE_CONVERTERS">
+    <echo level="info">Adding DEBUG logs to trace command line calls (to catch used converters) ...</echo>
+    <echo level="info">Just grep "Running system command:" ;)</echo>
+    <replace file="${nuxeo.home}/lib/log4j2.xml">
+      <replacetoken><![CDATA[    <Logger name="org.nuxeo" level="warn" />
+]]></replacetoken>
+      <replacevalue><![CDATA[    <Logger name="org.nuxeo.ecm.platform.commandline.executor.service.executors" level="debug" />
+
+    <Logger name="org.nuxeo" level="warn" />
+]]></replacevalue>
+    </replace>
+  </target>
+
+  <unzip dest="${out.dir}/" overwrite="false">
+    <artifact:resolveFile key="org.nuxeo:nuxeo-ftest::zip" />
+  </unzip>
+  <import file="${out.dir}/nuxeo-ftest.xml" />
+
+  <target name="prepare-packages">
+    <copy todir="${out.dir}/packages">
+      <artifact:set>
+        <includes>
+          <artifact groupId="org.nuxeo.packages" type="zip" />
+        </includes>
+      </artifact:set>
+    </copy>
+
+    <!-- compute mp.install property with the list of packages -->
+    <fileset id="packages.list" dir="${out.dir}/packages" />
+    <pathconvert pathsep="," property="packages.list" refid="packages.list" />
+    <property name="mp.install" value="${packages.list}" />
+  </target>
+
+  <target name="run-drive-tests">
+    <echo level="info">################### Starting Nuxeo Drive functional tests ###################</echo>
+    <property environment="env" />
+    <echo level="info">PATH detected by Ant = ${env.PATH}</echo>
+    <exec executable="python" failonerror="true">
+      <arg value="../tools/integration_tests_setup.py" />
+    </exec>
+    <echo level="info">################### Ended Nuxeo Drive functional tests ###################</echo>
+  </target>
+
+</project>

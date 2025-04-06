@@ -1,29 +1,50 @@
-*.py[co]
-
-# Pydev/Eclipse files
-.project
-.pydevproject
-.settings
-
-# PyCharm files
-/.idea
-*.cover
-
-# Created by editors
 *~
-\#*
-\.\#*
+bin
+build
+*.build
+.cache
+.classpath
+cover
+coverage
+.coverage*
+*.db-shm
+*.db-wal
+debian
+dist
+dist-beta
+.DS_Store
+*.dist
+*.dylib
+*.egg-info
+ENV
+*.framework
+htmlcov
+.idea
+*.iml
+*.jsc
+*.log
+lextab.py
+MANIFEST
+.mypy_cache
+pypi*
+.project
+*.pyc
+*.pyo
+.pydevproject
+.pyre*
+.pytest_cache
+*.qmlc
+.ropeproject
+.settings
 *.swp
-*.nfsc*
-
-# Site-specific setup
-etc/site-init
-
-# Files from build of doc
-*.rst
-!/doc/source/extended_documentation/**
-/doc/build/
-
-# Code coverage files
-lib/.coverage
-lib/coverage.xml
+target*
+test_*.zip
+tools/windows/properties.rc
+.tox
+venv
+.vscode
+xcuserdata
+yacctab.py
+tools/jenkins/junit/xml
+squashfs-root
+coverage.xml
