@@ -1,49 +1,53 @@
-from pathlib import Path
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import os
+import re
 
-from setuptools import find_packages, setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
-VERSION = '2.2.0'
-github_url = 'https://github.com/fdemmer/django-weasyprint'
+
+# Function to parse __version__ in `cloudpickle/__init__.py`
+def find_version():
+    here = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(here, 'cloudpickle', '__init__.py'), 'r') as fp:
+        version_file = fp.read()
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
 
 
-setup(
-    name='django-weasyprint',
-    version=VERSION,
-    author='Florian Demmer',
-    author_email='fdemmer@gmail.com',
-    description='Django WeasyPrint CBV',
-    long_description=(Path(__file__).parent.resolve() / 'README.rst').read_text(),
-    download_url=f'{github_url}/archive/v{VERSION}.tar.gz',
-    url=github_url,
-    project_urls={
-        'Changelog': f'{github_url}/blob/v{VERSION}/CHANGELOG.md',
-    },
-    license='Apache-2.0',
+dist = setup(
+    name='cloudpickle',
+    version=find_version(),
+    description='Extended pickling support for Python objects',
+    author='Cloudpipe',
+    author_email='cloudpipe@googlegroups.com',
+    url='https://github.com/cloudpipe/cloudpickle',
+    license='BSD 3-Clause License',
+    packages=['cloudpickle'],
+    long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Web Environment',
-        'Framework :: Django',
-        'Framework :: Django :: 3.2',
-        'Framework :: Django :: 4.0',
-        'Framework :: Django :: 4.1',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: POSIX',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: MacOS :: MacOS X',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Scientific/Engineering',
+        'Topic :: System :: Distributed Computing',
     ],
-    packages=find_packages(),
-    python_requires='>=3.6',
-    setup_requires=['wheel'],
-    install_requires=[
-        'Django>=2.2',
-        'WeasyPrint>=53',
-    ],
+    test_suite='tests',
 )
