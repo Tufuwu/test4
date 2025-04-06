@@ -1,5 +1,4 @@
-include LICENSE
-include README.rst
-include django_yubin/management/commands/sample.pdf
-recursive-include docs *
-recursive-include django_yubin/templates *
+include COPYING
+include README.md
+include setconf.1
+include setconf.py
