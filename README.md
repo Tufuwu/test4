@@ -1,33 +1,88 @@
-# Capytaine: a linear potential flow BEM solver with Python.
 
-[![DOI](http://joss.theoj.org/papers/10.21105/joss.01341/status.svg)](https://doi.org/10.21105/joss.01341)
+# rdap
 
-Capytaine is Python package for the simulation of the interaction between water waves and floating bodies in frequency domain.
-It is built around a full rewrite of the open source Boundary Element Method (BEM) solver Nemoh for the linear potential flow wave theory.
+[![PyPI](https://img.shields.io/pypi/v/rdap.svg?maxAge=3600)](https://pypi.python.org/pypi/rdap)
+[![PyPI](https://img.shields.io/pypi/pyversions/rdap.svg?maxAge=3600)](https://pypi.python.org/pypi/rdap)
+[![Tests](https://github.com/20c/rdap/workflows/tests/badge.svg)](https://github.com/20c/rdap)
+[![Codecov](https://img.shields.io/codecov/c/github/20c/rdap/master.svg?maxAge=3600)](https://codecov.io/github/20c/rdap)
+
+Registration Data Access Protocol tools
 
 ## Installation
 
-On Windows, macOS and Linux, using the [Conda package manager](https://www.anaconda.com/distribution/):
-
-```bash
-conda install -c conda-forge capytaine
+```sh
+pip install rdap
 ```
 
-## Documentation
 
-[https://ancell.in/capytaine/latest/](https://ancell.in/capytaine/latest/)
+## Usage
 
-## License
+```sh
+usage: rdap [-h] [--debug] [--home HOME] [--verbose] [--quiet] [--version] [--output-format OUTPUT_FORMAT] [--show-requests] [--parse]
+            [--write-bootstrap-data]
+            query [query ...]
 
-Copyright (C) 2017-2022, Matthieu Ancellin
+rdap
 
-Since April 2022, the development of Capytaine is funded by the Alliance for Sustainable Energy, LLC, Managing and Operating Contractor for the National Renewable Energy Laboratory (NREL) for the U.S. Department of Energy.
+positional arguments:
+  query
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+optional arguments:
+  -h, --help            show this help message and exit
+  --debug               enable extra debug output
+  --home HOME           specify the home directory, by default will check in order: $RDAP_HOME, ./.rdap, /home/$USER/.rdap,
+                        /home/$USER/.config/rdap
+  --verbose             enable more verbose output
+  --quiet               no output at all
+  --version             show version number and exit
+  --output-format OUTPUT_FORMAT
+                        output format (yaml, json, text)
+  --show-requests       show all requests
+  --parse               parse data into object before display
+  --write-bootstrap-data
+                        write bootstrap data for type (as query)
+```
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-It is based on [Nemoh](https://lheea.ec-nantes.fr/logiciels-et-brevets/nemoh-presentation-192863.kjsp), which has been developed by Gérard Delhommeau, Aurélien Babarit et al., (École Centrale de Nantes) and is distributed under the Apache License 2.0.
+## Config file
 
-It includes code from [meshmagick](https://github.com/LHEEA/meshmagick/) by François Rongère (École
-Centrale de Nantes), licensed under the GNU General Public License (GPL).
+The client uses the `--home` option to point to a directory, by default will check in order: `$RDAP_HOME`, `./.rdap`, `~/.rdap`, `~/.config/rdap`
+
+The directory should have a `config.yaml` file in it, defaults shown below.
+
+```yaml
+rdap:
+  # URL to bootstrap the initial request off
+  bootstrap_url: https://rdap.db.ripe.net/
+  # boolean to use data from bootstrap_data_url instead of a bootstrap server
+  self_bootstrap: False
+  # url to load bootstrap data from
+  bootstrap_data_url: "https://data.iana.org/rdap/"
+  # length of time in hours to keep bootstrap data
+  bootstrap_cache_ttl: 25
+  # how to format the output
+  output_format: yaml
+  # API key for use at rdap.lacnic.net
+  lacnic_apikey: None
+  # role types to recursively query when processing
+  recurse_roles: ["administrative", "technical"]
+  # HTTP request timeout in seconds, used for both connect and read
+  timeout: 0.5
+```
+
+
+### License
+
+Copyright 2016 20C, LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this softare except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
