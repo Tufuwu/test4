@@ -1,64 +1,43 @@
-from setuptools import setup, find_packages
-from distutils.core import Extension
-import os
-import re
+from setuptools import setup, find_namespace_packages
 
-DISTNAME = 'mhkit'
-PACKAGES = find_packages()
-EXTENSIONS = []
-DESCRIPTION = 'Marine and Hydrokinetic Toolkit'
-AUTHOR = 'MHKiT developers'
-MAINTAINER_EMAIL = ''
-LICENSE = 'Revised BSD'
-URL = 'https://github.com/MHKiT-Software/mhkit-python'
-CLASSIFIERS=['Development Status :: 3 - Alpha',
-             'Programming Language :: Python :: 3',
-             'Topic :: Scientific/Engineering',
-             'Intended Audience :: Science/Research',
-             'Operating System :: OS Independent',
-            ]
-DEPENDENCIES = ['pandas>=1.0.0', 
-                'numpy<1.21.0', 
-                'scipy',
-                'matplotlib', 
-                'requests', 
-                'pecos>=0.1.9',
-                'fatpack',
-                'lxml',
-                'scikit-learn',
-		        'NREL-rex>=0.2.61',
-                'six>=1.13.0',
-                'netCDF4', 
-                'xarray']
+import django_structlog
 
-# use README file as the long description
-file_dir = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(file_dir, 'README.md'), encoding='utf-8') as f:
-    LONG_DESCRIPTION = f.read()
+with open("README.rst", "r") as fh:
+    long_description = fh.read()
 
-# get version from __init__.py
-with open(os.path.join(file_dir, 'mhkit', '__init__.py')) as f:
-    version_file = f.read()
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        VERSION = version_match.group(1)
-    else:
-        raise RuntimeError("Unable to find version string.")
-        
-setup(name=DISTNAME,
-      version=VERSION,
-      packages=PACKAGES,
-      ext_modules=EXTENSIONS,
-      description=DESCRIPTION,
-      long_description=LONG_DESCRIPTION,
-      author=AUTHOR,
-      maintainer_email=MAINTAINER_EMAIL,
-      license=LICENSE,
-      url=URL,
-      classifiers=CLASSIFIERS,
-      zip_safe=False,
-      install_requires=DEPENDENCIES,
-      scripts=[],
-      include_package_data=True
-  )
+
+setup(
+    name="django-structlog",
+    version=django_structlog.__version__,
+    author="Jules Robichaud-Gagnon",
+    author_email="j.robichaudg+pypi@gmail.com",
+    description="Structured Logging for Django",
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
+    url="https://github.com/jrobichaud/django-structlog",
+    packages=find_namespace_packages(
+        include=["django_structlog", "django_structlog.*"]
+    ),
+    install_requires=["django>=1.11", "structlog", "django-ipware"],
+    include_package_data=True,
+    license="MIT",
+    classifiers=[
+        "Framework :: Django",
+        "Framework :: Django :: 1.11",
+        "Framework :: Django :: 2.0",
+        "Framework :: Django :: 2.1",
+        "Framework :: Django :: 2.2",
+        "Framework :: Django :: 3.0",
+        "Framework :: Django :: 3.1",
+        "Framework :: Django :: 3.2",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: System :: Logging",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+)
