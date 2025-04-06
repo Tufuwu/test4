@@ -1,45 +1,75 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+name: build
 
-name: PHOTONAI tests
-
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+on: [push, pull_request]
 
 jobs:
-  pytest:
-
+  tests:
     runs-on: ubuntu-latest
-    
     services:
-      mongodb:
-        image: mongo:latest
+      # How to use MySQL
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
         ports:
-          - 27017:27017
-
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    
+    name: Python ${{ matrix.python-version }} for ES ${{ matrix.elasticsearch-version }}
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+        elasticsearch-version: [6.1.0]
+    
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7.6
+    - name: Checkout
+      uses: actions/checkout@v2
+      
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
-        python-version: 3.3.9
-#    - name: Install os dependencies
-#      run: | 
-#        sudo apt-get update
-#        sudo apt-get -y install gfortran swig
+        python-version: ${{ matrix.python-version }}
+      
+    - name: Configure sysctl limits
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+      
+    - name: Runs Elasticsearch ${{ matrix.elasticsearch-version }}
+      uses: elastic/elastic-github-actions/elasticsearch@main
+      with:
+        stack-version: ${{ matrix.elasticsearch-version }}
+      
     - name: Install dependencies
       run: |
-        pip install wheel flake8 
-        python setup.py egg_info
-        pip install tensorflow pytest pytest-cov coveralls -r photonai.egg-info/requires.txt -r photonai/optimization/smac/requirements.txt -r photonai/optimization/nevergrad/requirements.txt
-    - name: Test with pytest
+        pip install --upgrade pip==18.1
+        pip install --upgrade setuptools==49.6.0
+        pip install --upgrade wheel
+        pip install -r "requirements.txt"
+        pip install -r "requirements_tests.txt"
+        pip install flake8 coveralls
+      
+    - name: Verify MySQL connection
       run: |
-        PYTHONPATH=./ pytest ./test --cov=./photonai
-    - name: Coveralls
-      run: coveralls
-      env: 
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        sudo apt-get install -y mysql-client libmysqlclient-dev
+        mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
+        mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot mysql
+      
+    - name: Verify Elasticsearch connection
+      run: |
+        curl -fsSL "http://localhost:9200/_cat/health?h=status"
+      
+    - name: Lint with flake8
+      run: flake8 . --exclude ./src
+      
+    - name: Tests and Coverage
+      env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cd tests
+        coverage run --source=sirmordred run_tests.py
+        # --service=github is a workaround for bug
+        # https://github.com/coveralls-clients/coveralls-python/issues/251
+        coveralls --service=github
