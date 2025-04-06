@@ -1,57 +1,49 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-try:
-    from setuptools import setup
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup
+import os
+from distutils.core import setup
 
-
-from tastypie import __version__
-
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name='django-tastypie',
-    version=__version__,
-    description='A flexible & capable API layer for Django.',
-    author='Daniel Lindsley',
-    author_email='daniel@toastdriven.com',
-    url='https://github.com/django-tastypie/django-tastypie',
-    long_description=open('README.rst', 'r').read(),
+    name='django-linkcheck',
+    version='1.8.1',
+    description="A Django app that will analyze and report on links in any "
+                "model that you register with it.",
+    long_description=read('README.rst'),
+    author='Andy Baker',
+    author_email='andy@andybak.net',
+    license='BSD',
+    url='https://github.com/DjangoAdminHackers/django-linkcheck',
     packages=[
-        'tastypie',
-        'tastypie.utils',
-        'tastypie.management',
-        'tastypie.management.commands',
-        'tastypie.migrations',
-        'tastypie.contrib',
-        'tastypie.contrib.gis',
-        'tastypie.contrib.contenttypes',
+        'linkcheck',
+        'linkcheck.management',
+        'linkcheck.management.commands',
+        'linkcheck.migrations',
+        'linkcheck.tests',
+        'linkcheck.tests.sampleapp',
     ],
     package_data={
-        'tastypie': ['templates/tastypie/*'],
+        'linkcheck': [
+            'templates/linkcheck/*.html',
+            'templates/linkcheck/*.xhtml',
+            'tests/media/*',
+        ]
     },
-    zip_safe=False,
-    requires=[
-        'python_mimeparse(>=0.1.4, !=1.5)',
-        'dateutil(>=1.5, !=2.0)',
-    ],
-    install_requires=[
-        'python-mimeparse >= 0.1.4, != 1.5',
-        'python-dateutil >= 1.5, != 2.0',
-    ],
-    tests_require=['mock', 'PyYAML', 'lxml', 'defusedxml'],
+    install_requires=['requests'],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
-        'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
-        'Topic :: Utilities'
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Framework :: Django',
     ],
 )

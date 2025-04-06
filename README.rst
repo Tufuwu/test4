@@ -1,148 +1,209 @@
-===============
-django-tastypie
-===============
 
-.. image:: https://readthedocs.org/projects/django-tastypie/badge/
-    :target: https://django-tastypie.readthedocs.io/
-    :alt: Docs
+django-linkcheck
+===================
 
-.. image:: https://github.com/django-tastypie/django-tastypie/actions/workflows/python-package.yml/badge.svg
-    :target: https://github.com/django-tastypie/django-tastypie/actions
-    :alt: CI
+.. image:: https://github.com/DjangoAdminHackers/django-linkcheck/workflows/Test/badge.svg
+   :target: https://github.com/DjangoAdminHackers/django-linkcheck/actions
+   :alt: GitHub Actions
 
-.. image:: https://coveralls.io/repos/django-tastypie/django-tastypie/badge.svg?service=github
-    :target: https://coveralls.io/github/django-tastypie/django-tastypie
-    :alt: Code Coverage
+A fairly flexible app that will analyze and report on links in any model that
+you register with it.
 
-.. image:: https://img.shields.io/pypi/v/django-tastypie.svg
-    :target: https://pypi.python.org/pypi/django-tastypie
-    :alt: Version
+.. image:: https://github.com/DjangoAdminHackers/django-linkcheck/raw/master/linkcheck.jpg
 
-.. image:: https://pypi-badges.global.ssl.fastly.net/svg?package=django-tastypie&timeframe=monthly
-    :target: https://pypi.python.org/pypi/django-tastypie
-    :alt: Downloads
+Links can be bare (urls or image and file fields) or
+embedded in HTML (linkcheck handles the parsing). It's fairly easy to override
+methods of the Linkcheck object should you need to do anything more
+complicated (like generate URLs from slug fields etc).
 
-Creating delicious APIs for Django apps since 2010.
+You should run its management command via cron or similar to check external
+links regularly to see if their status changes. All links are checked
+automatically when objects are saved. This is handled by signals.
 
-Currently in beta but being used actively in production on several
-sites.
+Minimal requirements
+--------------------
 
+django-linkchecks requires Python 3 and Django 2.2.
 
-Requirements
-============
+Basic usage
+-----------
 
-Core
-----
+#. Install app to somewhere on your Python path (e.g. ``pip install
+   django-linkcheck``).
+   
+#. Add ``'linkcheck'`` to your ``settings.INSTALLED_APPS``.
 
-* Python 3.6+, preferably 3.8+ (Whatever is supported by your version of Django)
-* Django 2.2, 3.2 (LTS releases) or Django 4.0 (latest release)
-* dateutil (http://labix.org/python-dateutil) >= 2.1
+#. Add a file named ``linklists.py`` to every app (see an example in ``examples/linklists.py``) that either:
 
-Format Support
---------------
+   #) has models that contain content (e.g. url/image fields, chunks of markup
+      or anything that gets transformed into a IMG or HREF when displayed
+   #) can be the target of a link - i.e. is addressed by a url - in this case
+      make sure it has an instance method named 'get_absolute_url'
 
-* XML: lxml 3 (http://lxml.de/) and defusedxml (https://pypi.python.org/pypi/defusedxml)
-* YAML: pyyaml (http://pyyaml.org/)
-* binary plist: biplist (https://bitbucket.org/wooster/biplist)
+#. Run ``./manage.py migrate``.
 
-Optional
+#. Add to your root url config::
+
+    path('admin/linkcheck/', include('linkcheck.urls'))
+
+#. View ``/admin/linkcheck/`` from your browser.
+
+We are aware that this documentation is on the brief side of things so any
+suggestions for elaboration or clarification would be gratefully accepted.
+
+Linklist classes
+----------------
+
+The following class attributes can be added to your ``Linklist`` subclasses to
+customize the extracted links:
+
+    ``object_filter``: a dictionary which will be passed as a filter argument to
+    the ``filter`` applied to the default queryset of the target class. This
+    allows you to filter the objects from which the links will be extracted.
+    (example: ``{'active': True}``)
+
+    ``object_exclude``: a dictionary which will be passed as a filter argument to
+    the ``exclude`` applied to the default queryset of the target class. As with
+    ``object_filter``, this allows you to exclude objects from which the links
+    will be extracted.
+
+    ``html_fields``: a list of field names which will be searched for links.
+
+    ``url_fields``: a list of ``URLField`` field names whose content will be
+    considered as links. If the field content is empty and the field name is
+    in ``ignore_empty``, the content is ignored.
+
+    ``ignore_empty``: a list of fields from ``url_fields``. See the explanation
+    above. (new in django-linkcheck 1.1)
+
+    ``image_fields``: a list of ``ImageField`` field names whose content will be
+    considered as links. Empty ``ImageField`` content is always ignored.
+
+Management commands
+-------------------
+
+findlinks
+~~~~~~~~~
+
+This command goes through all registered fields and records the URLs it finds.
+This command does not validate anything. Typically run just after installing
+and configuring django-linkcheck.
+
+checklinks
+~~~~~~~~~~
+
+For each recorded URL, check and report the validity of the URL. All internal
+links are checked, but only external links that have not been checked during
+the last ``LINKCHECK_EXTERNAL_RECHECK_INTERVAL`` minutes are checked. This
+interval can be adapted per-invocation by using the ``--externalinterval``
+(``-e``) command option (in minutes).
+
+You can also limit the maximum number of links to be checked by passing a number
+to the ``--limit`` (``--l``) command option.
+
+Settings
 --------
 
-* HTTP Digest authentication: python3-digest (https://bitbucket.org/akoha/python-digest/)
+LINKCHECK_DISABLE_LISTENERS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A setting to totally disable linkcheck, typically when running tests. See also
+the context managers below.
+
+LINKCHECK_EXTERNAL_RECHECK_INTERVAL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: 10080 (1 week in minutes)
+
+Will not recheck any external link that has been checked more recently than this value.
+
+LINKCHECK_EXTERNAL_REGEX_STRING
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: r'^https?://'
+
+A string applied as a regex to a URL to determine whether it's internal or external.
+
+LINKCHECK_MEDIA_PREFIX
+~~~~~~~~~~~~~~~~~~~~~~
+
+Default: '/media/'
+
+Currently linkcheck tests whether links to internal static media are correct by wrangling the URL to be a local filesystem path.
+
+It strips MEDIA_PREFIX off the interal link and concatenates the result onto settings.MEDIA_ROOT and tests that using os.path.exists
+
+This 'works for me' but it is probably going to break for other people's setups. Patches welcome.
+
+LINKCHECK_RESULTS_PER_PAGE
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Controls pagination.
+
+Pagination is slightly peculiar at the moment due to the way links are grouped by object.
 
 
-What's It Look Like?
-====================
+LINKCHECK_MAX_URL_LENGTH
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-A basic example looks like:
+Default: 255
 
-.. code:: python
-
-    # myapp/api.py
-    # ============
-    from tastypie.resources import ModelResource
-    from myapp.models import Entry
+The length of the URL field. Defaults to 255 for compatibility with MySQL (see http://docs.djangoproject.com/en/dev/ref/databases/#notes-on-specific-fields )
 
 
-    class EntryResource(ModelResource):
-        class Meta:
-            queryset = Entry.objects.all()
+LINKCHECK_CONNECTION_ATTEMPT_TIMEOUT
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default: 10
+
+The timeout in seconds for each connection attempts. Sometimes it is useful to limit check time per connection in order to hold at bay the total check time.
 
 
-    # urls.py
-    # =======
-    from django.urls.conf import re_path, include
-    from tastypie.api import Api
-    from myapp.api import EntryResource
+SITE_DOMAIN and LINKCHECK_SITE_DOMAINS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    v1_api = Api(api_name='v1')
-    v1_api.register(EntryResource())
+Linkcheck tests external and internal using differently. Internal links use the Django test client whereas external links are tested using urllib2.
 
-    urlpatterns = [
-        # The normal jazz here then...
-        re_path(r'^api/', include(v1_api.urls)),
-    ]
+Testing internal links this as if they were external can cause errors in some circumstances so Linkcheck needs to know which external urls are to be treated as internal.
 
-That gets you a fully working, read-write API for the ``Entry`` model that
-supports all CRUD operations in a RESTful way. JSON/XML/YAML support is already
-there, and it's easy to add related data/authentication/caching.
-
-You can find more in the documentation at
-https://django-tastypie.readthedocs.io/.
+Linkcheck looks for either of the settings above. It only uses SITE_DOMAIN if LINKCHECK_SITE_DOMAINS isn't present
 
 
-Why Tastypie?
-=============
+SITE_DOMAIN = "mysite.com"
 
-There are other API frameworks out there for Django. You need to
-assess the options available and decide for yourself. That said, here are some
-common reasons for tastypie.
+would tell linkchecker to treat the following as internal links:
 
-* You need an API that is RESTful and uses HTTP well.
-* You want to support deep relations.
-* You DON'T want to have to write your own serializer to make the output right.
-* You want an API framework that has little magic, very flexible and maps well to
-  the problem domain.
-* You want/need XML serialization that is treated equally to JSON (and YAML is
-  there too).
+mysite.com
+www.mysite.com
+test.mysite.com
+
+If you instead set LINKCHECK_SITE_DOMAINS to be a list or tuple then you can explicitly list the domains that should be treated as internal.
 
 
-Reference Material
-==================
+django-filebrowser integration
+------------------------------
 
-* https://django-tastypie.readthedocs.io/en/latest/
-* https://github.com/django-tastypie/django-tastypie/tree/master/tests/basic shows
-  basic usage of tastypie
-* http://en.wikipedia.org/wiki/REST
-* http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-* http://www.ietf.org/rfc/rfc2616.txt
-* http://jacobian.org/writing/rest-worst-practices/
+If django-filebrowser is present on your path then linkcheck will listen to the post-upload, delete and rename signals and update itself according
 
 
-Getting Help
-============
+Running tests
+-------------
 
-There are two primary ways of getting help.
+Tests can be run standalone by using the runtests.py script in linkcheck root:
+    $ python runtests.py
 
-1. Go to `StackOverflow`_ and post a question with the ``tastypie`` tag.
-2. We have an IRC channel (`#tastypie on irc.freenode.net`_) to get help,
-   bounce an idea by us, or generally shoot the breeze.
+If you want to run linkcheck tests in the context of your project, you should include 'linkcheck.tests.sampleapp' in your INSTALLED_APPS setting.
 
-.. _`StackOverflow`: https://stackoverflow.com/questions/tagged/tastypie
-.. _#tastypie on irc.freenode.net: irc://irc.freenode.net/tastypie
+Linkcheck gives you two context managers to enable or disable listeners in your
+own tests. For example:
 
+    def test_something_without_listeners(self):
+        with listeners.disable_listeners():
+            # Create/update here without linkcheck intervening.
 
-Security
-========
+In the case you defined the LINKCHECK_DISABLE_LISTENERS setting, you can
+temporarily enable it by:
 
-Tastypie is committed to providing a flexible and secure API, and was designed
-with many security features and options in mind. Due to the complex nature of
-APIs and the constant discovery of new attack vectors and vulnerabilities,
-no software is immune to security holes. We rely on our community to report
-and help us investigate security issues.
-
-If you come across a security hole **please do not open a Github issue**.
-Instead, **drop us an email** at ``tastypie-security@googlegroups.com``
-
-We'll then work together to investigate and resolve the problem so we can
-announce a solution along with the vulnerability.
+    def test_something_with_listeners(self):
+        with listeners.enable_listeners():
+            # Create/update here and see linkcheck activated.
