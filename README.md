@@ -1,156 +1,236 @@
-# Functions Framework for Python [![Build Status](https://travis-ci.com/GoogleCloudPlatform/functions-framework-python.svg?branch=master)](https://travis-ci.com/GoogleCloudPlatform/functions-framework-python) [![PyPI version](https://badge.fury.io/py/functions-framework.svg)](https://badge.fury.io/py/functions-framework)
+## marshmallow-jsonschema: JSON Schema formatting with marshmallow
 
-An open source FaaS (Function as a service) framework for writing portable
-Python functions -- brought to you by the Google Cloud Functions team.
+[![Build Status](https://travis-ci.org/fuhrysteve/marshmallow-jsonschema.svg?branch=master)](https://travis-ci.org/fuhrysteve/marshmallow-jsonschema)
+[![Coverage Status](https://coveralls.io/repos/github/fuhrysteve/marshmallow-jsonschema/badge.svg?branch=master)](https://coveralls.io/github/fuhrysteve/marshmallow-jsonschema?branch=master)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
-The Functions Framework lets you write lightweight functions that run in many
-different environments, including:
+ marshmallow-jsonschema translates marshmallow schemas into
+ JSON Schema Draft v7 compliant jsonschema. See http://json-schema.org/
 
-*   [Google Cloud Functions](https://cloud.google.com/functions/)
-*   Your local development machine
-*   [Cloud Run and Cloud Run for Anthos](https://cloud.google.com/run/)
-*   [Knative](https://github.com/knative/)-based environments
+#### Why would I want my schema translated to JSON?
 
-The framework allows you to go from:
+What are the use cases for this? Let's say you have a
+marshmallow schema in python, but you want to render your
+schema as a form in another system (for example: a web browser
+or mobile device).
+
+#### Installation
+
+Requires python>=3.6 and marshmallow>=3. (For python 2 & marshmallow 2 support, please use marshmallow-jsonschema<0.11)
+
+```
+pip install marshmallow-jsonschema
+```
+
+#### Some Client tools can render forms using JSON Schema
+
+* [react-jsonschema-form](https://github.com/mozilla-services/react-jsonschema-form) (recommended)
+ * See below extension for this excellent library!
+* https://github.com/brutusin/json-forms
+* https://github.com/jdorn/json-editor
+* https://github.com/ulion/jsonform
+
+### Examples
+
+#### Simple Example
 
 ```python
-def hello(request):
-    return "Hello world!"
+from marshmallow import Schema, fields
+from marshmallow_jsonschema import JSONSchema
+
+class UserSchema(Schema):
+    username = fields.String()
+    age = fields.Integer()
+    birthday = fields.Date()
+
+user_schema = UserSchema()
+
+json_schema = JSONSchema()
+json_schema.dump(user_schema)
+```
+Yields:
+```python
+{'properties': {'age': {'format': 'integer',
+                        'title': 'age',
+                        'type': 'number'},
+                'birthday': {'format': 'date',
+                             'title': 'birthday',
+                             'type': 'string'},
+                'username': {'title': 'username', 'type': 'string'}},
+ 'required': [],
+ 'type': 'object'}
 ```
 
-To:
-
-```sh
-curl http://my-url
-# Output: Hello world!
-```
-
-All without needing to worry about writing an HTTP server or complicated request handling logic.
-
-# Features
-
-*   Spin up a local development server for quick testing
-*   Invoke a function in response to a request
-*   Automatically unmarshal events conforming to the [CloudEvents](https://cloudevents.io/) spec
-*   Portable between serverless platforms
-
-# Installation
-
-Install the Functions Framework via `pip`:
-
-```sh
-pip install functions-framework
-```
-
-Or, for deployment, add the Functions Framework to your `requirements.txt` file:
-
-```
-functions-framework==1.4.0
-```
-
-# Quickstart: Hello, World on your local machine
-
-Create an `main.py` file with the following contents:
+#### Nested Example
 
 ```python
-def hello(request):
-    return "Hello world!"
+from marshmallow import Schema, fields
+from marshmallow_jsonschema import JSONSchema
+from tests import UserSchema
+
+
+class Athlete(object):
+    user_schema = UserSchema()
+
+    def __init__(self):
+        self.name = 'sam'
+
+
+class AthleteSchema(Schema):
+    user_schema = fields.Nested(JSONSchema)
+    name = fields.String()
+
+    
+athlete = Athlete()
+athlete_schema = AthleteSchema()
+
+athlete_schema.dump(athlete)
 ```
 
-Run the following command:
+#### Complete example Flask application using brutisin/json-forms
 
-```sh
-functions-framework --target=hello
-```
+![Screenshot](http://i.imgur.com/jJv1wFk.png)
 
-Open http://localhost:8080/ in your browser and see *Hello world!*.
+This example renders a form not dissimilar to how [wtforms](https://github.com/wtforms/wtforms) might render a form.
 
+However rather than rendering the form in python, the JSON Schema is rendered using the
+javascript library [brutusin/json-forms](https://github.com/brutusin/json-forms).
 
-# Quickstart: Set up a new project
-
-Create a `main.py` file with the following contents:
 
 ```python
-def hello(request):
-    return "Hello world!"
+from flask import Flask, jsonify
+from marshmallow import Schema, fields
+from marshmallow_jsonschema import JSONSchema
+
+app = Flask(__name__)
+
+
+class UserSchema(Schema):
+    name = fields.String()
+    address = fields.String()
+
+
+@app.route('/schema')
+def schema():
+    schema = UserSchema()
+    return jsonify(JSONSchema().dump(schema))
+
+
+@app.route('/')
+def home():
+    return '''<!DOCTYPE html>
+<head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/brutusin.json-forms/1.3.0/css/brutusin-json-forms.css"><Paste>
+<script src="https://code.jquery.com/jquery-1.12.1.min.js" integrity="sha256-I1nTg78tSrZev3kjvfdM5A5Ak/blglGzlaZANLPDl3I=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.string/3.3.4/underscore.string.min.js"></script>
+<script src="https://cdn.jsdelivr.net/brutusin.json-forms/1.3.0/js/brutusin-json-forms.min.js"></script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: '/schema'
+        , success: function(data) {
+            var container = document.getElementById('myform');
+            var BrutusinForms = brutusin["json-forms"];
+            var bf = BrutusinForms.create(data);
+            bf.render(container);
+        }
+    });
+});
+</script>
+</head>
+<body>
+<div id="myform"></div>
+</body>
+</html>
+'''
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', debug=True)
+
 ```
 
-Now install the Functions Framework:
 
-```sh
-pip install functions-framework
-```
+### Advanced usage
+#### Custom Type support
 
-Use the `functions-framework` command to start the built-in local development server:
+Simply add a `_jsonschema_type_mapping` method to your field
+so we know how it ought to get serialized to JSON Schema.
 
-```sh
-functions-framework --target hello --debug
- * Serving Flask app "hello" (lazy loading)
- * Environment: production
-   WARNING: This is a development server. Do not use it in a production deployment.
-   Use a production WSGI server instead.
- * Debug mode: off
- * Running on http://0.0.0.0:8080/ (Press CTRL+C to quit)
-```
+A common use case for this is creating a dropdown menu using
+enum (see Gender below).
 
-Send requests to this function using `curl` from another terminal window:
-
-```sh
-curl localhost:8080
-# Output: Hello world!
-```
-
-# Run your function on serverless platforms
-
-## Google Cloud Functions
-
-This Functions Framework is based on the [Python Runtime on Google Cloud Functions](https://cloud.google.com/functions/docs/concepts/python-runtime).
-
-On Cloud Functions, using the Functions Framework is not necessary: you don't need to add it to your `requirements.txt` file.
-
-After you've written your function, you can simply deploy it from your local machine using the `gcloud` command-line tool. [Check out the Cloud Functions quickstart](https://cloud.google.com/functions/docs/quickstart).
-
-## Cloud Run/Cloud Run on GKE
-
-Once you've written your function and added the Functions Framework to your `requirements.txt` file, all that's left is to create a container image. [Check out the Cloud Run quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy) for Python to create a container image and deploy it to Cloud Run. You'll write a `Dockerfile` when you build your container. This `Dockerfile` allows you to specify exactly what goes into your container (including custom binaries, a specific operating system, and more).
-
-If you want even more control over the environment, you can [deploy your container image to Cloud Run on GKE](https://cloud.google.com/run/docs/quickstarts/prebuilt-deploy-gke). With Cloud Run on GKE, you can run your function on a GKE cluster, which gives you additional control over the environment (including use of GPU-based instances, longer timeouts and more).
-
-## Container environments based on Knative
-
-Cloud Run and Cloud Run on GKE both implement the [Knative Serving API](https://www.knative.dev/docs/). The Functions Framework is designed to be compatible with Knative environments. Just build and deploy your container to a Knative environment.
-
-# Configure the Functions Framework
-
-You can configure the Functions Framework using command-line flags or environment variables. If you specify both, the environment variable will be ignored.
-
-| Command-line flag  | Environment variable      | Description                                                                                                                                                                                      |
-| ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--host`           | `HOST`                    | The host on which the Functions Framework listens for requests. Default: `0.0.0.0`                                                                                                               |
-| `--port`           | `PORT`                    | The port on which the Functions Framework listens for requests. Default: `8080`                                                                                                                  |
-| `--target`         | `FUNCTION_TARGET`         | The name of the exported function to be invoked in response to requests. Default: `function`                                                                                                     |
-| `--signature-type` | `FUNCTION_SIGNATURE_TYPE` | The signature used when writing your function. Controls unmarshalling rules and determines which arguments are used to invoke your function. Default: `http`; accepted values: `http` or `event` |
-| `--source`         | `FUNCTION_SOURCE`         | The path to the file containing your function. Default: `main.py` (in the current working directory)                                                                                             |
-| `--debug`          | `DEBUG`                   | A flag that allows to run functions-framework to run in debug mode, including live reloading. Default: `False`                                                                                   |
-
-# Enable CloudEvents
-
-The Functions Framework can unmarshall incoming [CloudEvents](http://cloudevents.io) payloads to `data` and `context` objects.  These will be passed as arguments to your function when it receives a request.  Note that your function must use the event-style function signature:
 
 ```python
-def hello(data, context):
-    print(data)
-    print(context)
+class Colour(fields.Field):
+
+    def _jsonschema_type_mapping(self):
+        return {
+            'type': 'string',
+        }
+
+    def _serialize(self, value, attr, obj):
+        r, g, b = value
+        r = "%02X" % (r,)
+        g = "%02X" % (g,)
+        b = "%02X" % (b,)
+        return '#' + r + g + b 
+
+class Gender(fields.String):
+    def _jsonschema_type_mapping(self):
+        return {
+            'type': 'string',
+            'enum': ['Male', 'Female']
+        }
+
+
+class UserSchema(Schema):
+    name = fields.String(required=True)
+    favourite_colour = Colour()
+    gender = Gender()
+
+schema = UserSchema()
+json_schema = JSONSchema()
+json_schema.dump(schema)
 ```
 
-To enable automatic unmarshalling, set the function signature type to `event` using the `--signature-type` command-line flag or the `FUNCTION_SIGNATURE_TYPE` environment variable. By default, the HTTP signature type will be used and automatic event unmarshalling will be disabled.
 
-For more details on this signature type, check out the Google Cloud Functions documentation on [background functions](https://cloud.google.com/functions/docs/writing/background#cloud_pubsub_example).
+### React-JSONSchema-Form Extension
 
-# Advanced Examples
+[react-jsonschema-form](https://react-jsonschema-form.readthedocs.io/en/latest/)
+is a library for rendering jsonschemas as a form using React. It is very powerful
+and full featured.. the catch is that it requires a proprietary
+[`uiSchema`](https://react-jsonschema-form.readthedocs.io/en/latest/form-customization/#the-uischema-object)
+to provide advanced control how the form is rendered.
+[Here's a live playground](https://rjsf-team.github.io/react-jsonschema-form/)
 
-More advanced guides can be found in the [`examples/`](./examples/) directory.
+*(new in version 0.10.0)*
 
-# Contributing
+```python
+from marshmallow_jsonschema.extensions import ReactJsonSchemaFormJSONSchema
 
-Contributions to this library are welcome and encouraged. See [CONTRIBUTING](CONTRIBUTING.md) for more information on how to get started.
+class MySchema(Schema):
+    first_name = fields.String(
+        metadata={
+            'ui:autofocus': True,
+        }
+    )
+    last_name = fields.String()
+
+    class Meta:
+        react_uischema_extra = {
+            'ui:order': [
+                'first_name',
+                'last_name',
+            ]
+        }
+
+
+json_schema_obj = ReactJsonSchemaFormJSONSchema()
+schema = MySchema()
+
+# here's your jsonschema
+data = json_schema_obj.dump(schema)
+
+# ..and here's your uiSchema!
+ui_schema_json = json_schema_obj.dump_uischema(schema)

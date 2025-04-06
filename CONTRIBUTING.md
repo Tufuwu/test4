@@ -1,28 +1,38 @@
-# How to Contribute
+Setting Up for Local Development
+********************************
 
-We'd love to accept your patches and contributions to this project. There are
-just a few small guidelines you need to follow.
+1. Fork marshmallow_jsonschema on Github.
 
-## Contributor License Agreement
+::
 
-Contributions to this project must be accompanied by a Contributor License
-Agreement. You (or your employer) retain the copyright to your contribution;
-this simply gives us permission to use and redistribute your contributions as
-part of the project. Head over to <https://cla.developers.google.com/> to see
-your current agreements on file or to sign a new one.
+    $ git clone https://github.com/fuhrysteve/marshmallow-jsonschema.git
+    $ cd marshmallow_jsonschema
 
-You generally only need to submit a CLA once, so if you've already submitted one
-(even if it was for a different project), you probably don't need to do it
-again.
+2. Create a virtual environment and install all dependencies
 
-## Code reviews
+::
 
-All submissions, including submissions by project members, require review. We
-use GitHub pull requests for this purpose. Consult
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
-information on using pull requests.
+    $ make venv
 
-## Community Guidelines
+3. Install the pre-commit hooks, which will format and lint your git staged files.
 
-This project follows [Google's Open Source Community
-Guidelines](https://opensource.google.com/conduct/).
+::
+
+    # The pre-commit CLI was installed above
+    $ pre-commit install --allow-missing-config
+
+
+Running tests
+*************
+
+To run all tests: ::
+
+    $ pytest
+
+To run syntax checks: ::
+
+    $ tox -e lint
+
+(Optional) To run tests in all supported Python versions in their own virtual environments (must have each interpreter installed): ::
+
+    $ tox
