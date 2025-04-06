@@ -1,80 +1,54 @@
-<a href="https://travis-ci.org/flav-io/flavio">![Build Status](https://travis-ci.org/flav-io/flavio.svg?branch=master)</a> [![Coverage Status](https://coveralls.io/repos/github/flav-io/flavio/badge.svg)](https://coveralls.io/github/flav-io/flavio) [![DOI](https://zenodo.org/badge/22356/flav-io/flavio.svg)](https://zenodo.org/badge/latestdoi/22356/flav-io/flavio)
+![NetBox](docs/netbox_logo.svg "NetBox logo")
 
-# flavio – flavour phenomenology in the Standard model and beyond
+NetBox is an IP address management (IPAM) and data center infrastructure
+management (DCIM) tool. Initially conceived by the network engineering team at
+[DigitalOcean](https://www.digitalocean.com/), NetBox was developed specifically
+to address the needs of network and infrastructure engineers. It is intended to
+function as a domain-specific source of truth for network operations.
 
-flavio is a Python package to compute observables in flavour physics, electroweak precision tests, Higgs physics,
-and other precision tests of the Standard Model, both in
-the Standard Model and in the presence of new physics encoded in Wilson
-coefficients of dimension-6 operators.
+NetBox runs as a web application atop the [Django](https://www.djangoproject.com/)
+Python framework with a [PostgreSQL](http://www.postgresql.org/) database. For a
+complete list of requirements, see `requirements.txt`. The code is available [on GitHub](https://github.com/netbox-community/netbox).
 
-## Project web site
+The complete documentation for NetBox can be found at [Read the Docs](http://netbox.readthedocs.io/en/stable/).
 
-Further information and the package documentation can be found at:
+Questions? Comments? Please start a [discussion on GitHub](https://github.com/netbox-community/netbox/discussions),
+or join us in the **#netbox** Slack channel on [NetworkToCode](https://networktocode.slack.com/)!
 
-http://flav-io.github.io
+### Build Status
 
-This web site is built with Jekyll and hosted on Github pages. You can check
-out its source (or submit pull requests) at https://github.com/flav-io/flav-io.github.io.
+|             | status |
+|-------------|------------|
+| **master** | ![Build status](https://github.com/netbox-community/netbox/workflows/CI/badge.svg?branch=master) |
+| **develop** | ![Build status](https://github.com/netbox-community/netbox/workflows/CI/badge.svg?branch=develop) |
+
+### Screenshots
+
+![Screenshot of main page](docs/media/screenshot1.png "Main page")
+
+---
+
+![Screenshot of rack elevation](docs/media/screenshot2.png "Rack elevation")
+
+---
+
+![Screenshot of prefix hierarchy](docs/media/screenshot3.png "Prefix hierarchy")
 
 ## Installation
 
-See http://flav-io.github.io/docs/installation.html for instructions.
+Please see [the documentation](http://netbox.readthedocs.io/en/stable/) for
+instructions on installing NetBox. To upgrade NetBox, please download the [latest release](https://github.com/netbox-community/netbox/releases)
+and run `upgrade.sh`.
 
-## Bugs and feature request
+## Providing Feedback
 
-Please submit questions, bugs and feature request using
-[Github's issue system](https://github.com/flav-io/flavio/issues) rather than
-by E-mail. Thanks!
+Feature requests and bug reports must be submitted as GiHub issues. (Please be
+sure to use the [appropriate template](https://github.com/netbox-community/netbox/issues/new/choose).)
+For general discussion, please consider joining our [mailing list](https://groups.google.com/g/netbox-discuss).
 
+If you are interested in contributing to the development of NetBox, please read
+our [contributing guide](CONTRIBUTING.md) prior to beginning any work.
 
+## Related projects
 
-## Contributors
-
-Maintainer:
-
-- Peter Stangl (@peterstangl)
-
-Original author:
-
-- David M. Straub (@DavidMStraub)
-
-Contributors (in alphabetical order):
-
-- Jason Aebischer
-- Jorge Alda Gallo
-- Frederik Beaujean
-- Adam Falkowski
-- Tobias Felkl
-- Ece Gürler
-- Matěj Hudec
-- Matthew Kirk
-- Jonathan Kriewald
-- Jacky Kumar
-- Christoph Langenbruch
-- Christoph Niehoff
-- Markus Prim
-- Albert Puig
-- Méril Reboud
-- Stefanie Reichert
-- Peter Stangl
-- Olcyr Sumensari
-- Zeren Simon Wang
-
-## License
-
-flavio is released under the MIT license.
-
-## Citation
-
-If you use flavio in a scientific publication, please cite:
-
-> D. Straub, "flavio: a Python package for flavour and precision
-phenomenology in the Standard Model and beyond", [arXiv:1810.08132](https://arxiv.org/abs/1810.08132)
-
-This paper contains many references to results in the literature that went
-into the code. Please also consider citing the relevant original literature,
-where the real work was done.
-
-The flavio repository itself is also citable via a DOI provided by Zenodo:
-
-[![DOI](https://zenodo.org/badge/22356/flav-io/flavio.svg)](https://zenodo.org/badge/latestdoi/22356/flav-io/flavio)
+Please see [our wiki](https://github.com/netbox-community/netbox/wiki/Community-Contributions) for a list of relevant community projects.
