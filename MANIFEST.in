@@ -1,8 +1,12 @@
-include etc/bash_completion.d/pyang
-recursive-include modules *
-recursive-include xslt *
-recursive-include schema *
-recursive-include tools/images *
-recursive-include man *
-include LICENSE
-include env.sh
+recursive-include dask_jobqueue *.py
+recursive-include dask_jobqueue *.yaml
+
+include LICENSE.txt
+include README.rst
+
+include requirements.txt
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+include versioneer.py
+include dask_jobqueue/_version.py

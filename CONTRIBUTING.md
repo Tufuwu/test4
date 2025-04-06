@@ -1,23 +1,7 @@
-Contributing
-============
+Dask is a community maintained project. We welcome contributions in the form of bug reports, documentation, code, design proposals, and more. 
 
-Pull requests are welcome!
+For general information on how to contribute see https://docs.dask.org/en/latest/develop.html.
 
-* Add test cases
+## Project specific notes
 
-* If applicable, update the man page
-
-
-Code style
-----------
-
-* Do not introduce trailing whitespace.
-
-* Do not introduce lines longer than 80 characters.
-
-Hint for emacs users:
-
-(setq whitespace-style (quote (face trailing tabs lines)))
-
-and use whitespace-mode.
-
+Some of the tests require a functioning job scheduler. For more information on how to set this up see https://jobqueue.dask.org/en/latest/develop.html#test-with-job-scheduler.
