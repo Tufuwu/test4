@@ -5,12 +5,12 @@ from setuptools import find_packages
 
 
 setup(
-    name="liteeth",
-    description="Small footprint and configurable Ethernet core",
+    name="litesata",
+    description="Small footprint and configurable SATA core",
     author="Florent Kermarrec",
     author_email="florent@enjoy-digital.fr",
     url="http://enjoy-digital.fr",
-    download_url="https://github.com/enjoy-digital/liteeth",
+    download_url="https://github.com/enjoy-digital/litesata",
     test_suite="test",
     license="BSD",
     python_requires="~=3.6",
@@ -18,7 +18,7 @@ setup(
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "liteeth_gen=liteeth.gen:main",
+            "litesata_gen=litesata.gen:main",
         ],
     },
 )

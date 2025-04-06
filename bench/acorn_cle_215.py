@@ -3,7 +3,7 @@
 #
 # This file is part of LiteSATA.
 #
-# Copyright (c) 2015-2020 Florent Kermarrec <florent@enjoy-digital.fr>
+# Copyright (c) 2020 Florent Kermarrec <florent@enjoy-digital.fr>
 # SPDX-License-Identifier: BSD-2-Clause
 
 import sys
@@ -11,8 +11,8 @@ import argparse
 
 from migen import *
 
-from litex_boards.platforms import genesys2
-from litex_boards.targets.genesys2 import _CRG
+from litex_boards.platforms import acorn_cle_215
+from litex_boards.targets.acorn_cle_215 import CRG as _CRG
 
 from litex.build.generic_platform import *
 
@@ -30,39 +30,43 @@ from litescope import LiteScopeAnalyzer
 # IOs ----------------------------------------------------------------------------------------------
 
 _sata_io = [
-    # AB09-FMCRAID / https://www.dgway.com/AB09-FMCRAID_E.html
-    ("fmc2sata", 0,
-        Subsignal("clk_p", Pins("HPC:GBTCLK0_M2C_P")),
-        Subsignal("clk_n", Pins("HPC:GBTCLK0_M2C_N")),
-        Subsignal("tx_p",  Pins("HPC:DP0_C2M_P")),
-        Subsignal("tx_n",  Pins("HPC:DP0_C2M_N")),
-        Subsignal("rx_p",  Pins("HPC:DP0_M2C_P")),
-        Subsignal("rx_n",  Pins("HPC:DP0_M2C_N"))
+    # PCIe 2 SATA Custom Adapter (With PCIe Riser / SATA cable mod).
+    ("pcie2sata", 0,
+        Subsignal("tx_p",  Pins("B6")),
+        Subsignal("tx_n",  Pins("A6")),
+        Subsignal("rx_p",  Pins("B10")),
+        Subsignal("rx_n",  Pins("A10")),
     ),
 ]
 
 # SATATestSoC --------------------------------------------------------------------------------------
 
 class SATATestSoC(SoCMini):
-    def __init__(self, platform, gen="gen3", with_analyzer=False):
-        assert gen in ["gen1", "gen2", "gen3"]
-        sys_clk_freq  = int(200e6)
-        sata_clk_freq = {"gen1": 75e6, "gen2": 150e6, "gen3": 300e6}[gen]
+    def __init__(self, platform, gen="gen2", with_analyzer=False):
+        assert gen in ["gen1", "gen2"]
+        sys_clk_freq  = int(100e6)
+        sata_clk_freq = {"gen1": 75e6, "gen2": 150e6}[gen]
 
         # CRG --------------------------------------------------------------------------------------
         self.submodules.crg = _CRG(platform, sys_clk_freq)
 
         # SoCMini ----------------------------------------------------------------------------------
         SoCMini.__init__(self, platform, sys_clk_freq,
-            ident         = "LiteSATA bench on Genesys2",
+            ident         = "LiteSATA bench on Acorn CLE 215+",
             ident_version = True,
             with_uart     = True,
             uart_name     = "bridge")
 
         # SATA -------------------------------------------------------------------------------------
+        # RefClk, Generate 150MHz from PLL.
+        self.clock_domains.cd_sata_refclk = ClockDomain()
+        self.crg.pll.create_clkout(self.cd_sata_refclk, 150e6)
+        platform.add_platform_command("set_property SEVERITY {{Warning}} [get_drc_checks REQP-49]")
+
         # PHY
         self.submodules.sata_phy = LiteSATAPHY(platform.device,
-            pads       = platform.request("fmc2sata"),
+            refclk     = self.cd_sata_refclk.clk,
+            pads       = platform.request("pcie2sata"),
             gen        = gen,
             clk_freq   = sys_clk_freq,
             data_width = 16)
@@ -90,17 +94,17 @@ class SATATestSoC(SoCMini):
         # sys_clk
         sys_counter = Signal(32)
         self.sync.sys += sys_counter.eq(sys_counter + 1)
-        self.comb += platform.request("user_led", 0).eq(sys_counter[26])
+        self.comb += platform.request("user_led", 0).eq(~sys_counter[26])
         # tx_clk
         tx_counter = Signal(32)
         self.sync.sata_tx += tx_counter.eq(tx_counter + 1)
-        self.comb += platform.request("user_led", 1).eq(tx_counter[26])
+        self.comb += platform.request("user_led", 1).eq(~tx_counter[26])
         # rx_clk
         rx_counter = Signal(32)
         self.sync.sata_rx += rx_counter.eq(rx_counter + 1)
-        self.comb += platform.request("user_led", 2).eq(rx_counter[26])
+        self.comb += platform.request("user_led", 2).eq(~rx_counter[26])
         # ready
-        self.comb += platform.request("user_led", 3).eq(self.sata_phy.ctrl.ready)
+        self.comb += platform.request("user_led", 3).eq(~self.sata_phy.ctrl.ready)
 
         # Analyzer ---------------------------------------------------------------------------------
         if with_analyzer:
@@ -129,14 +133,14 @@ class SATATestSoC(SoCMini):
 # Build --------------------------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="LiteSATA bench on Genesys2")
+    parser = argparse.ArgumentParser(description="LiteSATA bench on Acorn CLE 215+")
     parser.add_argument("--build",         action="store_true", help="Build bitstream")
     parser.add_argument("--load",          action="store_true", help="Load bitstream (to SRAM)")
-    parser.add_argument("--gen",           default="3",         help="SATA Gen: 1, 2 or 3 (default)")
+    parser.add_argument("--gen",           default="2",         help="SATA Gen: 1 or 2 (default)")
     parser.add_argument("--with-analyzer", action="store_true", help="Add LiteScope Analyzer")
     args = parser.parse_args()
 
-    platform = genesys2.Platform()
+    platform = acorn_cle_215.Platform()
     platform.add_extension(_sata_io)
     soc = SATATestSoC(platform, "gen" + args.gen, with_analyzer=args.with_analyzer)
     builder = Builder(soc, csr_csv="csr.csv")

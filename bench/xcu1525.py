@@ -3,7 +3,7 @@
 #
 # This file is part of LiteSATA.
 #
-# Copyright (c) 2015-2020 Florent Kermarrec <florent@enjoy-digital.fr>
+# Copyright (c) 2020 Florent Kermarrec <florent@enjoy-digital.fr>
 # SPDX-License-Identifier: BSD-2-Clause
 
 import sys
@@ -11,11 +11,12 @@ import argparse
 
 from migen import *
 
-from litex_boards.platforms import genesys2
-from litex_boards.targets.genesys2 import _CRG
+from litex_boards.platforms import xcu1525
 
 from litex.build.generic_platform import *
 
+from litex.soc.cores.clock import USPPLL
+from litex.soc.interconnect.csr import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
 
@@ -30,23 +31,43 @@ from litescope import LiteScopeAnalyzer
 # IOs ----------------------------------------------------------------------------------------------
 
 _sata_io = [
-    # AB09-FMCRAID / https://www.dgway.com/AB09-FMCRAID_E.html
-    ("fmc2sata", 0,
-        Subsignal("clk_p", Pins("HPC:GBTCLK0_M2C_P")),
-        Subsignal("clk_n", Pins("HPC:GBTCLK0_M2C_N")),
-        Subsignal("tx_p",  Pins("HPC:DP0_C2M_P")),
-        Subsignal("tx_n",  Pins("HPC:DP0_C2M_N")),
-        Subsignal("rx_p",  Pins("HPC:DP0_M2C_P")),
-        Subsignal("rx_n",  Pins("HPC:DP0_M2C_N"))
+    # SFP 2 SATA Adapter / https://shop.trenz-electronic.de/en/TE0424-01-SFP-2-SATA-Adapter
+    ("qsfp2sata", 0,
+        Subsignal("rx_n",  Pins("N3")),
+        Subsignal("rx_p",  Pins("N4")),
+        Subsignal("tx_n",  Pins("N8")),
+        Subsignal("tx_p",  Pins("N9")),
+    ),
+    # PCIe 2 SATA Custom Adapter (With PCIe Riser / SATA cable mod).
+    ("pcie2sata", 0,
+        Subsignal("rx_n",  Pins("AF1")),
+        Subsignal("rx_p",  Pins("AF2")),
+        Subsignal("tx_n",  Pins("AF6")),
+        Subsignal("tx_p",  Pins("AF7")),
     ),
 ]
+
+# CRG ----------------------------------------------------------------------------------------------
+
+class _CRG(Module):
+    def __init__(self, platform, sys_clk_freq):
+        self.clock_domains.cd_sys = ClockDomain()
+
+        # # #
+
+        # PLL
+        self.submodules.pll = pll = USPPLL(speedgrade=-2)
+        pll.register_clkin(platform.request("clk300"), 300e6)
+        pll.create_clkout(self.cd_sys, sys_clk_freq)
 
 # SATATestSoC --------------------------------------------------------------------------------------
 
 class SATATestSoC(SoCMini):
-    def __init__(self, platform, gen="gen3", with_analyzer=False):
+    def __init__(self, platform, connector="qsfp", gen="gen2", with_analyzer=False):
+        assert connector in ["qsfp", "pcie"]
         assert gen in ["gen1", "gen2", "gen3"]
-        sys_clk_freq  = int(200e6)
+
+        sys_clk_freq  = int(187.5e6)
         sata_clk_freq = {"gen1": 75e6, "gen2": 150e6, "gen3": 300e6}[gen]
 
         # CRG --------------------------------------------------------------------------------------
@@ -54,15 +75,21 @@ class SATATestSoC(SoCMini):
 
         # SoCMini ----------------------------------------------------------------------------------
         SoCMini.__init__(self, platform, sys_clk_freq,
-            ident         = "LiteSATA bench on Genesys2",
+            ident         = "LiteSATA bench on XCU1525",
             ident_version = True,
             with_uart     = True,
             uart_name     = "bridge")
 
         # SATA -------------------------------------------------------------------------------------
+        # RefClk / Generate 150MHz from PLL.
+        self.clock_domains.cd_sata_refclk = ClockDomain()
+        self.crg.pll.create_clkout(self.cd_sata_refclk, 150e6, buf=None)
+        sata_refclk = ClockSignal("sata_refclk")
+
         # PHY
         self.submodules.sata_phy = LiteSATAPHY(platform.device,
-            pads       = platform.request("fmc2sata"),
+            refclk     = sata_refclk,
+            pads       = platform.request(connector+"2sata"),
             gen        = gen,
             clk_freq   = sys_clk_freq,
             data_width = 16)
@@ -91,16 +118,12 @@ class SATATestSoC(SoCMini):
         sys_counter = Signal(32)
         self.sync.sys += sys_counter.eq(sys_counter + 1)
         self.comb += platform.request("user_led", 0).eq(sys_counter[26])
-        # tx_clk
-        tx_counter = Signal(32)
-        self.sync.sata_tx += tx_counter.eq(tx_counter + 1)
-        self.comb += platform.request("user_led", 1).eq(tx_counter[26])
         # rx_clk
         rx_counter = Signal(32)
         self.sync.sata_rx += rx_counter.eq(rx_counter + 1)
-        self.comb += platform.request("user_led", 2).eq(rx_counter[26])
+        self.comb += platform.request("user_led", 1).eq(rx_counter[26])
         # ready
-        self.comb += platform.request("user_led", 3).eq(self.sata_phy.ctrl.ready)
+        self.comb += platform.request("user_led", 2).eq(self.sata_phy.ctrl.ready)
 
         # Analyzer ---------------------------------------------------------------------------------
         if with_analyzer:
@@ -129,16 +152,17 @@ class SATATestSoC(SoCMini):
 # Build --------------------------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="LiteSATA bench on Genesys2")
+    parser = argparse.ArgumentParser(description="LiteSATA bench on XCU1525")
     parser.add_argument("--build",         action="store_true", help="Build bitstream")
     parser.add_argument("--load",          action="store_true", help="Load bitstream (to SRAM)")
     parser.add_argument("--gen",           default="3",         help="SATA Gen: 1, 2 or 3 (default)")
+    parser.add_argument("--connector",     default="qsfp",      help="SATA Connector: qsfp (default) or pcie")
     parser.add_argument("--with-analyzer", action="store_true", help="Add LiteScope Analyzer")
     args = parser.parse_args()
 
-    platform = genesys2.Platform()
+    platform = xcu1525.Platform()
     platform.add_extension(_sata_io)
-    soc = SATATestSoC(platform, "gen" + args.gen, with_analyzer=args.with_analyzer)
+    soc = SATATestSoC(platform, args.connector, "gen" + args.gen, with_analyzer=args.with_analyzer)
     builder = Builder(soc, csr_csv="csr.csv")
     builder.build(run=args.build)
 

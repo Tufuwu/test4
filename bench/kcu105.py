@@ -3,7 +3,7 @@
 #
 # This file is part of LiteSATA.
 #
-# Copyright (c) 2015-2020 Florent Kermarrec <florent@enjoy-digital.fr>
+# Copyright (c) 2020 Florent Kermarrec <florent@enjoy-digital.fr>
 # SPDX-License-Identifier: BSD-2-Clause
 
 import sys
@@ -11,11 +11,12 @@ import argparse
 
 from migen import *
 
-from litex_boards.platforms import genesys2
-from litex_boards.targets.genesys2 import _CRG
+from litex_boards.platforms import kcu105
 
 from litex.build.generic_platform import *
 
+from litex.soc.cores.clock import USPLL
+from litex.soc.interconnect.csr import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
 
@@ -39,14 +40,43 @@ _sata_io = [
         Subsignal("rx_p",  Pins("HPC:DP0_M2C_P")),
         Subsignal("rx_n",  Pins("HPC:DP0_M2C_N"))
     ),
+    # SFP 2 SATA Adapter / https://shop.trenz-electronic.de/en/TE0424-01-SFP-2-SATA-Adapter
+    ("sfp2sata", 0,
+        Subsignal("tx_p", Pins("U4")),
+        Subsignal("tx_n", Pins("U3")),
+        Subsignal("rx_p", Pins("T2")),
+        Subsignal("rx_n", Pins("T1")),
+    ),
+    # PCIe 2 SATA Custom Adapter (With PCIe Riser / SATA cable mod).
+    ("pcie2sata", 0,
+        Subsignal("tx_p",  Pins("AC4")),
+        Subsignal("tx_n",  Pins("AC3")),
+        Subsignal("rx_p",  Pins("AB2")),
+        Subsignal("rx_n",  Pins("AB1")),
+    ),
 ]
+
+# CRG ----------------------------------------------------------------------------------------------
+
+class _CRG(Module):
+    def __init__(self, platform, sys_clk_freq):
+        self.clock_domains.cd_sys = ClockDomain()
+
+        # # #
+
+        # PLL
+        self.submodules.pll = pll = USPLL(speedgrade=-2)
+        pll.register_clkin(platform.request("clk125"), 125e6)
+        pll.create_clkout(self.cd_sys, sys_clk_freq)
 
 # SATATestSoC --------------------------------------------------------------------------------------
 
 class SATATestSoC(SoCMini):
-    def __init__(self, platform, gen="gen3", with_analyzer=False):
+    def __init__(self, platform, connector="fmc", gen="gen2", with_analyzer=False):
+        assert connector in ["fmc", "sfp", "pcie"]
         assert gen in ["gen1", "gen2", "gen3"]
-        sys_clk_freq  = int(200e6)
+
+        sys_clk_freq  = int(187.5e6)
         sata_clk_freq = {"gen1": 75e6, "gen2": 150e6, "gen3": 300e6}[gen]
 
         # CRG --------------------------------------------------------------------------------------
@@ -54,15 +84,25 @@ class SATATestSoC(SoCMini):
 
         # SoCMini ----------------------------------------------------------------------------------
         SoCMini.__init__(self, platform, sys_clk_freq,
-            ident         = "LiteSATA bench on Genesys2",
+            ident         = "LiteSATA bench on KCU105",
             ident_version = True,
             with_uart     = True,
             uart_name     = "bridge")
 
         # SATA -------------------------------------------------------------------------------------
+        # RefClk
+        sata_refclk = None
+        if connector != "fmc":
+            # Generate 150MHz from PLL.
+            self.clock_domains.cd_sata_refclk = ClockDomain()
+            self.crg.pll.create_clkout(self.cd_sata_refclk, 150e6, buf=None)
+            sata_refclk = ClockSignal("sata_refclk")
+            platform.add_platform_command("set_property SEVERITY {{Warning}} [get_drc_checks REQP-49]")
+
         # PHY
         self.submodules.sata_phy = LiteSATAPHY(platform.device,
-            pads       = platform.request("fmc2sata"),
+            refclk     = sata_refclk,
+            pads       = platform.request(connector+"2sata"),
             gen        = gen,
             clk_freq   = sys_clk_freq,
             data_width = 16)
@@ -129,16 +169,17 @@ class SATATestSoC(SoCMini):
 # Build --------------------------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="LiteSATA bench on Genesys2")
+    parser = argparse.ArgumentParser(description="LiteSATA bench on KCU105")
     parser.add_argument("--build",         action="store_true", help="Build bitstream")
     parser.add_argument("--load",          action="store_true", help="Load bitstream (to SRAM)")
     parser.add_argument("--gen",           default="3",         help="SATA Gen: 1, 2 or 3 (default)")
+    parser.add_argument("--connector",     default="fmc",       help="SATA Connector: fmc (default) , sfp or pcie")
     parser.add_argument("--with-analyzer", action="store_true", help="Add LiteScope Analyzer")
     args = parser.parse_args()
 
-    platform = genesys2.Platform()
+    platform = kcu105.Platform()
     platform.add_extension(_sata_io)
-    soc = SATATestSoC(platform, "gen" + args.gen, with_analyzer=args.with_analyzer)
+    soc = SATATestSoC(platform, args.connector, "gen" + args.gen, with_analyzer=args.with_analyzer)
     builder = Builder(soc, csr_csv="csr.csv")
     builder.build(run=args.build)
 
