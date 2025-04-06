@@ -1,67 +1,96 @@
-# CLABE
+Roulier
+===
 
-[![test](https://github.com/cuenca-mx/clabe-python/workflows/test/badge.svg)](https://github.com/cuenca-mx/clabe-python/actions?query=workflow%3Atest)
-[![codecov](https://codecov.io/gh/cuenca-mx/clabe-python/branch/master/graph/badge.svg)](https://codecov.io/gh/cuenca-mx/clabe-python)
-[![PyPI](https://img.shields.io/pypi/v/clabe.svg)](https://pypi.org/project/clabe/)
+Roulier is a shipping library written in Python for sending parcels.
+Roulier will get a label + tracking number to your carrier for you.
 
-Librería para validar y calcular un número CLABE basado en
-https://es.wikipedia.org/wiki/CLABE
 
-## Requerimientos
+![big picture](overview.svg)
 
-Python 3.6 o superior.
 
-## Instalación
+* Roulier runs on your server and call each carrier API directly.
+* You have to use your own credentials provided by each carriers.
+* Roulier is Open Source software, AGPL-3
+* Roulier integrate a multitude of carriers
+    * French La Poste
+    * French DPD
+    * French GLS
+    * French Chronopost
+    * more to come... (geodis, kuehne...)
 
-Se puede instalar desde Pypi usando
+### Installation
 
-```
-pip install clabe
-```
+This is not compatible with python 2.7.
+Please use version < 1.0.0 (python2 branch) in that case.
 
-## Pruebas
-
-Para ejecutar las pruebas
-
-```
-$ make test
-```
-
-## Uso básico
-
-Obtener el dígito de control de un número CLABE
+### Usage
 
 ```python
-import clabe
-clabe.compute_control_digit('00200000000000000')
+from roulier import roulier
+
+payload= {
+	"auth": {
+		"login": "12345",
+		"password": "password",
+	},
+	"service": {
+		"productCode": "COL"
+	},
+	"parcels": [{
+		"weight": 3.4,
+	}],
+	"to_address": {
+		"firstName": "Hparfr"
+		"street1": "35 b Rue Montgolfier"
+		"city": "Villeurbanne"
+        "country": "FR",
+        "zip": "69100"
+   	},
+   	"from_address": {
+		"fristName": "Akretion France"
+		"street1": "35 b Rue Montgolfier"
+		"city": "Villeurbanne"
+        "country": "FR",
+        "zip": "69100"
+   	},
+}
+# first parameter is the carrier type.
+# second is the action and then the parameters needed by the action
+response = roulier.get('laposte_fr', 'get_label', payload)
+
+
+print(response)
+
 ```
 
-Para validar si un número CLABE es válido
 
+Get supported carriers and related actions:
 ```python
-import clabe
-clabe.validate_clabe('002000000000000008')
+from roulier import roulier
+print(roulier.get_carriers_action_available())
 ```
 
-Para obtener el banco a partir de 3 dígitos
+### Known Issues
+#### French GLS carrier :
+* The glsbox webservice only manage Basic products : BP, EBP, GBP
+* In the rest webservice, the incoterms don't work
 
-```python
-import clabe
-clabe.get_bank_name('002')
-```
 
-Para generar nuevo válido CLABES
+### Contributors
 
-```python
-import clabe
-clabe.generate_new_clabes(10, '002123456')
-```
 
-## Subir a PyPi
+* [@hparfr](https://github.com/hparfr) ([Akretion.com](https://akretion.com))
+* [@damdam-s](https://github.com/damdam-s) ([Camp2Camp.com](http://camptocamp.com))
+* [@bealdav](https://github.com/bealdav) ([Akretion.com](https://akretion.com))
+* [@DylannCordel](https://github.com/DylannCordel) ([Webu.coop](https://www.webu.coop))
+* [@florian-dacosta](https://github.com/florian-dacosta) ([Webu.coop](https://akretion.com))
 
-1. Actualizar version en `setup.py`
-1. Commit cambios a `setup.py` y empujarlos a `origin/master`
-1. `git tag -a <version> -m <release message>`
-1. `git push origin --tags`
 
-TravisCI subirá la version actualizada a PyPi despues de verificar que las pruebas pasen.
+### Dependencies
+
+* [Cerberus](http://docs.python-cerberus.org/) - input validation and normalization
+* [lxml](http://lxml.de/) - XML parsing
+* [Jinja2](http://jinja.pocoo.org/) - templating
+* [Requests](http://docs.python-requests.org/) - HTTP requests
+* [zplgrf](https://github.com/kylemacfarlane/zplgrf) - PNG to ZPL conversion
+* [unidecode](https://pypi.python.org/pypi/Unidecode) - Remove accents from ZPL
