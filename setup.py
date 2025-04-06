@@ -1,39 +1,58 @@
-#!/usr/bin/env python
-"""Installation script."""
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+import sys
 
-import ast
-import codecs
-import os
-import re
+from setuptools import setup, find_packages
+from setuptools.command.test import test
 
 
-CURRENT_DIR = os.path.dirname(__file__)
+def run_tests(*args):
+    from django_comments_xtd.tests import run_tests
+    errors = run_tests()
+    if errors:
+        sys.exit(1)
+    else:
+        sys.exit(0)
 
 
-def get_long_description():
-    readme_path = os.path.join(CURRENT_DIR, "README.md")
-    with codecs.open(readme_path, encoding="utf8") as ld_file:
-        return ld_file.read()
-
-
-def get_version():
-    pydot_py = os.path.join(CURRENT_DIR, "src", "pydot", "__init__.py")
-    _version_re = re.compile(r"__version__\s+=\s+(?P<version>.*)")
-    with codecs.open(pydot_py, "r", encoding="utf8") as f:
-        match = _version_re.search(f.read())
-        version = match.group("version") if match is not None else '"unknown"'
-    return str(ast.literal_eval(version))
+test.run_tests = run_tests
 
 
 setup(
-    name="pydot",
-    version=get_version(),
-    package_dir={"": "src"},
-    packages=["pydot"],
-    long_description=get_long_description(),
-    long_description_content_type="text/markdown",
+    name="django-comments-xtd",
+    version="2.8.2",
+    packages=find_packages(),
+    include_package_data=True,
+    license="MIT",
+    description=("Django Comments Framework extension app with thread "
+                 "support, follow up notifications and email "
+                 "confirmations."),
+    long_description=("A reusable Django app that extends django-contrib-"
+                      "comments Framework with thread support, following up "
+                      "notifications and comments that only hits the "
+                      "database after users confirm them by email."),
+    author="Daniel Rus Morales",
+    author_email="mbox@danir.us",
+    maintainer="Daniel Rus Morales",
+    maintainer_email="mbox@danir.us",
+    url="http://pypi.python.org/pypi/django-comments-xtd",
+    install_requires=[
+        'Django>=2.2',
+        'django-contrib-comments>=1.9',
+        'djangorestframework>=3.9',
+        'docutils',
+        'six',
+    ],
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Framework :: Django',
+        'Natural Language :: English',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content :: News/Diary',
+    ],
+    test_suite="dummy",
+    zip_safe=True
 )
