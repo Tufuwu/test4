@@ -1,14 +1,10 @@
-version: 2
-
-sphinx:
-  configuration: docs/conf.py
-
-formats: all
+formats: []
 
 build:
   image: latest
 
 python:
-  version: 3.8
-  install:
-    - requirements: requirements.txt
+  version: 3.6
+  pip_install: true
+
+requirements_file: requirements-test.txt
