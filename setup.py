@@ -1,67 +1,68 @@
-"""
-Release process:
-    1. Update ofxtools.__version__.__version__
-    2. Change download_url below
-    3. Commit changes & push
-    4.  Test: `python setup.py sdist`
-    5.  Test: `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
-    6.  Test result: Check https://test.pypi.org/project/ofxtools
-    7.  `git tag` the release
-    8.  `git push --tags`
-    9.  Verify that new tag shows at https://github.com/csingley/ofxtools/releases
-    10. `twine upload dist/*`
-    11. `make clean`
-    12. Change download_url back to master; commit & push
-"""
-# stdlib imports
-import os.path
+# setuptools installation of GromacsWrapper
+# Copyright (c) 2008-2011 Oliver Beckstein <orbeckst@gmail.com>
+# Released under the GNU Public License 3 (or higher, your choice)
+#
+# See the files INSTALL and README for details or visit
+# https://github.com/Becksteinlab/GromacsWrapper
+from __future__ import with_statement
 from setuptools import setup, find_packages
 
-__here__ = os.path.dirname(os.path.realpath(__file__))
+import versioneer
 
-ABOUT = {}
-with open(os.path.join(__here__, "ofxtools", "__version__.py"), "r") as f:
-    exec(f.read(), ABOUT)
+with open("README.rst") as readme:
+    long_description = readme.read()
 
-with open(os.path.join(__here__, "README.rst"), "r") as f:
-    README = f.read()
 
-URL_BASE = "{}/tarball".format(ABOUT["__url__"])
-
-setup(
-    name=ABOUT["__title__"],
-    version=ABOUT["__version__"],
-    description=ABOUT["__description__"],
-    long_description=README,
-    long_description_content_type="text/x-rst",
-    author=ABOUT["__author__"],
-    author_email=ABOUT["__author_email__"],
-    url=ABOUT["__url__"],
-    packages=find_packages(),
-    package_data={"ofxtools": ["README.rst", "py.typed", "config/*"]},
-    python_requires=">=3.8",
-    license=ABOUT["__license__"],
-    # Note: change 'master' to the tag name when releasing a new verion
-    download_url="{}/master".format(URL_BASE),
-    # download_url="{}/{}".format(URL_BASE, ABOUT["__version__"]),
-    entry_points={"console_scripts": ["ofxget=ofxtools.scripts.ofxget:main"]},
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Financial and Insurance Industry",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: Utilities",
-        "Topic :: Office/Business",
-        "Topic :: Office/Business :: Financial",
-        "Topic :: Office/Business :: Financial :: Accounting",
-        "Topic :: Office/Business :: Financial :: Investment",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Operating System :: OS Independent",
-        "Natural Language :: English",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-    ],
-    keywords=["ofx", "Open Financial Exchange"],
-)
+setup(name="GromacsWrapper",
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
+      description="A Python wrapper around the Gromacs tools.",
+      long_description=long_description,
+      author="Oliver Beckstein",
+      author_email="orbeckst@gmail.com",
+      license="GPLv3",
+      url="https://github.com/Becksteinlab/GromacsWrapper",
+      download_url="https://github.com/Becksteinlab/GromacsWrapper/downloads",
+      keywords="science Gromacs analysis 'molecular dynamics'",
+      classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: POSIX',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows ',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
+        'Topic :: Scientific/Engineering :: Chemistry',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+      ],
+      packages=find_packages(
+          exclude=['scripts', 'tests', 'tests.*', 'extras', 'doc/examples']),
+      scripts=[
+          'scripts/gw-join_parts.py',
+          'scripts/gw-merge_topologies.py',
+          'scripts/gw-forcefield.py',
+          'scripts/gw-partial_tempering.py',
+      ],
+      package_data={'gromacs': ['templates/*.sge', 'templates/*.pbs',  # template files
+                                'templates/*.ll', 'templates/*.sh',
+                                'templates/*.mdp', 'templates/*.cfg'
+                                ],
+                    },
+      install_requires=['numpy>=1.0',
+                        'six',          # towards py 3 compatibility
+                        'numkit',       # numerical helpers
+                        'matplotlib',
+                        ],
+      tests_require=['pytest', 'numpy>=1.0', 'pandas>=0.17'],
+      zip_safe=True,
+      )

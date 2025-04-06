@@ -1,96 +1,202 @@
-Open Financial Exchange (OFX) Tools for Python
-==============================================
-
-.. image:: https://travis-ci.org/csingley/ofxtools.svg?branch=master
-    :target: https://travis-ci.org/csingley/ofxtools
-
-.. image:: https://github.com/csingley/ofxtools/actions/workflows/commit-ofxtools.yml/badge.svg
-    :target: https://github.com/csingley/ofxtools/actions/workflows/commit-ofxtools.yml
-
-.. image:: https://coveralls.io/repos/github/csingley/ofxtools/badge.svg?branch=master
-    :target: https://coveralls.io/github/csingley/ofxtools?branch=master
-
-.. image:: https://img.shields.io/badge/dependencies-None-green.svg
-    :target: https://github.com/csingley/ofxtools/blob/master/requirements.txt 
-
-.. image:: https://badge.fury.io/py/ofxtools.svg
-    :target: https://badge.fury.io/py/ofxtools
-
-``ofxtools`` is a Python library for working with Open Financial Exchange (OFX)
-data - the standard format for downloading financial information from banks
-and stockbrokers.  OFX data is widely provided by financial institutions so
-that their customers can import transactions into financial management
-software such as Quicken, Microsoft Money, or GnuCash.
-
-If you want to download your transaction data outside of one of these
-programs - if you wish to develop a Python application to use this data -
-if you need to generate your own OFX-formatted data... ``ofxtools`` is for you!
-
-What is it?
------------
-``ofxtools`` requests, consumes and
-produces both OFXv1 (SGML) and OFXv2 (XML) formats.
-It converts serialized markup to/from native Python objects of
-the appropriate data type, while preserving structure.
-It also handles Quicken's QFX format, although it ignores Intuit's proprietary
-extension tags.
-
-In a nutshell, ``ofxtools`` makes it simple to get OFX data and extract it,
-or export your data in OFX format.
-
-``ofxtools`` takes a comprehensive, standards-based approach to processing OFX.
-It targets compliance with the `OFX specification`_, specifically OFX versions
-1.6 and 2.03.
-
-``ofxtools`` Coverage of the OFX Specification
-    * Section 7 (financial institution profile)
-    * Section 8 (service activation; account information)
-    * Section 9 (email over OFX)
-    * Section 10 (recurring bank transfers)
-    * Section 11 (banking)
-    * Section 12 (bill pay)
-    * Section 13 (investments)
-
-This should cover the great majority of real-world OFX use cases.  A particular
-focus of ``ofxtools`` is full support of the OFX investment message set,
-which has been somewhat neglected by the Python community.
-
-The major item remaining on the ``ofxtools`` "to do" list is to implement the
-tax schemas.  It's currently a low priority to implement Section 14 (bill
-presentment) or the extensions contained in OFX versions beyond 2.03, but
-you're welcome to contribute code if you need these.
-
-Some care has been taken with the data model to make it easily maintainable
-and extensible.  The ``ofxtools.models`` subpackage contains simple, direct
-translations of the relevant sections of the OFX specification.  Using existing
-models as templates, it's quite straightforward to define new models and
-cover more of the spec as needed (the odd corner case notwithstanding).
-
-More than 10 years' worth of OFX data from various financial institutions
-has been run through the ``ofxtools`` parser, with the results checked.  Test
-coverage is high.
-
-Where is it?
-------------
-Full documentation is available at `Read the Docs`_.
-
-For ease of installation, ``ofxtools`` is released on `PyPI`_.
-
-Development of ``ofxtools`` is centralized at `GitHub`_, where you will find
-a `bug tracker`_.
-
-Installation Dependencies
--------------------------
-``ofxtools`` requires Python version 3.8+, and depends only on the standard
-libary (no external dependencies).
-
-**NOTE: As of version 0.6, ofxtools no longer supports Python version 2,
-which went EOL 2020-01-01.**
+.. -*- mode: rst, coding: utf-8 -*-
+.. The whole GromacsWrapper package is Copyright (c) 2009-2018 Oliver
+.. Beckstein and AUTHORS except where noted otherwise.
 
 
-.. _OFX specification: http://www.ofx.net/downloads.html
-.. _Requests: http://docs.python-requests.org/en/master/
-.. _Read the Docs: https://ofxtools.readthedocs.io/
-.. _GitHub: https://github.com/csingley/ofxtools
-.. _bug tracker: https://github.com/csingley/ofxtools/issues
-.. _PyPI: https://pypi.python.org/pypi/ofxtools
+========================
+ README: GromacsWrapper
+========================
+
+|build| |cov| |docs| |zenodo| |PRsWelcome|
+
+A primitive Python wrapper around the Gromacs_ tools. The library is
+tested with Gromacs 4.6.5, 2018.x, 2019.x (and 2016.x also works) and
+is tested with Python 2.7 and 3.6--3.9.
+
+GromacsWrapper also provides a small library (cook book) of often-used
+recipes and helper functions to set up MD simulations.
+
+`Documentation`_ is mostly provided through the python doc strings and
+available at https://gromacswrapper.readthedocs.org for recent releases.
+
+The source code is available in the `GromacsWrapper git repository`_.
+
+Please be aware that this is **beta** software that most definitely
+contains bugs. It is *your* responsibility to ensure that you are
+running simulations with sensible parameters.
+
+.. _Gromacs: http://www.gromacs.org
+.. _Documentation: 
+   https://gromacswrapper.readthedocs.org/en/latest/
+.. _GromacsWrapper git repository:
+   https://github.com/Becksteinlab/GromacsWrapper
+.. |build| image:: https://github.com/Becksteinlab/GromacsWrapper/actions/workflows/ci.yaml/badge.svg?branch=master
+   :target: https://github.com/Becksteinlab/GromacsWrapper/actions/workflows/ci.yaml
+   :alt: Build Status	     
+.. |cov| image:: https://codecov.io/gh/Becksteinlab/GromacsWrapper/badge.svg
+   :target: https://codecov.io/gh/Becksteinlab/GromacsWrapper
+   :alt: Code Coverage
+   :scale: 100%
+.. |zenodo| image:: https://zenodo.org/badge/13219/Becksteinlab/GromacsWrapper.svg
+   :target: https://zenodo.org/badge/latestdoi/13219/Becksteinlab/GromacsWrapper
+   :alt: Latest release on zenodo (with DOI)
+.. |docs| image:: https://readthedocs.org/projects/gromacswrapper/badge/?version=latest
+   :target: https://gromacswrapper.readthedocs.org/en/latest/?badge=latest
+   :alt: Documentation
+.. |PRsWelcome| image:: https://img.shields.io/badge/PRs-welcome-brightgreen.svg
+   :target: http://makeapullrequest.com
+   :alt: PRs Welcome!
+
+Quick Start
+===========
+
+Given a PDB file ``1ake.pdb``, set up and run a simple simulation (assuming
+you have all other input files at hand such as the MDP files)::
+
+  >>> import gromacs
+  >>> print(gromacs.release)
+  2018.2
+  >>> help(gromacs.pdb2gmx)
+  DESCRIPTION
+
+  gmx pdb2gmx reads a .pdb (or .gro) file, reads some database files,
+  adds hydrogens to the molecules and generates coordinates in GROMACS
+  ...
+  ...
+  OPTIONS
+
+  Options to specify input files:
+
+  -f      [<.gro/.g96/...>]  (eiwit.pdb)
+            Structure file: gro g96 pdb brk ent esp tpr
+  ...
+  ...
+  >>> gromacs.pdb2gmx(f="1ake.pdb", o="protein.gro", p="topol.top",
+  ...                 ff="oplsaa", water="tip4p")
+  >>> gromacs.editconf(f="protein.gro", o="boxed.gro",
+  ...                  bt="dodecahedron", d=1.5, princ=True,
+  ...                  input="Protein")
+  >>> gromacs.solvate(cp="boxed.gro", cs="tip4p", p="topol.top",
+  ...                 o="solvated.gro")
+  >>> gromacs.grompp(f="emin.mdp", c="solvated.gro", p="topol.top",
+  ...                o="emin.tpr")
+  >>> gromacs.mdrun(v=True, deffnm="emin")
+  >>> gromacs.grompp(f="md.mdp", c="emin.gro", p="topol.top", o="md.tpr")
+  >>> gromacs.mdrun(v=True, deffnm="md")
+
+
+	 
+License
+=======
+
+The **GromacsWrapper** package is made available under the terms of
+the `GNU Public License v3`_ (or any higher version at your choice)
+except as noted below. See the file COPYING for the licensing terms
+for all modules.
+
+.. _GNU Public License v3: http://www.gnu.org/licenses/gpl.html
+
+The distribution contains third party software that is copyrighted by
+the authors but distributed under licences compatible with this
+package license. Where permitted and necessary, software/files were
+modified to integrate with GromacsWrapper.
+
+
+Installation
+============
+
+Releases
+--------
+
+The `latest version of GromacsWrapper from PyPi`_ and can be installed
+with ::
+
+  pip install GromacsWrapper
+
+.. _`latest version of GromacsWrapper from PyPi`:
+   https://pypi.org/project/GromacsWrapper/
+
+Development version
+-------------------
+
+The *master* branch in the GitHub source repository generally
+contains useful code but nevertheless, things can break in weird and
+wonderful ways. Please report issues through the `Issue Tracker`_ and
+mention that you used the *develop branch*.
+
+To use the *development code base*:  checkout the ``master`` branch::
+
+   git clone https://github.com/Becksteinlab/GromacsWrapper.git
+   cd GromacsWrapper
+
+and install ::
+
+   python setup.py install
+
+
+
+
+Download and Availability
+=========================
+
+The GromacsWrapper home page is
+http://github.com/Becksteinlab/GromacsWrapper.  The latest release of the
+package is being made available from https://github.com/Becksteinlab/GromacsWrapper/releases
+
+You can also clone the `GromacsWrapper git repository`_ or fork for
+your own development::
+
+  git clone git://github.com/Becksteinlab/GromacsWrapper.git
+
+Questions
+=========
+
+Please ask questions in the `Issue Tracker`_ (instead of private email).
+
+
+Reporting Bugs and Contributing to GromacsWrapper
+=================================================
+
+Please use the `Issue Tracker`_ to report bugs, installation problems,
+and feature requests.
+
+**Pull requests** for bug fixes and enhancements are very welcome. See http://makeapullrequest.com for a 
+general introduction on how make a pull request and contribute to open source projects.
+
+.. _Issue Tracker: http://github.com/Becksteinlab/GromacsWrapper/issues
+
+
+Building Documentation
+======================
+
+Install Sphinx::
+
+   pip install sphinx
+
+and compile::
+
+   cd package/doc/sphinx
+   make html
+
+
+Citing
+======
+
+|zenodo|
+
+GromacsWrapper was written by Oliver Beckstein with contributions from
+many other people. Please see the file AUTHORS_ for all the names.
+
+If you find this package useful and use it in published work I'd be
+grateful if it was acknowledged in text as
+
+  "... used GromacsWrapper (Oliver Beckstein et al,
+  https://github.com/Becksteinlab/GromacsWrapper doi: 10.5281/zenodo.17901)"
+
+or in the Acknowledgements section.
+
+Thank you.
+
+.. _AUTHORS:
+   https://raw.githubusercontent.com/Becksteinlab/GromacsWrapper/master/AUTHORS
+

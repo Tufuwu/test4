@@ -1,4 +1,5 @@
-include README.rst
-include LICENSE
-recursive-include ofxtools/config *
-recursive-include ofxtools/tests *
+include   setup.py COPYING README.rst CHANGES AUTHORS
+recursive-include scripts *.py
+graft     gromacs/templates/
+include versioneer.py
+include gromacs/_version.py
