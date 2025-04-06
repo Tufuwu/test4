@@ -1,94 +1,96 @@
-`luma.core <https://github.com/rm-hull/luma.core>`__ **|**
-`luma.docs <https://github.com/rm-hull/luma.docs>`__ **|**
-`luma.emulator <https://github.com/rm-hull/luma.emulator>`__ **|**
-`luma.examples <https://github.com/rm-hull/luma.examples>`__ **|**
-luma.lcd **|**
-`luma.led_matrix <https://github.com/rm-hull/luma.led_matrix>`__ **|**
-`luma.oled <https://github.com/rm-hull/luma.oled>`__
+Toolium
+=======
 
-luma.lcd
-========
-**HD44780, PCD8544, ST7735, ST7567, HT1621, UC1701X, ILI9341 Display Drivers**
+|Build Status| |Coverage Status| |Codacy| |Documentation Status|
 
-.. image:: https://github.com/rm-hull/luma.lcd/workflows/luma.lcd/badge.svg?branch=master
-   :target: https://github.com/rm-hull/luma.lcd/actions?workflow=luma.lcd
+Toolium is a Python wrapper tool of Selenium and Appium libraries to test web and mobile applications in a single
+project. It provides a way of choosing and configuring the driver through a configuration file, implements a Page Object
+pattern and includes a simple visual testing solution.
 
-.. image:: https://coveralls.io/repos/github/rm-hull/luma.lcd/badge.svg?branch=master
-   :target: https://coveralls.io/github/rm-hull/luma.lcd?branch=master
+.. |Build Status| image:: https://github.com/Telefonica/toolium/workflows/build/badge.svg
+   :target: https://github.com/Telefonica/toolium/actions
+.. |Documentation Status| image:: https://readthedocs.org/projects/toolium/badge/?version=latest
+   :target: http://toolium.readthedocs.org/en/latest
+.. |Coverage Status| image:: https://coveralls.io/repos/Telefonica/toolium/badge.svg?branch=master&service=github
+   :target: https://coveralls.io/github/Telefonica/toolium
+.. |Codacy| image:: https://api.codacy.com/project/badge/Grade/2c5121c96c6a4f7aa7fc4ce08a4a26c0
+   :target: https://www.codacy.com/app/rgonalo/toolium?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Telefonica/toolium&amp;utm_campaign=Badge_Grade
 
-.. image:: https://readthedocs.org/projects/luma-lcd/badge/?version=latest
-   :target: http://luma-lcd.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
+Getting Started
+---------------
 
-.. image:: https://img.shields.io/pypi/pyversions/luma.lcd.svg
-   :target: https://pypi.python.org/pypi/luma.lcd
+The requirements to install Toolium are `Python 2.7 or 3.3+ <http://www.python.org>`_ and
+`pip <https://pypi.org/project/pip>`_. If you use Python 2.7.9+, you don't need to install pip separately.
 
-.. image:: https://img.shields.io/pypi/v/luma.lcd.svg
-   :target: https://pypi.python.org/pypi/luma.lcd
+Run ``pip install toolium`` to install the latest version from `PyPi <https://pypi.org/project/toolium>`_. It's
+highly recommendable to use a virtualenv.
 
-.. image:: https://img.shields.io/pypi/dm/luma.lcd
-   :target: https://pypi.python.org/project/luma.lcd
+The main dependencies are:
 
-.. image:: https://img.shields.io/maintenance/yes/2020.svg?maxAge=2592000
+- `Selenium <http://docs.seleniumhq.org/>`_: to test web applications in major browsers (Firefox, Chrome, Internet
+  Explorer, Edge, Safari, Opera)
+- `Appium-Python-Client <https://github.com/appium/python-client>`_: to test mobile applications (native, hybrid or web)
+  in Android or iOS devices/emulators.
+- `requests <http://docs.python-requests.org>`_: to test APIs
 
-luma.lcd provides a Python 3 interface to small LCD displays connected to
-Raspberry Pi and other Linux-based single-board computers (SBC).  It provides a
-Pillow-compatible drawing canvas, and other functionality to support:
+**Using toolium-template**
 
-* scrolling/panning capability,
-* terminal-style printing,
-* state management,
-* color/greyscale (where supported),
-* dithering to monochrome
+The easiest way of getting started is to clone `toolium-template <https://github.com/Telefonica/toolium-template>`_
+project, run the example test and add your own tests and configuration.
 
-It currently supports devices using the HD44780, PCD8544, ST7735, HT1621,
-and UC1701X controllers.
+.. code:: console
 
-All modules can be picked up on ebay with a breakout board for a few pounds.
+    $ git clone git@github.com:Telefonica/toolium-template.git
+    $ cd toolium-template
+    $ pip install -r requirements.txt
 
-.. image:: https://raw.github.com/rm-hull/luma.lcd/master/doc/images/hd44780_20x4.jpg
+Now, just follow `toolium-template instructions <https://github.com/Telefonica/toolium-template#running-tests>`_ to know
+how to start your testing project.
 
-.. image:: https://raw.github.com/rm-hull/luma.lcd/master/doc/images/pcd8544.png
+**Running toolium-examples**
 
-.. image:: https://raw.github.com/rm-hull/luma.lcd/master/doc/images/st7735.jpg
+You can also clone `toolium-examples <https://github.com/Telefonica/toolium-examples>`_ to get more examples about how
+to use the library to test web, Android or iOS applications, in different scenarios.
 
-.. image:: https://raw.github.com/rm-hull/luma.lcd/master/doc/images/ht1621.jpg
+.. code:: console
 
-.. image:: https://raw.github.com/rm-hull/luma.lcd/master/doc/images/uc1701x.png
+    $ git clone git@github.com:Telefonica/toolium-examples.git
+    $ cd toolium-examples
+    $ pip install -r requirements.txt
 
-.. image:: https://raw.github.com/rm-hull/luma.lcd/master/doc/images/ili9341.jpg
+Now, just follow `toolium-examples instructions <https://github.com/Telefonica/toolium-examples#running-tests>`_ to run
+the examples of the tests.
+
+Contributing
+------------
+
+If you want to collaborate in Toolium development, feel free of `forking it <https://github.com/Telefonica/toolium>`_
+and asking for a pull request.
+
+Don't forget to run unit tests:
+
+.. code:: console
+
+    $ git clone git@github.com:<your_github_user>/toolium.git
+    $ cd toolium
+    $ python setup.py test
+
+Finally, before accepting your contribution, we need you to sign our
+`Contributor License Agreement <https://raw.githubusercontent.com/telefonicaid/Licensing/master/ContributionPolicy.txt>`_
+and send it to ruben.gonzalezalonso@telefonica.com.
+
+Main Features
+-------------
+
+- `Choosing driver through a configuration file </docs/driver_configuration.rst>`_
+- `Page Object pattern </docs/page_objects.rst>`_
+- `BDD integration </docs/bdd_integration.rst>`_
+- `Visual testing solution </docs/visual_testing.rst>`_
+- `Tests result analysis </docs/tests_result_analysis.rst>`_
 
 Documentation
 -------------
-Full documentation with installation instructions and examples can be found on
-https://luma-lcd.readthedocs.io.
 
-Breaking changes
-----------------
-Version 2.0.0 was released on 2 June 2019: this came with the removal of the
-``luma.lcd.aux.backlight`` class. The equivalent functionality has now
-been subsumed into the device classes that have a backlight capability.
+Further information about features and fixes included in each release: `CHANGELOG </CHANGELOG.rst>`_.
 
-License
--------
-The MIT License (MIT)
-
-Copyright (c) 2013-2020 Richard Hull & Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Complete library reference and documentation available at `ReadTheDocs <http://toolium.readthedocs.org>`_.
