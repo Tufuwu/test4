@@ -41,7 +41,7 @@ help:
 clean:
 	-rm -rf $(BUILDDIR)/*
 
-html: apidocs
+html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
@@ -77,17 +77,17 @@ qthelp:
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
 	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/Fiona.qhcp"
+	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/django-dbbackup.qhcp"
 	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/Fiona.qhc"
+	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/django-dbbackup.qhc"
 
 devhelp:
 	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/Fiona"
-	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/Fiona"
+	@echo "# mkdir -p $$HOME/.local/share/devhelp/django-dbbackup"
+	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/django-dbbackup"
 	@echo "# devhelp"
 
 epub:
@@ -151,8 +151,3 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
-
-apidocs:
-	sphinx-apidoc -f -o . ../fiona
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
