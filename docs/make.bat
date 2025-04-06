@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=msoffcrypto-tool
+set SPHINXPROJ=django-allauth-2fa
 
 if "%1" == "" goto help
 
