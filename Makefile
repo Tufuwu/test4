@@ -1,58 +1,76 @@
-MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-MAKEFILE_DIR := $(dir ${MAKEFILE_PATH})
+.PHONY: clean-pyc clean-build docs clean install uninstall
 
-# Test images as run on CI.
-image_vim_74_py35:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.5-stretch --build-arg VIM_VERSION=7.4 .
-image_vim_80_py35:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.5-stretch --build-arg VIM_VERSION=8.0 .
-image_vim_81_py35:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.5-stretch --build-arg VIM_VERSION=8.1 .
-image_vim_82_py35:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.5-stretch --build-arg VIM_VERSION=8.2 .
-image_vim_git_py35:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.5-stretch --build-arg VIM_VERSION=git .
-image_vim_74_py36:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.6-stretch --build-arg VIM_VERSION=7.4 .
-image_vim_80_py36:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.6-stretch --build-arg VIM_VERSION=8.0 .
-image_vim_81_py36:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.6-stretch --build-arg VIM_VERSION=8.1 .
-image_vim_82_py36:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.6-stretch --build-arg VIM_VERSION=8.2 .
-image_vim_git_py36:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.6-stretch --build-arg VIM_VERSION=git .
-# 74 and 80 do not build with py37 and py38. The build errors out with "Require native threads".
-image_vim_81_py37:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.7-stretch --build-arg VIM_VERSION=8.1 .
-image_vim_82_py37:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.7-stretch --build-arg VIM_VERSION=8.2 .
-image_vim_git_py37:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.7-stretch --build-arg VIM_VERSION=git .
-image_vim_81_py38:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.8-buster --build-arg VIM_VERSION=8.1 .
-image_vim_82_py38:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.8-buster --build-arg VIM_VERSION=8.2 .
-image_vim_git_py38:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.8-buster --build-arg VIM_VERSION=git .
-image_vim_81_py39:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.9-buster --build-arg VIM_VERSION=8.1 .
-image_vim_82_py39:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.9-buster --build-arg VIM_VERSION=8.2 .
-image_vim_git_py39:
-	docker build -t ultisnips:$@ --build-arg PYTHON_IMAGE=3.9-buster --build-arg VIM_VERSION=git .
+help:
+	@echo "clean - remove all build, test, coverage and Python artifacts"
+	@echo "clean-build - remove build artifacts"
+	@echo "clean-pyc - remove Python file artifacts"
+	@echo "clean-sites - remove deploy directory from starter site"
+	@echo "clean-test - remove test and coverage artifacts"
+	@echo "lint - check style with flake8"
+	@echo "test - run tests quickly with the default Python"
+	@echo "test-all - run tests on every Python version with tox"
+	@echo "coverage - check code coverage quickly with the default Python"
+	@echo "docs - generate Sphinx HTML documentation, including API docs"
+	@echo "docs-release - generate and upload docs to PyPI"
+	@echo "release - package and upload a release"
+	@echo "dist - package"
 
-image_repro: image_vim_82_py39
-	docker build -t ultisnips:repro --build-arg BASE_IMAGE=$< -f Dockerfile.repro .
+clean: clean-build clean-pyc clean-sites clean-test
 
-# A reproduction image that drops you into a naked environment,
-# with a Vim having UltiSnips and vim-snippets configured. See
-# docker/docker_vimrc.vim for the full vimrc. Need to run `make
-# image_repro` before this will work.
-repro:
-	docker run -it -v ${MAKEFILE_DIR}:/src/UltiSnips ultisnips:repro /bin/bash
+clean-build:
+	rm -fr build/
+	rm -fr dist/
+	rm -fr .eggs/
+	rm -fr *.egg-info
 
-# This assumes, the repro image is already running and it opens an extra shell
-# inside the running container
-shell_in_repro:
-	docker exec -it $(shell docker ps -q) /bin/bash
+clean-pyc:
+	find . -name '*.pyc' -exec rm -f {} +
+	find . -name '*.pyo' -exec rm -f {} +
+	find . -name '*~' -exec rm -f {} +
+	find . -name '__pycache__' -exec rm -fr {} +
+
+clean-sites:
+	find logya/sites/ -type d -name deploy -exec rm -rf {} +
+
+clean-test:
+	rm -fr t/
+	rm -fr .tox/
+	rm -f .coverage
+	rm -fr htmlcov/
+
+install: clean
+	python setup.py install
+
+uninstall:
+	pip uninstall -y logya
+
+reinstall: uninstall install
+
+lint:
+	flake8 logya tests
+
+test:
+	python setup.py test
+
+coverage:
+	coverage run --source logya setup.py test
+	coverage report -m
+
+docs:
+	rm -f docs/logya.rst
+	rm -f docs/modules.rst
+	sphinx-apidoc -o docs/ logya
+	$(MAKE) -C docs clean
+	$(MAKE) -C docs html
+	firefox docs/_build/html/index.html
+
+dist: clean
+	python setup.py sdist
+	python setup.py bdist_wheel
+	ls -l dist
+
+# Call example: make release version=4.7.1
+release: dist
+	git tag -a $(version) -m 'Create version $(version)'
+	git push --tags
+	twine upload dist/*
