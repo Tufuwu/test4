@@ -1,40 +1,148 @@
-[![GitHub release](https://img.shields.io/github/release/add-ons/plugin.video.viervijfzes.svg?include_prereleases)](https://github.com/add-ons/plugin.video.viervijfzes/releases)
-[![Build Status](https://img.shields.io/github/workflow/status/add-ons/plugin.video.viervijfzes/CI/master)](https://github.com/add-ons/plugin.video.viervijfzes/actions?query=branch%3Amaster)
-[![Codecov status](https://img.shields.io/codecov/c/github/add-ons/plugin.video.viervijfzes/master)](https://codecov.io/gh/add-ons/plugin.video.viervijfzes/branch/master)
-[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
-[![Contributors](https://img.shields.io/github/contributors/add-ons/plugin.video.viervijfzes.svg)](https://github.com/add-ons/plugin.video.viervijfzes/graphs/contributors)
+# Fierce
 
-# VIER VIJF ZES Kodi add-on
+[![CI](https://github.com/mschwager/fierce/actions/workflows/ci.yml/badge.svg)](https://github.com/mschwager/fierce/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/mschwager/fierce/badge.svg?branch=master)](https://coveralls.io/github/mschwager/fierce?branch=master)
+[![Dlint](https://github.com/mschwager/fierce/actions/workflows/dlint.yml/badge.svg)](https://github.com/mschwager/fierce/actions/workflows/dlint.yml)
+[![Python Versions](https://img.shields.io/pypi/pyversions/fierce.svg)](https://img.shields.io/pypi/pyversions/fierce.svg)
+[![PyPI Version](https://img.shields.io/pypi/v/fierce.svg)](https://img.shields.io/pypi/v/fierce.svg)
 
-*plugin.video.viervijfzes* is een Kodi add-on om de video-on-demand content van [vier.be](https://www.vier.be/), [vijf.be](https://www.vijf.be/) en [zestv.be](https://www.zestv.be/) te bekijken. 
+Fierce is a `DNS` reconnaissance tool for locating non-contiguous IP space.
 
-> Note: Je moet eerst een account aanmaken op één van bovenstaande websites.
+Useful links:
 
-## Installatie
+* [Domain Name System (DNS)](https://en.wikipedia.org/wiki/Domain_Name_System)
+  * [Domain Names - Concepts and Facilities](https://tools.ietf.org/html/rfc1034)
+  * [Domain Names - Implementation and Specification](https://tools.ietf.org/html/rfc1035)
+  * [Threat Analysis of the Domain Name System (DNS)](https://tools.ietf.org/html/rfc3833)
+* [Name Servers (NS)](https://en.wikipedia.org/wiki/Domain_Name_System#Name_servers)
+* [State of Authority Record (SOA)](https://en.wikipedia.org/wiki/List_of_DNS_record_types#SOA)
+* [Zone Transfer](https://en.wikipedia.org/wiki/DNS_zone_transfer)
+  * [DNS Zone Transfer Protocol (AXFR)](https://tools.ietf.org/html/rfc5936)
+  * [Incremental Zone Transfer in DNS (IXFR)](https://tools.ietf.org/html/rfc1995)
+* [Wildcard DNS Record](https://en.wikipedia.org/wiki/Wildcard_DNS_record)
 
-Deze addon staat momenteel nog niet de repository van Kodi zelf, je moet deze voorlopig nog handmatig installeren en updaten.
+# Overview
 
-Je kan de [laatste release](https://github.com/add-ons/plugin.video.viervijfzes/releases) downloaden, of een [development zip](https://github.com/add-ons/plugin.video.viervijfzes/archive/master.zip) van Github downloaden met de laatste wijzigingen.
+First, credit where credit is due, `fierce` was originally written by RSnake
+along with others at http://ha.ckers.org/. This is simply a conversion to
+Python 3 to simplify and modernize the codebase.
 
-## Features
+The original description was very apt, so I'll include it here:
 
-De volgende features worden ondersteund:
-* Bekijk on-demand content van VIER, VIJF en ZES
-* Programma's rechtstreeks afspelen vanuit de tv-gids
-* Doorzoeken van alle programma's
-* Afspelen van gerelateerde Youtube content
+> Fierce is a semi-lightweight scanner that helps locate non-contiguous
+> IP space and hostnames against specified domains. It's really meant
+> as a pre-cursor to nmap, unicornscan, nessus, nikto, etc, since all 
+> of those require that you already know what IP space you are looking 
+> for. This does not perform exploitation and does not scan the whole 
+> internet indiscriminately. It is meant specifically to locate likely 
+> targets both inside and outside a corporate network. Because it uses 
+> DNS primarily you will often find mis-configured networks that leak 
+> internal address space. That's especially useful in targeted malware.
 
-## Screenshots
+# Installing
 
-<table>
-  <tr>
-    <td><img src="resources/screenshot01.jpg" width=270></td>
-    <td><img src="resources/screenshot02.jpg" width=270></td>
-    <td><img src="resources/screenshot03.jpg" width=270></td>
-  </tr>
- </table>
+```
+$ python -m pip install fierce
+$ fierce -h
+```
 
-## Disclaimer
+OR
 
-Deze add-on wordt niet ondersteund door SBS Belgium, en wordt aangeboden 'as is', zonder enige garantie.
-De logo's van VIER, VIJF en ZES zijn eigendom van SBS België.
+```
+$ git clone https://github.com/mschwager/fierce.git
+$ cd fierce
+$ python -m pip install -r requirements.txt
+$ python fierce/fierce.py -h
+```
+
+*Requires Python 3.*
+
+# Using
+
+Let's start with something basic:
+
+```
+$ fierce --domain google.com --subdomains accounts admin ads
+```
+
+Traverse IPs near discovered domains to search for contiguous blocks with the
+`--traverse` flag:
+
+```
+$ fierce --domain facebook.com --subdomains admin --traverse 10
+```
+
+Limit nearby IP traversal to certain domains with the `--search` flag:
+
+```
+$ fierce --domain facebook.com --subdomains admin --search fb.com fb.net
+```
+
+Attempt an `HTTP` connection on domains discovered with the `--connect` flag:
+
+```
+$ fierce --domain stackoverflow.com --subdomains mail --connect
+```
+
+Exchange speed for breadth with the `--wide` flag, which looks for nearby
+domains on all IPs of the [/24](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks)
+of a discovered domain:
+
+```
+$ fierce --domain facebook.com --wide
+```
+
+Zone transfers are rare these days, but they give us the keys to the DNS castle.
+[zonetransfer.me](https://digi.ninja/projects/zonetransferme.php) is a very
+useful service for testing for and learning about zone transfers:
+
+```
+$ fierce --domain zonetransfer.me
+```
+
+To save the results to a file for later use we can simply redirect output:
+
+```
+$ fierce --domain zonetransfer.me > output.txt
+```
+
+Internal networks will often have large blocks of contiguous IP space assigned.
+We can scan those as well:
+
+```
+$ fierce --dns-servers 10.0.0.1 --range 10.0.0.0/24
+```
+
+Check out `--help` for further information:
+
+```
+$ fierce --help
+```
+
+# Developing
+
+First, install development packages:
+
+```
+$ python -m pip install -r requirements.txt
+$ python -m pip install -r requirements-dev.txt
+$ python -m pip install -e .
+```
+
+## Testing
+
+```
+$ pytest
+```
+
+## Linting
+
+```
+$ flake8
+```
+
+## Coverage
+
+```
+$ pytest --cov
+```
