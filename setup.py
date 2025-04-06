@@ -1,57 +1,68 @@
-import os
+from setuptools import find_packages
+from setuptools import setup
 
-from setuptools import find_packages, setup
-
-VERSION = __import__("import_export").__version__
-
-CLASSIFIERS = [
-    'Framework :: Django',
-    'Framework :: Django :: 2.2',
-    'Framework :: Django :: 3.1',
-    'Framework :: Django :: 3.2',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: BSD License',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.6',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3 :: Only',
-    'Topic :: Software Development',
-]
-
-install_requires = [
-    'diff-match-patch',
-    'Django>=2.2',
-    'tablib[html,ods,xls,xlsx,yaml]>=3.0.0',
-]
-
-
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
-    readme = f.read()
+__version__ = '0.31.0'
 
 
 setup(
-    name="django-import-export",
-    description="Django application and library for importing and exporting"
-                " data with included admin integration.",
-    long_description=readme,
-    version=VERSION,
-    author="Informatika Mihelac",
-    author_email="bmihelac@mihelac.org",
-    license='BSD License',
-    platforms=['OS Independent'],
-    url="https://github.com/django-import-export/django-import-export",
-    project_urls={
-        "Documentation": "https://django-import-export.readthedocs.io/en/stable/",
-        "Changelog": "https://django-import-export.readthedocs.io/en/stable/changelog.html",
+    name='cartography',
+    version=__version__,
+    description='Explore assets and their relationships across your technical infrastructure.',
+    url='https://www.github.com/lyft/cartography',
+    maintainer='Lyft',
+    maintainer_email='security@lyft.com',
+    license='apache2',
+    packages=find_packages(exclude=['tests*']),
+    package_data={
+        'cartography.data': [
+            '*.cypher',
+            '*.yaml',
+        ],
+        'cartography.data.jobs.analysis': [
+            '*.json',
+        ],
+        'cartography.data.jobs.cleanup': [
+            '*.json',
+        ],
     },
-    packages=find_packages(exclude=["tests"]),
-    include_package_data=True,
-    install_requires=install_requires,
-    python_requires=">=3.6",
-    classifiers=CLASSIFIERS,
-    zip_safe=False,
+    dependency_links=[],
+    install_requires=[
+        "boto3>=1.15.1",
+        "botocore>=1.18.1",
+        "dnspython>=1.15.0",
+        "neo4j>=1.7.6,<4.0.0",
+        "neobolt>=1.7.0,<4.0.0",
+        "policyuniverse>=1.1.0.0",
+        "google-api-python-client>=1.7.8",
+        "oauth2client>=4.1.3",
+        "marshmallow>=3.0.0rc7",
+        "okta<1.0.0",
+        "pyyaml>=5.3.1",
+        "requests>=2.22.0",
+        "statsd",
+        "packaging",
+    ],
+    extras_require={
+        ':python_version<"3.7"': [
+            "importlib-resources",
+        ],
+    },
+    entry_points={
+        'console_scripts': [
+            'cartography = cartography.cli:main',
+            'cartography-detectdrift = cartography.driftdetect.cli:main',
+        ],
+    },
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Natural Language :: English',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Topic :: Security',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ],
 )
