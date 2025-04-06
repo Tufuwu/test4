@@ -1,213 +1,182 @@
-# PSRQpy
+# [repostat](https://github.com/vifactor/repostat)
+Python3-compatible Git repository analyser and HTML-report generator 
+with [nvd3](http://nvd3.org/) -driven interactive metrics visualisations.
 
-This module aims to provide a python interface for querying the [ATNF pulsar catalogue](http://www.atnf.csiro.au/people/pulsar/psrcat/). It is an unofficial
-package and is not endorsed by or affiliated with the ATNF.
+**May not work with Python 3.9+!** See https://github.com/vifactor/repostat/issues/198
 
-Full documentation of the module can be found [here](http://psrqpy.readthedocs.io/).
+Initially, a fork of [gitstats](https://github.com/hoxu/gitstats) tool.
 
-Any comments or suggestions are welcome.
+---
+Check how a *repostat*'s report looks like by going to:
+
+https://repostat.imfast.io/
+
 
 ## Installation
-
-To install the code from source, clone the git repository and run either:
-
-```
-python setup.py install --user
-```
-
-to install as a user, or
-
-```
-sudo python setup.py install
-```
-
-to install as root.
-
-The module can also be installed using `pip` with:
-
-```
-pip install psrqpy
-```
-
-or in a [Conda](https://docs.conda.io/en/latest/) environment using:
-
-```
-conda install -c conda-forge psrqpy
-```
-
-### Requirements
-
-The [requirements](requirements.txt) for installing the code are:
-
- * [`requests`](http://docs.python-requests.org/en/master/)
- * [`beautifulsoup4`](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
- * [`numpy`](http://www.numpy.org/)
- * [`scipy`](https://www.scipy.org/)
- * [`astropy`](http://www.astropy.org/)
- * [`pandas`](https://pandas.pydata.org/)
- * [`ads`](https://ads.readthedocs.io/en/latest/)
- * [`matplotlib`](https://matplotlib.org/)
-
-## Examples
-
-A simple query of the catalogue to, e.g., just return all pulsar frequencies, would be:
-
-```python
-import psrqpy
-
-q = psrqpy.QueryATNF(params='F0')
-
-# get frequencies as an astropy table
-t = q.table
-
-print(t['F0'])
-```
-
-You can query multiple parameters, e.g.:
-
-```python
-import psrqpy
-
-q = psrqpy.QueryATNF(params=['F0', 'F1', 'RAJ', 'DecJ'])
-
-# get values as an astropy table
-t = q.table
-
-print(t['F0'])
-```
-
-You can query specific pulsars, e.g.:
-
-```
-import psrqpy
-
-q = psrqpy.QueryATNF(params=['F0', 'F1', 'RAJ', 'DecJ'], psrs=['J0534+2200', 'J0537-6910'])
-
-# get values as an astropy table
-t = q.table
-
-# print the table
-print(t)
-  JNAME          F0       F0_ERR       F1      F1_ERR     RAJ      RAJ_ERR     DECJ     DECJ_ERR
-                 Hz         Hz       1 / s2    1 / s2                                           
----------- ------------- ------- ------------- ------ ------------ ------- ------------ --------
-J0534+2200     29.946923   1e-06  -3.77535e-10  2e-15 05:34:31.973   0.005 +22:00:52.06     0.06
-J0537-6910 62.0261895958 1.3e-09 -1.992272e-10  4e-17 05:37:47.416    0.11 -69:10:19.88      0.6
-```
-
-You can set [conditions](http://www.atnf.csiro.au/research/pulsar/psrcat/psrcat_help.html?type=normal#condition) for the searches,
-e.g.:
-
-```python
-import psrqpy
-q = psrqpy.QueryATNF(params=['Jname', 'f0'], condition='f0 > 100 && f0 < 200', assoc='GC')
-```
-
-where `assoc=GC` looks for all pulsars in globular clusters.
-
-When a query is generated the entire catalogue is downloaded and stored in the `QueryATNF` object as
-a pandas [`DataFrame`](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html).
-The query can therefore be re-used to access data on different parameters, different pulsars, or
-using different conditions, without the need to re-download the catalogue. We may originally want
-to query pulsar frequencies using only frequencies greater than 10 Hz, with
-
-```python
-import psrqpy
-q = psrqpy.QueryATNF(params=['F0'], condition='F0 > 10')
-freqs = q.table['F0']
-```
-
-Using the same `QueryATNF` object we could change to get frequency derivatives for pulsars
-with frequencies less than 10 Hz, with
-
-```python
-q.condition = 'F0 < 10'
-q.query_params = 'F1'
-
-fdot = q.table['F1']
-```
-
-In these cases the whole catalogue (with no conditions applied and all available parameters) stored as a pandas [`DataFrame`](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html)
-is accessible with
-
-```python
-catalogue = q.catalogue
-```
-
-You can also [generate](http://psrqpy.readthedocs.io/en/latest/query.html#psrqpy.search.QueryATNF.ppdot) a
-_lovely_ period vs. period derivative plot based on the latest catalogue information, using
-just three lines of code, e.g.:
-
-```python
-from psrqpy import QueryATNF
-query = QueryATNF(params=['P0', 'P1', 'ASSOC', 'BINARY', 'TYPE', 'P1_I'])
-query.ppdot(showSNRs=True, showtypes='all')
-```
-
-gives
-
-![PPdot](../master/docs/source/images/ppdot.png)
-
-## Development and Support
-
-Code development is done via the package's [GitHib repository](https://github.com/mattpitkin/psrqpy).
-Any contributions can be made via a [fork and pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork/) model
-from that repository, and must adhere to the [MIT license](#License). Any problems with the code
-or support requests can be submitted via the repository's [Issue tracker](https://github.com/mattpitkin/psrqpy/issues).
-
-## Test suite
-
-There are tests supplied that cover many of the functions within PSRQpy. These can be run from the
-base directory of the repository (after installing the [`pytest`](https://docs.pytest.org/en/latest/) and
-[`pytest-socket`](https://pypi.org/project/pytest-socket/) modules, e.g., with `pip`) by just calling:
-
+Starting from v2.0.0, *repostat* is installable from [PyPi](https://pypi.org/project/repostat-app/)
+under the name *repostat-app*. Installation should be as simple as:
 ```bash
-pytest
+pip3 install repostat-app
+```
+#### Newest and older versions
+- To install a development version with newest changes from
+[*repostat*'s github repository](https://github.com/vifactor/repostat),
+the following command may be executed:
+    ```bash
+    sudo pip3 install git+https://github.com/vifactor/repostat
+    ```
+    This command installs *repostat* from HEAD of `master` branch.
+
+- To install *repostat* at specific tag or branch, use the following syntax
+    ```bash
+    sudo pip3 install git+https://github.com/vifactor/repostat@<branch|tag>
+    ```
+*NOTE:*
+Versions prior to v2.0.0 have additional system-dependencies, e.g.
+`gnuplot`.
+
+### OS-specific requirements
+
+#### Linux installation
+![Repostat for Ubuntu 20.04](https://github.com/vifactor/repostat/workflows/Repostat%20for%20Ubuntu%2020.04/badge.svg)
+
+`python3-pip` must be in the system and then installation via `pip`
+works fine.
+
+#### Mac OS (Catalina) installation
+![Repostat for Mac OS](https://github.com/vifactor/repostat/workflows/Repostat%20for%20Mac%20OS/badge.svg)
+
+Prior to installing repostat one needs to make sure to have
+*right version* of libgit2 in the system. This can be achieved
+- following [pygit2 installation](https://www.pygit2.org/install.html#id13) instructions
+- (not recommended) installing it via Homebrew
+```bash
+$ brew update
+$ brew install libgit2
+```
+Then, install *repostat* via:
+```
+$ pip3 install repostat-app
 ```
 
-These tests are not included in the `pip` installed version of the code.
+*NOTE*:
+1) Homebrew-way to install packages is slow and may break system dependencies.
+2) repostat's [CI for OSX](https://github.com/vifactor/repostat/blob/master/.github/workflows/repostat_macos.yml)
+builds libgit2 from source.
 
-## Copyright and referencing for the catalogue
+### Windows installation
+![Repostat for Windows](https://github.com/vifactor/repostat/workflows/Repostat%20for%20Windows%202019/badge.svg)
 
-Regarding the use of the catalogue and software behind it, the [following statements](http://www.atnf.csiro.au/research/pulsar/psrcat/download.html) apply:
+Once there is python v3.6+ in the system path, *repostat* can be installed via:
+```shell script
+python -m pip install repostat-app
+```
 
-> PSRCAT is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. PSRCAT is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
->
-> PSRCAT makes use of "evaluateExpression: A Simple Expression Evaluator". Copyright &copy; 1996 - 1999 Parsifal Software, All Rights Reserved.
->
-> The programs and databases remain the property of the Australia Telescope National Facility, CSIRO, and are covered by the [CSIRO Legal Notice and Disclaimer](http://www.csiro.au/en/About/Footer/Legal-notice).
->
-> If you make use of information from the ATNF Pulsar Catalogue in a publication, we would appreciate acknowledgement by reference to the publication "[The ATNF Pulsar Catalogue](http://adsabs.harvard.edu/abs/2005AJ....129.1993M)", R. N. Manchester, G. B. Hobbs, A. Teoh & M. Hobbs, Astronomical Journal, 129, 1993-2006 (2005) and by quoting the web address http://www.atnf.csiro.au/research/pulsar/psrcat for updated versions.
+*NOTE*: On Windows 10+, symlink to `general.html` is not generated, when
+*repostat* launched by an unprivileged user. 
+___
+## Usage
+```bash
+repostat [--help] [--version] [--config_file CONFIG_FILE_PATH]
+                 git_repository_path report_output_path
+```
+Run `repostat --help` for details.
 
-If making use of this code to access the catalogue, or produce plots, I would be grateful if (as well as citing the ATNF pulsar catalogue [paper](http://adsabs.harvard.edu/abs/2005AJ....129.1993M) and [URL](http://www.atnf.csiro.au/research/pulsar/psrcat) given above) you consider citing the [JOSS](http://joss.theoj.org/) [paper](https://doi.org/10.21105/joss.00538) for this software:
+### Configuration file
 
-```tex
-@article{psrqpy,
-  author = {{Pitkin}, M.},
-   title = "{psrqpy: a python interface for querying the ATNF pulsar catalogue}",
-  volume = 3,
-  number = 22,
-   pages = 538,
-   month = feb,
-    year = 2018,
- journal = "{Journal of Open Source Software}",
-     doi = {10.21105/joss.00538},
-     url = {https://doi.org/10.21105/joss.00538}
+A report can be customized using a JSON settings file. The file is passed
+using the `--config-file` option as follows:
+
+```
+repostat --config-file <path_to_config.json> <repo_path> <out_path>
+```
+Configuration file might contain following fields (all are optional):
+```json
+{
+    "max_domains": 10,
+    "max_authors": 7,
+    "max_plot_authors_count": 10,
+    "max_authors_of_months": 6,
+    "authors_top": 5,
+    "colormap": "classic",
+    "max_recent_tags": -1,
+    "orphaned_extension_count": 2,
+    "time_sampling": "W"
 }
 ```
+Detailed information about role of the fields is below.
 
-## License
+#### Authors page configuration
 
-This code is licensed under the [MIT License](http://opensource.org/licenses/MIT).
+These values are usually adjusted to accommodate projects with various number
+of contributors and activity levels, to avoid showing too much or too little
+information.
 
-&copy; Matt Pitkin, 2017
+* `max_domains`: number of e-mail domains to show in author stats
+* `max_authors`: number of authors in the "top authors" table 
+(other authors are listed without detailed stats)
+* `max_plot_authors_count`: number of authors to include in plots
+in "Authors"-page (rest of the authors will be grouped as "Others"). 
+* `max_authors_of_months`: number of months for which "author of 
+the month" should be displayed
+* `authors_top`: number of authors to show for each month/year in the
+author of month/year list
+* `orphaned_extension_count`: max file extension count to be 
+considered as `orphaned` and displayed in report in the corresponding
+category (default: 0, i.e. all extensions are displayed)
 
-[![PyPI version](https://badge.fury.io/py/psrqpy.svg)](https://badge.fury.io/py/psrqpy)
-[![Anaconda-Server Badge](https://anaconda.org/conda-forge/psrqpy/badges/version.svg)](https://anaconda.org/conda-forge/psrqpy)
-[![version](https://img.shields.io/pypi/pyversions/psrqpy.svg)](https://pypi.org/project/psrqpy/)
-[![Build Status](https://travis-ci.org/mattpitkin/psrqpy.svg?branch=master)](https://travis-ci.org/mattpitkin/psrqpy)
-[![codecov](https://codecov.io/gh/mattpitkin/psrqpy/branch/master/graph/badge.svg)](https://codecov.io/gh/mattpitkin/psrqpy)
-[![Documentation Status](https://readthedocs.org/projects/psrqpy/badge/?version=latest)](http://psrqpy.readthedocs.io/en/latest/?badge=latest)
-[![status](http://joss.theoj.org/papers/711dc5566159f6e9f8ea5d07dbfaf5d2/status.svg)](http://joss.theoj.org/papers/711dc5566159f6e9f8ea5d07dbfaf5d2)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1489692.svg)](https://doi.org/10.5281/zenodo.1489692)
-[![ASCL](https://img.shields.io/badge/ascl-1812.017-blue.svg?colorB=262255)](http://ascl.net/1812.017)
+#### Colorscheme configuration
+
+The colors of the thread "heat maps" tables in the activity page can be customized
+using the "colormap" option. The allowed values are:
+
+* `classic`: (default) uses shades of red only, like gitstats
+* `plasma`: uses the ["plasma" colormap](https://bids.github.io/colormap/)
+* `viridis`: uses the ["viridis" colormap](https://bids.github.io/colormap/)
+* `clrscc`: uses a selection of colors from https://clrs.cc/
+
+#### History plots sampling
+is controlled by `"time_sampling"` field in configuration file and
+defines how timeseries , e.g. number of files over a
+repository history, are sampled. By default, weekly-sampling is used.
+For old repositories one might want to increase that value to
+month or even quarter.
+Accepted values for `"time_sampling"` are the [Pandas' Offset aliases](https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases)
+
+#### Tags rendering
+
+Some git repositories contain thousands of tags most of which are not 
+worth to check. Since v.1.3.0 there is a possibility to limit the number 
+of tags displayed in "Tags" tab of the HTML report or even hide the tab.
+
+The feature is controlled by "max_recent_tags" field
+
+If JSON file has following content `{ [...], "max_recent_tags": 8 }`,
+the report will contain the 8 most recent tags in "Tags" page. Setting the
+field `max_recent_tags` to zero will not render "Tags" page at all. If
+no such field is provided in JSON settings, the report will contain a "Tags"
+page with all tags in the analysed repository.
+
+### Additional features
+
+#### Mailmap
+Starting from v1.1.2+ repostat supports [git mailmap](https://git-scm.com/docs/git-check-mailmap). 
+Two things are required in order to make the feature working:
+- have pygit2 v.0.28+ installed
+- create and fill .mailmap file (e.g. in the root of your repository)
+
+#### Relocatable reports
+By default, images, css- and js-files required for html report
+rendering do not get copied to a report directory. Html pages contain 
+absolute paths to assets located in *repostat*'s package installation
+directory.
+
+Starting from v.1.0.x, the `--copy-assets` command-line option forces
+program to copy assets to generated report and embed relative paths
+in the generated html-files.
+
+## How to contribute
+
+Bug reports and feature requests as well as pull requests are welcome.
+Please, check the ["Issues"](https://github.com/vifactor/repostat/issues)
+on github to find something you would like to work on.
