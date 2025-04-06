@@ -1,3 +1,7 @@
-brunnhilde.egg-info/
-dist/
-.tox/
+.idea
+cover
+.coverage
+hbp_neuromorphic_platform.egg-info
+dist
+*.pyc
+test/test_env.sh

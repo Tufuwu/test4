@@ -1,1 +1,4 @@
--r requirements/base.txt
+requests
+# the following are needed only for the command-line tool, not for the Python client
+click
+pyyaml
