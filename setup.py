@@ -1,67 +1,73 @@
-#!/usr/bin/env python
-# Copyright 2005-2011 Divmod, Inc.
-# Copyright 2013 Florent Xicluna.  See LICENSE file for details
-from __future__ import with_statement
+import os
+from codecs import open
 
-import os.path
+from setuptools import find_packages, setup
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-    extra = {'scripts': ["bin/pyflakes"]}
-else:
-    extra = {
-        'test_suite': 'pyflakes.test',
-        'entry_points': {
-            'console_scripts': ['pyflakes = pyflakes.api:main'],
-        },
-    }
+here = os.path.dirname(__file__)
 
 
-def get_version(fname=os.path.join('pyflakes', '__init__.py')):
-    with open(fname) as f:
-        for line in f:
-            if line.startswith('__version__'):
-                return eval(line.split('=')[-1])
+# Get the long description from the README file
+with open(os.path.join(here, "README.rst"), encoding="utf-8") as f:
+    long_description = f.read()
 
+install_requires = [
+    "dask[array,dataframe]>=2.4.0",
+    "distributed>=2.4.0",
+    "numba",
+    "numpy>=1.17.3",
+    "pandas>=0.24.2",
+    "scikit-learn>=0.23",
+    "scipy",
+    "dask-glm>=0.2.0",
+    "multipledispatch>=0.4.9",
+    "packaging",
+]
 
-def get_long_description():
-    descr = []
-    for fname in ('README.rst',):
-        with open(fname) as f:
-            descr.append(f.read())
-    return '\n\n'.join(descr)
+# Optional Requirements
+doc_requires = ["sphinx", "numpydoc", "sphinx-rtd-theme", "nbsphinx", "sphinx-gallery"]
+test_requires = [
+    "black",
+    "coverage",
+    "flake8",
+    "isort",
+    "pytest",
+    "pytest-cover",
+    "pytest-mock",
+]
+dev_requires = doc_requires + test_requires
+xgboost_requires = ["dask-xgboost", "xgboost"]
+complete_requires = xgboost_requires
 
+extras_require = {
+    "docs": doc_requires,
+    "test": test_requires,
+    "dev": dev_requires,
+    "xgboost": xgboost_requires,
+    "complete": complete_requires,
+}
 
 setup(
-    name="pyflakes",
-    license="MIT",
-    version=get_version(),
-    description="passive checker of Python programs",
-    long_description=get_long_description(),
-    author="A lot of people",
-    author_email="code-quality@python.org",
-    url="https://github.com/PyCQA/pyflakes",
-    packages=["pyflakes", "pyflakes.scripts", "pyflakes.test"],
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
+    name="dask-ml",
+    description="A library for distributed and parallel machine learning",
+    long_description=long_description,
+    url="https://github.com/dask/dask-ml",
+    author="Tom Augspurger",
+    author_email="taugspurger@anaconda.com",
+    license="BSD",
     classifiers=[
-        "Development Status :: 6 - Mature",
-        "Environment :: Console",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
+        "Topic :: Database",
+        "Topic :: Scientific/Engineering",
+        "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Topic :: Software Development",
-        "Topic :: Utilities",
     ],
-    **extra)
+    packages=find_packages(exclude=["docs", "tests", "tests.*", "docs.*"]),
+    use_scm_version=True,
+    setup_requires=["setuptools_scm"],
+    install_requires=install_requires,
+    extras_require=extras_require,
+    python_requires=">=3.6",
+)

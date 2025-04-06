@@ -1,33 +1,37 @@
-name: Test
-
+name: CI
 on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9"]
-        os: [ubuntu-latest]
-        # Include py2 + minimum py3 + maximum py3 + pypy + pypy3 on Windows
-        include:
-          - { os: "windows-latest" , python-version: "3.9" }
-          - { os: "windows-latest" , python-version: "3.9" }
-          - { os: "windows-latest" , python-version: "3.9" }
-          - { os: "windows-latest" , python-version: "pypy2" }
-          - { os: "windows-latest" , python-version: "pypy3" }
-
+  docs:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout source
+        uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Setup Conda Environment
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          miniconda-version: "latest"
+          python-version: "3.9"
+          environment-file: ci/environment-docs.yaml
+          activate-environment: dask-ml-docs
+          auto-activate-base: false
 
-      - name: Install dependencies
-        run: python -m pip install -U tox
+      - name: Install Dask-ML
+        shell: bash -l {0}
+        run: python -m pip install -e .
 
-      - name: Tox tests
-        run: tox -e py
+      - name: Build docs
+        shell: bash -l {0}
+        run: |
+          cd docs
+          make html
+
+      - name: Deploy docs
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request'}}
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: docs/_build/html
+          CLEAN: true
