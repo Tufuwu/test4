@@ -1,168 +1,200 @@
-# stempeg = stems + ffmpeg
+# Debspawn
 
+![Build & Test](https://github.com/lkorigin/debspawn/workflows/Build%20&%20Test/badge.svg)
 
-[![Build Status](https://travis-ci.org/faroit/stempeg.svg?branch=master)](https://travis-ci.org/faroit/stempeg)
-[![Latest Version](https://img.shields.io/pypi/v/stempeg.svg)](https://pypi.python.org/pypi/stempeg)
-[![Supported Python versions](https://img.shields.io/pypi/pyversions/stempeg.svg)](https://pypi.python.org/pypi/stempeg)
+Debspawn is a tool to build Debian packages in an isolated environment. Unlike similar tools like `sbuild`
+or `pbuilder`, `debspawn` uses `systemd-nspawn` instead of plain chroots to manage the isolated environment.
+This allows Debspawn to isolate builds from the host system much further via container technology. It also allows
+for more advanced features to manage builds, for example setting resource limits for individual builds.
 
-Python package to read and write [STEM](https://www.native-instruments.com/en/specials/stems/) audio files.
-Technically, stems are audio containers that combine multiple audio streams and metadata in a single audio file. This makes it ideal to playback multitrack audio, where users can select the audio sub-stream during playback (e.g. supported by VLC). 
+Please keep in mind that Debspawn is *not* a security feature! While it provides a lot of isolation from the
+host system, you should not run arbitrary untrusted code with it. The usual warnings for all container technology
+apply here.
 
-Under the hood, _stempeg_ uses [ffmpeg](https://www.ffmpeg.org/) for reading and writing multistream audio, optionally [MP4Box](https://github.com/gpac/gpac) is used to create STEM files that are compatible with Native Instruments hardware and software.
+Debspawn also allows one to run arbitrary custom commands in its environment. This is used by the Laniakea[1] Spark workers
+to execute a variety of non-package builds and QA actions in the same environment in which we usually build packages.
 
-#### Features
+Debspawn was built with simplicity in mind. It should both be usable in an automated environment on large build farms,
+as well as on a personal workstation by a human user.
+Due to that, the most common operations are as easily accessible as possible. Additionally, `debspawn` will always try
+to do the right thing automatically before resorting to a flag that the user has to set.
+Options which change the build environment are - with one exception - not made available intentionally, so
+achieving reproducible builds is easier.
+See the FAQ below for more details.
 
-- robust and fast interface for ffmpeg to read and write any supported format from/to numpy.
-- reading supports seeking and duration.
-- control container and codec as well as bitrate when compressed audio is written. 
-- store multi-track audio within audio formats by aggregate streams into channels (concatenation of pairs of
-stereo channels).
-- support for internal ffmpeg resampling furing read and write.
-- create mp4 stems compatible to Native Instruments traktor.
-- using multiprocessing to speed up reading substreams and write multiple files.
-
-## Installation
-
-### 1. Installation of ffmpeg Library
-
-_stempeg_ relies on [ffmpeg](https://www.ffmpeg.org/) (>= 3.2 is suggested).
-
-The Installation if ffmpeg differ among operating systems. If you use [anaconda](https://anaconda.org/anaconda/python) you can install ffmpeg on Windows/Mac/Linux using the following command:
-
-```
-conda install -c conda-forge ffmpeg
-```
-
-Note that for better quality encoding it is recommended to install ffmpeg with `libfdk-aac` codec support as following:
-
-* _MacOS_: use homebrew: `brew install ffmpeg --with-fdk-aac`
-* _Ubuntu/Debian Linux_: See installation script [here](https://gist.github.com/rafaelbiriba/7f2d7c6f6c3d6ae2a5cb).
-* _Docker_: `docker pull jrottenberg/ffmpeg`
-
-### 1a. (optional) Installation of MP4Box
-
-If you plan to write stem files with full compatibility with Native Instruments Traktor DJ hardware and software, you need to install [MP4Box](https://github.com/gpac/gpac).
-
-* _MacOS_: use homebrew: `brew install gpac`
-* _Ubuntu/Debian Linux_: `apt-get install gpac`
-
-Further installation instructions for all operating systems can be found [here](https://gpac.wp.imt.fr/downloads/).
-
-### 2. Installation of the _stempeg_ package
-
-A) Installation via PyPI using pip
-
-```
-pip install stempeg
-```
-
-B) Installation via conda
-
-```
-conda install -c conda-forge stempeg
-```
+[1]: https://github.com/lkorigin/laniakea
 
 ## Usage
 
-![stempeg_scheme](https://user-images.githubusercontent.com/72940/102477776-16960a00-405d-11eb-9389-1ea9263cf99d.png)
+### Installing Debspawn
 
-### Reading audio
+#### Via the Debian package
 
-Stempeg can read multi-stream and single stream audio files, thus, it can replace your normal audio loaders for 1d or 2d (mono/stereo) arrays.
-
-By default [`read_stems`](https://faroit.com/stempeg/read.html#stempeg.read.read_stems), assumes that multiple substreams can exit (default `reader=stempeg.StreamsReader()`). 
-To support multi-stream, even when the audio container doesn't support multiple streams
-(e.g. WAV), streams can be mapped to multiple pairs of channels. In that
-case, `reader=stempeg.ChannelsReader()`, can be passed. Also see:
-[`stempeg.ChannelsWriter`](https://faroit.com/stempeg/write.html#stempeg.write.ChannelsWriter).
-
-```python
-import stempeg
-S, rate = stempeg.read_stems(stempeg.example_stem_path())
-```
-
-`S` is a numpy tensor that includes the time domain signals scaled to `[-1..1]`. The shape is `(stems, samples, channels)`. An detailed documentation of the `read_stems` can [be viewed here](https://faroit.com/stempeg/read.html#stempeg.read.read_stems). Note, a small stems excerpt from [The Easton Ellises](https://www.heise.de/ct/artikel/c-t-Remix-Wettbewerb-The-Easton-Ellises-2542427.html#englisch), licensed under Creative Commons CC BY-NC-SA 3.0 is included and can be accessed using `stempeg.example_stem_path()`.
-
-#### Reading individual streams
-
-Individual substreams of the stem file can be read by passing the corresponding stem id (starting from 0):
-
-```python
-S, rate = stempeg.read_stems(stempeg.example_stem_path(), stem_id=[0, 1])
-```
-
-#### Read excerpts (set seek position)
-
-Excerpts from the stem instead of the full file can be read by providing start (`start`) and duration (`duration`) in seconds to `read_stems`:
-
-```python
-S, _ = stempeg.read_stems(stempeg.example_stem_path(), start=1, duration=1.5)
-# read from second 1.0 to second 2.5
-```
-
-### Writing audio
-
-As seen in the flow chart above, stempeg supports multiple ways to write multi-track audio.
-
-#### Write multi-channel audio
-
-[`stempeg.write_audio`](http://faroit.com/stempeg/write.html#stempeg.write.write_audio) can be used for single-stream, multi-channel audio files.
-Stempeg wraps a number of ffmpeg parameter to resample the output sample rate and adjust the audio codec, if necessary.
-
-```python
-stempeg.write_audio(path="out.mp4", data=S, sample_rate=44100.0, output_sample_rate=48000.0, codec='aac', bitrate=256000)
-```
-
-#### Writing multi-stream audio
-
-Writing stem files from a numpy tensor can done with.
-
-```python
-stempeg.write_stems(path="output.stem.mp4", data=S, sample_rate=44100, writer=stempeg.StreamsWriter())
-```
-
-As seen in the flow chart above, stempeg supports multiple ways to write multi-stream audio. 
-Each of the method has different number of parameters. To select a method one of the following setting and be passed:
-
-* `stempeg.FilesWriter`
-    Stems will be saved into multiple files. For the naming,
-    `basename(path)` is ignored and just the
-    parent of `path`  and its `extension` is used.
-* `stempeg.ChannelsWriter`
-    Stems will be saved as multiple channels.
-* `stempeg.StreamsWriter` **(default)**.
-    Stems will be saved into a single a multi-stream file.
-* `stempeg.NIStemsWriter`
-    Stem will be saved into a single multistream audio.
-    Additionally Native Instruments Stems compabible
-    Metadata is added. This requires the installation of
-    `MP4Box`. 
-    
-> :warning: __Warning__: Muxing stems using _ffmpeg_ leads to multi-stream files not compatible with Native Instrument Hardware or Software. Please use [MP4Box](https://github.com/gpac/gpac) if you use the `stempeg.NISTemsWriter()`
-
-For more information on writing stems, see  [`stempeg.write_stems`](https://faroit.com/stempeg/write.html#stempeg.write.write_stems).
-An example that documents the advanced features of the writer, see [readwrite.py](/examples/readwrite.py).
-
-### Use the command line tools
-
-_stempeg_ provides a convenient cli tool to convert a stem to multiple wavfiles. The `-s` switch sets the start, the `-t` switch sets the duration.
-
+On Debian/Ubuntu, simply run
 ```bash
-stem2wav The Easton Ellises - Falcon 69.stem.mp4 -s 1.0 -t 2.5
+sudo apt install debspawn
+```
+to start using Debspawn.
+
+#### Via the Git repository
+
+Clone the Git repository, install the (build and runtime) dependencies of `debspawn`:
+```bash
+sudo apt install xsltproc docbook-xsl python3-setuptools zstd systemd-container debootstrap
 ```
 
-## F.A.Q
+You can the run `debspawn.py` directly from the Git repository, or choose to install it:
+```bash
+sudo pip3 install --no-binary debspawn .
+```
+(or use `sudo python3 setup.py install --single-version-externally-managed --root=/` to install without pip)
 
-#### How can I improve the reading performance?
+Debspawn requires at least Python 3.5. We try to keep the dependency footprint of this tool as
+small as possible, so it is not planned to raise that requirement or add any more dependencies
+anytime soon.
 
-`read_stems` is called repeatedly, it always does two system calls, one for getting the file info and one for the actual reading speed this up you could provide the `Info` object to `read_stems` if the number of streams, the number of channels and the sample rate is identical.
+### On superuser permission
 
-```python
-file_path = stempeg.example_stem_path()
-info = stempeg.Info(file_path)
-S, _ = stempeg.read_stems(file_path, info=info)
+If `sudo` is available on the system, `debspawn` will automatically request root permission
+when it needs it, there is no need to run it as root explicitly.
+If it can not obtain privileges, `debspawn` will exit with the appropriate error message.
+
+### Creating a new image
+
+You can easily create images for any suite that has a script in `debootstrap`. For Debian Unstable for example:
+```bash
+$ debspawn create sid
+```
+This will create a Debian Sid (unstable) image for the current system architecture.
+
+To create an image for testing Ubuntu builds:
+```bash
+$ debspawn create --arch=i386 cosmic
+```
+This creates an `i386` image for Ubuntu 18.10. If you want to use a different mirror than set by default, pass it with the `--mirror` option.
+
+### Refreshing an image
+
+Just run `debspawn update` and give the details of the base image that should be updated:
+```bash
+$ debspawn update sid
+$ debspawn update --arch=i386 cosmic
 ```
 
-#### How can the quality of the encoded stems be increased
+This will update the base image contents and perform other maintenance actions.
 
-For __Encoding__ it is recommended to use the Fraunhofer AAC encoder (`libfdk_aac`) which is not included in the default ffmpeg builds. Note that the conda version currently does _not_ include `fdk-aac`. If `libfdk_aac` is not installed _stempeg_ will use the default `aac` codec which will result in slightly inferior audio quality.
+### Building a package
+
+You can build a package from its source directory, or just by passing a plain `.dsc` file to `debspawn`. If the result should
+be automatically signed, the `--sign` flag needs to be passed too:
+```bash
+$ cd ~/packages/hello
+$ debspawn build sid --sign
+
+$ debspawn build --arch=i386 cosmic ./hello_2.10-1.dsc
+```
+
+Build results are by default returned in `/var/lib/debspawn/results/`
+
+If you need to inject other local packages as build dependencies, place `deb` files in `/var/lib/debspawn/injected-pkgs` (or other location set in the config file).
+
+### Building a package - with git-buildpackage
+
+You can use a command like this to build your project with gbp and Debspawn:
+```bash
+$ gbp buildpackage --git-builder='debspawn build sid --sign'
+```
+
+You might also want to add `--results-dir ..` to the debspawn arguments to get the resulting artifacts in the directory to which the package repository was originally exported.
+
+### Manual interactive-shell action
+
+If you want to, you can log into the container environment and either play around in
+ephemeral mode with no persistent changes, or pass `--persistent` to `debspawn` so all changes are permanently saved:
+```bash
+$ debspawn login sid
+
+# Attention! This may alter the build environment!
+$ debspawn login --persistent sid
+```
+
+### Deleting a container image
+
+At some point, you may want to permanently remove a container image again, for example because the
+release it was built for went end of life.
+This is easily done as well:
+```bash
+$ debspawn delete sid
+$ debspawn delete --arch=i386 cosmic
+```
+
+### Running arbitrary commands
+
+This is achieved with the `debspawn run` command and is a bit more involved. Refer to the manual page
+and help output for more information.
+
+### Global configuration
+
+Debspawn will read a global configuration file from `/etc/debspawn/config.json`, or a configuration file in a location specified by the `--config` flag. If a config file is specified on the command line, the global file is ignored rather than merged.
+
+The config is a JSON file containing any of the following (all optional) keys:
+
+* `OSRootsDir`: directory for os images (`/var/lib/debspawn/containers/`)
+* `ResultsDir`: directory for build artifacts (`/var/lib/debspawn/results/`)
+* `APTCacheDir`: directory for debspawn's own package cache (`/var/lib/debspawn/aptcache/`)
+* `InjectedPkgsDir`: packages placed in this directory will be available as dependencies for builds (`/var/lib/debspawn/injected-pkgs/`)
+* `TempDir`: temporary directory used for running containers (`/var/tmp/debspawn/`)
+* `AllowUnsafePermissions`: allow usage of risker container permissions, such as binding the host `/dev` and `/proc` into the container (`false`)
+
+## FAQ
+
+#### Why use systemd-nspawn? Why not $other_container?
+
+Systemd-nspawn is a very lightweight container solution readily available without much (or any) setup on all Linux systems
+that are running systemd. It does not need any background daemon and while it is light on features, it
+fits the relatively simple usecase of building in an isolated environment perfectly.
+
+
+#### Do I need to set up apt-cacher-ng to use this efficiently?
+
+No - while `apt-cacher-ng` is generally a useful tool, it is not required for efficient use of `debspawn`. `debspawn` will cache
+downloaded packages between runs fully automatically, so packages only get downloaded when they have not been retrieved before.
+
+
+#### Is the build environment the same as sbuild?
+
+No, unfortunately. Due to the different technology used, there are subtle differences between sbuild chroots and `debspawn` containers.
+The differences should not have any impact on package builds, and any such occurrence is highly likely a bug in the package's
+build process. If you think it is not, please file a bug against Debspawn. We try to be as close to sbuild's default environment
+as possible.
+
+One way the build environment differs from Debian's default sbuild setup intentionally is in its consistent use of unicode.
+By default, `debspawn` will ensure that unicode is always available and default. If you do not want this behavior, you can pass
+the `--no-unicode` flag to `debspawn` to disable unicode in the tool itself and in the build environment.
+
+
+#### Will this replace sbuild?
+
+Not in the foreseeable future on Debian itself.
+Sbuild is a proven tool that works well for Debian and supports other OSes than Linux, while `debspawn` is Linux-only,
+a thing that will not change.
+However, Laniakea-using derivatives such as PureOS use the tool for building all packages and for constructing other build
+environments to e.g. build disk images.
+
+
+#### What is the relation of this project with Laniakea?
+
+The Laniakea job runner uses `debspawn` for a bunch of tasks and the integration with the Laniakea system is generally quite tight.
+Of course you can use `debspawn` without Laniakea and integrate it with any tool you want. Debspawn will always be usable
+without Laniakea automation.
+
+
+#### This tool is really fast! What is the secret?
+
+Surprisingly, building packages with `debspawn` is often a bit faster than using `pbuilder` and `sbuild` with their default settings.
+The speed gain comes in large part from the internal use of the Zstandard compression algorithm for base images. Zstd allows for fast
+decompression of the tarballs, which is exactly why it was chosen (LZ4 would be even faster, but Zstd actually is a good compromise between
+compression ration and speed). This shaves off a few seconds of time for each build that is used on base image decompression.
+Additionally, Debspawn uses `eatmydata` to disable fsync & co. by default in a few places, improving the time it takes to set up the build environment
+by quite a bit as well.
+If you want, you can configure other tools to make use of the same methods (eatmydata & zstd) as well and see if they run faster.
