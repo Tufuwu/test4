@@ -1,12 +1,12 @@
-FROM	registry:2
+FROM ubuntu:20.04
 
-COPY	requirements.txt /tmp/
+RUN apt-get -y update
+RUN apt-get install -y vim python3 python3-pip python3-wheel python3-six python3-pip
 
-RUN	apk --no-cache add python3
+RUN mkdir /dk
+COPY . /dk
+WORKDIR /dk
+RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install autopep8
 
-COPY	clean_registry.py /usr/local/bin/clean_registry.py
-
-RUN	python3 -OO -m compileall /usr/local/bin/clean_registry.py
-
-ENTRYPOINT ["/usr/bin/python3", "/usr/local/bin/clean_registry.py"]
-CMD	[]
+CMD ["/bin/bash"]
