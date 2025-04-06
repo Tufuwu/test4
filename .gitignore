@@ -1,9 +1,28 @@
-*.pyo
+*.log
 *.pyc
-*.udm
-#/**/Thumbs.db
-/**/*.lnk
-.scannerwork/**
+*.swo
+*.swp
+*~
+examples/navigation/statick_example*
+examples/sbpl/statick_example*
+examples/werkzeug/statick_example*
 
-/debugrun.py
-/apiserver.py
+statick_output
+
+# from setup.py
+build/
+dist/
+*.egg-info/
+MANIFEST
+
+docs/_build
+
+# From tests
+.cache
+.coverage
+.mypy_cache
+.pytest_cache
+.tox
+output-*/
+tests/plugins/tool/clang-format_tool_plugin/_clang-format
+tests/statick/statick-*
