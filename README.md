@@ -1,82 +1,54 @@
-# Mattermost Poll
+[![Package version](https://badge.fury.io/py/s2cloudless.svg)](https://pypi.org/project/s2cloudless)
+[![Conda version](https://img.shields.io/conda/vn/conda-forge/s2cloudless.svg)](https://anaconda.org/conda-forge/s2cloudless)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/s2cloudless.svg?style=flat-square)](https://pypi.org/project/s2cloudless)
+[![Build Status](https://github.com/sentinel-hub/sentinel2-cloud-detector/actions/workflows/ci_action.yml/badge.svg?branch=master)](https://github.com/sentinel-hub/sentinel2-cloud-detector/actions)
+[![Overall downloads](https://pepy.tech/badge/s2cloudless)](https://pepy.tech/project/s2cloudless)
+[![Last month downloads](https://pepy.tech/badge/s2cloudless/month)](https://pepy.tech/project/s2cloudless)
+[![Code coverage](https://codecov.io/gh/sentinel-hub/sentinel2-cloud-detector/branch/master/graph/badge.svg)](https://codecov.io/gh/sentinel-hub/sentinel2-cloud-detector)
 
-[![Build Status](https://travis-ci.com/M-Mueller/mattermost-poll.svg?branch=master)](https://travis-ci.com/M-Mueller/mattermost-poll) [![codecov](https://codecov.io/gh/M-Mueller/mattermost-poll/branch/master/graph/badge.svg)](https://codecov.io/gh/M-Mueller/mattermost-poll)
+# Sentinel Hub's cloud detector for Sentinel-2 imagery
 
-Provides a slash command to create polls in Mattermost.
+**NOTE: s2cloudless masks are now available as a precomputed layer within Sentinel Hub. Check the [announcement blog post](https://medium.com/sentinel-hub/cloud-masks-at-your-service-6e5b2cb2ce8a) and [technical documentation](https://docs.sentinel-hub.com/api/latest/#/API/data_access?id=cloud-masks-and-cloud-probabilities).**
 
-![Example](/doc/example_yes_no.gif)
+The **s2cloudless** Python package provides automated cloud detection in
+Sentinel-2 imagery. The classification is based on a *single-scene pixel-based cloud detector*
+developed by Sentinel Hub's research team and is described in more detail
+[in this blog](https://medium.com/sentinel-hub/improving-cloud-detection-with-machine-learning-c09dc5d7cf13).
 
-By default, a poll will only offer the options *Yes* and *No*. However, users can also specify an arbitrary number of choices:
+## Installation
 
-![Example](/doc/example_colours.png)
+The package requires a Python version >= 3.7. The package is available on
+the PyPI package manager and can be installed with
 
-Choices are separated by `--`.
-
-## Additional options
-
-- `--noprogress`: Do not display the number of votes until the poll is ended
-- `--public`: Show who voted for what at the end of the poll
-- `--votes=X`: Allows users to place a total of *X* votes. Default is 1. Each individual option can still only be voted once.
-- `--bars`: Show results as a bar chart at the end of the poll.
-- `--locale=X`: Use a specific locale for the poll. Supported values are en and de. By default it's the users language.
-
-## Help
-
-`/poll help` will display full usage options. Only visible to you.
-
-Set the "Autocomplete Hint" in the Slash Command settings to `See "/poll help" for full usage options`
-
-## Requirements
-
-- Python >= 3.6
-- Flask
-- Tornado
-- A WSGI server (e.g. gunicorn or uWSGI)
-
-## Setup
-
-Copy `settings.py.example` to `settings.py` and customise your settings.
-
-Start the server:
-
-```bash
-gunicorn --workers 4 --bind :5000 app:app
+```
+$ pip install s2cloudless
 ```
 
-1. In Mattermost go to *Main Menu -> Integrations -> Slash Commands* and add a new slash command with the URL of the server including the configured port number, e.g. http://localhost:5000.
-1. Choose POST for the request method.
-    - Optionally add the generated token to your `settings.py` (requires server restart).
-1. Edit your Mattermost `config.json` to include "localhost" in the "AllowedUntrustedInternalConnections" setting, e.g. `"AllowedUntrustedInternalConnections": "localhost"`
-
-To resolve usernames in `--public` polls and to provide localization, the server needs access to the
-Mattermost API. For this a [personal access token](https://docs.mattermost.com/developer/personal-access-tokens.html) must be provided in your `settings.py`. Which user provides the token doesn't matter, e.g. you can create a dummy account. If no token is provided `--public` polls will not be available and all texts will be english.
-
-## Docker
-
-To integrate with [mattermost-docker](https://github.com/mattermost/mattermost-docker):
-
-```bash
-cd mattermost-docker
-git submodule add git@github.com:M-Mueller/mattermost-poll.git poll
+To install the package manually, clone the repository and
+```
+$ pip install .
 ```
 
-and add the following to the `services` section:
+One of `s2cloudless` dependencies is `lightgbm` package. If having problems during installation, please
+check the [LightGBM installation guide](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html).
 
-```yaml
-  poll:
-    build:
-      context: poll
-      args:
-        - mattermost_url="http://web"
-        - mattermost_tokens=['<mattermost-token-1>', '<mattermost-token-2>']
-        - mattermost_pa_token="<personal-access-token>"
-    ports:
-      - "5000:5000"
-    restart: unless-stopped
-    volumes:
-      - ./volumes/poll:/app/volume:rw
-```
+Before installing `s2cloudless` on **Windows**, it is recommended to install package `shapely` from
+[Unofficial Windows wheels repository](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
 
-1. In Mattermost go to *Main Menu -> Integrations -> Slash Commands* and add a new slash command with the URL of the server including the configured port number, e.g. http://poll:5000.
-1. Choose POST for the request method.
-1. Edit your Mattermost `config.json` to include "poll" in the "AllowedUntrustedInternalConnections" setting, e.g. `"AllowedUntrustedInternalConnections": "poll"`
+## Input: Sentinel-2 scenes
+
+The inputs to the cloud detector are Sentinel-2 images. In particular, the cloud detector requires the following 10 Sentinel-2 band reflectances: B01, B02, B04, B05, B08, B8A, B09, B10, B11, B12, which are obtained from raw reflectance values in the following way: `B_i/10000`. From product baseline `04.00` onward additional harmonization factors have to be applied to data according to [instructions from ESA](https://sentinels.copernicus.eu/en/web/sentinel/-/copernicus-sentinel-2-major-products-upgrade-upcoming).
+
+You don't need to worry about any of this, if you are using Sentinel-2 data obtained from [Sentinel Hub Process API](https://docs.sentinel-hub.com/api/latest/api/process/). By default, the data is already harmonized according to [documentation](https://docs.sentinel-hub.com/api/latest/data/sentinel-2-l1c/#harmonize-values). The API is supported in Python with [sentinelhub-py](https://github.com/sentinel-hub/sentinelhub-py) package and used within `s2cloudless.CloudMaskRequest` class.
+
+## Examples
+
+A Jupyter notebook on how to use the cloud detector to produce cloud mask or cloud probability map
+can be found in the [examples folder](https://github.com/sentinel-hub/sentinel2-cloud-detector/tree/master/examples).
+
+## License
+
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+<img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a>
+<br />
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
