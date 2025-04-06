@@ -1,1 +1,3 @@
-__author__ = 'behrens'
+import logging
+
+logging.basicConfig()

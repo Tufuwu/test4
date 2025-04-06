@@ -1,7 +1,8 @@
-**/.idea/
+.idea
+*.iml
+dist
+build
 *.pyc
-*.egg-info/
-/build/
-/dist/
-.tox
-.coverage
+.eggs
+*.egg-info
+.cache
