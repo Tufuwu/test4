@@ -1,34 +1,32 @@
 #!/usr/bin/env python
-
-from io import open
-from os import path
-
+# -*- coding: utf-8 -*-
+"""niworkflows setup script."""
+import sys
 from setuptools import setup
+import versioneer
 
-install_requires = [
-    "six",
-    "gdspy>=1.5",
-    "numpy",
-    "matplotlib",
-]
+# Use setup_requires to let setuptools complain if it's too old for a feature we need
+# 30.3.0 allows us to put most metadata in setup.cfg
+# 30.4.0 gives us options.packages.find
+# 40.8.0 includes license_file, reducing MANIFEST.in requirements
+#
+# To install, 30.4.0 is enough, but if we're building an sdist, require 40.8.0
+# This imposes a stricter rule on the maintainer than the user
+# Keep the installation version synchronized with pyproject.toml
+#
+# 12/05/2020 - Bumped to setuptools 38.4.1
+SETUP_REQUIRES = [f"setuptools >= {'40.8.0' if 'sdist' in sys.argv else '38.4.1'}"]
 
-# read the contents of your README file
+# This enables setuptools to install wheel on-the-fly
+if "bdist_wheel" in sys.argv:
+    SETUP_REQUIRES += ["wheel"]
 
-this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
-    long_description = f.read()
-
-
-setup(
-    name="phidl",
-    version="1.6.0",
-    description="PHIDL",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    install_requires=install_requires,
-    author="Adam McCaughan",
-    author_email="amccaugh@gmail.com",
-    packages=["phidl"],
-    py_modules=["phidl.geometry", "phidl.routing", "phidl.utilities", "phidl.path"],
-    package_dir={"phidl": "phidl"},
-)
+if __name__ == "__main__":
+    # Note that "name" is used by GitHub to determine what repository provides a package
+    # in building its dependency graph.
+    setup(
+        name="niworkflows",
+        version=versioneer.get_version(),
+        cmdclass=versioneer.get_cmdclass(),
+        setup_requires=SETUP_REQUIRES,
+    )

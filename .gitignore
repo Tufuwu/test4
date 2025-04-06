@@ -1,27 +1,10 @@
-MANIFEST
-test.sh
-debug.py
-winbuild*
-docs/_build
-.*.swp
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*$py.class
 
 # C extensions
 *.so
-
-# Developer
-venv
-venvinfo
-*.sublime-project
-*.sublime-workspace
-.pytest_cache
-
-
-# IPython notebooks
-.ipynb_checkpoints
 
 # Distribution / packaging
 .Python
@@ -40,6 +23,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+pip-wheel-metadata/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -60,7 +44,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *,cover
-.pytest_cache
+.hypothesis/
 
 # Translations
 *.mo
@@ -68,20 +52,43 @@ coverage.xml
 
 # Django stuff:
 *.log
+local_settings.py
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
 
 # Sphinx documentation
 docs/_build/
+docs/api/
 
 # PyBuilder
 target/
 
+# IPython Notebook
+.ipynb_checkpoints
 
-# Extra
-*.gds
-*.DS_Store
-*.gds
-*.bat
-*.lyp
-*.oas
+# pyenv
+.python-version
 
-.vscode/
+# celery beat schedule file
+celerybeat-schedule
+
+# dotenv
+.env
+
+# virtualenv
+venv/
+ENV/
+
+# Spyder project settings
+.spyderproject
+
+# Rope project settings
+.ropeproject
+
+# vim
+*.swp
