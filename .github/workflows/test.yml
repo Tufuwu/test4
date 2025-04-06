@@ -1,68 +1,103 @@
-name: Tests
-on: [push, pull_request]
+name: Test
+on:
+  push:
+  pull_request:
+  schedule: [{cron: '2 3 * * 6'}]  # M H d m w (Sat 3:02)
 jobs:
-  lint:
+  check:
+    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Install requirements
-        run: pip install flake8 pycodestyle
-      - name: Check syntax
-        run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics --exclude ckan
-      - name: Run flake8
-        run: flake8 . --count --max-line-length=127 --statistics --exclude ckan
-
+    - uses: actions/checkout@v4
+      with: {fetch-depth: 0}
+    - uses: actions/setup-python@v5
+      with: {python-version: '3.x'}
+    - name: dependencies
+      run: pip install -U tox .
+    - run: tox -e check
   test:
-    needs: lint
+    if: github.event_name != 'pull_request' || !contains('OWNER,MEMBER,COLLABORATOR', github.event.pull_request.author_association)
+    name: py${{ matrix.python }}-${{ matrix.os }}
     strategy:
       matrix:
-        ckan-version: [2.9, 2.9-py2, 2.8, 2.7]
-      fail-fast: false
-
-    name: CKAN ${{ matrix.ckan-version }}
-    runs-on: ubuntu-latest
-    container:
-      image: openknowledge/ckan-dev:${{ matrix.ckan-version }}
-    services:
-      solr:
-        image: ckan/ckan-solr-dev:${{ matrix.ckan-version }}
-      postgres:
-        image: ckan/ckan-postgres-dev:${{ matrix.ckan-version }}
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:3
-    env:
-      CKAN_SQLALCHEMY_URL: postgresql://ckan_default:pass@postgres/ckan_test
-      CKAN_DATASTORE_WRITE_URL: postgresql://datastore_write:pass@postgres/datastore_test
-      CKAN_DATASTORE_READ_URL: postgresql://datastore_read:pass@postgres/datastore_test
-      CKAN_SOLR_URL: http://solr:8983/solr/ckan
-      CKAN_REDIS_URL: redis://redis:6379/1
-
+        os: [ubuntu]
+        python: ["3.9"]
+        include:
+        - os: macos
+          python: 3.9
+        - os: windows
+          python: 3.9
+    runs-on: ${{ matrix.os }}-latest
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v2
-      - name: Install requirements
-        run: |
-          pip install -r pip-requirements.txt
-          pip install -r dev-requirements.txt
-          pip install -e .
-          # Replace default path to CKAN core config file with the one on the container
-          sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
-      - name: Setup extension (CKAN >= 2.9)
-        if: ${{ matrix.ckan-version != '2.7' && matrix.ckan-version != '2.8' }}
-        run: |
-          ckan -c test.ini db init
-          ckan -c test.ini archiver init
-      - name: Setup extension (CKAN < 2.9)
-        if: ${{ matrix.ckan-version == '2.7' || matrix.ckan-version == '2.8' }}
-        run: |
-          paster --plugin=ckan db init -c test.ini
-          paster --plugin=ckanext-archiver archiver init -c test.ini
-      - name: Run tests
-        run: pytest --ckan-ini=test.ini --cov=ckanext.archiver --disable-warnings tests
+    - uses: actions/checkout@v4
+      with: {fetch-depth: 0}
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+    - name: install
+      run: |
+        pip install -U tox tox-gh-actions
+        mkdir -p "$HOME/bin"
+        curl -sfL https://coverage.codacy.com/get.sh > "$HOME/bin/codacy"
+        chmod +x "$HOME/bin/codacy"
+        echo "$HOME/bin" >> $GITHUB_PATH
+    - name: tox
+      run: tox -e py${PYVER/./}
+      env:
+        PYVER: ${{ matrix.python }}
+        PLATFORM: ${{ matrix.os }}
+        COVERALLS_FLAG_NAME: py${{ matrix.python }}-${{ matrix.os }}
+        COVERALLS_PARALLEL: true
+        COVERALLS_SERVICE_NAME: github
+        # coveralls needs explicit token
+        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  finish:
+    name: pytest cov
+    continue-on-error: ${{ github.event_name != 'push' }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/setup-python@v5
+      with: {python-version: '3.x'}
+    - name: Coveralls Finished
+      run: |
+        pip install -U coveralls
+        coveralls --finish || :
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Codacy Finished
+      run: |
+        curl -sfL https://coverage.codacy.com/get.sh > codacy
+        bash codacy final || :
+      env:
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  deploy:
+    needs: [check, test]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions: {contents: write, id-token: write, packages: write}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GH_TOKEN || github.token }}
+    - uses: actions/setup-python@v5
+      with: {python-version: '3.x'}
+    - id: dist
+      uses: casperdcl/deploy-pypi@trusted-pub
+      with:
+        build: true
+        upload: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
+    - if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      name: Release
+      run: |
+        changelog=$(git log --pretty='format:%d%n- %s%n%b---' $(git tag --sort=v:refname | tail -n2 | head -n1)..HEAD)
+        tag="${GITHUB_REF#refs/tags/}"
+        gh release create --title "py-make $tag stable" --draft --notes "$changelog" "$tag" dist/${{ steps.dist.outputs.whl }}
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
