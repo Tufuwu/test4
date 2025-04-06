@@ -1,5 +1,3 @@
-PyYAML==5.1
-argparse==1.1
-msgpack-python==0.4.6
-gevent==1.1b5
-six>=1.8.0
+pycryptodome>=3.6.6
+oath>=1.4.1
+requests

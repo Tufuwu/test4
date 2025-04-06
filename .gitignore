@@ -1,13 +1,14 @@
-# General
-*~
-.*.sw[a-z]
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 
 # C extensions
 *.so
+
+# emacs guano
+*~
+.*~
+\#*
 
 # Distribution / packaging
 .Python
@@ -18,6 +19,8 @@ dist/
 downloads/
 eggs/
 .eggs/
+lib/
+lib64/
 parts/
 sdist/
 var/
@@ -43,14 +46,19 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*,cover
 
 # Translations
 *.mo
 *.pot
+
+# Django stuff:
+*.log
 
 # Sphinx documentation
 docs/_build/
 
 # PyBuilder
 target/
+
+# pyenv
+/.python-version
