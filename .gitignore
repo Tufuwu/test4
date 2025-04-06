@@ -1,11 +1,10 @@
-*.pyc
-*.pyo
-build
-dist
-perceval.egg-info
+keras_lmu.egg-info
+*.swo
+*.swp
+*.ipynb_checkpoints
 __pycache__
-
-# Eclipse's files and directories
-.project
-.pydevproject
-.settings
+/.idea
+/bones-scripts
+/docs/_build
+/secret
+/tmp

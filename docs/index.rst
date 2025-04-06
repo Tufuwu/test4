@@ -1,21 +1,18 @@
-.. Perceval documentation master file.
+********
+KerasLMU
+********
 
-Welcome to Perceval's documentation!
-====================================
-
-Contents:
+.. include:: ../README.rst
+   :start-line: 5
+   :end-line: 26
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   perceval
-   contributing.rst
-   howto_doc.rst
-   howto_pkg.rst
-
-Indices and tables
-==================
+   getting-started
+   basic-usage
+   api-reference
+   examples
+   project
 
 * :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
