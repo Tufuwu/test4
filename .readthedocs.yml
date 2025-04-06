@@ -1,10 +1,16 @@
-formats: []
+version: 2
+
+sphinx:
+  builder: html
+  configuration: docs/conf.py
+  fail_on_warning: true
 
 build:
   image: latest
 
 python:
-  version: 3.6
-  pip_install: true
-
-requirements_file: requirements-test.txt
+  version: 3.8
+  install:
+    - requirements: docs/requirements.txt
+    - method: pip
+      path: .
