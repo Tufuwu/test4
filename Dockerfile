@@ -1,5 +1,13 @@
-FROM datajoint/pydev
+# Development Dockerfile; see README.rst
+FROM python:3.7
+MAINTAINER labs@botify.com
 
-COPY --chown=dja . /tmp/src
-RUN pip install --user /tmp/src && \
-    rm -rf /tmp/src
+RUN curl -s https://bootstrap.pypa.io/get-pip.py | python - && pip install -U setuptools
+RUN mkdir /code
+
+ADD . /code/simpleflow
+
+WORKDIR /code/simpleflow
+
+RUN pip install -e .
+RUN pip install -r requirements-dev.txt

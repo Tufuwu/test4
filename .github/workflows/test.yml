@@ -1,53 +1,111 @@
-name: Development
+# Adapted from: https://github.com/sesh/thttp/blob/main/.github/workflows/ci.yml
+# Thanks!
+
+name: Python Checks
+
 on:
   push:
-    branches:
-      - '**' # every branch
-      - '!stage*' # exclude branches beginning with stage
+    branches: [ main ]
   pull_request:
-    branches:
-      - '**' # every branch
-      - '!stage*' # exclude branches beginning with stage
+    branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   test:
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        py_ver: ["3.8"]
-        mysql_ver: ["8.0", "5.7", "5.6"]
-        include:
-          - py_ver: "3.7"
-            mysql_ver: "5.7"
-          - py_ver: "3.6"
-            mysql_ver: "5.7"
-          - py_ver: "3.5"
-            mysql_ver: "5.7"
+        python-version: ["3.9"]
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{matrix.py_ver}}
-        uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install test dependencies
+      run: |
+        pip install -e .
+        pip install -r requirements-dev.txt
+
+    - name: Test
+      run: |
+        ./script/test -v
+
+  black:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: ${{matrix.py_ver}}
-      - name: Install dependencies
+          python-version: "3.9"
+
+      - name: Install black
         run: |
-          python -m pip install --upgrade pip
-          pip install flake8
-      - name: Run syntax tests
-        run: flake8 datajoint --count --select=E9,F63,F7,F82 --show-source --statistics
-      - name: Run primary tests
-        env:
-          UID: "1001"
-          GID: "116"
-          PY_VER: ${{matrix.py_ver}}
-          MYSQL_VER: ${{matrix.mysql_ver}}
-          ALPINE_VER: "3.10"
-          MINIO_VER: RELEASE.2019-09-26T19-42-35Z
-          COMPOSE_HTTP_TIMEOUT: "120"
-          COVERALLS_SERVICE_NAME: travis-ci
-          COVERALLS_REPO_TOKEN: fd0BoXG46TPReEem0uMy7BJO5j0w1MQiY
-        run: docker-compose -f LNX-docker-compose.yml up --build --exit-code-from app
-      - name: Run style tests
+          python -m pip install black
+
+      - name: Run black
         run: |
-          flake8 --ignore=E121,E123,E126,E226,E24,E704,W503,W504,E722,F401,W605 datajoint \
-                 --count --max-complexity=62 --max-line-length=127 --statistics
+          black --check .
+
+  isort:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install isort
+        run: |
+          python -m pip install isort
+
+      - name: Run isort
+        run: |
+          isort --check .
+
+  ruff:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install ruff
+        run: |
+          python -m pip install ruff
+
+      - name: Run ruff
+        run: |
+          ruff --format=github .
+
+  bandit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3
+
+      - name: Install bandit
+        run: |
+          python -m pip install bandit[toml]
+
+      - name: Run bandit scan
+        run: |
+          bandit -c pyproject.toml -r .

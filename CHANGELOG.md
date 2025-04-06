@@ -1,194 +1,573 @@
-## Release notes
+Changelog
+=========
 
-### 0.12.7 -- Oct 27, 2020
-* Fix case sensitivity issues to adapt to MySQL 8+.  PR #819
-* Fix pymysql regression bug (#814) PR #816
-* Adapted attribute types now have dtype=object in all recarray results. PR #811 
+0.21.18
+-------
 
-### 0.12.6 -- May 15, 2020
-* Add `order_by` to `dj.kill` (#668, #779) PR #775, #783
-* Add explicit S3 bucket and file storage location existence checks (#748) PR #781
-* Modify `_update` to allow nullable updates for strings/date (#664) PR #760
-* Avoid logging events on auxiliary tables (#737) PR #753
-* Add `kill_quick` and expand display to include host (#740) PR #741
-* Bugfix - pandas insert fails due to additional `index` field (#666) PR #776
-* Bugfix - `delete_external_files=True` does not remove from S3 (#686) PR #781
-* Bugfix - pandas fetch throws error when `fetch_format='frame'` PR #774
 
-### 0.12.5 -- Feb 24, 2020
-* Rename module `dj.schema` into `dj.schemas`. `dj.schema` remains an alias for class `dj.Schema`. (#731) PR #732
-* `dj.create_virtual_module` is now called `dj.VirtualModule` (#731) PR #732
-* Bugfix - SSL `KeyError` on failed connection (#716) PR #725
-* Bugfix - Unable to run unit tests using nosetests (#723) PR #724
-* Bugfix - `suppress_errors` does not suppress loss of connection error (#720) PR #721
 
-### 0.12.4 -- Jan 14, 2020
-* Support for simple scalar datatypes in blobs (#690) PR #709
-* Add support for the `serial` data type in declarations: alias for `bigint unsigned auto_increment` PR #713
-* Improve the log table to avoid primary key collisions PR #713
-* Improve documentation in README PR #713
+0.21.18rc2
+----------
 
-### 0.12.3 -- Nov 22, 2019
-* Bugfix - networkx 2.4 causes error in diagrams (#675) PR #705
-* Bugfix - include table definition in doc string and help (#698, #699) PR #706
-* Bugfix - job reservation fails when native python datatype support is disabled (#701) PR #702
 
-### 0.12.2 -- Nov 11, 2019
-* Bugfix - Convoluted error thrown if there is a reference to a non-existent table attribute (#691) PR #696
-* Bugfix - Insert into external does not trim leading slash if defined in `dj.config['stores']['<store>']['location']` (#692) PR #693
 
-### 0.12.1 -- Nov 2, 2019
-* Bugfix - AttributeAdapter converts into a string (#684) PR #688
+0.21.18rc1
+----------
 
-### 0.12.0 -- Oct 31, 2019
-* Dropped support for Python 3.4
-* Support secure connections with TLS (aka SSL) PR #620
-* Convert numpy array from python object to appropriate data type if all elements are of the same type (#587) PR #608
-* Remove expression requirement to have additional attributes (#604) PR #604
-* Support for filepath datatype (#481) PR #603, #659
-* Support file attachment datatype (#480, #592, #637) PR #659
-* Fetch return a dict array when specifying `as_dict=True` for specified attributes. (#595) PR #593
-* Support of ellipsis in `proj`:  `query_expression.proj(.., '-movie')` (#499) PR #578
-* Expand support of blob serialization (#572, #520, #427, #392, #244, #594) PR #577
-* Support for alter (#110) PR #573
-* Support for `conda install datajoint` via `conda-forge` channel (#293)
-* `dj.conn()` accepts a `port` keyword argument (#563) PR #571
-* Support for UUID datatype (#562) PR #567
-* `query_expr.fetch("KEY", as_dict=False)` returns results as `np.recarray`(#414) PR #574
-* `dj.ERD` is now called `dj.Diagram` (#255, #546) PR #565
-* `dj.Diagram` underlines "distinguished" classes (#378) PR #557
-* Accept alias for supported MySQL datatypes (#544) PR #545
-* Support for pandas in `fetch` (#459, #537) PR #534
-* Support for ordering by "KEY" in `fetch` (#541) PR #534
-* Add config to enable python native blobs PR #672, #676
-* Add secure option for external storage (#663) PR #674, #676
-* Add blob migration utility from DJ011 to DJ012 PR #673
-* Improved external storage - a migration script needed from version 0.11  (#467, #475, #480, #497) PR #532
-* Increase default display rows (#523) PR #526
-* Bugfixes (#521, #205, #279, #477, #570, #581, #597, #596, #618, #633, #643, #644, #647, #648, #650, #656)
-* Minor improvements (#538)
+- (Merge branch 'enhancement/403/Canvas_misc_enhancements' into main)
+- (Merge branch 'enhancement/399/execute.python_add_env_argument' into main)
+- (Merge branch 'enhancement/397/decider.start_work_without_workflows' into main)
+- (Merge branch 'enhancement/395/workflow.filter_add_start_close_timestamps' into main)
 
-### 0.11.3 -- Jul 26, 2019
-* Fix incompatibility with pyparsing 2.4.1 (#629) PR #631
+0.21.17.post1
+-------------
 
-### 0.11.2 -- Jul 25, 2019
-* Fix #628 - incompatibility with pyparsing 2.4.1
 
-### 0.11.1 -- Nov 15, 2018
-* Fix ordering of attributes in proj (#483 and #516)
-* Prohibit direct insert into auto-populated tables (#511)
 
-### 0.11.0 -- Oct 25, 2018
-* Full support of dependencies with renamed attributes using projection syntax (#300, #345, #436, #506, #507)
-* Rename internal class and module names to comply with terminology in documentation (#494, #500)
-* Full support of secondary indexes (#498, 500)
-* ERD no longer shows numbers in nodes corresponding to derived dependencies (#478, #500)
-* Full support of unique and nullable dependencies (#254, #301, #493, #495, #500)
-* Improve memory management in `populate` (#461, #486)
-* Fix query errors and redundancies (#456, #463, #482)
+0.21.17
+-------
 
-### 0.10.1  -- Aug 28, 2018
-* Fix ERD Tooltip message (#431)
-* Networkx 2.0 support (#443)
-* Fix insert from query with skip_duplicates=True (#451)
-* Sped up queries (#458)
-* Bugfix in restriction of the form (A & B) * B (#463)
-* Improved error messages (#466)
+-  (#394)
+- Replace `master` with `main` in release script (#389)
 
-### 0.10.0 -- Jan 10, 2018 
-* Deletes are more efficient (#424)
-* ERD shows table definition on tooltip hover in Jupyter (#422) 
-* S3 external storage
-* Garbage collection for external sorage
-* Most operators and methods of tables can be invoked as class methods rather than instance methods (#407)
-* The schema decorator object no longer requires locals() to specify the context
-* Compatibility with pymysql 0.8.0+
-* More efficient loading of dependencies (#403)
+0.21.16
+-------
 
-### 0.9.0 -- Nov 17, 2017
-* Made graphviz installation optional
-* Implement file-based external storage
-* Implement union operator +
-* Implement file-based external storage
+- Add middleware (#380)
+- Enhancement/386/seasonal cleanups (#385)
+- Fix #378 (#379)
+- Add executable path to swf identity (#384)
+- Add __main__.py (#382)
 
-### 0.8.0 -- Jul 26, 2017 
-Documentation and tutorials available at https://docs.datajoint.io and https://tutorials.datajoint.io
-* improved the ERD graphics and features using the graphviz libraries (#207, #333)
-* improved password handling logic (#322, #321)
-* the use of the `contents` property to populate tables now only works in `dj.Lookup` classes (#310).
-* allow suppressing the display of size of query results through the `show_tuple_count` configuration option (#309)
-* implemented renamed foreign keys to spec (#333)
-* added the `limit` keyword argument to populate (#329)
-* reduced the number of displayed messages (#308)
-* added `size_on_disk` property for dj.Schema() objects (#323)
-* job keys are entered in the jobs table (#316, #243)
-* simplified the `fetch` and `fetch1` syntax, deprecating the `fetch[...]` syntax (#319)
-* the jobs tables now store the connection ids to allow identifying abandoned jobs (#288, #317)
+0.21.15
+-------
 
-### 0.5.0 (#298) -- Mar 8, 2017
-* All fetched integers are now 64-bit long and all fetched floats are double precision.
-* Added `dj.create_virtual_module`
+- Improvement/375/task failure context add full exception class name (#377)
 
-### 0.4.10 (#286) -- Feb 6, 2017
-* Removed Vagrant and Readthedocs support 
-* Explicit saving of configuration (issue #284)
+0.21.14a3
+---------
 
-### 0.4.9 (#285) -- Feb 2, 2017
-* Fixed setup.py for pip install 
 
-### 0.4.7 (#281) -- Jan 24, 2017
-* Fixed issues related to order of attributes in projection.
 
-### 0.4.6 (#277) -- Dec 22, 2016
-* Proper handling of interruptions during populate
+0.21.14a2
+---------
 
-### 0.4.5 (#274) -- Dec 20, 2016
-* Populate reports how many keys remain to be populated at the start.
 
-### 0.4.3  (#271) -- Dec 6, 2016
-* Fixed aggregation issues (#270)
-* datajoint no longer attempts to connect to server at import time
-* dropped support of view (reversed #257)
-* more elegant handling of insufficient privileges (#268)
 
-### 0.4.2 (#267)  -- Dec 6, 2016
-* improved table appearance in Jupyter
+0.21.14a1
+---------
 
-### 0.4.1 (#266) -- Oct 28, 2016
-* bugfix for very long error messages
+- Enhancement/367/improve release script v2 (#376)
+- Bugfix/update dependencies (#373)
 
-### 0.3.9 -- Sep 27, 2016
-* Added support for datatype `YEAR`
-* Fixed issues with `dj.U` and the `aggr` operator (#246, #247)
+0.21.13
+-------
 
-### 0.3.8  -- Aug 2, 2016
-* added the `_update` method in `base_relation`. It allows updating values in existing tuples.
-* bugfix in reading values of type double.  Previously it was cast as float32. 
 
-### 0.3.7  -- Jul 31, 2016
-* added parameter `ignore_extra_fields` in `insert` 
-* `insert(..., skip_duplicates=True)` now relies on `SELECT IGNORE`.  Previously it explicitly checked if tuple already exists.
-* table previews now include blob attributes displaying the string <BLOB>
 
-### 0.3.6  -- Jul 30, 2016
-* bugfix in `schema.spawn_missing_classes`.  Previously, spawned part classes would not show in ERDs.
-* dj.key now causes fetch to return as a list of dicts.  Previously it was a recarray.
+0.21.12
+-------
 
-### 0.3.5
-* `dj.set_password()` now asks for user confirmation before changing the password.
-* fixed issue #228
+- Update subprocess32 to 3.5.x (#366)
 
-### 0.3.4
-* Added method the `ERD.add_parts` method, which adds the part tables of all tables currently in the ERD.
-* `ERD() + arg` and `ERD() - arg` can now accept relation classes as arg.
+0.21.11
+-------
 
-### 0.3.3
-* Suppressed warnings (redirected them to logging).  Previoiusly, scipy would throw warnings in ERD, for example.
-* Added ERD.from_sequence as a shortcut to combining the ERDs of multiple sources
-* ERD() no longer text the context argument.
-* ERD.draw() now takes an optional context argument.  By default uses the caller's locals.
+- task/340/remote-syslog-support (#345)
 
-### 0.3.2.   
-* Fixed issue #223:  `insert` can insert relations without fetching.
-* ERD() now takes the `context` argument, which specifies in which context to look for classes. The default is taken from the argument (schema or relation).
-* ERD.draw() no longer has the `prefix` argument: class names are shown as found in the context.
+0.21.10
+-------
+
+- task/DATA-7023/local_executor_run_id (#362)
+- Enhancement 364: add ChildWorkflowTask class (#365)
+- canvas: support WorkflowTask in the Group() canvas (#360)
+
+0.21.9
+------
+
+- Prune worker process tree. (#355)
+
+0.21.8
+------
+
+- swf: WorkflowTask: add the possibility to use a custom task list (#356)
+- tests/moto_compat.py: new file (#358)
+- Add BOTO_CONFIG=/dev/null to scripts/test (#357)
+- spelling fix, failuer->failure (#353)
+
+0.21.7
+------
+
+- Fix reading requirements-dev.txt again (#352)
+
+0.21.6
+------
+
+- Fix reading requirements-dev.txt :roll_eyes: (#351)
+
+0.21.5
+------
+
+- Remove explicit handling of AWS credentials from env vars. (#347)
+- Enhancement: use moto 1.x (#349)
+- Add optional S3 server-side encryption (#350)
+
+0.21.4
+------
+
+
+
+0.21.3
+------
+
+- Don't try creating ActivityType's multiple times (#342)
+
+0.21.2
+------
+
+
+
+0.21.1
+------
+
+- simpleflow.execute.python: handle huge args (#339)
+
+0.21.0
+------
+
+- Feature: custom logic on retry (#332)
+
+0.20.8
+------
+
+- Expose simpleflow.utils.serialize_complex_object() function (#336)
+
+0.20.7
+------
+
+- Feature: raises_on_failure and retry on workflow (#334)
+
+0.20.6
+------
+
+- Improve tests and fix jumbo fields decoding on failure (#330)
+- Remove future.standard_library.install_aliases() (#329)
+
+0.20.5
+------
+
+- Add 'simpleflow binaries.download' command
+
+0.20.4
+------
+
+- Fail activity task on k8s job spawning failure (#328)
+
+0.20.3
+------
+
+- Small settings improvements (#323)
+
+0.20.2
+------
+
+- add meta to metrology, upload stats only at the end of a task (#324)
+
+0.20.1
+------
+
+- inject context into python subprocess (#322)
+
+0.20.0
+------
+
+- Feature/318/simpleflow download binary (#321)
+
+0.19.2
+------
+
+- Slow jumbo cache fixes (#320)
+
+0.19.1
+------
+
+
+
+0.19.0
+------
+
+- Kubernetes integration (#313)
+
+0.18.15
+-------
+
+- Bugfix: propagate signal (#312)
+- Enhancement: inherit tag list (#314)
+- * blank SWF decision execution context when needed
+* rename ambiguous "execution_context" to "run_context" (#310)
+
+0.18.14
+-------
+
+- Update the link to the documentation (#306)
+- Fork on each decision task to protect against memory leaks (#200) (#308)
+- Don't truncate too long fields, raise instead (closes #307) (#309)
+
+0.18.13
+-------
+
+- Fix diskcache OperationalError (#303)
+
+0.18.12
+-------
+
+- Enhancement: save waiting_signals in the execution context (#300)
+- Mark flaky tests as expected to fail (#301)
+
+0.18.11
+-------
+
+- Allow Workflow instances in Group (#299)
+
+0.18.10
+-------
+
+- Don't raise when ThrottlingException occur on RecordActivityTaskHeartbeat endpoint (#297)
+
+0.18.9
+------
+
+- Fix activity.rerun not working with class based tasks (#289)
+- Add a new option (and parameter) --kill-children (#292)
+
+0.18.8
+------
+
+- Move workers cleanup/start outside SIGCHLD handler (#290)
+
+0.18.7
+------
+
+- Fix MANIFEST.in so README.md is included in final package
+
+0.18.6
+------
+
+- Add a new timeout parameter (#286)
+
+0.18.5
+------
+
+- Documentation overhaul (#284)
+- Add a release script (closes #179) (#287)
+
+0.18.4
+------
+
+- Improve process stopping (#283)
+
+0.18.3
+------
+
+- Enhancement/276/improve execute python (#280)
+
+0.18.2
+------
+
+- Bugfix: task failed details (#281)
+- Add sets support to json_dumps (#275)
+
+0.18.1
+------
+
+- Add back get_workflow_history
+
+
+0.18.0
+------
+
+- Implement "jumbo" fields (#265)
+
+0.17.0
+------
+
+- Enhancement/272/implement workflow cancelation (#273)
+- Bugfix: 270: signals improvements (#271)
+- Enhancement: timer: get_event_details (#269)
+- Append "/" to get_step_path_prefix (#268)
+- Enhancement/misc (#266)
+- Repair reruns successful child workflows (#191)
+
+0.16.0
+------
+
+- Feature: timers (#258)
+
+0.15.7
+------
+
+- Kill worker on UnknownResourceFault's during a heartbeat (#88) (#263)
+- Sort keys by default in json_dumps (#264)
+
+0.15.6
+------
+
+- Fix step attribute propagation (#261)
+- Enhancement: get_event_details (#235)
+
+0.15.5
+------
+
+- Enhancement: distinguish raises_on_failure between tasks and groups (#255)
+- Add time constants
+- Relax activity.with_attributes timeouts types
+
+0.15.4
+------
+
+- Enhancement: add canvas option break_on_failure (#253)
+- Compute task_id from ActivityTask if has get_task_id method (#237)
+- Another case of wrong task list (#234)
+
+0.15.3
+------
+
+- make raises_on_failure=True on step activities (#249)
+- SWF: support for non-Python tasks (#219)
+- Fix get_step_path_prefix
+- Make MarkerTask's idempotents
+
+0.15.2
+------
+
+- mark when a step is scheduled before it's executed (#243)
+
+0.15.1
+------
+
+- Enhancement: better activity type reason (#238)
+- Fix workers not catching errors during dispatch() step (#246)
+- Fix canvas.Chain send_result regression (#247)
+
+0.15.0
+------
+
+- Feature: steps (#221)
+- Make activity task result optional (#225)
+- Use details in addition to name to find markers (#227)
+- Logging: add exception information (#163)
+- swf/actors: support 'Message' key (#224)
+- Implement markers (#216) (#217)
+- Add retry on swf.process.Poller.poll and fail (#208)
+
+0.14.2
+------
+
+- propagate_attribute: skip signal objects (#215)
+- Local executor: check add_activity_task (#215)
+
+0.14.1
+------
+
+- Don't send exception up if raises_on_failure is false (#213)
+- Fix UnicodeDecodeError on windows machine (#211)
+- Try to use less memory (#209)
+- Standalone mode: use created task list for children activities (#207)
+
+0.14.0
+------
+
+- Fix workers not stopping in case they start during a shutdown (#205)
+- Add support for SWF signals (#188)
+- Improvements on canvas.Group (#204)
+
+0.13.4
+------
+
+- Implement metrology on SWF and local workflows (#186)
+
+0.13.3
+------
+
+- Try..except pass for NoSuchProcess (#182)
+
+0.13.2
+------
+
+- Add optional canvas (#193)
+- Reorganize tests/ directory (#198)
+- Relax DeciderPoller task list check (#201)
+- Implement priorities on SWF tasks (#199)
+
+0.13.1
+------
+
+- Fix SWF executor not accepting ActivityTask's in submit() method (#196)
+
+0.13.0
+------
+
+- Implement child workflow (#74)
+- Don't schedule idempotent tasks multiple times (#107)
+- Child workflow ID: use parent's id to generate
+
+0.12.7
+------
+
+- Control SWF processes identity via environment (#184)
+
+0.12.6
+------
+
+- Replace `execution` object with a more flexible `get_execution_method()` (#177)
+- Fix README_SWF.rst format (#175)
+- Fix CONTRIBUTING.rst format
+- docs/conf.py: remove relative import
+
+0.12.5
+------
+
+- Executor: expose workflow execution (#172)
+
+0.12.4
+------
+
+- Avoid returning too big responses to RespondDecisionTaskCompleted endpoint (#166)
+- Worker: remove useless monitor_child (#168)
+
+0.12.3
+------
+
+- Add max_parallel option in Group (#164)
+
+0.12.2
+------
+
+- Make the dynamic dispatcher more flexible (#161)
+- Fix README.rst format (#160)
+- Tiny command-line usability fixes (#158)
+
+0.12.1
+------
+
+- Don't override passed "default" in json_dumps() (#155)
+- Expose activity context (#156)
+
+0.12.0
+------
+
+- Improve process management (#142)
+
+0.11.17
+-------
+
+- Don't reap children in the back of multiprocessing (#141)
+- Don't force to pass a workflow to activity workers (#133)
+- Don't override the task list if not standalone (#139)
+- Split FuncGroup submit (#146)
+- CI: Test on python 3 (#144)
+- Decider: use workflow's task list if unset (#148)
+
+0.11.16
+-------
+
+- Refactor: cleanups and many python 3 compatibility issues fixed (#135)
+- Introduce AggregationException to inspect exceptions inside canvas.Group/Chain (#92)
+- Improve heartbeating, now enabled by default on activity workers (#136)
+
+0.11.15
+-------
+
+- Fix tag_list declaration in case no tag is associated with the workflow
+- Fix listing workflow tasks not handling "scheduled" (not started) tasks correctly
+- Fix CSV formatter outputing an extra "None" at the end of the output
+- Fix 'simpleflow activity.rerun' resolving the bad function name if not the last event
+
+0.11.14
+-------
+
+- Various little fixes around process management, heartbeat, logging (#110)
+
+0.11.13
+-------
+
+- Add ability to provide a 'run ID' with 'simpleflow standalone --repair'
+
+0.11.12
+-------
+
+- Fix --tags argument for simpleflow standalone (#114)
+- Improve tests and add integration tests (#116)
+- Add 'simpleflow activity.rerun' command (#117)
+
+0.11.11
+-------
+
+- Fix a circular import on simpleflow.swf.executor
+
+0.11.10
+-------
+
+- Fix previous_history initialization (#106)
+- Improve WorkflowExecutionQueryset default date values (#111)
+
+0.11.9
+------
+
+- Add a --repair option to simpleflow standalone (#100)
+
+0.11.8
+------
+
+- Retry boto.swf connection to avoid frequent errors when using IAM roles (#99)
+
+0.11.7
+------
+
+Same as 0.11.6 but the 0.11.6 on pypi is broken (pushed something similar to 0.11.5 by mistake)
+
+0.11.6
+------
+
+- Add `issubclass_` method (#96)
+- Avoid duplicate logs if root logger has an handler (#97)
+- Allow passing SWF domain via the SWF_DOMAIN environment variable (#98)
+
+0.11.5
+------
+
+- Don't mask activity cancel exception (#84)
+- Propagate all decision response attributes up to Executor.replay() (#76, #94)
+
+0.11.4
+------
+
+- ISO dates in workflow history #91
+- Fix potential infinite retry loop #90
+
+0.11.3
+------
+
+- Fix replay hooks introduced in 0.11.2 (#86)
+- Remove python3 compatibility from README (which was not working for a long time)
+
+0.11.2
+------
+
+- Add new workflow hooks (#79)
+
+0.11.1
+------
+
+- Fix logging when an exception occurs
+
+0.11.0
+------
+
+- Merge `swf` package into simplefow for easier maintenance.
+
+
+0.10.4 and below
+----------------
+
+Sorry changes were not documented for simpleflow <= 0.10.x.
