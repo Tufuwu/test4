@@ -1,55 +1,59 @@
-from setuptools import setup, find_packages
+# -*- coding: utf-8 -*-
+from setuptools import setup
+import os
+import re
 
-with open('README.md', 'r') as fh:
-    long_description = fh.read()
+# Lovingly adapted from https://github.com/kennethreitz/requests/blob/39d693548892057adad703fda630f925e61ee557/setup.py#L50-L55
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pusher/version.py'), 'r') as fd:
+    VERSION = re.search(r'^VERSION = [\']([^\']*)[\']',
+                        fd.read(), re.MULTILINE).group(1)
+
+if not VERSION:
+    raise RuntimeError('Ensure `VERSION` is correctly set in ./pusher/version.py')
 
 setup(
-    name='scanpy-scripts',
-    version='0.3.1',
-    author='nh3',
-    author_email='nh3@users.noreply.github.com',
-    description='Scripts for using scanpy from the command line',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    url='https://github.com/ebi-gene-expression-group/scanpy-scripts',
-    packages=find_packages(),
-    scripts=[
-        'scanpy-scripts-tests.bats',
+    name='pusher',
+    version=VERSION,
+    description='A Python library to interract with the Pusher Channels API',
+    url='https://github.com/pusher/pusher-http-python',
+    author='Pusher',
+    author_email='support@pusher.com',
+    classifiers=[
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Topic :: Internet :: WWW/HTTP',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
     ],
-    entry_points=dict(
-        console_scripts=[
-            'scanpy-cli=scanpy_scripts.cli:cli',
-            'scanpy-read-10x=scanpy_scripts.cmds:READ_CMD',
-            'scanpy-filter-cells=scanpy_scripts.cmds:FILTER_CMD',
-            'scanpy-filter-genes=scanpy_scripts.cmds:FILTER_CMD',
-            'scanpy-normalise-data=scanpy_scripts.cmds:NORM_CMD',
-            'scanpy-find-variable-genes=scanpy_scripts.cmds:HVG_CMD',
-            'scanpy-scale-data=scanpy_scripts.cmds:SCALE_CMD',
-            'scanpy-regress=scanpy_scripts.cmds:REGRESS_CMD',
-            'scanpy-run-pca=scanpy_scripts.cmds:PCA_CMD',
-            'scanpy-neighbors=scanpy_scripts.cmds:NEIGHBOR_CMD',
-            'scanpy-run-tsne=scanpy_scripts.cmds:TSNE_CMD',
-            'scanpy-run-umap=scanpy_scripts.cmds:UMAP_CMD',
-            'scanpy-find-cluster=scanpy_scripts.cli:cluster',
-            'scanpy-find-markers=scanpy_scripts.cmds:DIFFEXP_CMD',
-        ]
-    ),
+    keywords='pusher rest realtime websockets service',
+    license='MIT',
+
+    packages=[
+        'pusher'
+    ],
+
     install_requires=[
-        'packaging',
-        'anndata',
-        'scipy',
-        'matplotlib',
-        'pandas',
-        'h5py<3.0.0',
-        'scanpy>=1.6.0',
-        'louvain',
-        'leidenalg',
-        'loompy>=2.0.0,<3.0.0',
-        'MulticoreTSNE',
-        'Click',
-        'umap-learn<0.4.0',
-        'harmonypy>=0.0.5',
-        'bbknn>=1.3.12',
-        'mnnpy>=0.1.9.5'
+        'six',
+        'requests>=2.3.0',
+        'urllib3',
+        'pyopenssl',
+        'ndg-httpsclient',
+        'pyasn1',
+        'pynacl'
     ],
+
+    tests_require=['nose', 'mock', 'HTTPretty'],
+
+    extras_require={
+        'aiohttp': ['aiohttp>=0.20.0'],
+        'tornado': ['tornado>=5.0.0']
+    },
+
+    package_data={
+        'pusher': ['cacert.pem']
+    },
+
+    test_suite='pusher_tests',
 )
