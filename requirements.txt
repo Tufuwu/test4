@@ -1,2 +1,3 @@
-# Installs all extras (for testing and documentation) in pykickstart.
-.[docs,test]
+certifi==2020.6.20
+python-dateutil==2.8.1
+six==1.15.0
