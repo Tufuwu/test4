@@ -1,143 +1,139 @@
-olefile
-=======
+<img src="/docs/waterbutler.png?raw=true" width="25%" style="float:left;">
 
-[![Test](https://github.com/decalage2/olefile/actions/workflows/test.yml/badge.svg)](https://github.com/decalage2/olefile/actions)
-[![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/decalage2/olefile?svg=true)](https://ci.appveyor.com/project/decalage2/olefile)
-[![codecov](https://codecov.io/gh/decalage2/olefile/branch/main/graph/badge.svg)](https://codecov.io/gh/decalage2/olefile)
-[![Documentation Status](http://readthedocs.org/projects/olefile/badge/?version=latest)](http://olefile.readthedocs.io/en/latest/?badge=latest)
-[![PyPI](https://img.shields.io/pypi/v/olefile.svg)](https://pypi.org/project/olefile/)
-[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/decalage2)
+# WaterButler
 
-[olefile](https://www.decalage.info/olefile) is a Python package to parse, read and write
-[Microsoft OLE2 files](http://en.wikipedia.org/wiki/Compound_File_Binary_Format)
-(also called Structured Storage, Compound File Binary Format or Compound Document File Format),
-such as Microsoft Office 97-2003 documents, vbaProject.bin in MS Office 2007+ files, Image Composer
-and FlashPix files, Outlook messages, StickyNotes, several Microscopy file formats, McAfee antivirus quarantine files,
-etc.
+[![Documentation Status](https://readthedocs.org/projects/waterbutler/badge/?version=latest)](http://waterbutler.readthedocs.org/en/latest/?badge=latest)
+[![Code Climate](https://codeclimate.com/github/CenterForOpenScience/waterbutler/badges/gpa.svg)](https://codeclimate.com/github/CenterForOpenScience/waterbutler)
 
+`master` Build Status: [![Build Status](https://github.com/CenterForOpenScience/waterbutler/actions/workflows/test-build.yml/badge.svg?branch=master)](https://github.com/CenterForOpenScience/waterbutler/actions)[![Coverage Status](https://coveralls.io/repos/github/CenterForOpenScience/waterbutler/badge.svg?branch=master)](https://coveralls.io/github/CenterForOpenScience/waterbutler?branch=master)
 
-**Quick links:** [Home page](https://www.decalage.info/olefile) -
-[Download/Install](http://olefile.readthedocs.io/en/latest/Install.html) -
-[Documentation](http://olefile.readthedocs.io/en/latest) -
-[Report Issues/Suggestions/Questions](https://github.com/decalage2/olefile/issues) -
-[Contact the author](https://www.decalage.info/contact) -
-[Repository](https://github.com/decalage2/olefile) -
-[Updates on Twitter](https://twitter.com/decalage2)
+`develop` Build Status: [![Build Status](https://github.com/CenterForOpenScience/waterbutler/actions/workflows/test-build.yml/badge.svg?branch=develop)](https://github.com/CenterForOpenScience/waterbutler/actions)[![Coverage Status](https://coveralls.io/repos/github/CenterForOpenScience/waterbutler/badge.svg?branch=develop)](https://coveralls.io/github/CenterForOpenScience/waterbutler?branch=develop)
 
+### Compatibility
 
-News
-----
+WaterButler is compatible with Python 3.6.
 
-Follow all updates and news on Twitter: <https://twitter.com/decalage2>
+### Documentation
 
-- **2018-09-09 v0.46**: OleFileIO can now be used as a context manager
-(with...as), to close the file automatically
-(see [doc](https://olefile.readthedocs.io/en/latest/Howto.html#open-an-ole-file-from-disk)).
-Improved handling of malformed files, fixed several bugs.
-- 2018-01-24 v0.45: olefile can now overwrite streams of any size, improved handling of malformed files,
-fixed several [bugs](https://github.com/decalage2/olefile/milestone/4?closed=1), end of support for Python 2.6 and 3.3.
-- 2017-01-06 v0.44: several bugfixes, removed support for Python 2.5 (olefile2),
-added support for incomplete streams and incorrect directory entries (to read malformed documents),
-added getclsid, improved [documentation](http://olefile.readthedocs.io/en/latest) with API reference.
-- 2017-01-04: moved the documentation to [ReadTheDocs](http://olefile.readthedocs.io/en/latest)
-- 2016-05-20: moved olefile repository to [GitHub](https://github.com/decalage2/olefile)
-- 2016-02-02 v0.43: fixed issues [#26](https://github.com/decalage2/olefile/issues/26)
-    and [#27](https://github.com/decalage2/olefile/issues/27),
-    better handling of malformed files, use python logging.
-- see [changelog](https://github.com/decalage2/olefile/blob/master/CHANGELOG.md) for more detailed information and
-the latest changes.
+Documentation available at https://waterbutler.readthedocs.io/en/latest/
 
-Download/Install
-----------------
+### Setting up
 
-If you have pip or setuptools installed (pip is included in Python 2.7.9+), you may simply run **pip install olefile**
-or **easy_install olefile** for the first installation.
+In order to run WaterButler, you must create a Python 3.6-based virtualenv for it.
 
-To update olefile, run **pip install -U olefile**.
+For MacOSX, you can install the latest version of Python3 using:
 
-Otherwise, see http://olefile.readthedocs.io/en/latest/Install.html
+```bash
+brew install python3
+```
 
-Features
---------
+For Ubuntu users:
 
-- Parse, read and write any OLE file such as Microsoft Office 97-2003 legacy document formats (Word .doc, Excel .xls,
-    PowerPoint .ppt, Visio .vsd, Project .mpp), Image Composer and FlashPix files, Outlook messages, StickyNotes,
-    Zeiss AxioVision ZVI files, Olympus FluoView OIB files, etc
-- List all the streams and storages contained in an OLE file
-- Open streams as files
-- Parse and read property streams, containing metadata of the file
-- Portable, pure Python module, no dependency
+```bash
+apt-get install python3.6
+```
 
-olefile can be used as an independent package or with PIL/Pillow.
+After completing the installation of Python 3.6, you must create a virtual environment. This can be done with the following commands:
 
-olefile is mostly meant for developers. If you are looking for tools to analyze OLE files or to extract data (especially
-for security purposes such as malware analysis and forensics), then please also check my
-[python-oletools](https://www.decalage.info/python/oletools), which are built upon olefile and provide a higher-level interface.
+```bash
+pip install virtualenv
+pip install virtualenvwrapper
+mkvirtualenv --python=python3.6 waterbutler
 
+pip install setuptools=37.0.0
+pip install invoke==0.13.0
 
-Documentation
--------------
+invoke install
+invoke server
+```
 
-Please see the [online documentation](http://olefile.readthedocs.io/en/latest) for more information.
+The above code will get the virtualenv up and running for the first time.  After the initial setup, you can run waterbutler by running:
 
+```bash
+workon waterbutler
+invoke server
+```
 
-## Real-life examples ##
+Some tasks also require a running celery worker.  You will need to install `rabbitmq` and run a server:
 
-A real-life example: [using OleFileIO_PL for malware analysis and forensics](http://blog.gregback.net/2011/03/using-remnux-for-forensic-puzzle-6/).
+```bash
+brew install rabbitmq
+# on Ubuntu:
+# apt-get install rabbitmq-server
+rabbitmq-server
+```
 
-See also [this paper](https://computer-forensics.sans.org/community/papers/gcfa/grow-forensic-tools-taxonomy-python-libraries-helpful-forensic-analysis_6879) about python tools for forensics, which features olefile.
+Then in your WaterButler virtualenv:
 
+```bash
+invoke celery
+```
 
-License
--------
+### Configuring
 
-olefile (formerly OleFileIO_PL) is copyright (c) 2005-2023 Philippe Lagadec
-([https://www.decalage.info](https://www.decalage.info))
+WaterButler configuration is done through a JSON file (`waterbutler-test.json`) that lives in the `.cos` directory of your home directory.  If this is your first time setting up WaterButler or its sister project, [MFR](https://github.com/CenterForOpenScience/modular-file-renderer/), you probably do not have this directory and will need to create it:
 
-All rights reserved.
+```bash
+mkdir ~/.cos
+```
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+The data in `waterbutler-test.json` is used by the many Django-style `settings.py` files sprinkled about.  Most of these files define a top-level key that its specific configuration should be listed under.  For instance, if you wanted your local WaterButler server to listen on port 8989 instead of the default 7777, you would check the settings file for `waterbutler.server`.  That file looks for `HOST` and `DOMAIN` configuration keys under the `SERVER_CONFIG` top-level key.  Your configuration file would need to be updated to look like this:
 
- * Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
+```json
+{
+  "SERVER_CONFIG": {
+    "PORT": 8989,
+    "DOMAIN": "http://localhost:8989"
+  }
+}
+```
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+If you then wanted to update the GitHub commit message WaterButler submits when deleting files, you would look in `waterbutler.providers.github.settings`. The `DELETE_FILE_MESSAGE` parameter should come under the `GITHUB_PROVIDER_CONFIG` key:
 
+```json
+{
+  "SERVER_CONFIG": {
+    "PORT": 8989,
+    "DOMAIN": "http://localhost:8989"
+  },
+  "GITHUB_PROVIDER_CONFIG": {
+    "DELETE_FILE_MESSAGE": "WaterButler deleted this. You're welcome."
+  }
+}
+```
 
-----------
+### Testing
 
-olefile is based on source code from the OleFileIO module of the Python Imaging Library (PIL) published by Fredrik
-Lundh under the following license:
+Before running the tests, you will need to install some additional requirements. In your checkout, run:
 
-The Python Imaging Library (PIL) is
+```bash
+workon waterbutler
+invoke install --develop
+invoke test
+```
 
-- Copyright (c) 1997-2009 by Secret Labs AB
-- Copyright (c) 1995-2009 by Fredrik Lundh
+### Known issues
 
-By obtaining, using, and/or copying this software and/or its associated documentation, you agree that you have read,
-understood, and will comply with the following terms and conditions:
+- **Updated, 2018-01-02:** *WB has been updated to work with setuptools==37.0.0, as of WB release v0.37. The following issue should not happen for new installs, but may occur if you downgrade to an older version.*  Running `invoke install -d` with setuptools v31 or greater can break WaterButler.  The symptom error message is: `"AttributeError: module 'waterbutler' has no attribute '__version__'"`.  If you encounter this, you will need to remove the file `waterbutler-nspkg.pth` from your virtualenv directory, run `pip install setuptools==30.4.0`, then re-run `invoke install -d`.
 
-Permission to use, copy, modify, and distribute this software and its associated documentation for any purpose and
-without fee is hereby granted, provided that the above copyright notice appears in all copies, and that both that
-copyright notice and this permission notice appear in supporting documentation, and that the name of Secret Labs AB or
-the author not be used in advertising or publicity pertaining to distribution of the software without specific, written
-prior permission.
+- `invoke $command` results in `'$command' did not receive all required positional arguments!`: this error message occurs when trying to run WB v0.30.0+ with `invoke<0.13.0`.  Run `pip install invoke==0.13.0`, then retry your command.
 
-SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES
-OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
-CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
-CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
-SOFTWARE.
+### License
+
+Copyright 2013-2018 Center for Open Science
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+### COS is hiring!
+
+Want to help save science? Want to get paid to develop free, open source software? [Check out our openings!](https://cos.io/our-communities/jobs/)

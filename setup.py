@@ -1,83 +1,63 @@
-"""
-Installation script for olefile using setuptools
-
-To install this package, run:
-    python setup.py install
-
-"""
+from setuptools import setup, find_packages
 
 
-# --- IMPORTS -----------------------------------------------------------------
-
-from setuptools import setup
-
-from olefile import __version__, __author__
+def parse_requirements(requirements):
+    with open(requirements) as f:
+        return [l.strip('\n') for l in f if l.strip('\n') and not l.startswith('#')]
 
 
-# --- METADATA ----------------------------------------------------------------
+requirements = parse_requirements('requirements.txt')
 
-name         = "olefile"
-version      = __version__
-desc         = "Python package to parse, read and write Microsoft OLE2 files (Structured Storage or Compound Document, Microsoft Office)"
-author       = __author__
-author_email = "nospam@decalage.info"
-url          = "https://www.decalage.info/python/olefileio"
-license      = "BSD"
-download_url = "https://github.com/decalage2/olefile/tarball/master"
+# Taken from option 3 of https://packaging.python.org/guides/single-sourcing-package-version/
+version = {}
+with open('waterbutler/version.py') as fp:
+    exec(fp.read(), version)
 
-with open('README.md') as f:
-    long_desc = f.read()
-
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Information Technology",
-    "Intended Audience :: Science/Research",
-    "Intended Audience :: System Administrators",
-    "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 2",
-    "Programming Language :: Python :: 2.7",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.5",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Topic :: Software Development :: Libraries :: Python Modules"
-]
-
-# --- PACKAGES ----------------------------------------------------------------
-
-packages = [
-    "olefile",
-]
-
-
-# === MAIN ====================================================================
-
-def main():
-    setup(
-        name=name,
-        version=version,
-        description=desc,
-        long_description=long_desc,
-        long_description_content_type='text/markdown',
-        classifiers=classifiers,
-        author=author,
-        author_email=author_email,
-        url=url,
-        license=license,
-#        package_dir=package_dir,
-        packages=packages,
-        download_url=download_url,
-#        data_files=data_files,
-#        scripts=scripts,
-        python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*",
-    )
-
-
-if __name__ == "__main__":
-    main()
+setup(
+    name='waterbutler',
+    version=version['__version__'],
+    namespace_packages=['waterbutler', 'waterbutler.auth', 'waterbutler.providers'],
+    description='WaterButler Storage Server',
+    author='Center for Open Science',
+    author_email='contact@cos.io',
+    url='https://github.com/CenterForOpenScience/waterbutler',
+    packages=find_packages(exclude=("tests*", )),
+    package_dir={'waterbutler': 'waterbutler'},
+    include_package_data=True,
+    # install_requires=requirements,
+    zip_safe=False,
+    classifiers=[
+        'Natural Language :: English',
+        'Intended Audience :: Developers',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Development Status :: 5 - Production/Stable',
+        'License :: OSI Approved :: Apache Software License',
+    ],
+    provides=[
+        'waterbutler.auth',
+        'waterbutler.providers',
+    ],
+    entry_points={
+        'waterbutler.auth': [
+            'osf = waterbutler.auth.osf:OsfAuthHandler',
+        ],
+        'waterbutler.providers': [
+            'cloudfiles = waterbutler.providers.cloudfiles:CloudFilesProvider',
+            'dropbox = waterbutler.providers.dropbox:DropboxProvider',
+            'figshare = waterbutler.providers.figshare:FigshareProvider',
+            'filesystem = waterbutler.providers.filesystem:FileSystemProvider',
+            'github = waterbutler.providers.github:GitHubProvider',
+            'gitlab = waterbutler.providers.gitlab:GitLabProvider',
+            'bitbucket = waterbutler.providers.bitbucket:BitbucketProvider',
+            'osfstorage = waterbutler.providers.osfstorage:OSFStorageProvider',
+            'owncloud = waterbutler.providers.owncloud:OwnCloudProvider',
+            's3 = waterbutler.providers.s3:S3Provider',
+            'dataverse = waterbutler.providers.dataverse:DataverseProvider',
+            'box = waterbutler.providers.box:BoxProvider',
+            'googledrive = waterbutler.providers.googledrive:GoogleDriveProvider',
+            'onedrive = waterbutler.providers.onedrive:OneDriveProvider',
+            'googlecloud = waterbutler.providers.googlecloud:GoogleCloudProvider',
+        ],
+    },
+)
