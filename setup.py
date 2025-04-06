@@ -1,41 +1,45 @@
-from setuptools import setup, find_packages
+import contextlib
+import os
+import pathlib
+import subprocess
 
-# defines __version__
-exec(open("trustme/_version.py").read())
+import setuptools
 
-setup(
-    name="trustme",
-    version=__version__,
-    description=
-      "#1 quality TLS certs while you wait, for the discerning tester",
-    long_description=open("README.rst").read(),
-    author="Nathaniel J. Smith",
-    author_email="njs@pobox.com",
-    license="MIT -or- Apache License 2.0",
-    packages=find_packages(),
-    url="https://github.com/python-trio/trustme",
-    install_requires=[
-        "cryptography",
-        # cryptography depends on both of these too, so we should declare our
-        # dependencies to be accurate, but they don't actually cost anything:
-        "idna",
-        "ipaddress; python_version < '3.3'",
-    ],
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Topic :: System :: Networking",
-        "Topic :: Security :: Cryptography",
-        "Topic :: Software Development :: Testing",
-    ])
+
+@contextlib.contextmanager
+def ensure_version():
+    version_filename = pathlib.Path(__file__).parent / "VERSION.txt"
+
+    # If installing from a sdist
+    try:
+        with open(version_filename) as f:
+            yield f.read().strip()
+        return
+    except IOError:
+        pass
+
+    # If running from the git repository
+    try:
+        version = (
+            subprocess.check_output(["git", "describe", "--tags"])
+            .decode("utf-8")
+            .strip()
+            .replace("-", "+", 1)
+            .replace("-", ".")
+        )
+    except subprocess.CalledProcessError:
+        # This might happen in some rare cases, like when running check-manifest.
+        # We'll update this to something better if it ever proves problematic.
+        yield "0.0.0"
+        return
+
+    try:
+        with open(version_filename, "w") as f:
+            f.write(version)
+        yield version
+    finally:
+        os.remove(version_filename)
+
+
+with ensure_version() as version:
+    setuptools.setup(version=version)
