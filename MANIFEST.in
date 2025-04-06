@@ -1,13 +1,8 @@
-include AUTHORS.rst
-include CONTRIBUTING.rst
-include HISTORY.rst
-include LICENSE
+# Windows note: folders should not end with a slash
+include AUTHORS
 include README.rst
-
-include mixsea/tests/data/*.csv
-
-recursive-include tests *
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
-
-recursive-include docs *.rst conf.py Makefile *.jpg *.png *.gif
+include LICENSE
+recursive-include fluent_blogs/static *.gif *.css
+recursive-include fluent_blogs/locale *.po *.mo
+recursive-include fluent_blogs/templates *.html
+recursive-include fluent_blogs/pagetypes/blogpage/templates *.html
