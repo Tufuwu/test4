@@ -1,45 +1,37 @@
-#!/usr/bin/env python
-# encoding: utf-8
-
-"""Packaging script."""
-
+import io
 import os
+from setuptools import setup, find_packages
 
-from setuptools import setup
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-here = os.path.abspath(os.path.dirname(__file__))
-readme = open(os.path.join(here, "README.rst")).read()
+version = {}
+with io.open(os.path.join(PROJECT_ROOT, "src", "dirhash", "version.py")) as fp:
+    exec(fp.read(), version)
+
+DESCRIPTION = 'Python module and CLI for hashing of file system directories.'
+
+try:
+    with io.open(os.path.join(PROJECT_ROOT, 'README.md'), encoding='utf-8') as f:
+        long_description = '\n' + f.read()
+except IOError:
+    long_description = DESCRIPTION
 
 setup(
-    name="circlify",
-    description="Circle packing algorithm for Python",
-    long_description=readme,
-    long_description_content_type="text/x-rst",
-    version="0.14.0",
-    author="Elmotec",
-    author_email="elmotec@gmx.com",
-    license="MIT",
-    keywords="circle packing enclosure hierarchy graph display visualization",
-    url="http://github.com/elmotec/circlify",
-    py_modules=["circlify"],
-    test_suite="tests",
-    setup_requires=[],
-    tests_require=[],
-    python_requires=">=3.5",
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Operating System :: OS Independent",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Topic :: Software Development",
-        "Topic :: Utilities",
-        "Topic :: Scientific/Engineering :: Visualization",
-        "Intended Audience :: Developers",
-    ],
+    name='dirhash',
+    version=version['__version__'],
+    description=DESCRIPTION,
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url='https://github.com/andhus/dirhash-python',
+    author="Anders Huss",
+    author_email="andhus@kth.se",
+    license='MIT',
+    install_requires=['scantree>=0.0.1'],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    include_package_data=True,
+    entry_points={
+        'console_scripts': ['dirhash=dirhash.cli:main'],
+    },
+    tests_require=['pytest', 'pytest-cov']
 )
