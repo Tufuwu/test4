@@ -1,30 +1,48 @@
-.. flask-peewee documentation master file, created by
-   sphinx-quickstart on Tue Sep 20 13:19:30 2011.
+.. Scout documentation master file, created by
+   sphinx-quickstart on Sat Mar 28 11:51:29 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-flask-peewee
-============
+scout
+=====
 
-.. warning::
+.. image:: http://media.charlesleifer.com/blog/photos/scout-logo.png
 
-    This package is in maintenance-only mode!
-    -----------------------------------------
+**scout** is a RESTful search server written in Python with a focus on using
+lightweight components:
 
-    I'm sorry to announce that flask-peewee will now be in maintenance-only mode. This decision is motivated by a number of factors:
+* search powered by `sqlite's full-text search extension <http://sqlite.org/fts3.html>`_
+* database access coordinated using `peewee ORM <http://docs.peewee-orm.com/>`_
+* web application built with `flask <http://flask.pocoo.org>`_ framework
 
-    * `Flask-Admin <https://flask-admin.readthedocs.io/en/latest/>`_ provides a superior admin interface and has support for peewee models.
-    * `Flask-Security <https://pythonhosted.org/Flask-Security/>`_ and `Flask-Login <https://flask-login.readthedocs.io/en/latest/>`_ both provide authentication functionality, and work well with Peewee.
-    * Most importantly, though, I do not find myself wanting to work on flask-peewee.
+Scout aims to be a lightweight, RESTful search server in the spirit of
+[ElasticSearch](https://www.elastic.co), powered by the SQLite full-text search
+extension. In addition to search, Scout can be used as a document database,
+supporting complex filtering operations. Arbitrary files can be attached to
+documents and downloaded through the REST API.
 
-    I plan on rewriting the ``Database`` and ``REST API`` portions of flask-peewee and repackaging them as a new library, but flask-peewee as it stands currently will be in maintenance-only mode.
+Scout is simple to use, simple to deploy and *just works*.
 
-------------------------------
+Features
+--------
 
-Welcome to the flask-peewee documentation!
+* multiple search indexes present in a single database.
+* restful design for easy indexing and searching.
+* simple key-based authentication (optional).
+* lightweight, low resource utilization, minimal setup required.
+* store search content and arbitrary metadata.
+* attach files or BLOBs to indexed documents.
+* multiple result ranking algorithms, porter stemmer.
+* besides full-text search, perform complex filtering based on metadata values.
+* comprehensive unit-tests.
+* supports SQLite `FTS4 <http://sqlite.org/fts3.html>`_.
 
-provides a layer of integration between the `flask <http://flask.pocoo.org/>`_
-web framework and the `peewee orm <https://peewee.readthedocs.io/>`_.
+named in honor of the best dog ever,
+
+.. image:: http://media.charlesleifer.com/blog/photos/p1473037171.1.JPG
+
+Table of contents
+-----------------
 
 Contents:
 
@@ -33,21 +51,11 @@ Contents:
    :glob:
 
    installation
-   getting-started
-   database
-   admin
-   auth
-   rest-api
-   utils
-   gevent
+   server
+   client
+   deployment
+   hacks
 
-API in depth:
-
-.. toctree::
-    :maxdepth: 2
-    :glob:
-
-    api/
 
 Indices and tables
 ==================
@@ -55,3 +63,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+

@@ -1,43 +1,43 @@
-import sys
-from setuptools import setup, find_packages
+import os
+import warnings
 
-requirements = ['Flask', 'werkzeug', 'jinja2', 'peewee>=3.0.0', 'wtforms', 'wtf-peewee']
-if sys.version_info[:2] < (2, 6):
-    requirements.append('simplejson')
+from setuptools import setup
+
+cur_dir = os.path.dirname(__file__)
+readme_file = os.path.join(cur_dir, 'README.md')
+with open(readme_file) as fh:
+    readme = fh.read()
+
+try:
+    from scout import __version__ as scout_version
+except ImportError:
+    scout_version = '0.0.0'
+    warnings.warn('Unable to determine scout library version!')
 
 setup(
-    name='flask-peewee',
-    version='3.0.3',
-    url='http://github.com/coleifer/flask-peewee/',
+    name='scout',
+    version=scout_version,
+    url='http://github.com/coleifer/scout/',
     license='MIT',
     author='Charles Leifer',
     author_email='coleifer@gmail.com',
-    description='Peewee integration for flask',
-    packages=find_packages(),
-    package_data = {
-        'flask_peewee': [
-            'static/*/*.css',
-            'static/*/*.js',
-            'static/*/*.gif',
-            'static/*/*.png',
-            'templates/*.html',
-            'templates/*/*.html',
-            'templates/*/*/*.html',
-            'tests/*.html',
-            'tests/*/*.html',
-        ],
-    },
+    description='scout - a lightweight search server powered by SQLite',
+    packages=['scout'],
     zip_safe=False,
     platforms='any',
-    install_requires=requirements,
+    install_requires=[
+        'flask',
+        'peewee>=3.0.0'],
     classifiers=[
-        'Environment :: Web Environment',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Development :: Libraries :: Python Modules'
-    ],
-    test_suite='runtests.runtests',
+        'Programming Language :: Python'],
+    py_modules=['scout_client'],
+    test_suite='scout.tests',
+    entry_points="""
+        [console_scripts]
+        scout=scout.server:main
+    """,
 )

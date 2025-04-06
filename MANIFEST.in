@@ -1,6 +1,8 @@
+include CHANGELOG.md
 include LICENSE
-include README.rst
-recursive-include docs *
-recursive-include example *
-recursive-include flask_peewee *
-prune docs/_build
+include README.md
+include runtests.py
+include scout_client.py
+include tests.py
+recursive-include docker/*
+recursive-include docs/*
