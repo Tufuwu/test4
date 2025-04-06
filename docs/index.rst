@@ -1,44 +1,47 @@
-.. collective.solr documentation master file, created by
-   sphinx-quickstart on Thu Oct 24 08:27:50 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. -*- mode: rst; encoding: utf-8 -*-
 
-==================================
-Solr integration for the Plone CMS
-==================================
+Babel
+=====
 
-.. include:: introduction.rst
+Babel is an integrated collection of utilities that assist in
+internationalizing and localizing Python applications, with an emphasis on
+web-based applications.
 
-.. include:: status.rst
+User Documentation
+------------------
 
-Contents
-========
-
-This documentation will describe all necessary information to setup and use `Solr`_ in combination with `Plone`_.
+The user documentation explains some core concept of the library and gives
+some information about how it can be used.
 
 .. toctree::
-    :maxdepth: 4
+   :maxdepth: 1
 
-    base/index
-    usage/index
-    development/index
+   intro
+   installation
+   locale
+   dates
+   numbers
+   messages
+   cmdline
+   setup
+   support
+
+API Reference
+-------------
+
+The API reference lists the full public API that Babel provides.
 
 .. toctree::
-    :maxdepth: 1
+   :maxdepth: 2
 
-    CHANGES
+   api/index
 
+Additional Notes
+----------------
 
-.. include:: credits.rst
+.. toctree::
+   :maxdepth: 2
 
-.. include:: contributors.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-.. include:: indexes.rst
+   dev
+   changelog
+   license

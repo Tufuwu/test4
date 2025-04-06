@@ -1,114 +1,48 @@
-# keep in sync with: https://github.com/kitconcept/buildout/edit/master/Makefile
-# update by running 'make update'
-SHELL := /bin/bash
-CURRENT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+test: import-cldr
+	@PYTHONWARNINGS=default python ${PYTHON_TEST_FLAGS} -m pytest
 
-version = 3
+test-cov: import-cldr
+	@PYTHONWARNINGS=default python ${PYTHON_TEST_FLAGS} -m pytest --cov=babel
 
-# We like colors
-# From: https://coderwall.com/p/izxssa/colored-makefile-for-golang-projects
-RED=`tput setaf 1`
-GREEN=`tput setaf 2`
-RESET=`tput sgr0`
-YELLOW=`tput setaf 3`
+test-env:
+	@virtualenv test-env
+	@test-env/bin/pip install pytest
+	@test-env/bin/pip install --editable .
 
-all: .installed.cfg
+clean-test-env:
+	@rm -rf test-env
 
-# Add the following 'help' target to your Makefile
-# And add help text after each target name starting with '\#\#'
-.PHONY: help
-help: ## This help message
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+standalone-test: import-cldr test-env
+	@test-env/bin/py.test tests
 
-.PHONY: Update Makefile and Buildout
-update: ## Update Make and Buildout
-	wget -O Makefile https://raw.githubusercontent.com/kitconcept/buildout/master/Makefile
-	wget -O requirements.txt https://raw.githubusercontent.com/kitconcept/buildout/master/requirements.txt
-	wget -O plone-4.3.x.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/plone-4.3.x.cfg
-	wget -O plone-5.1.x.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/plone-5.1.x.cfg
-	wget -O plone-5.2.x.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/plone-5.2.x.cfg
-	wget -O ci.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/ci.cfg
-	wget -O versions.cfg https://raw.githubusercontent.com/kitconcept/buildout/master/versions.cfg
+clean: clean-cldr clean-pyc clean-test-env
 
-.installed.cfg: bin/buildout *.cfg
-	bin/buildout
+import-cldr:
+	@python scripts/download_import_cldr.py
 
-bin/buildout: bin/pip
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/pip install black || true
-	@touch -c $@
+clean-cldr:
+	@rm -f babel/locale-data/*.dat
+	@rm -f babel/global.dat
 
-bin/python bin/pip:
-	python$(version) -m venv . || virtualenv --clear --python=python$(version) .
+clean-pyc:
+	@find . -name '*.pyc' -exec rm {} \;
+	@find . -name '__pycache__' -type d | xargs rm -rf
 
-py2:
-	virtualenv --clear --python=python2 .
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
+develop:
+	@pip install --editable .
 
-.PHONY: Build Plone 4.3
-build-plone-4.3: py2 ## Build Plone 4.3
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-4.3.x.cfg
+tox-test: import-cldr
+	@tox
 
-.PHONY: Build Plone 5.0
-build-plone-5.0: py2 ## Build Plone 5.0
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-5.0.x.cfg
+upload-docs:
+	$(MAKE) -C docs html dirhtml latex
+	$(MAKE) -C docs/_build/latex all-pdf
+	cd docs/_build/; mv html babel-docs; zip -r babel-docs.zip babel-docs; mv babel-docs html
+	rsync -a docs/_build/dirhtml/ pocoo.org:/var/www/babel.pocoo.org/docs/
+	rsync -a docs/_build/latex/Babel.pdf pocoo.org:/var/www/babel.pocoo.org/docs/babel-docs.pdf
+	rsync -a docs/_build/babel-docs.zip pocoo.org:/var/www/babel.pocoo.org/docs/babel-docs.zip
 
-.PHONY: Build Plone 5.1
-build-plone-5.1: py2  ## Build Plone 5.1
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-5.1.x.cfg
+release: import-cldr
+	python scripts/make-release.py
 
-.PHONY: Build Plone 5.2
-build-plone-5.2: .installed.cfg  ## Build Plone 5.2
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-5.2.x.cfg
-
-.PHONY: Build Plone 5.2 Performance
-build-plone-5.2-performance: .installed.cfg  ## Build Plone 5.2
-	bin/pip install --upgrade pip
-	bin/pip install -r requirements.txt
-	bin/buildout -c plone-5.2.x-performance.cfg
-
-.PHONY: Test
-test:  ## Test
-	bin/test
-
-.PHONY: Test Performance
-test-performance:
-	jmeter -n -t performance.jmx -l jmeter.jtl
-
-.PHONY: Code Analysis
-code-analysis:  ## Code Analysis
-	bin/code-analysis
-	if [ -f "bin/black" ]; then bin/black src/ --check ; fi
-
-.PHONY: Black
-black:  ## Black
-	bin/code-analysis
-	if [ -f "bin/black" ]; then bin/black src/ ; fi
-
-.PHONY: Build Docs
-docs:  ## Build Docs
-	bin/sphinxbuilder
-
-.PHONY: Test Release
-test-release:  ## Run Pyroma and Check Manifest
-	bin/pyroma -n 10 -d .
-
-.PHONY: Release
-release:  ## Release
-	bin/fullrelease
-
-.PHONY: Clean
-clean:  ## Clean
-	git clean -Xdf
-
-.PHONY: all clean
+.PHONY: test develop tox-test clean-pyc clean-cldr import-cldr clean release upload-docs clean-test-env standalone-test
