@@ -1,140 +1,189 @@
-🐜🐜🐜 Marabunta 🐜🐜🐜
-=======================
+|build| |codecov| |docs-status|
 
-.. image:: https://travis-ci.org/camptocamp/marabunta.svg?branch=master
-    :target: https://travis-ci.org/camptocamp/marabunta
+Django Extra Views - The missing class-based generic views for Django
+========================================================================
 
-*Marabunta is a name given to the migration of the legionary ants or to the ants
-themselves. Restless, they eat and digest everything in their way.*
+Django-extra-views is a Django package which introduces additional class-based views
+in order to simplify common design patterns such as those found in the Django
+admin interface.
 
-Marabunta is used to provide an easy way to create Updates for Odoo fast and run easily. It also allows to differentiate between different environment to provide for instance demodata.
+Supported Python and Django versions: Python 3.5+, Django 2.1–3.2,
+see `tox.ini <https://github.com/AndrewIngram/django-extra-views/blob/master/tox.ini>`_ for an up-to-date list.
 
+Full documentation is available at `read the docs`_.
 
-Usage
-=====
-After installing marabunta, it will be available as a console command. To run properly it requires a migration file (which defines what has to updated/executed) and odoos connection parameters (view options in the options section.
+.. _read the docs: https://django-extra-views.readthedocs.io/
 
-At each run marabunta verifies the versions from the migration file and and processes new ones.
-It is very much recommended to configure it, so that marabunta is ran automatically if odoo is started.
-For instance adding it to your docker entrypoint.
+.. |build| image:: https://github.com/AndrewIngram/django-extra-views/workflows/Tests/badge.svg
+    :target: https://github.com/AndrewIngram/django-extra-views/
+    :alt: Build Status
+
+.. |codecov| image:: https://codecov.io/github/AndrewIngram/django-extra-views/coverage.svg?branch=master
+    :target: https://codecov.io/github/AndrewIngram/django-extra-views?branch=master
+    :alt: Coverage Status
+
+.. |docs-status| image:: https://readthedocs.org/projects/django-extra-views/badge/?version=latest
+    :target: https://django-extra-views.readthedocs.io/
+    :alt: Documentation Status
+
+.. installation-start
+
+Installation
+------------
+
+Install the stable release from pypi (using pip):
+
+.. code-block:: sh
+
+    pip install django-extra-views
+
+Or install the current master branch from github:
+
+.. code-block:: sh
+
+    pip install -e git://github.com/AndrewIngram/django-extra-views.git#egg=django-extra-views
+
+Then add ``'extra_views'`` to your ``INSTALLED_APPS``:
+
+.. code-block:: python
+
+    INSTALLED_APPS = [
+        ...
+        'extra_views',
+        ...
+    ]
+
+.. installation-end
+
+.. features-start
 
 Features
-========
+--------
 
-* backup: Marabunta allows for a backup command to be executed before the migration.
-* addon upgrades: Marabunta is able to install or upgrade odoo addons.
-* operations: Allows to execute commands before or after upgrading modules.
-* modes: Modes allow the user to execute commands only on a certain environment. e.g. creation of demodata on a dev system.
-* maintenance page: publish an html page during the migration.
+- ``FormSet`` and ``ModelFormSet`` views - The formset equivalents of
+  ``FormView`` and ``ModelFormView``.
+- ``InlineFormSetView`` - Lets you edit a formset related to a model (using
+  Django's ``inlineformset_factory``).
+- ``CreateWithInlinesView`` and ``UpdateWithInlinesView`` - Lets you edit a
+  model and multiple inline formsets all in one view.
+- ``GenericInlineFormSetView``, the equivalent of ``InlineFormSetView`` but for
+  ``GenericForeignKeys``.
+- Support for generic inlines in ``CreateWithInlinesView`` and
+  ``UpdateWithInlinesView``.
+- Support for naming each inline or formset in the template context with
+  ``NamedFormsetsMixin``.
+- ``SortableListMixin`` - Generic mixin for sorting functionality in your views.
+- ``SearchableListMixin`` - Generic mixin for search functionality in your views.
+- ``SuccessMessageMixin`` and ``FormSetSuccessMessageMixin`` - Generic mixins
+  to display success messages after form submission.
 
-Versioning systems
-------------------
-Currently Marabunta allows for two different Versioning systems:
-The classic Major.Minor.Bugfix and the Five digits long versions for OdooMajor.OdooMinor.Major.Minor.Bugfix.
-Although the first marabunta version must be **setup** for the initial setup of your instance. (Find out more about the rationale here <https://github.com/camptocamp/marabunta/commit/9b96acaff8e7eecbf82ff592b7bb927b4cd82f02>)
+.. features-end
 
+Still to do
+-----------
 
-Options
-=======
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | option            | shortcut | envvar                    | purpose                                                           |
-    +===================+==========+===========================+===================================================================+
-    | --migration-file  | -f       | MARABUNTA_MIGRATION_FILE  | Definition file for the migration.                                |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --database        | -d       | MARABUNTA_DATABASE        | Database we want to run the migration on.                         |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --db-user         | -u       | MARABUNTA_DB_USER         | Database user.                                                    |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --db-password     | -w       | MARABUNTA_DB_PASSWORD     | Database password.                                                |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --db-port         | -p       | MARABUNTA_DB_PORT         | Database port (defaults to 5432).                                 |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --db-host         | -H       | MARABUNTA_DB_HOST         | Database port (defaults to localhost).                            |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --mode            |          | MARABUNTA_MODE            | Mode marabunta runs in for different envs.                        |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --allow-serie     |          | MARABUNTA_ALLOW_SERIE     | Allow multiple versions to be upgraded at once.                   |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --force-version   |          | MARABUNTA_FORCE_VERSION   | Force the upgrade to a version no matter what.                    |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --web-host        |          | MARABUNTA_WEB_HOST        | Interface to bind for the maintenance page. (defaults to 0.0.0.0).|
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --web-port        |          | MARABUNTA_WEB_PORT        | Port for the maintenance page. (defaults to 8069).                |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-    | --web-custom-html |          | MARABUNTA_WEB_CUSTOM_HTML | Path to custom maintenance html page to serve.                    |
-    +-------------------+----------+---------------------------+-------------------------------------------------------------------+
-                                                          
-YAML layout & Example
-=====================
-Here is an Example migration file::
+Add support for pagination in ModelFormSetView and its derivatives, the goal
+being to be able to mimic the change_list view in Django's admin. Currently this
+is proving difficult because of how Django's MultipleObjectMixin handles pagination.
 
-    migration:
-      options:
-        # This includes general options which are used everytime marabunta is called.
-        # --workers=0 --stop-after-init are automatically added
-        install_command: odoo #Command which starts odoo
-        install_args: --log-level=debug # additional Arguments
-        backup: # Defines how the backup should be done before the migration.
-          command: echo "backup command on ${DB_NAME}"
-          stop_on_failure: true
-          ignore_if: test "${RUNNING_ENV}" != "prod"
-      versions:
-        - version: setup # Setup is always the initia. version<
-          operations:
-            pre:  # executed before 'addons'
-              - echo 'pre-operation'
-            post:  # executed after 'addons'
-              - anthem songs::install
-          addons:
-            upgrade:  # executed as odoo --stop-after-init -i/-u ...
-              - base
-              - document
-          modes:
-            prod:
-              operations:
-                pre:
-                  - echo 'pre-operation executed only when the mode is prod'
-                post:
-                  - anthem songs::load_production_data
-            demo:
-              operations:
-                post:
-                  - anthem songs::load_demo_data
-              addons:
-                upgrade:
-                  - demo_addon
+.. quick-examples-start
 
-        - version: 0.0.2
-          backup: false
-          # nothing to do this can be used to keep marabunta and gittag in sync
+Quick Examples
+--------------
 
-        - version: 0.0.3
-          operations:
-            pre: # we also can execute os commands
-              - echo 'foobar'
-              - ls
-              - bin/script_test.sh
-            post:
-              - echo 'post-op'
+FormSetView
+^^^^^^^^^^^^^^^^^^^^^^^
 
-        - version: 0.0.4
-          backup: false
-          addons:
-            upgrade:
-              - popeye
+Define a :code:`FormSetView`, a view which creates a single formset from
+:code:`django.forms.formset_factory` and adds it to the context.
+
+.. code-block:: python
+
+    from extra_views import FormSetView
+    from my_forms import AddressForm
+
+    class AddressFormSet(FormSetView):
+        form_class = AddressForm
+        template_name = 'address_formset.html'
+
+Then within ``address_formset.html``, render the formset like this:
+
+.. code-block:: html
+
+    <form method="post">
+      ...
+      {{ formset }}
+      ...
+      <input type="submit" value="Submit" />
+    </form>
+
+ModelFormSetView
+^^^^^^^^^^^^^^^^^^^^
+
+Define a :code:`ModelFormSetView`, a view which works as :code:`FormSetView`
+but instead renders a model formset using
+:code:`django.forms.modelformset_factory`.
+
+.. code-block:: python
+
+    from extra_views import ModelFormSetView
 
 
-Run the tests
--------------
+    class ItemFormSetView(ModelFormSetView):
+        model = Item
+        fields = ['name', 'sku']
+        template_name = 'item_formset.html'
 
-To run ``marabunta`` tests, it is a good idea to do an *editable*
-install of it in a virtualenv, and then intall and run ``pytest`` as
-follows::
+CreateWithInlinesView or UpdateWithInlinesView
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  $ git clone https://github.com/camptocamp/marabunta.git
-  Cloning into 'marabunta'...
-  $ cd marabunta
-  $ virtualenv -p YOUR_PYTHON env
-  $ source env/bin/activate
-  $ pip install '.[test]'
-  $ py.test tests
+Define :code:`CreateWithInlinesView` and :code:`UpdateWithInlinesView`,
+views which render a form to create/update a model instance and its related
+inline formsets. Each of the :code:`InlineFormSetFactory` classes use similar
+class definitions as the :code:`ModelFormSetView`.
+
+.. code-block:: python
+
+    from extra_views import CreateWithInlinesView, UpdateWithInlinesView, InlineFormSetFactory
+
+
+    class ItemInline(InlineFormSetFactory):
+        model = Item
+        fields = ['sku', 'price', 'name']
+
+
+    class ContactInline(InlineFormSetFactory):
+        model = Contact
+        fields = ['name', 'email']
+
+
+    class CreateOrderView(CreateWithInlinesView):
+        model = Order
+        inlines = [ItemInline, ContactInline]
+        fields = ['customer', 'name']
+        template_name = 'order_and_items.html'
+
+
+    class UpdateOrderView(UpdateWithInlinesView):
+        model = Order
+        inlines = [ItemInline, ContactInline]
+        fields = ['customer', 'name']
+        template_name = 'order_and_items.html'
+
+
+Then within ``order_and_items.html``, render the formset like this:
+
+.. code-block:: html
+
+    <form method="post">
+      ...
+      {{ form }}
+
+      {% for formset in inlines %}
+        {{ formset }}
+      {% endfor %}
+      ...
+      <input type="submit" value="Submit" />
+    </form>
+
+.. quick-examples-end
