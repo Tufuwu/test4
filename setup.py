@@ -1,21 +1,43 @@
-#!/usr/bin/env python
+import sys
+from setuptools import setup, find_packages
 
-from platform import system
-from shutil import copyfile
-
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
-ccmscript = 'ccm'
-
-if system() == "Windows":
-    copyfile('ccm', 'ccm.py')
-    ccmscript = 'ccm.py'
+requirements = ['Flask', 'werkzeug', 'jinja2', 'peewee>=3.0.0', 'wtforms', 'wtf-peewee']
+if sys.version_info[:2] < (2, 6):
+    requirements.append('simplejson')
 
 setup(
-    setup_requires=['pbr>=5.8.1'],
-    scripts=[ccmscript],
-    pbr=True,
+    name='flask-peewee',
+    version='3.0.3',
+    url='http://github.com/coleifer/flask-peewee/',
+    license='MIT',
+    author='Charles Leifer',
+    author_email='coleifer@gmail.com',
+    description='Peewee integration for flask',
+    packages=find_packages(),
+    package_data = {
+        'flask_peewee': [
+            'static/*/*.css',
+            'static/*/*.js',
+            'static/*/*.gif',
+            'static/*/*.png',
+            'templates/*.html',
+            'templates/*/*.html',
+            'templates/*/*/*.html',
+            'tests/*.html',
+            'tests/*/*.html',
+        ],
+    },
+    zip_safe=False,
+    platforms='any',
+    install_requires=requirements,
+    classifiers=[
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ],
+    test_suite='runtests.runtests',
 )
