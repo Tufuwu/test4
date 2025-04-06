@@ -1,84 +1,54 @@
-#
-# Copyright (c) 2017 Grigori Goronzy <greg@chown.ath.cx>
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-#
+import pytest
 
-"""Tests for utility functions and other misc parts"""
+from statici18n import utils
 
-import argparse
-import unittest
-from stcgal.utils import Utils, BaudType
 
-class TestUtils(unittest.TestCase):
-    """Test for utility functions in the Utils class"""
+@pytest.mark.parametrize("locale", ["en", "zh-hans", "ko-KR"])
+def test_default_filename(locale):
+    filename = utils.get_filename(locale, "djangojs")
+    assert filename == "%s/djangojs.js" % locale
 
-    def test_to_bool(self):
-        """Test special utility function for bool conversion"""
-        self.assertTrue(Utils.to_bool(True))
-        self.assertTrue(Utils.to_bool("true"))
-        self.assertTrue(Utils.to_bool("True"))
-        self.assertTrue(Utils.to_bool("t"))
-        self.assertTrue(Utils.to_bool("T"))
-        self.assertTrue(Utils.to_bool(1))
-        self.assertTrue(Utils.to_bool(-1))
-        self.assertFalse(Utils.to_bool(0))
-        self.assertFalse(Utils.to_bool(None))
-        self.assertFalse(Utils.to_bool("false"))
-        self.assertFalse(Utils.to_bool("False"))
-        self.assertFalse(Utils.to_bool("f"))
-        self.assertFalse(Utils.to_bool("F"))
-        self.assertFalse(Utils.to_bool(""))
 
-    def test_to_int(self):
-        """Test wrapped integer conversion"""
-        self.assertEqual(Utils.to_int("2"), 2)
-        self.assertEqual(Utils.to_int("0x10"), 16)
-        with self.assertRaises(ValueError):
-            Utils.to_int("a")
-        with self.assertRaises(ValueError):
-            Utils.to_int("")
-        with self.assertRaises(ValueError):
-            Utils.to_int(None)
+@pytest.mark.parametrize("fmt", ["js", "json", "yaml"])
+def test_default_filename_with_outputformat(fmt):
+    filename = utils.get_filename("en", "djangojs", fmt)
+    assert filename == "en/djangojs.%s" % fmt
 
-    def test_hexstr(self):
-        """Test byte array formatter"""
-        self.assertEqual(Utils.hexstr([10]), "0A")
-        self.assertEqual(Utils.hexstr([1, 2, 3]), "010203")
-        with self.assertRaises(Exception):
-            Utils.hexstr([400, 500])
 
-    def test_decode_packed_bcd(self):
-        """Test packed BCD decoder"""
-        self.assertEqual(Utils.decode_packed_bcd(0x01), 1)
-        self.assertEqual(Utils.decode_packed_bcd(0x10), 10)
-        self.assertEqual(Utils.decode_packed_bcd(0x11), 11)
-        self.assertEqual(Utils.decode_packed_bcd(0x25), 25)
-        self.assertEqual(Utils.decode_packed_bcd(0x99), 99)
+def test_legacy_filename(settings):
+    settings.STATICI18N_FILENAME_FUNCTION = "statici18n.utils.legacy_filename"
 
-class TestBaudType(unittest.TestCase):
-    """Test BaudType class"""
+    filename = utils.get_filename("en_GB", "djangojs")
+    assert filename == "en-gb/djangojs.js"
 
-    def test_create_baud_type(self):
-        """Test creation of BaudType instances"""
-        baud_type = BaudType()
-        self.assertEqual(baud_type("2400"), 2400)
-        self.assertEqual(baud_type("115200"), 115200)
-        with self.assertRaises(argparse.ArgumentTypeError):
-            baud_type("2374882")
+    filename = utils.get_filename("zh-Hans", "djangojs")
+    assert filename == "zh-hans/djangojs.js"
+
+
+def custom_func(locale, domain):
+    return "{0}-{1}.js".format(locale, domain)
+
+
+def test_filename_with_custom_func(settings):
+    settings.STATICI18N_FILENAME_FUNCTION = ".".join([__name__, "custom_func"])
+
+    filename = utils.get_filename("es", "djangojs")
+    assert filename == "es-djangojs.js"
+
+
+def test_filename_with_no_func(settings):
+    settings.STATICI18N_FILENAME_FUNCTION = "no_func"
+
+    with pytest.raises(ImportError):
+        utils.get_filename("es", "djangojs")
+
+
+@pytest.mark.parametrize(
+    "packages", ["mypackage1+mypackage2", ["mypackage1", "mypackage2"]]
+)
+def test_get_packages(packages):
+    assert utils.get_packages(packages) == "mypackage1+mypackage2"
+
+
+def test_get_packages_None():
+    assert utils.get_packages("django.conf") is None
