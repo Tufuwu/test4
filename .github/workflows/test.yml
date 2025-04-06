@@ -1,29 +1,30 @@
-name: Commit
-on: push
+# Runs the unit tests for the pyroma package
+# Based on https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Test package
+
+on: [pull_request, push]
 
 jobs:
-  tests:
-    name: pytest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@main
-      - name: Setting up tox environment
-        uses: docker://kiwicom/tox
-        env:
-          TOXENV: ${{ matrix.toxenv }}
-          XDG_CACHE_HOME: /tmp/cache
-        with:
-          args: >
-            sh -c
-            "
-            mkdir -p reports ;
-            tox -e $TOXENV -- --junitxml=reports/$TOXENV/test_report.xml --cov structlog_sentry --cov-report xml --cov-config .coveragerc --cov-append --cov-report xml:reports/coverage.xml
-            "
-      - name: Cache multiple paths
-        uses: actions/cache@v4
-        with:
-          path: .tox
-          key: ${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+  build:
+    name: Run package tests
+
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        toxenv: [py36, py37, py38, py39]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.9"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+      - name: Install package
+        run: pip install -e .
+      - name: Run tests
+        run: python -bb -X dev -W ignore::UserWarning:setuptools.dist -m unittest -v pyroma.tests
