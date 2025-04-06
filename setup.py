@@ -1,55 +1,81 @@
-#!/usr/bin/python
-import os
-import re
-import subprocess
-from setuptools import setup
+#!/usr/bin/env python
 
-with open("README.md", encoding="utf-8") as f:
-    long_description = f.read()
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    raise RuntimeError('setuptools is required')
 
+DESCRIPTION = ('PVAnalytics is a python library for the analysis of ' +
+               'photovoltaic system-level data.')
 
-def get_version():
-    """Get the version from git tags.
+LONG_DESCRIPTION = """
+PVAnalytics is a collection of functions for working with data
+from photovoltaic power systems. The library includes functions for
+general data quality tests such as outlier detection, validation that
+data is physically plausible, filtering data for specific conditions,
+and labeling specific features in the data.
 
-    Version is determined by the latest git tag, and will be the tag name without the leading 'v'.
+Documentation: https://pvanalytics.readthedocs.io
 
-    Returns:
-        str: The version number.
-    """
-    try:
-        # Get the latest git tag
-        version = subprocess.check_output(
-            ["git", "describe", "--tags", "--abbrev=0"], encoding="utf-8"
-        ).strip()
-        version = re.sub("^v", "", version)
-        return version
+Source code: https://github.com/pvlib/pvanalytics
+"""
 
-    except subprocess.CalledProcessError:
-        return "0.0.0"
+DISTNAME = 'pvanalytics'
+MAINTAINER = "Will Vining"
+MAINTAINER_EMAIL = 'wfvinin@sandia.gov'
+LICENSE = 'MIT'
+URL = 'https://github.com/pvlib/pvanalytics'
 
+TESTS_REQUIRE = [
+    'pytest',
+]
+
+INSTALL_REQUIRES = [
+    'numpy >= 1.15.0',
+    'pandas >= 0.23.0',
+    'pvlib >= 0.8.0',
+    'scipy >= 1.2.0',
+    'statsmodels >= 0.9.0'
+]
+
+DOCS_REQUIRE = [
+    'sphinx == 2.2.0'
+]
+
+EXTRAS_REQUIRE = {
+    'optional': ['ruptures'],
+    'test': TESTS_REQUIRE,
+    'doc': DOCS_REQUIRE
+}
+
+EXTRAS_REQUIRE['all'] = sorted(set(sum(EXTRAS_REQUIRE.values(), [])))
+
+SETUP_REQUIRES = ['setuptools_scm']
+
+CLASSIFIERS = [
+    'Development Status :: 2 - Pre-Alpha',
+    'Operating System :: OS Independent',
+    'Intended Audience :: Science/Research',
+    'Programming Language :: Python :: 3',
+    'Topic :: Scientific/Engineering'
+]
+
+PACKAGES = find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"])
 
 setup(
-    name="anybadge",
-    description="Simple, flexible badge generator for project badges.",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    version=get_version(),
-    author="Jon Grace-Cox",
-    author_email="30441316+jongracecox@users.noreply.github.com",
-    packages=["anybadge", "anybadge.templates", "anybadge.server"],
-    py_modules=["anybadge_server"],
-    setup_requires=["setuptools", "wheel"],
-    tests_require=[],
-    install_requires=["packaging"],
-    package_data={"anybadge": ["templates/*.svg"]},
-    options={"bdist_wheel": {"universal": False}},
-    python_requires=">=3.7",
-    url="https://github.com/jongracecox/anybadge",
-    entry_points={
-        "console_scripts": [
-            "anybadge=anybadge.cli:main",
-            "anybadge-server=anybadge.server.cli:main",
-        ],
-    },
-    classifiers=["License :: OSI Approved :: MIT License"],
+    name=DISTNAME,
+    use_scm_version=True,
+    packages=PACKAGES,
+    install_requires=INSTALL_REQUIRES,
+    extras_require=EXTRAS_REQUIRE,
+    tests_require=TESTS_REQUIRE,
+    setup_requires=SETUP_REQUIRES,
+    ext_modules=[],
+    description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
+    maintainer=MAINTAINER,
+    maintainer_email=MAINTAINER_EMAIL,
+    license=LICENSE,
+    classifiers=CLASSIFIERS,
+    url=URL
 )
