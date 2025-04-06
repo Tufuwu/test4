@@ -1,112 +1,97 @@
-#!/usr/bin/env python3
-
-import os
+import os.path
 import sys
-import platform
-import shutil
+import warnings
 
-from debspawn import __appname__, __version__
-from setuptools import setup
-from setuptools.command.install_scripts import install_scripts as install_scripts_orig
-from subprocess import check_call
-from docs.assemble_man import generate_docbook_pages
+from setuptools import find_packages, setup
 
+if sys.version_info < (2, 7):
+    raise NotImplementedError(
+        """\n
+##############################################################
+# globus-sdk does not support python versions older than 2.7 #
+##############################################################"""
+    )
 
-class install_scripts(install_scripts_orig):
-
-    def _create_manpage(self, xml_src, out_dir):
-        man_name = os.path.splitext(os.path.basename(xml_src))[0]
-        out_fname = os.path.join(out_dir, man_name)
-
-        print('Generating manual page {}'.format(man_name))
-        check_call(['xsltproc',
-                    '--nonet',
-                    '--stringparam', 'man.output.quietly', '1',
-                    '--stringparam', 'funcsynopsis.style', 'ansi',
-                    '--stringparam', 'man.th.extra1.suppress', '1',
-                    '-o', out_fname,
-                    'http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl',
-                    xml_src])
-        return out_fname
-
-    def run(self):
-        if platform.system() == 'Windows':
-            super().run()
-            return
-
-        if not self.skip_build:
-            self.run_command('build_scripts')
-        self.outfiles = []
-
-        # check for xsltproc, we need it to build manual pages
-        if not shutil.which('xsltproc'):
-            print('The "xsltproc" binary was not found. Please install it to continue!')
-            sys.exit(1)
-
-        if self.dry_run:
-            return
-
-        if '--single-version-externally-managed' not in sys.argv:
-            print()
-            print('Attempting to install Debspawn as binary distribution may not yield a working installation.', file=sys.stderr)
-            print('We require a file to be installed in a system location, and manual pages are in an external location as well.', file=sys.stderr)
-            print(('Currently, no workarounds for this issue have been implemented in Debspawn itself, so please run setup.py with '
-                   '`--single-version-externally-managed`.'), file=sys.stderr)
-            print('If you are using pip, try `sudo pip3 install --no-binary debspawn .`', file=sys.stderr)
-            sys.exit(1)
-
-        self.mkpath(self.install_dir)
-
-        # We want the files to be installed without a suffix on Unix
-        for infile in self.get_inputs():
-            infile = os.path.basename(infile)
-            in_built = os.path.join(self.build_dir, infile)
-            in_stripped = infile[:-3] if infile.endswith('.py') else infile
-            outfile = os.path.join(self.install_dir, in_stripped)
-            # NOTE: Mode is preserved by default
-            self.copy_file(in_built, outfile)
-            self.outfiles.append(outfile)
-
-        # handle generation of manual pages
-        man_dir = os.path.normpath(os.path.join(self.install_dir, '..', 'share', 'man', 'man1'))
-        self.mkpath(man_dir)
-        pages = generate_docbook_pages(self.build_dir)
-        for page in pages:
-            self.outfiles.append(self._create_manpage(page, man_dir))
+# warn on older/untested python3s
+# it's not disallowed, but it could be an issue for some people
+if sys.version_info > (3,) and sys.version_info < (3, 5):
+    warnings.warn(
+        "Installing globus-sdk on Python 3 versions older than 3.5 "
+        "may result in degraded functionality or even errors."
+    )
 
 
-cmdclass = {
-    'install_scripts': install_scripts,
-}
-
-packages = [
-    'debspawn',
-    'debspawn.utils',
-]
-
-package_data = {'': ['debspawn/dsrun']}
-
-scripts = ['debspawn.py']
-
-install_requires = ['toml']
+# single source of truth for package version
+version_ns = {}
+with open(os.path.join("globus_sdk", "version.py")) as f:
+    exec(f.read(), version_ns)
 
 setup(
-    name=__appname__,
-    version=__version__,
-    author="Matthias Klumpp",
-    author_email="matthias@tenstral.net",
-    description='Debian package builder and build helper using systemd-nspawn',
-    license="LGPL-3.0+",
-    url="https://lkorigin.github.io/",
-
-    python_requires='>=3.5',
-    platforms=['any'],
-    zip_safe=False,
+    name="globus-sdk",
+    version=version_ns["__version__"],
+    description="Globus SDK for Python",
+    long_description=open("README.rst").read(),
+    author="Globus Team",
+    author_email="support@globus.org",
+    url="https://github.com/globus/globus-sdk-python",
+    packages=find_packages(exclude=["tests", "tests.*"]),
+    install_requires=[
+        "requests>=2.9.2,<3.0.0",
+        "six>=1.10.0,<2.0.0",
+        "pyjwt[crypto]>=1.5.3,<2.0.0",
+    ],
+    extras_require={
+        # empty extra included to support older installs
+        "jwt": [],
+        # the development extra is for SDK developers only
+        "development": [
+            # drive testing with tox
+            "tox>=3.5.3,<4.0",
+            # linting
+            "flake8>=3.0,<4.0",
+            'isort>=5.1.4,<6.0;python_version>="3.6"',
+            # black requires py3.6+
+            # refrain from using 19.10b0 or later until
+            #   https://github.com/psf/black/issues/1288
+            # is fixed
+            'black==19.3b0;python_version>="3.6"',
+            # flake-bugbear requires py3.6+
+            'flake8-bugbear==20.1.4;python_version>="3.6"',
+            # testing
+            "pytest<5.0",
+            "pytest-cov<3.0",
+            "pytest-xdist<2.0",
+            # mock on py2, py3.4 and py3.5
+            # not just py2: py3 versions of mock don't all have the same
+            # interface!
+            'mock==2.0.0;python_version<"3.6"',
+            # mocking HTTP responses
+            "httpretty==0.9.5",
+            # builds + uploads to pypi
+            'twine==3.2.0;python_version>="3.6"',
+            'wheel==0.34.2;python_version>="3.6"',
+            # docs
+            'sphinx==3.1.2;python_version>="3.6"',
+            'sphinx-material==0.0.30;python_version>="3.6"',
+        ],
+    },
     include_package_data=True,
-
-    packages=packages,
-    cmdclass=cmdclass,
-    package_data=package_data,
-    scripts=scripts,
-    install_requires=install_requires
+    keywords=["globus", "file transfer"],
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Communications :: File Sharing",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
 )

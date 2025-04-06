@@ -1,56 +1,33 @@
-name: Build & Test
-
+name: Test
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
+  - push
+  - pull_request
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  test:
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.9"]
-
-    name: Python ${{ matrix.python-version }}
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} "
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Upgrade
-      run: sudo apt-get update && sudo apt-get full-upgrade
-      
-    - name: Install system prerequisites
-      run: sudo apt-get install -yq
-             xsltproc
-             docbook-xsl
-             docbook-xml
-             zstd
-             systemd-container
-             debootstrap
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest toml
-        
-    - name: Build & Install
-      run: |
-        ./setup.py build
-        ./setup.py install --single-version-externally-managed --root=/tmp
-        rm -rf build/
-          
-    - name: Test
-      run: |
-        sudo $(which python3) -m pytest
-        rm -rf build/
-
-    - name: Lint
-      run: |
-        flake8 ./ --statistics
-        flake8 debspawn/dsrun --statistics
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Requirements
+        run: |
+          python -m pip install -U tox
+      - name: Run Linting
+        # only lint on 3.8 for two reasons
+        #  1. faster overall runs
+        #  2. Linting fails on py3.5 because tools require 3.6+
+        if: ${{ matrix.python-version == '3.8' }}
+        run: python -m tox -e lint
+      - name: Run Tests
+        run: python -m tox -e py
+      - name: Ensure docs build
+        # docs are only ever built on a linux 3.8 box (readthedocs)
+        if: ${{ matrix.python-version == '3.8' && matrix.os == 'ubuntu-latest' }}
+        run: python -m tox -e docs
