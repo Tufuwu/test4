@@ -1,7 +1,5 @@
+*.swp
 *.pyc
-.cache/
-*.sublime-*
+test/build/*
+.vscode
 
-# Ignore pipenv's lockfile until support for multiple versions of python is
-# dropped
-/Pipfile.lock

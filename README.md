@@ -1,476 +1,384 @@
-wee-slack
-=========
+fips
+====
 
-A WeeChat native client for Slack.com. Provides supplemental features only available in the web/mobile clients such as: synchronizing read markers, typing notification, threads (and more)! Connects via the Slack API, and maintains a persistent websocket for notification of events.
+[![Build Status](https://travis-ci.org/floooh/fips.svg?branch=master)](https://travis-ci.org/floooh/fips)
 
-![animated screenshot](https://github.com/wee-slack/wee-slack/raw/master/docs/slack.gif)
+fips is a highlevel build system wrapper written in Python for C/C++ projects.
 
-Table of Contents
------------------
-  * [Features](#features)
-  * [Contributing](#contributing)
-  * [Dependencies](#dependencies)
-  * [Setup](#setup)
-     * [1. Install dependencies](#1-install-dependencies)
-     * [2. Download wee_slack.py to ~/.weechat/python](#2-download-wee_slackpy-to-weechatpython)
-     * [3. Start WeeChat](#3-start-weechat)
-     * [4. Add your Slack API token(s)](#4-add-your-slack-api-tokens)
-        * [Get a token with OAuth](#get-a-token-with-oauth)
-        * [Get a session token](#get-a-session-token)
-        * [Optional: Connecting to multiple teams](#optional-connecting-to-multiple-teams)
-        * [Optional: Secure the tokens](#optional-secure-the-tokens)
-  * [Commands and options](#commands-and-options)
-     * [Threads](#threads)
-     * [Emoji characters and tab completions of emoji names](#emoji-characters-and-tab-completions-of-emoji-names)
-     * [User group tab completions](#user-group-tab-completions)
-     * [Cursor and mouse mode](#cursor-and-mouse-mode)
-  * [Removing a team](#removing-a-team)
-  * [Optional settings](#optional-settings)
-  * [FAQ](#faq)
-     * [How do I keep the buffers sorted alphabetically or with a custom order?](#how-do-i-keep-the-buffers-sorted-alphabetically-or-with-a-custom-order)
-     * [How do I group the buffers by team in the buffer list?](#how-do-i-group-the-buffers-by-team-in-the-buffer-list)
-     * [How can I get system wide notifications for messages?](#how-can-i-get-system-wide-notifications-for-messages)
-        * [Local notifications on Linux](#local-notifications-on-linux)
-        * [Local notifications on macOS](#local-notifications-on-macos)
-        * [Remote notifications](#remote-notifications)
-     * [How do I send messages with multiple lines?](#how-do-i-send-messages-with-multiple-lines)
-  * [Known issues](#known-issues)
-  * [Development](#development)
-  * [Support](#support)
+(this project has nothing to do with the [Federal Information Processing Standard](https://en.wikipedia.org/wiki/FIPS_140-2))
 
-Features
---------
-  * [Threads](#threads) support
-  * Slack status support
-  * Slash commands (including custom ones)
-  * Upload to slack capabilities
-  * Emoji reactions
-  * Edited messages work just like the official clients, where the original message changes and has (edited) appended.
-  * Unfurled urls dont generate a new message, but replace the original with more info as it is received.
-  * Regex message editing (s/oldtext/newtext/)
-  * Smarter redraw of dynamic buffer info (much lower CPU %)
-  * Multiple Teams supported. Just add multiple api tokens separated by commas
-  * Replays history automatically during startup. (and sets read marker to the correct position in history)
-  * Open channels synchronized with Slack. When you open/close a channel on another client it is reflected in wee-slack
-  * Colorized nicks in chat
-  * Supports bidirectional slack read notifications for all channels. (never reread the same messages on the web client or other devices).
-  * Typing notification, so you can see when others are typing, and they can see when you type. Appears globally for direct messages
-  * Away/back status handling
-  * Expands/shows metadata for things like tweets/links
-  * *Super fun* debug mode. See what the websocket is saying
+Read the docs to get a better idea what fips is:
 
-Contributing
-------------
+http://floooh.github.io/fips/
 
-See [docs/contributing.md](./docs/contributing.md).
+### Install Instructions
 
-Dependencies
-------------
-  * WeeChat 1.3+ http://weechat.org/
-  * websocket-client https://pypi.python.org/pypi/websocket-client/
-    * Since WeeChat 2.6, Python 3 modules are required, see https://weechat.org/blog/post/2019/07/02/Python-3-by-default
-  * Some distributions package weechat's plugin functionalities in separate packages.
-    Be sure that your weechat supports python plugins. Under Debian, install `weechat-python`
+http://floooh.github.io/fips/docs/getstarted/
 
-Setup
------
+### Useful Links:
 
-### 1. Install dependencies
+- **[fips-libs](https://github.com/fips-libs/)**: this is where most
+'fipsification' wrapper projects live, which add a thin wrapper around
+open source projects to turn them into fips-compatible dependencies
 
-**Arch Linux**: `pacman -S python-websocket-client`
+- **[fips-libs/fips-utils](https://github.com/fips-libs/fips-utils)**: a
+place for generally useful fips extensions that don't quite fit into
+the fips core repository.
 
-**Debian/Ubuntu**: `apt install weechat-python python-websocket`. If using weechat 2.6 or newer, run `apt install weechat-python python3-websocket` instead.
+### Public Service Announcements
 
-**Fedora**: `dnf install python3-websocket-client`
+- **03-Jun-2020**: 
+  - The embedded precompiled ninja.exe for Windows has been removed. Please use
+    a package manager like scoop.sh to install ninja instead.
+  - A new meta-build-tool 'vscode_ninja' which directly invokes ninja instead
+    of 'cmake --build' when building from inside VSCode.
+  - Some cleanup in the code dealing with the 'build_tool' build config attribute.
 
-**FreeBSD**: `pkg install py36-websocket-client`
+- **30-May-2020**: I have removed to -Wno-unused-parameter option from the
+GCC and Clang build configs. In hindsight it wasn't a good idea to suppress
+this warning globally.
 
-**OpenBSD**: `pkg_add weechat-python py3-websocket-client`
+- **11-Jan-2020**: I have created the [fips-utils](https://github.com/fips-libs/fips-utils)
+respository and started to move some 'non-core' verbs from the fips core repository
+there. Currently these are: *markdeep, gdb and valgrind*
 
-**Other**: `pip3 install websocket-client`
+- **24-Oct-2019**: the verbs ```fips build``` and ```fips make``` can now forward
+command line arguments to the underlying build tool, run ```fips help build```
+and ```fips help make``` for details.
 
-Note for **macOS**: If you installed weechat with Homebrew, you will have to locate the python runtime environment used.
-If `--with-python@2` was used, you should use: `sudo /usr/local/opt/python@2/bin/pip2 install websocket_client`
+- **20-Jul-2019**: Starting with cmake 3.15, cmake will issue a warning if the
+top-level CMakeLists.txt file doesn't contain a verbatim call to ```project()```
+near the top, suppress this warning by changing the ```fips_setup(PROJECT proj_name)```
+statement to:
+    ```cmake
+    project(proj_name)
+    fips_setup()
+    ```
 
-### 2. Download wee\_slack.py to ~/.weechat/python
+- **02-Jul-2019**: small quality-of-life improvement when using Visual Studio:
+  the debugger working directory for VS targets is now set to the project's
+  deploy-directory (```fips-deploy/[project]/[config]```), so that debugging
+  behaves the same as running a target via ```fips run [target]```
 
-If you don't want wee\_slack to start automatically when weechat starts, you can skip the last command.
+- **30-Jun-2019**: ```./fips run [target]``` for emscripten targets is now
+  using npm's http-server module, since this is more feature-complete than
+  python's built-in SimpleHTTPServer. Install with ```npm install http-server -g```
+  and check if fips can find it with ```./fips diag tools```
 
-```
-mkdir -p ~/.weechat/python/autoload
-cd ~/.weechat/python
-curl -O https://raw.githubusercontent.com/wee-slack/wee-slack/master/wee_slack.py
-ln -s ../wee_slack.py autoload
-```
+- **31-May-2019**: The emscripten SDK integration has been completely rewritten:
+    - adds a new fips verb 'emsdk' for installing specific emscripten SDK versions and switching between them
+    - by default, installs the latest stable emscripten SDK with precompiled
+      binaries, this is a lot faster than installing the 'incoming' SDK
+      version which needs to compile LLVM
+    - the emscripten cmake toolchain file is no longer hardwired to a specific
+      emscripten SDK version
+    - the default options in the emscripten cmake toolchain file have been
+      updated to make more sense with current emscripten SDK versions
+      (such as enabled WASM generation by default, reducing the initial
+      heap size, and enabling memory growth)
 
-### 3. Start WeeChat
-```
-weechat
-```
+  **AFTER UPDATING** the fips directory, run the following in your project
+  to switch over:
+    ```bash
+    # remove all cached emscripten build files
+    > ./fips clean all
+    # remove any old emscripten SDK files
+    > ./fips emsdk uninstall
+    # install and activate new emscripten SDK
+    > ./fips emsdk install
+    # show help to get an idea of emsdk features
+    > ./fips help emsdk
+    ```
+    As before, each fips workspace directory has its own local emscripten SDK installation, you can use
+    different SDK versions side-by-side in different workspaces and fips won't 'pollute' your global environment or interfere with a globally installed
+    emscripten SDK.
+    The command ```./fips setup emscripten``` works as before and is an alias for ```./fips emsdk install```
 
-**NOTE:** If weechat is already running, the script can be loaded using `/python load wee_slack.py`.
+- **08-May-2019**: Some tweaks to the release-mode compiler- and linker-flags
+    for Visual Studio projects: in release mode, link-time code-generation
+    (aka LTO) is now always enabled. If this causes any trouble for your
+    projects, please open a github ticket, and I'll add something to make
+    this optional :)
 
-### 4. Add your Slack API token(s)
+- **20-Jan-2019**:
+    - NaCl and UWP support have been removed (both haven't been maintained for a very long time)
+    - remove the builtin unittest support, this was hardwired to UnitTest++ and should
+      better be done in project-specific scripts (see Oryol for an example)
 
-There are two types of tokens that can be used, OAuth tokens and session
-tokens. The official way to get a token is to use OAuth. However, this has
-several drawbacks, so an alternative way is to pull a session token out of the
-web client.
+- **03-Jul-2018**: on iOS and MacOS, you can now simply add a *.plist file
+to the file list of a target, and this will override the default plist file
+generated by fips. For instance:
+    ```cmake
+    fips_begin_app(...)
+        ...
+        if (FIPS_IOS)
+            fips_files(ios-info.plist)
+        end()
+        ...
+    fips_end_app()
+    ```
+- **12-Apr-2018**: there are now new optional locations for fips-directories
+and -files in a project in order to unclutter the project directory root a
+bit (all under a new project subdirectory called ```fips-files/```):
+    - ```fips-verbs/``` => ```fips-files/verbs/```
+    - ```fips-configs/``` => ```fips-files/configs/```
+    - ```fips-generators/``` => ```fips-files/generators/```
+    - ```fips-toolchains/``` => ```fips-files/toolchains```
+    - ```fips-include.cmake``` => ```fips-files/include.cmake```
 
-Drawbacks of OAuth tokens:
-- If the team is restricting app installations, wee-slack has to be approved by
-  an admin.
-- For free teams, wee-slack will use one of the ten app slots.
-- The subscribe and unsubscribe commands won't work.
-- Threads can only be marked as read locally, it won't sync to Slack. This
-  means they will be unread again after reloading the script.
+- **10-Mar-2018**: some Visual Studio Code improvements:
+    - the .vscode/c_cpp_properties.json file is now written to all dependent
+      projects, this fixes Intellisense problems in dependencies
+    - new verb **fips vscode clean** for deleting the .vscode/ directories
+      in all dependencies, this is useful before git operations (e.g. _fips update_)
+      if you don't want/can add the .vscode directory to your .gitignore file
+    - .vscode/tasks.json and .vscode/launch.json files in dependencies will be deleted during _fips gen_ if generating a VSCode build config, otherwise VSCode would also show build tasks and debug targets from dependencies, which is cluttering the build/debug workflow UIs
+    - it is now possible to add additional compiler defines just for the VSCode Intellisense engine in custom build config files, this is for instance useful with header-only libraries to 'light up' syntax highlighting in the implementation code block, example:
+    ```yaml
+    ---
+    platform: osx
+    generator: Ninja
+    build_tool: vscode_cmake
+    build_type: Debug
+    vscode_additional_defines: [ 'CHIPS_IMPL', 'SOKOL_IMPL' ]
+    ```
+- **01-Feb-2018**: iOS development is now a bit more convenient: fips can
+write the "Development Team ID" to the generated Xcode project (previously,
+the Team ID had to be set manually for each target in Xcode). Before calling
+```./fips gen``` for the first time in a project, set the Team ID via
+```./fips set iosteam XYZW123456```, where XYZW123456 must be replaced with
+your own Team ID, you can look this up on
+https://developer.apple.com/account/#/membership). The Team ID will be
+written to the file _[cur\_proj\_dir]/.fips-settings.yml_ (which usually
+isn't under version control). You can review the currently set Team ID with
+```./fips list settings```. Here's a usage example:
 
-Drawbacks of session tokens:
-- These tokens can't be revoked, so be careful not to loose them.
-- They are not officially supported, and may stop working at any time.
-
-#### Get a token with OAuth
-
-Log in to Slack:
-
-```
-/slack register
-```
-
-This command prints a link you should open in your browser to authorize WeeChat
-with Slack. If the page shows a different team than the one you want to add,
-you can change the team in the top right corner of the page.
-
-Once you've accomplished this, the page will show a command which you should
-run in WeeChat. The command is of the form:
-
-```
-/slack register <code>
-```
-
-Your Slack team is now added, and you can complete the setup by reloading the
-wee-slack script.
-
-```
-/python reload slack
-```
-
-Note that by default GitHub Pages will see a temporary code used to create your
-token (but not the token itself). If you're worried about this, you can use the
-`-nothirdparty` option, though the process will be a bit less user friendly.
-
-#### Get a session token
-
-1. Open and sign into the [Slack customization page](https://my.slack.com/customize). Check that you end up on the correct team.
-2. Open the developer console (`Ctrl+Shift+J`/`Cmd+Opt+J` in Chrome and `Ctrl+Shift+K`/`Cmd+Opt+K` in Firefox).
-3. Paste and run this code: `window.prompt("Session token:", TS.boot_data.api_token)`
-4. A prompt with the token will appear. Copy the token, return to WeeChat and run `/slack register <token>`.
-5. Reload the script with `/python reload slack`.
-
-#### Optional: Connecting to multiple teams
-
-You can run the register command multiple times to connect to multiple teams.
-If you set the token option yourself, you should separate the tokens with
-commas.
-
-```
-/set plugins.var.python.slack.slack_api_token <token1>,<token2>,<token3>
+```bash
+> ./fips set config ios-xcode-debug
+# only need to set the Team ID once!
+> ./fips set iosteam XYZW123456
+> ./fips gen
+> ./fips open
+...
+> ./fips gen
+...
 ```
 
-#### Optional: Secure the tokens
+- **30-Jan-2018**: Android support has been modernized, usage should
+be the same as before, but there are some nice changes under the hood:
+  - ```fips setup android``` now only downloads the SDK Tools archive,
+  and uses the contained ```sdkmanager``` tool to install the required
+  SDK components (including the NDK)
+  - fips is now using the official Android NDK cmake toolchain file
+  - Android builds no longer require the ```ant``` tool, and also
+  don't need Gradle or Android Studio to build projects, instead
+  APKs are created directly by a small python helper script
+  called from a cmake post-build job, as a result, Android builds
+  are now also quite a bit faster
+  - you can now use Android Studio for debugging (tested so far on
+  Mac and Windows), select the ```Profile or debug APK``` option when
+  starting Android Studio, and follow the steps (sometimes debugging
+  still seems to hang or ignore breakpoints on first start, in this
+  case, just stop debugging and try again)
+  - some things are not yet configurable:
+    - override the default AndroidManifest.xml
+    - sign APKs with your own key
+    - add your own Java code to the APK
+    - add your own assets to the APK
 
-The tokens you add will be stored as plain text in the option
-`plugins.var.python.slack.slack_api_token`. If you don't want to store your API
-token in plain text you can use the secure features of WeeChat:
+- **16-Jan-2018**: The iOS build configs now put the resulting .app bundle
+into the ```fips-deploy/[proj]/[config]/``` directory, so they behave
+the same as most other target platforms. This makes it
+easier for helper scripts (code generators and verbs) to
+find the iOS app bundle (for instance to copy asset files).
 
+- **05-Jan-2018**: Import definitions in fips.yml files can now contain an
+expression which is evaluated in cmake. This can be used to include or
+exclude platform-specific includes. [See here for details](http://floooh.github.io/fips/docs/imports/)
+
+- **04-Jan-2018**: The previously experimental Visual Studio Code support is
+now 'official', [see here for details](http://floooh.github.io/2018/01/04/vscode-fips.html)
+
+- **16-Aug-2017**: I found (and fixed) some inconsistent behaviour when
+the cmake project name is different from the project's directory name,
+this may change the behaviour of cmake- and python-code-generator
+scripts which used the FIPS\_PROJECT\_DEPLOY\_DIR and
+FIPS\_PROJECT\_BUILD\_DIR (but the previous behaviour was clearly a bug,
+which only manifested itself if the cmake project name and directory
+name differed). See this ticket for details: https://github.com/floooh/fips/issues/154
+
+- **25-Apr-2017**: I committed a small fix which changes the order of
+imported dependencies so that imported dependencies now always come
+before the importing project. This was often also the case previously
+but could fail in cases where the same dependency was included from
+different projects. No changes should be required in your project,
+at least if the dependency tree was defined correctly and didn't
+depend on some hidden ordering.
+
+- **27-Mar-2017**: the root path of the emscripten SDK has changed from
+emsdk\_portable to emsdk-portable, a fix has been committed, but you
+need to setup the emscripten SDK again (first, wipe the fips-sdks directory,
+then run './fips setup emscripten' again from a project directory)
+
+- **25-Feb-2017**: what happened in the last year:
+  - python3 compatibility contributed by Levente Polyak (thanks!)
+  - various Eclipse fixes contributed by Martin Gerhardy (thanks!)
+  - Windows: Cygwin support contributed by Fungos, many thanks! also
+    for the many smaller fixes :)
+  - new verb './fips update' updates all dependencies (unless
+    they have uncommitted or unpushed changes)
+  - new helper functions git.add, git.commit and git.push,
+    these are not exposed as fips verbs, but are useful
+    for writing your own verbs (e.g. build automation scripts)
+  - emscripten: removed the FIPS\_EMSCRIPTEN\_EXPORTED\_FUNCTIONS
+    cmake options, this is better done by directly annotating
+    exported functions with EMSCRIPTEN_KEEPALIVE (or soon
+    [EMSCRIPTEN_EXPORT](https://github.com/kripken/emscripten/pull/4977))
+  - a new predefined cmake variable FIPS\_BUILD\_DIR, this points
+    to the build root directory (../fips\_build)
+  - two new predefined cmake variables FIPS\_PROJECT\_BUILD\_DIR
+    and FIPS\_PROJECT\_DEPLOY\_DIR, these are useful to pass
+    as arguments to code generator scripts
+  - emscripten: use linker response files when using the UNIX
+    Makefiles generator to workaround command line length limit
+    on Windows
+  - emscripten: on Windows, use the Emscripten SDK incoming
+    branch (requires LLVM compilation, but behaviour is now the
+    same as on OSX and Linux)
+  - fips\_files\_ex() and related cmake functions now warn if
+    the globbed file list is empty, previously this generated
+    a rather cryptic cmake syntax error message
+  - emscripten: added support for WebAssembly (toolchain flags
+    and build configs)
+  - emscripten: added a config option FIPS\_EMSCRIPTEN\_USE\_WEBGL2
+  - emscripten: added new cmake options
+    FIPS\_EMSCRIPTEN\_USE\_CPU\_PROFILER and
+    FIPS\_EMSCRIPTEN\_USE\_MEMORY\_PROFILER (these generate a build
+    with emscripten's built-in cpu and memory profilers)
+  - emscripten: added a FIPS\_EMSCRIPTEN\_USE\_SAFE\_HEAP cmake option
+  - emscripten: use the smaller 'shell\_minimal.html' file instead
+    of the original file which has a big SVG logo in it
+  - emscripten: use the -s NO\_EXIT\_RUNTIME which slightly
+    reduces code size
+  - Windows UWP support (not in daily use though)
+
+- **26-Feb-2016**: cmake generator definition in fips build config files
+is now more flexible by exposing the cmake -A (generator platform)
+and -T options (generator toolset), there's now also a 'Default' generator
+which lets cmake select the 'best' build file generator for the platform. All this
+together simplifies the version situation with Visual Studio on Windows.
+Previously, the build config win64-vs2013-debug was used as default config.
+When only VS2015 is installed, generating build files had failed, unless
+the build config win64-vs2015-debug was selected manually. Now there's
+a new generic default config called **win64-vstudio-debug**. This lets
+cmake pick whatever VStudio version is installed. Of course it is still
+possible to pick a specific Visual Studio version with the 'old' build
+configs \*-vs2013-\* and \*-vs2015-\*.
+
+- **14-Feb-2016**: fips can now import dependencies pinned to a specific git
+  revision (previously only by tag or branch name). Many thanks to fungos
+  (https://github.com/fungos) for implementing this! Here's how a specific
+  revision is specified in the fips.yml file:
 ```
-/secure passphrase this is a super secret password
-/secure set slack_token <YOUR_SLACK_TOKEN>
-/set plugins.var.python.slack.slack_api_token ${sec.data.slack_token}
+  imports:
+    fips-hello-dep3:
+      git:    https://github.com/fungos/fips-hello-dep3.git
+      rev:    191f59f0
 ```
+- **03-Dec-2015**: I have added a new 'no\_auto\_import' policy/feature for
+  advanced uses which allows to manually select modules from imported
+  projects. This is more work but can provide a cleaner project layout
+  if only a few modules from imported projects are needed. See the
+  documentation web page for details (http://floooh.github.io/fips/docs/imports/,
+  search for 'Selectively importing modules'). The default behaviour should
+  be exactly as before. If anything is broken in your project, please
+  don't hesitate to write a ticket :)
+
+- **13-Oct-2015**: 'fips run' has learned to run Android apps, after building
+  your project with one of the Android build configs, simply do a
+  'fips run [target]' like on the other platforms. This will (re-)install
+  the app, launch it, and then run 'adb logcat' (simply hit Ctrl-C when done)
+
+- **10-Oct-2015**: I committed a simplification for nested dependency
+  resolution yesterday (turns out cmake does this on its own with
+  'target_link_libraries'), however this may introduce some link-order problems
+  in existing projects when using GCC or emscripten. If your project no longer
+  links because of this, and you think that fixing the depedency order in the
+  CMakeLists.txt files is too big a hassle and fips should take care of this,
+  please simply open a ticket, and I'll try to find a solution in fips. I
+  haven't made up my mind about this either yet, the few cases in Oryol were
+  easy to fix, but larger projects may be more tricky to fix.
+
+- **29-Jul-2015**: cross-compiling is now more flexible
+    * cross-compile target platform names are no longer hardwired, fips
+      projects can now add define their own cross-compile platforms
+    * fips projects can now provide their own cmake-toolchain files or override
+      the standard toolchain files
+
+- **05-Feb-2015**: the NaCl SDK setup bug has been fixed by the NaCl team, so
+  './fips setup nacl' should now work also with the latest Python 2.7.9
+
+- **01-Feb-2015**: the code generation refactoring branch has been merged back
+  into the master branch, code generation is now controlled with the new
+  **fips_generate()** cmake macro, see [Oryol
+  engine](https://github.com/floooh/oryol) and [code generation doc
+  page](http://floooh.github.io/fips/docs/codegen/) for details!
+
+- **30-Jan-2015**: please note that the NaCl SDK setup script is currently
+  broken with Python 2.7.9 (2.7.6 works), this is tracked in the following bug:
+  https://code.google.com/p/chromium/issues/detail?id=452137
+
+### List of Fipsified Projects (OBSOLETE)
+
+Libs and engines:
+
+- **[accidentalnoise](https://code.google.com/p/accidental-noise-library/)**: https://github.com/mgerhardy/fips-accidentalnoise
+- **[bgfx](https://github.com/bkaradzic/bgfx)**: https://github.com/floooh/fips-bgfx
+- **[cjson](http://cjson.sourceforge.net/)**: https://github.com/floooh/fips-cjson
+- **[cpptoml](https://github.com/skystrife/cpptoml)**: https://github.com/floooh/fips-cpptoml
+- **[enet](https://github.com/lsalzman/enet)**: https://github.com/mgerhardy/fips-enet
+- **[freetype2](http://git.savannah.gnu.org/cgit/freetype/freetype2.git/)**: https://github.com/mgerhardy/fips-freetype2
+- **[glew](https://github.com/nigels-com/glew)**: https://github.com/fungos/fips-glew
+- **[glfw](https://github.com/glfw/glfw)**: https://github.com/floooh/fips-glfw
+- **[gliml](https://github.com/floooh/gliml)**: https://github.com/floooh/gliml
+- **[glm](https://github.com/g-truc/glm)**: https://github.com/floooh/fips-glm
+- **[googletest](https://code.google.com/p/googletest/)**: https://github.com/mgerhardy/fips-googletest
+- **[imgui](https://github.com/ocornut/imgui)**: https://github.com/fungos/fips-imgui
+- **[libcurl (precompiled)](http://curl.haxx.se/libcurl/)**: https://github.com/floooh/fips-libcurl
+- **[libnoise](https://github.com/qknight/libnoise)**: https://github.com/mgerhardy/fips-libnoise
+- **[nanovg](https://github.com/memononen/nanovg)**: https://github.com/fungos/fips-nanovg
+- **[nativefiledialog](https://github.com/mlabbe/nativefiledialog)**: https://github.com/fungos/fips-nfd
+- **[oryol](http://floooh.github.io/oryol/)**: https://github.com/floooh/oryol
+- **[polyvox](https://bitbucket.org/volumesoffun/polyvox.git)**: https://github.com/mgerhardy/fips-polyvox
+- **[recastnavigation](https://github.com/memononen/recastnavigation)**: https://github.com/fungos/fips-recast
+- **[remotery](https://github.com/Celtoys/Remotery)**: https://github.com/floooh/fips-remotery
+- **[sauce](https://github.com/phs/sauce)**: https://github.com/mgerhardy/fips-sauce
+- **[simpleai](https://github.com/mgerhardy/simpleai)**: https://github.com/mgerhardy/fips-simpleai
+- **[stb](https://github.com/nothings/stb)**: https://github.com/fungos/fips-stb
+- **[turbobadger](https://github.com/fruxo/turbobadger)**: https://github.com/fungos/fips-turbobadger
+- **[unittestpp](https://github.com/unittest-cpp/unittest-cpp)**: https://github.com/floooh/fips-unittestpp
+- **[vld (precompiled)](https://github.com/KindDragon/vld)**: https://github.com/floooh/fips-vld
+- **[zlib](http://www.zlib.net/)**: https://github.com/floooh/fips-zlib
+
+Test projects:
+
+- **oryol-test-app**:     https://github.com/floooh/oryol-test-app.git
+- **fips-hello-world**:   https://github.com/floooh/fips-hello-world.git
+- **fips-hello-dep1**:    https://github.com/floooh/fips-hello-dep1.git
+- **fips-hello-dep2**:    https://github.com/floooh/fips-hello-dep2.git
+
+### Progress
+
+fips is currently heavily **work in progress**, everything may change or
+break at any time.
+
+I'm trying to put up progress videos from time to time:
+
+- first progress video: https://www.youtube.com/watch?v=6F_AecDqRIY
+- 2nd progress video: https://www.youtube.com/watch?v=W0MYjpR0G8c
+- 3rd progress video: https://www.youtube.com/watch?v=3bQrYYaYU4w
+- 4th progress video: https://vimeo.com/115050871
+- using fips with Oryol 3D engine: https://www.youtube.com/watch?v=LaC4Sqatyts
+- compiling and debugging in QtCreator and CLion IDEs: https://www.youtube.com/watch?v=Sp5TywYeNzE
+- building a standalone Oryol app: https://www.youtube.com/watch?v=z8nwrGh2Zsc
 
-Note that you will have to move your tokens manually from
-`plugins.var.python.slack.slack_api_token` to the secure variable after each
-time you run `/slack register <code>`.
-
-Commands and options
---------------------
-
-For the available options see [docs/Options.md](docs/Options.md) or run this command:
-```
-/set slack
-```
-
-Most options require that you reload the script with `/python reload slack`
-after changing it to take effect.
-
-For the available commands see [docs/Commands.md](docs/Commands.md) or run this command:
-```
-/slack help
-```
-
-In addition to the commands listed with `/slack help`, most normal IRC
-commands, like `/join`, `/part`, `/query`, `/msg`, `/me`, `/topic`, `/away` and
-`/whois` work normally. See [WeeChat's
-documentation](https://weechat.org/files/doc/stable/weechat_user.en.html) or
-`/help <cmd>` if you are unfamiliar with these.
-
-There are also some special messages you can send:
-
-Modify previous message using regex:
-```
-s/old text/new text/
-```
-
-Modify 3rd previous message using regex:
-```
-3s/old text/new text/
-```
-
-The regex also supports the flags `g` for replacing all instances, `i` for
-ignoring case, `m` for making `^` and `$` match the start/end of each line and
-`s` for making `.` match a newline too. Use them by appending one or more of
-them to the regex:
-```
-s/old text/new text/gi
-```
-
-Delete previous message:
-```
-s///
-```
-
-Add a reaction to the nth last message. The number can be omitted and defaults to the last message. The `+` can be replaced with a `-` to remove a reaction instead.
-```
-3+:smile:
-```
-
-To send a command as a normal message instead of performing the action, prefix it with a slash or a space, like so:
-```
-//slack
- s/a/b/
-```
-
-### Threads
-
-Start a new thread on the most recent message The number indicates which message in the buffer to reply to, in reverse time order:
-```
-/reply 1 here is a threaded reply to the most recent message!
-```
-
-Open an existing thread as a channel. The argument is the thread identifier, which is printed in square brackets with every threaded message in a channel:
-```
-/thread af8
-```
-
-To access the last thread in a channel a shorthand is available:
-```
-/thread
-```
-
-Label a thread with a memorable name. The above command will open a channel called af8, but perhaps you want to call it "meetingnotes". To do so, select that buffer and type:
-```
-/label meetingnotes
-```
-_Note: labels do not persist once a thread buffer is closed_
-
-### Emoji characters and tab completions of emoji names
-
-To enable rendering of emoji characters and tab completion of emoji names, copy
-or symlink the
-[`weemoji.json`](https://github.com/wee-slack/wee-slack/blob/master/weemoji.json)
-file to your weechat config directory (e.g. `~/.weechat`). If doing this after
-starting wee-slack, you will have to reload it by running `/python reload
-slack`. Then append `|%(emoji)` to the `weechat.completion.default_template`
-config option, e.g. like this:
-
-```
-/set weechat.completion.default_template "%(nicks)|%(irc_channels)|%(emoji)"
-```
-
-Emoji names can be completed by typing colon and the start of the emoji name
-and pressing tab.
-
-### User group tab completions
-
-To enable tab completions for usergroups append `|%(usergroups)` to the
-`weechat.completion.default_template` config option, e.g. like this:
-
-```
-/set weechat.completion.default_template "%(nicks)|%(irc_channels)|%(usergroups)"
-```
-
-If you already added `%(emoji)` to this config option, like described in the
-last section, make sure not to overwrite that. The usergroup will appear in the
-same format as nicks, like the following: `@marketing`, where marketing is the
-usergroup handle.
-
-### Cursor and mouse mode
-
-The cursor mode and mouse mode can be used to interact with older messages, for editing, deleting, reacting and replying to a message. Mouse mode can be toggled by pressing `Alt`+`m` and cursor mode can be entered by running `/cursor` (see `/help cursor`).
-
-If mouse mode is enabled, the default behavior when right-clicking on a message is to paste its id in the input. It can be used in `/reply`, `s/` substitution/deletion and in `+:emoji:` commands instead of a message number.
-It can also be used as an argument to the `/slack linkarchive` command.
-
-In cursor mode, the `M` key achieves the same result (memo: the default for weechat is to paste the message with `m`, `M` simply copies the id).
-In addition, `R` will prepare a `/reply id` and `D` will delete the message (provided it's yours).
-`T` will open the thread associated to a message, equivalent to `/thread id`
-`L` will call the `/slack linkarchive` command behind the hood and paste it to the current input.
-
-Please see weechat's documentation about [how to use the cursor mode](https://weechat.org/files/doc/stable/weechat_user.en.html#key_bindings_cursor_context) or [adapt the bindings](https://weechat.org/files/doc/stable/weechat_user.en.html#command_weechat_key) to your preference.
-
-Default key bindings:
-```
-/key bindctxt mouse @chat(python.*):button2 hsignal:slack_mouse
-/key bindctxt cursor @chat(python.*):D hsignal:slack_cursor_delete
-/key bindctxt cursor @chat(python.*):L hsignal:slack_cursor_linkarchive
-/key bindctxt cursor @chat(python.*):M hsignal:slack_cursor_message
-/key bindctxt cursor @chat(python.*):R hsignal:slack_cursor_reply
-/key bindctxt cursor @chat(python.*):T hsignal:slack_cursor_thread
-```
-
-Note that if these keys are already defined, they will not be overwritten by wee-slack. In that case, you will have to define your own key bindings by running the above commands modified to your liking.
-
-hsignals `slack_mouse` and `slack_cursor_message` currently have the same meaning but may be subject to evolutions.
-
-Removing a team
----------------
-
-You may remove a team by removing its token from the dedicated comma-separated list:
-```
-/set plugins.var.python.slack.slack_api_token "xoxp-XXXXXXXX,xoxp-XXXXXXXX"
-```
-
-You can use tab completion after the key to complete the current value. To see
-which token belongs to which team, run `/slack teams`.
-
-After removing the token, you have to reload wee-slack with `/python reload slack`.
-
-Optional settings
------------------
-
-Show typing notification in main bar (slack_typing_notice):
-```
-/set weechat.bar.status.items [buffer_count],[buffer_plugin],buffer_number+:+buffer_name+{buffer_nicklist_count}+buffer_filter,[hotlist],completion,scroll,slack_typing_notice
-```
-
-Show channel name in hotlist after activity
-```
-/set weechat.look.hotlist_names_level 14
-```
-
-FAQ
----
-
-### How do I keep the buffers sorted alphabetically or with a custom order?
-
-Install the script
-[autosort.py](https://weechat.org/scripts/source/autosort.py.html/) by running
-`/script install autosort.py`. This will keep your buffer list sorted
-alphabetically by default. If you want to customize it, run `/help autosort`.
-
-### How do I group the buffers by team in the buffer list?
-
-Run `/set irc.look.server_buffer independent` and install the
-[autosort.py](https://weechat.org/scripts/source/autosort.py.html/) script
-mentioned in the previous question.
-
-### How can I get system wide notifications for messages?
-
-#### Local notifications on Linux
-
-Use [this trigger](https://github.com/weechat/weechat/wiki/Triggers#show-a-libnotify-desktop-notification-via-notify-send).
-You need the `notify-send` command, or alternatively replace it with another
-command in the trigger.
-
-#### Local notifications on macOS
-
-Use [the notification_center.py script](https://weechat.org/scripts/source/notification_center.py.html/). You can install it with `/script install notification_center.py`.
-
-#### Remote notifications
-
-There are many scripts in the [scripts repo](https://weechat.org/scripts/tag/notify/)
-for various use cases. Note that not all may work with wee-slack, so you will
-have to test them.
-
-### How do I send messages with multiple lines?
-
-You have to install a script to be able to send multiple lines, e.g. the
-`multiline.pl` script with: `/script install multiline.pl`
-
-By default it will wait for one second after you press enter, and if you type
-another character in that period, it will insert the character on a newline,
-and if you don't type anything it will send the message. If you rather want to
-use a separate key to insert a newline, and have the enter key send the message
-immediately, you can run these commands:
-
-```
-/set plugins.var.perl.multiline.magic_paste_only on
-/key bind meta-ctrl-M /input insert \n
-```
-
-This will bind meta-enter (which is usually alt-enter) to insert the newline.
-Replace `meta-ctrl-M` with something else if you want to use a different key
-combination.
-
-The `multiline.pl` script will also let you edit pasted text which incudes
-newlines before you send the message. If this is not working, you may try to
-run the commands below. At least in the `kitty` terminal, it won't work by
-default, but should work after running these commands:
-
-```
-/set plugins.var.perl.multiline.weechat_paste_fix "off"
-/key bind ctrl-J /input magic_enter
-```
-
-You may also want to disable weechats paste prompt, since that is not necessary
-when using `multiline.pl`:
-
-```
-/set weechat.look.paste_max_lines -1
-```
-
-Known issues
-------------
-
-Not all issues are listed here (see
-[issues](https://github.com/wee-slack/wee-slack/issues) for all), but these are
-some noteworthy:
-
-- If you set `background_load_all_history` to `false`:
-  - Channels will not be shown as unread when wee-slack loads, even if there
-    are unread messages. Messages which arrive after wee-slack has loaded
-    however will mark the channel as unread.
-  - If messages arrive while the connection to Slack is lost (e.g. during
-    suspend), they will not appear in the hotlist.
-- If you use an OAuth token or a legacy token instead of a session token:
-  - Threads can only be marked as read locally, it won't sync to Slack. This
-    means they will be unread again after reloading the script.
-
-Debugging
----------
-
-To help debugging you can enable debugging output about what wee-slack is doing
-by enabling debug mode and changing debug level (between 0 and 5, default is 3,
-decrease to increase logging and vice versa). Enabling this will open a new
-buffer `slack-debug` where the messages are printed. Enable it and change level
-by running:
-
-```
-/set plugins.var.python.slack.debug_mode on
-/set plugins.var.python.slack.debug_level 0
-```
-
-You can also dump all the JSON responses received from the API in
-`/tmp/weeslack-debug/`. This requires a script reload after enabling. Enable it
-with:
-
-```
-/set plugins.var.python.slack.record_events true
-/python reload slack
-```
-
-Support
--------
-
-wee-slack is provided without any warranty whatsoever, but you are welcome to ask questions in #wee-slack on freenode.
