@@ -1,32 +1,38 @@
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+    branches: '*'
+  pull_request:
+    branches: '*'
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
-  gate:
+  build:
+
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9"]
-    name: Python ${{ matrix.python-version }} gate
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
-      - uses: actions/setup-java@v1
-        with:
-            java-version: 8
-      - run: pip install pylint==2.4
-      - run: pylint --version
-      - name: Download and set up dependencies
-        run: |
-          export ECLIPSE_TAR=${{ github.workspace }}/../eclipse.tar.gz
-          wget https://archive.eclipse.org/eclipse/downloads/drops4/R-4.5.2-201602121500/eclipse-SDK-4.5.2-linux-gtk-x86_64.tar.gz -O $ECLIPSE_TAR
-          tar -C ${{ github.workspace }}/.. -xf $ECLIPSE_TAR
-          export ECLIPSE_EXE=${{ github.workspace }}/../eclipse/eclipse
-          export JDT=${{ github.workspace }}/ecj.jar
-          wget https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.5.2-201602121500/ecj-4.5.2.jar -O $JDT
-      - name: mx gate
-        run: ./mx --strict-compliance gate --strict-mode
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Install node
+      uses: actions/setup-node@v1
+      with:
+       node-version: '10.x'
+    - name: Install Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.9'
+        architecture: 'x64'
+    - name: Install dependencies
+      run: python -m pip install jupyterlab cookiecutter
+    - name: Run tests
+      run: |
+        cookiecutter . --no-input
+        cd myextension
+        jlpm && jlpm run build
+        jupyter labextension install .
+        jupyter lab clean
+        jupyter labextension link .
+        python -m jupyterlab.browser_check
