@@ -1,21 +1,79 @@
-JULIA_VERSIONS = "1" "1.0" "1.1" "1.2" "1.3" "latest"
-unittest:
-	python -m unittest jill/tests/tests_filters.py
+checkfiles = tortoise/ examples/ tests/ conftest.py
+black_opts = -l 100 -t py37
+py_warn = PYTHONDEVMODE=1
 
-download_install_test:
-	coverage run -a -m jill download --upstream Official
-	coverage run -a -m jill install --upstream Official --confirm
+help:
+	@echo  "Tortoise ORM development makefile"
+	@echo
+	@echo  "usage: make <target>"
+	@echo  "Targets:"
+	@echo  "    up      Updates dev/test dependencies"
+	@echo  "    deps    Ensure dev/test dependencies are installed"
+	@echo  "    check	Checks that build is sane"
+	@echo  "    lint	Reports all linter violations"
+	@echo  "    test	Runs all tests"
+	@echo  "    docs 	Builds the documentation"
+	@echo  "    style   Auto-formats the code"
 
-	for julia_version in $(JULIA_VERSIONS) ; do \
-		echo "Test Julia version:" $$julia_version ; \
-		coverage run -a -m jill download $$julia_version ; \
-		coverage run -a -m jill install $$julia_version --confirm ; \
-	done
+up:
+	@poetry update
 
-	# check if symlinks are created successfully
-	bash installtest.sh 1.0.5
-	find . -type f -size +20M -name "julia-*" -delete ; \
+deps:
+	@poetry install -E asyncpg -E aiomysql -E docs
 
-test:
-	@+make unittest
-	@+make download_install_test
+check: deps build
+ifneq ($(shell which black),)
+	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
+endif
+	flake8 $(checkfiles)
+	mypy $(checkfiles)
+	pylint -d C,W,R $(checkfiles)
+	bandit -r $(checkfiles)
+	twine check dist/*
+
+lint: deps build
+ifneq ($(shell which black),)
+	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
+endif
+	flake8 $(checkfiles)
+	mypy $(checkfiles)
+	pylint $(checkfiles)
+	bandit -r $(checkfiles)
+	twine check dist/*
+
+test: deps
+	$(py_warn) TORTOISE_TEST_DB=sqlite://:memory: pytest
+
+test_sqlite:
+	$(py_warn) TORTOISE_TEST_DB=sqlite://:memory: pytest --cov-report=
+
+test_postgres:
+	python -V | grep PyPy || $(py_warn) TORTOISE_TEST_DB="postgres://postgres:$(TORTOISE_POSTGRES_PASS)@127.0.0.1:5432/test_\{\}" pytest --cov-append --cov-report=
+
+test_mysql_myisam:
+	$(py_warn) TORTOISE_TEST_DB="mysql://root:$(TORTOISE_MYSQL_PASS)@127.0.0.1:3306/test_\{\}?storage_engine=MYISAM" pytest --cov-append --cov-report=
+
+test_mysql:
+	$(py_warn) TORTOISE_TEST_DB="mysql://root:$(TORTOISE_MYSQL_PASS)@127.0.0.1:3306/test_\{\}" pytest --cov-append --cov-report=
+
+_testall: test_sqlite test_postgres test_mysql_myisam test_mysql
+
+testall: deps _testall
+	coverage report
+
+ci: check testall
+
+docs: deps
+	rm -fR ./build
+	sphinx-build -M html docs build
+
+style: deps
+	isort -src $(checkfiles)
+	black $(black_opts) $(checkfiles)
+
+build: deps
+	rm -fR dist/
+	poetry build
+
+publish: deps build
+	twine upload dist/*
