@@ -1,50 +1,55 @@
-from itertools import chain
-from setuptools import setup, find_packages
-from orix import __name__, __version__, __author__, __author_email__, __description__
+#!/usr/bin/env python
 
-# Projects with optional features for building the documentation and running
-# tests. From setuptools:
-# https://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-extras-optional-features-with-their-own-dependencies
-extra_feature_requirements = {
-    "doc": ["sphinx >= 3.0.2", "sphinx-rtd-theme >= 0.4.3"],
-    "tests": ["pytest >= 5.4", "pytest-cov >= 2.8.1", "coverage >= 5.0"],
-}
-extra_feature_requirements["dev"] = ["black >= 19.3b0", "pre-commit >= 1.16"] + list(
-    chain(*list(extra_feature_requirements.values()))
-)
+import re
+import sys
+from os.path import abspath, dirname, join
+from setuptools import setup
+
+CURDIR = dirname(abspath(__file__))
+REQUIREMENTS = ['robotframework >= 3.0', 'pillow >= 5.2.0']
+with open(join(CURDIR, 'src', 'ScreenCapLibrary', 'version.py')) as f:
+    VERSION = re.search("\nVERSION = '(.*)'", f.read()).group(1)
+with open(join(CURDIR, 'README.rst')) as f:
+    DESCRIPTION = f.read()
+if sys.version_info[0] < 3:
+    REQUIREMENTS.append('imageio == 2.6.1')
+    REQUIREMENTS.append('futures >= 3.2.0')
+    REQUIREMENTS.append('mss == 4.0.3')
+    REQUIREMENTS.append('opencv-python == 4.2.0.32')
+else:
+    REQUIREMENTS.append('imageio >= 2.6.1')
+    REQUIREMENTS.append('mss >= 4.0.3')
+    REQUIREMENTS.append('opencv-python >= 4.2.0.32')
+    REQUIREMENTS.append('pyautogui >= 0.9.52')
+CLASSIFIERS = '''
+Development Status :: 5 - Production/Stable
+License :: OSI Approved :: Apache Software License
+Operating System :: OS Independent
+Programming Language :: Python
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3.4
+Programming Language :: Python :: 3.5
+Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.8
+Topic :: Software Development :: Testing
+Framework :: Robot Framework
+Framework :: Robot Framework :: Library
+'''.strip().splitlines()
 
 setup(
-    name=__name__,
-    version=str(__version__),
-    license="GPLv3",
-    author=__author__,
-    author_email=__author_email__,
-    description=__description__,
-    long_description=open("README.rst").read(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Natural Language :: English",
-        "Operating System :: OS Independent",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Physics",
-    ],
-    packages=find_packages(exclude=["orix/tests"]),
-    extras_require=extra_feature_requirements,
-    # fmt: off
-    install_requires=[
-        "diffpy.structure >= 3",
-        "h5py",
-        "matplotlib >= 3.3",
-        "numpy",
-        "scipy",
-        "tqdm",
-    ],
-    # fmt: on
-    package_data={"": ["LICENSE", "README.rst", "readthedocs.yml"], "orix": ["*.py"],},
+    name='robotframework-screencaplibrary',
+    version=VERSION,
+    description='Robot Framework test library for taking screenshots',
+    long_description=DESCRIPTION,
+    author=u'Mihai Pârvu',
+    author_email='mihai-catalin.parvu@nokia.com',
+    url='https://github.com/mihaiparvu/ScreenCapLibrary',
+    license='Apache License 2.0',
+    keywords='robotframework testing testautomation screenshot screencap',
+    platforms='any',
+    classifiers=CLASSIFIERS,
+    install_requires=REQUIREMENTS,
+    package_dir={'': 'src'},
+    packages=['ScreenCapLibrary']
 )

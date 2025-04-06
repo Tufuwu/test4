@@ -1,46 +1,61 @@
-name: build
+name: ScreenCapLibrary CI
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
-  build-with-pip:
-    name: ${{ matrix.os }}/py${{ matrix.python-version }}/pip
+  build:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    env:
-      MPLBACKEND: agg
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
         python-version: ["3.9"]
+        rf-version: [ 3.2.2 ]
+        include:
+          - os: ubuntu-latest
+            set_display: export DISPLAY=:99; Xvfb :99 -screen 0 800x600x24 -ac -noreset & sleep 3
+
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }} with Robot Framework ${{ matrix.rf-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Display versions
-        run: python -V; pip -V
-      - name: Install depedencies and package
-        shell: bash
-        run: pip install -U -e .'[doc, tests]'
-      - name: Run tests
-        run: pytest --cov=orix --pyargs orix
-      - name: Generate line coverage
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: coverage report --show-missing
-      - name: Upload coverage to Coveralls
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: AndreMiras/coveralls-python-action@develop
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Install dependencies for Python 2
+        if: matrix.python-version == '2.7' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt install xvfb
+      #   sudo apt install -y python-gtk2
+      - name: Install dependencies for Python 3
+        if: matrix.python-version != '2.7' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt install xvfb python-gi python-gi-cairo python3-gi python3-gi-cairo gir1.2-gtk-3.0 libgirepository1.0-dev
+          pip install PyGObject
+      - name: Install RF ${{ matrix.rf-version }}
+        run: |
+          pip install -U --pre robotframework==${{ matrix.rf-version }}
+      - name: Run tests with Python 2.7 on Linux
+        if: matrix.python-version == '2.7' && runner.os == 'Linux'
+        run: |
+          ${{ matrix.set_display }}
+          python atest/run.py -e gtk -e no-xvfb atest
+      - name: Run tests with Python 3 on Linux
+        if: matrix.python-version != '2.7' && runner.os == 'Linux'
+        run: |
+          ${{ matrix.set_display }}
+          python atest/run.py -e no-xvfb atest
+      - name: Run tests on Windows/MacOS
+        if: runner.os != 'Linux'
+        run: |
+          python atest/run.py -e gtk atest
+      - uses: actions/upload-artifact@v4
+        if: success() || failure()
         with:
-          parallel: true
-
-  coveralls-finish:
-    needs: build-with-pip
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls finished
-      uses: AndreMiras/coveralls-python-action@develop
-      with:
-        parallel-finished: true
+          name: Test Results - Python ${{ matrix.python-version }} ${{ runner.os }}
+          path: atest/results/

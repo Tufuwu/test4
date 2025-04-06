@@ -1,37 +1,134 @@
-|build_status|_ |Coveralls|_ |docs|_ |pypi_version|_  |downloads|_ |black|_ |doi|_
+ScreenCapLibrary
+================
 
-.. |build_status| image:: https://github.com/pyxem/orix/workflows/build/badge.svg
-.. _build_status: https://github.com/pyxem/orix/actions
+.. contents::
 
-.. |Coveralls| image:: https://coveralls.io/repos/github/pyxem/orix/badge.svg?branch=master
-.. _Coveralls: https://coveralls.io/github/pyxem/orix?branch=master
+Introduction
+------------
 
-.. |docs| image:: https://readthedocs.org/projects/orix/badge/?version=latest
-.. _docs: https://orix.readthedocs.io/en/latest
+ScreenCapLibrary_ is a `Robot Framework`_ test
+library for taking screenshots.  The project is hosted on GitHub_
+and downloads can be found from PyPI_.
 
-.. |pypi_version| image:: http://img.shields.io/pypi/v/orix.svg?style=flat
-.. _pypi_version: https://pypi.python.org/pypi/orix
+ScreenCapLibrary is operating system independent and supports Python_ 2.7 as well
+as Python_ 3.4 or newer.
 
-.. |downloads| image:: https://anaconda.org/conda-forge/orix/badges/downloads.svg
-.. _downloads: https://anaconda.org/conda-forge/orix
+The library is based on RobotFramework's standard Screenshot_ library. It has almost
+the same functionality, except that the screenshots are captured in PNG by default.
 
-.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-.. _black: https://github.com/psf/black
+ScreenCapLibrary has the following extra features:
+    - Taking screenshots in PNG, JPG/JPEG, GIF and WebP formats
+    - Video capture in WebM format, embeddable in log files
+    - Adjusting the compression/quality of the screenshots
+    - Support for GIFs
+    - Taking multiple screenshots in a given amount of time
+    - Support for partial screen captures
+    - Configurable monitor screen grabbing for screenshots and recording
 
-.. |doi| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3459662.svg
-.. _doi: https://doi.org/10.5281/zenodo.3459662
+Documentation
+-------------
 
-orix is an open-source python library for analysing orientations and crystal symmetry.
+See `keyword documentation`_ for available keywords and more information
+about the library in general.
 
-The package defines objects and functions for the analysis of orientations represented
-as quaternions or 3D rotation vectors accounting for crystal symmetry. Functionality
-builds primarily on top of `numpy <http://www.numpy.org/>`__ and
-`matplotlib <https://matplotlib.org/>`__ and is heavily inspired by the
-`MATLAB <https://www.mathworks.com/products/matlab.html>`__ package
-`MTEX <http://mtex-toolbox.github.io/>`__.
+For general information about using test libraries with Robot Framework, see
+`Robot Framework User Guide`_.
 
-If analysis using orix forms a part of published work please cite the manuscript at the
-following `link <https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576720011103>`_.
-You can also find demos in the `orix-demos <https://github.com/pyxem/orix-demos>`_ repo.
+Installation
+------------
 
-orix is released under the GPL v3 license.
+The recommended installation method is using pip_::
+
+    pip install --upgrade robotframework-screencaplibrary
+
+Running this command installs also the latest Robot Framework, mss_,
+pillow_, opencv-python_ and imageio_ versions. The minimum supported mss version is
+``3.2.1`` and the minimum supported pillow version is ``5.2.0``.
+For video capture at least version ``4.0.0.21`` of opencv-python_ is required.
+The ``--upgrade`` option can be omitted when installing the library for the
+first time.
+
+With recent versions of ``pip`` it is possible to install directly from the
+GitHub_ repository. To install latest source from the master branch, use
+this command::
+
+    pip install git+https://github.com/mihaiparvu/ScreenCapLibrary.git
+
+Alternatively you can download the source distribution from PyPI_, extract
+it, and install it::
+
+    python setup.py install
+
+Usage
+-----
+
+To use ScreenCapLibrary in Robot Framework tests, the library needs to first be
+imported using the Library setting as any other library.
+
+When using Robot Framework, it is generally recommended to write as
+easy-to-understand tests as possible.
+
+.. code:: robotframework
+
+    *** Settings ***
+    Documentation          This example demonstrates capturing a screenshot on the local
+    ...                    machine.
+
+    Library                ScreenCapLibrary
+    Library                OperatingSystem
+    Test Teardown          Remove File  screenshot_1.jpg
+
+    *** Test Cases ***
+    Take A Low File Size Jpg Screenshot
+        Take Screenshot    name=screenshot  format=jpg  quality=0
+        File Should Exist  screenshot_1.jpg
+
+
+Using with VNC
+--------------
+
+At the time of this release ``mss``, does not work on GNU/Linux with VNC virtual desktop.
+As a workaround you can change the ``screenshot_module`` value at library import to ``PyGTK``.
+
+.. code:: robotframework
+
+    *** Settings ***
+    Library                ScreenCapLibrary  screenshot_module=PyGTK
+
+For this to work you need to have the following dependencies installed.
+
+- With Python 2::
+
+    sudo apt install python-gtk2
+
+- With Python 3::
+
+    sudo apt install python-gi python-gi-cairo python3-gi python3-gi-cairo gir1.2-gtk-3.0
+
+Support
+-------
+
+If the provided documentation is not enough, there are various support forums
+available:
+
+- `robotframework-users`_ mailing list
+- channels in Robot Framework `Slack community`_
+- ScreenCapLibrary `issue tracker`_ for bug reports and concrete enhancement
+  requests
+
+.. _Robot Framework: http://robotframework.org
+.. _Robot Framework User Guide: http://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#using-test-libraries
+.. _ScreenCapLibrary: https://github.com/mihaiparvu/ScreenCapLibrary
+.. _GitHub: https://github.com/mihaiparvu/ScreenCapLibrary
+.. _Python: http://python.org
+.. _pip: http://pip-installer.org
+.. _PyPI: https://pypi.python.org/pypi/robotframework-screencaplibrary
+.. _mss: https://python-mss.readthedocs.io
+.. _pillow: https://pillow.readthedocs.io
+.. _opencv-python: https://opencv-python-tutroals.readthedocs.io
+.. _imageio: https://imageio.github.io/
+.. _Screenshot: http://robotframework.org/robotframework/latest/libraries/Screenshot.html
+.. _Keyword Documentation: https://mihaiparvu.github.io/ScreenCapLibrary/ScreenCapLibrary.html
+.. _robotframework-users: http://groups.google.com/group/robotframework-users
+.. _Slack community: https://robotframework-slack-invite.herokuapp.com
+.. _issue tracker: https://github.com/mihaiparvu/ScreenCapLibrary/issues
