@@ -1,83 +1,194 @@
-# python-pathfinding
+### Firefox Decrypt
 
-Pathfinding algorithms for python 3.
+![GitHub Actions status](https://github.com/unode/firefox_decrypt/actions/workflows/main.yml/badge.svg)
 
-Currently there are 7 path-finders bundled in this library, namely:
+As of 1.0.0-rc1 Python 3.9+ is required. Python 2 is no longer supported.
+If you encounter a problem, try the latest [release](https://github.com/unode/firefox_decrypt/releases) or check open issues for ongoing work.
 
-- A*
-- Dijkstra
-- Best-First
-- Bi-directional A*
-- Breadth First Search (BFS)
-- Iterative Deeping A\* (IDA*)
-- Minimum Spanning Tree (MSP)
+If you definitely need to use Python 2, [Firefox Decrypt 0.7.0](https://github.com/unode/firefox_decrypt/releases/tag/0.7.0) is your best bet, although no longer supported.
 
-Dijkstra and A* take the weight of the fields on the map into account.
+#### About
 
-![MIT License](https://img.shields.io/github/license/brean/python-pathfinding)
-![PyPI](https://img.shields.io/pypi/v/pathfinding)
+**Firefox Decrypt** is a tool to extract passwords from profiles of Mozilla (Fire/Water)fox™, Thunderbird®, SeaMonkey® and derivates.
 
-*If you are still using python 2 take a look at the [python2-branch](https://github.com/brean/python-pathfinding/tree/python2).*
+It can be used to recover passwords from a profile protected by a Master Password as long as the latter is known.
+If a profile is not protected by a Master Password, passwords are displayed without prompt.
 
-## Installation
+This tool does not try to crack or brute-force the Master Password in any way.
+If the Master Password is not known it will simply fail to recover any data.
 
-This library is provided by pypi, so you can just install the current stable version using pip:
+It requires access to libnss3, included with most Mozilla products.
+The script is usually able to find a compatible library but may in some cases
+load an incorrect/incompatible version. If you encounter this situation please file a bug report.
 
-```python
-pip install pathfinding
+Alternatively, you can install libnss3 (Debian/Ubuntu) or nss (Arch/Gentoo/…).
+libnss3 is part of https://developer.mozilla.org/docs/Mozilla/Projects/NSS
+
+If you need to decode passwords from Firefox 3 or older, although not officially supported,
+there is a patch in [this pull request](https://github.com/unode/firefox_decrypt/pull/36).
+
+
+#### Usage
+
+Run:
+
+```
+python firefox_decrypt.py
 ```
 
-see [pathfinding on pypi](https://pypi.org/project/pathfinding/)
+The tool will present a numbered list of profiles. Enter the relevant number. 
 
-## Usage examples
-For usage examples with detailed descriptions take a look at the [docs](docs/) folder, also take a look at the [test/](test/) folder for more examples, e.g. how to use pandas
+Then, a prompt to enter the *master password* for the profile: 
 
-## Rerun the algorithm
+- if no password was set, no master password will be asked.
+- if a password was set and is known, enter it and hit key <kbd>Return</kbd> or <kbd>Enter</kbd>
+- if a password was set and is no longer known, you can not proceed
 
-While running the pathfinding algorithm it might set values on the nodes. Depending on your path finding algorithm things like calculated distances or visited flags might be stored on them. So if you want to run the algorithm in a loop you need to clean the grid first (see `Grid.cleanup`). Please note that because cleanup looks at all nodes of the grid it might be an operation that can take a bit of time!
+#### Advanced usage
 
-## Implementation details
+If your profiles are at an unusual path, you can call the script with:
 
-All pathfinding algorithms in this library are inheriting the Finder class. It has some common functionality that can be overwritten by the implementation of a path finding algorithm.
-
-The normal process works like this:
-
-1. You call `find_path` on one of your finder implementations.
-1. `init_find` instantiates the `open_list` and resets all values and counters.
-1. The main loop starts on the `open_list`. This list gets filled with all nodes that will be processed next (e.g. all current neighbors that are walkable). For this you need to implement `check_neighbors` in your own finder implementation.
-1. For example in A*s implementation of `check_neighbors` you first want to get the next node closest from the current starting point from the open list. the `next_node` method in Finder does this by giving you the node with a minimum `f`-value from the open list, it closes it and removes it from the `open_list`.
-1. if this node is not the end node we go on and get its neighbors by calling `find_neighbors`. This just calls `grid.neighbors` for most algorithms.
-1. If none of the neighbors are the end node we want to process the neighbors to calculate their distances in `process_node`
-1. `process_node` calculates the cost `f` from the start to the current node using the `calc_cost` method and the cost after calculating `h` from `apply_heuristic`.
-1. finally `process_node` updates the open list so `find_path` can run `check_neighbors` on it in the next node in the next iteration of the main loop.
-
-flow:
-
-```pseudo
-  find_path
-    init_find  # (re)set global values and open list
-    check_neighbors  # for every node in open list
-      next_node  # closest node to start in open list
-      find_neighbors  # get neighbors
-      process_node  # calculate new cost for neighboring node
+```
+python firefox_decrypt.py /folder/containing/profiles.ini/
 ```
 
-## Testing
-You can run the tests locally using pytest. Take a look at the `test`-folder
+If you don't want to display all passwords on the screen you can use:
 
-## Contributing
+```
+python firefox_decrypt.py | grep -C2 keyword
+```
+where `keyword` is part of the expected output (URL, username, email, password …)
 
-Please use the [issue tracker](https://github.com/brean/python-pathfinding/issues) to submit bug reports and feature requests. Please use merge requests as described [here](/CONTRIBUTING.md) to add/adapt functionality. 
+You can also choose from one of the supported formats with `--format`:
 
-## License
+* `human` - a format displaying one record for every 3 lines
+* `csv` - a spreadsheet-like format. See also `--csv-*` options for additional control.
+* `tabular` - similar to csv but producing a tab-delimited (`tsv`) file instead.
+* `json` - a machine compatible format - see [JSON](https://en.wikipedia.org/wiki/JSON)
+* `pass` - a special output format that directly calls to the [passwordstore.org](https://www.passwordstore.org) command to export passwords (*). See also `--pass-*` options.
 
-python-pathfinding is distributed under the [MIT license](https://opensource.org/licenses/MIT).
+(*) `pass` can produce unintended consequences. Make sure to backup your password store before using this.
 
-## Maintainer
+##### Format CSV
 
-Andreas Bresser, self@andreasbresser.de
+Passwords may be exported in CSV format using the `--format` flag.
 
-## Authors / Contributers
-Authors and contributers are [listed on github](https://github.com/brean/python-pathfinding/graphs/contributors).
+```
+python firefox_decrypt.py --format csv
+```
 
-Inspired by [Pathfinding.JS](https://github.com/qiao/PathFinding.js)
+Additionally, `--csv-delimiter` and `--csv-quotechar` flags can specify which characters to use as delimiters and quote characters in the CSV output.
+
+##### Format Pass - Passwordstore
+
+Stored passwords can be exported to [`pass`](http://passwordstore.org) (from passwordstore.org) using:
+
+```
+python firefox_decrypt.py --format pass
+```
+
+**All** existing passwords will be exported after the pattern `web/<address>[:<port>]`.
+If multiple credentials exist for the same website `/<login>` is appended.
+By `pass` convention, the password will be on the first and the username on the second line.
+
+To prefix the username with `login: ` for compatibility with the [browserpass](https://github.com/dannyvankooten/browserpass) extension, you can use:
+```
+python firefox_decrypt.py --format pass --pass-username-prefix 'login: '
+```
+
+There is currently no way to selectively export passwords.
+
+Exporting will overwrite existing passwords without warning. Ensure you have a backup or are using the `pass git` functionality.
+
+#### Non-interactive mode
+
+A non-interactive mode which bypasses all prompts, including profile choice and master password, can be enabled with `-n/--no-interactive`.
+If you have multiple Mozilla profiles, make sure to also indicate your profile choice by passing `-c/--choice N` where N is the number of the profile you wish to decrypt (starting from **1**).
+
+You can list all available profiles with `-l/--list` (to stdout).
+
+Your master password is read from stdin.
+
+    $ python firefox_decrypt.py --list
+    1 -> l1u1xh65.default
+    2 -> vuhdnx5b.YouTube
+    3 -> 1d8vcool.newdefault
+    4 -> ekof2ces.SEdu
+    5 -> 8a52xmtt.Fresh
+
+    $ read -sp "Master Password: " PASSWORD
+    Master Password:
+
+    $ echo $PASSWORD | python firefox_decrypt.py --no-interactive --choice 4
+    Website:   https://login.example.com
+    Username: 'john.doe'
+    Password: '1n53cur3'
+
+    Website:   https://example.org
+    Username: 'max.mustermann'
+    Password: 'Passwort1234'
+
+    Website:   https://github.com
+    Username: 'octocat'
+    Password: 'qJZo6FduRcHw'
+
+    [...snip...]
+
+    $ echo $PASSWORD | python firefox_decrypt.py -nc 1
+    Website:   https://git-scm.com
+    Username: 'foo'
+    Password: 'bar'
+
+    Website:   https://gitlab.com
+    Username: 'whatdoesthefoxsay'
+    Password: 'w00fw00f'
+
+    [...snip...]
+
+    $ # Unset Password
+    $ PASSWORD=
+
+#### Troubleshooting
+
+If a problem occurs, please try `firefox_decrypt` in high verbosity mode by calling it with:
+
+```
+python firefox_decrypt.py -vvv
+```
+
+If the output does not help you to identify the cause and a solution to the problem, file a bug report including the verbose output. **Beware**:  
+
+- your profile password, as well as other passwords, may be visible in the output – so **please remove any sensitive data** before sharing the output.
+
+
+##### Windows
+
+Both Python and Firefox must be either 32-bit or 64-bit.  
+
+If you mix architectures the code will fail. More information on issue [#8](https://github.com/unode/firefox_decrypt/issues/8).
+
+##### Darwin/macOS
+
+If you get the error described in [#14](https://github.com/unode/firefox_decrypt/issues/14) when loading `libnss3`, consider installing `nss` using brew or an alternative package manager.
+
+#### Testing
+
+If you wish to run the test suite locally, chdir into `tests/` and run `./run_all`
+
+If any test fails on your system, please ensure `libnss` is installed.
+
+If tests continue to fail, re-run with `./run_all -v` then please file a bug report including: 
+
+- the output
+- information about your system (e.g. Linux distribution, version of libnss/firefox …). 
+
+It is much appreciated.
+
+### Spin-off, derived and related works
+
+* [firepwned](https://github.com/christophetd/firepwned#how-it-works) - check if your passwords have been involved in a known data leak
+* [FF Password Exporter](https://github.com/kspearrin/ff-password-exporter) - Firefox AddOn for exporting passwords. 
+
+----
+
+Firefox is a trademark of the Mozilla Foundation in the U.S. and other countries.
