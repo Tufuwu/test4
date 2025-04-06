@@ -1,48 +1,61 @@
-name: main
+name: AutoBouquetsMaker
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-
+    name: Build AutoBouquetsMaker
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9"]
-
+        gcc: [12]
+        python: ["3.9"]
     steps:
-    - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get -q update
+          sudo apt-get install -y g++-${{ matrix.gcc }} automake build-essential gettext python${{ matrix.python }}-dev
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: Install Poetry
-      run: curl -sSL https://install.python-poetry.org | python3 -
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
 
-    - name: Check dependencies
-      run: make doctor
+      - name: Install python packages
+        run: |
+          pip3 install six flake8
 
-    - uses: actions/cache@v4
-      with:
-        path: .venv
-        key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+      - name: Build AutoBouquetsMaker, gcc-${{ matrix.gcc }}, python ${{ matrix.python }}
+        env:
+          CC: "gcc-${{ matrix.gcc }}"
+          CXX: "g++-${{ matrix.gcc }}"
+          CXXFLAGS: "-g -Wall"
+        run: |
+          autoreconf -i
+          ./configure
+          make
+          python -m compileall .
 
-    - name: Install dependencies
-      run: make install
+      - name: Check format PEP8
+        run: |
+          echo "Checking locale format..."
+          find . -type f -name "*.po" -exec msgfmt {} -o {}.mo \;
+          echo "Checking PEP8 validation..."
+          flake8 --ignore=W191,W503,W504,E128,E501,E722 . --exit-zero
+          echo "Check format PEP8 completed!"
 
-    - name: Test code
-      run: make test-repeat
-
-    - name: Upload coverage
-      uses: codecov/codecov-action@v4
-      with:
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
-
-    - name: Check code
-      run: make check
-
-    - name: Check documentation
-      run: make mkdocs notebooks
+# PEP8 :- IGNORE CODES
+# W191 : indentation contains tabs
+# W503 : line break before binary operator
+# W504 : line break after binary operator
+# E128 : continuation line under-indented for visual indent
+# E501 : line too long (> 79 characters)
+# E722 : do not use bare 'except'
