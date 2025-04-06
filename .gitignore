@@ -1,18 +1,10 @@
-# file types to ignore
+__pycache__
 *.pyc
-*.pyd
-*.so
-*.enamlc
-*~
-.DS_Store
-_configtest.*
-
-# ignore the build directories
-*.egg-info/
-build/
-dist/
-docs/build/
-
-docs/html.zip
-tvtk/tvtk_classes.zip
-mayavi/images/m2_about.jpg
+.ipynb_checkpoints/
+/dist/
+**/build/
+*.egg-info
+.cache
+.pytest_cache
+.doit.db*
+.coverage*
