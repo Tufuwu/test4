@@ -1,1 +1,1 @@
--i https://pypi.org/simple
+pygal

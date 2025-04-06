@@ -1,52 +1,68 @@
-"""Setup file for micropipenv python package."""
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2013-2020 Sébastien Helleu <flashcode@flashtux.org>
+#
+# This file is part of gitchart.
+#
+# Gitchart is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# Gitchart is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with gitchart.  If not, see <https://www.gnu.org/licenses/>.
+#
+
 from setuptools import setup
-import os
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
+DESCRIPTION = 'Generate statistic charts on Git repositories.'
+LONG_DESCRIPTION = """
+Gitchart can generate following charts:
 
-
-def get_version():
-    """Get version of micropipenv.py."""
-    with open(os.path.join(_HERE, "micropipenv.py")) as f:
-        content = f.readlines()
-
-    for line in content:
-        if line.startswith("__version__ ="):
-            # dirty, remove trailing and leading chars
-            return line.split(" = ")[1][1:-2]
-
-    raise ValueError("No version identifier found")
-
+* authors,
+* processed tickets by author,
+* commits by hour of day,
+* commits by hour of week,
+* commits by day,
+* commits by day of week,
+* commits by month of year,
+* commits by year,
+* commits by year/month,
+* commits by tag/version,
+* files by type (extension).
+"""
 
 setup(
-    name="micropipenv",
-    version=get_version(),
-    description="A simple wrapper around pip to support requirements.txt, Pipenv and Poetry files for containerized applications",
-    keywords=["packaging", "pipenv", "poetry", "pip", "dependencies", "dependency-management", "utilities"],
-    url="https://github.com/thoth-station/micropipenv",
-    download_url="https://pypi.org/project/micropipenv",
-    long_description=open(os.path.join(_HERE, "README.rst")).read(),
-    long_description_content_type="text/x-rst",
-    author="Fridolin Pokorny",
-    author_email="fridex.devel@gmail.com",
-    maintainer="Fridolin Pokorny",
-    maintainer_email="fridex.devel@gmail.com",
-    license="LGPLv3+",
-    py_modules=["micropipenv"],
-    install_requires=["pip>=9"],
-    entry_points={"console_scripts": ["micropipenv=micropipenv:main"]},
+    name='gitchart',
+    version='1.4-dev',
+    description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
+    author='Sébastien Helleu',
+    author_email='flashcode@flashtux.org',
+    url='https://github.com/flashcode/gitchart',
+    license='GPL3',
+    keywords='git chart pygal',
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: Implementation :: CPython",
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License v3 '
+        'or later (GPLv3+)',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Topic :: Software Development :: Version Control',
     ],
-    extras_require={
-        "toml": ["toml"],
-    },
+    packages=['.'],
+    install_requires=['pygal'],
+    entry_points={
+        'console_scripts': ['gitchart=gitchart:main'],
+    }
 )
