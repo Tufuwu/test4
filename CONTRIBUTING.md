@@ -1,149 +1,113 @@
-# Contributing to pdb-tools
+# Contributing to UltiSnips
 
-First off, thank you for taking the time to contribute! The tone of the following
-'guidelines' might seem a bit harsh (a lot of *do nots*) but it will make 
-everyone's life easier. Make sure you read through this at least once before
-issuing a pull request or opening an issue.
+:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
 
-## What should I know before getting started?
-The crux of any tool of `pdb-tools` is simplicity. Simplicity both for the
-end-user but also for developers. You will find that the tools often repeat a
-lot of code, for example the `check_input` functions. While this might look ugly
-from a development point of view, it makes scripts simpler (fancy options will
-very quickly turn ugly), faster (no imports) and more understandable for old and
-new developers. This is also why we do not make use of `argparse`.
+This document will take you through the process of making your change, testing it, documenting it and sending it for review.
+No new feature will be accepted without good test coverage, passing CI and proper documentation.
 
-A corolary of this simplicity is that every tool should do **one and one job
-only**. The only exception to this is `pdb_tidy` and it will very likely remain
-so. Even then, its job is to 'produce a valid PDB', despite doing multiple tasks
-under the hood. The tools are meant to be chained together, so if you want to
-have two tasks accomplished, write two tools and have them talk.
+## Before you add a feature
 
-Finally. **Dependencies are strictly not allowed**. Take this as an exercise to
-work on your Python Standard Library skills.
+UltiSnips is so rich on features that it borders on feature creep.
+It is also an understaffed and undermaintained project.
+Since every feature needs to be maintained forever, we are very careful about new ones.
+Please create alignment before putting too much work into a novel idea.
+There are several ways of doing this:
 
-## How do I write an issue?
-If you found a problem with one of the tools, if it does not behave as expected,
-if you think it should do something different or something more, or if you think
-that there should be a tool do to something new, please do open an issue.
+1. Open an issue to discuss your idea.
+2. Open a PR with a hackish or minimal implementation, i.e. no tests and no docs.
+3. Write a short (<= 1 page) design doc in a Gist or on Google Docs.
 
-If a tool is not working, let us know exactly what you did and what the outcome
-was. Whatever you tell us that helps us reproduce your workflow will make our
-job much easier to answer your question and provide a fix if necessary.
+Should there be agreement that your feature idea adds enough value to offset the maintenance burden, you can go ahead and implement it, including tests and documentation.
 
-&nbsp;&nbsp; **Bad issue reporter**
+## Testing
 
-    pdb_reatom.py does not work. Please fix.  # believe it or not people do write this.
+UltiSnips has a rigorous test suite and every new feature or bug fix is expected to come with a new test.
+The overwhelming number of the > 500 test cases are integration tests.
+Each test case sets up a full on-disk Vim configuration, including `.vimrc`, plugins and snippet definitions.
+We then simulate a user typing out a test case by programmatically sending keys into a [tmux](https://github.com/tmux/tmux/wiki) terminal that runs Vim.
 
-&nbsp;&nbsp; **Good issue reporter**
+A test is a Python class in the `test` directory.
+Some simple examples are in [test_Expand.py](https://github.com/SirVer/ultisnips/blob/master/test/test_Expand.py).
+Each class contains at least
 
-    I tried using pdb_reatom.py on a PDB file and it did not renumber nitrogen
-    atoms. Here is an example:
+- a `keys` property that defines the key strokes taken,
+- a `wanted` golden string that defines the expected output of the snippet, and
+- a `snippets` list that defines the snippet that are in scope for the test case.
 
-    $ cat 1abc.pdb
-    ATOM      9  N   ASN A   1      22.066  40.557   1.420  1.00  1.00              
-    ATOM      2  N   ASN A   2      43.123  76.234   0.123  1.00  1.00              
-    END
-    $ pdb_reatom 1abc.pdb
-    ATOM      9  N   ASN A   1      22.066  40.557   1.420  1.00  1.00              
-    ATOM      2  N   ASN A   2      43.123  76.234   0.123  1.00  1.00              
-    END
+Each test types out a given set of key strokes and compares the resulting text in the Vim buffer to `wanted`.
 
-    I was expecting the two atoms to be consecutively renumbered from 1. I am 
-    using pdb-tools version 2.0.0:
+### Running the test suite.
 
-    $ pip show pdb-tools
-    Name: pdb-tools
-    Version: 2.0.0
-    Location: /path/to/virtualenv/lib/python3.7/site-packages
+The basic process of running the suite is simple:
 
-## How do I contribute code?
-We welcome and will gladly review any pull request. If you have never used git
-or GitHub before, have a look at the [guides](https://guides.github.com/) page.
+1. open a terminal and start a new tmux session in the current directory named
+   vim: `tmux new -s vim`. Do not type anything into the tmux session.
+2. In a second terminal, run `./test_all.py`.
 
-To contribute to `pdb-tools`, use the *Fork* button to create your own copy of
-the `pdb-tools` repository. Then, download `git` on your laptop/desktop computer
-and proceed like the snippet below, where we pretend to add a new tool:
+To filter the tests that are executed, specify a pattern to be used to match the beginning of the test name.
+For instance, the following will execute all tests that start with `SimpleExpand`:
 
-```bash
-# Clone your own fork of pdb-tools
-git clone https://github.com/yourusername/pdb-tools.git
-cd pdb-tools
+    $ ./test_all.py SimpleExpand
 
-# Add our repository as 'upstream' to make sure you are using the latest
-# version of the code.
-git remote add upstream https://github.com/haddocking/pdb-tools.git
+Currently, the test suite only runs under Linux and Mac, not under Windows.
+Contributions to make it work under Windows again would be very much appreciated.
 
-# Pull our master to update your local version
-# If there are changes, you should push them to the 'master' of your fork.
-git pull upstream master
-git push origin master  # Update your fork if necessary
 
-# Create a feature branch to start working on your new tool.
-# Name the new branch clearly and concisely after the change you are proposing
-#
-# We use feature branches to avoid conflicts in the master branch. Updating
-# should always be smooth and you can deal with merge conflicts in your branches
-git checkout -b pdb_newtool
+#### Running using docker.
 
-# Work on your new tool!
-# Include hours of work here and make sure to read the conventions below.
-# Also, try to add a test case too under tests/
-# We can help you fleshing it out if you need it.
-...
+The problem with running tests on the system directly is that the user's environment can bleed into the test execution.
+To avoid this problem, we strongly suggest running the tests inside of [Docker](https://www.docker.com/).
+It is useful to think of Docker as a lightweight virtual machine, i.e. a way of running exactly the same OS and userland configuration on any machine.
 
-# If you are making changes to an existing tool, run the test suite before
-# committing your changes.
-python setup.py test
+UltiSnips comes with a [Makefile](https://github.com/SirVer/ultisnips/blob/master/Makefile) that makes the use of Docker easy.
+First, build the image of the test environment (Vim 8.0, using Python 3):
 
-# When you have committed all your changes, run flake8 to make sure there are
-# no style issues.
-pip install flake8  # Optional obviously
-flake8 --ignore E501,E731 --statistics bin/
+    $ make image_repro
 
-# Update the documentation, if you added new tools (or changed docstrings).
-cd docs/
-python doctools.py
-git add index.md && git commit -m "Updated documentation"
+Now we can launch the image in a container and run the tmux session for testing.
 
-# When there are no issues left, push to your fork on github
-git push origin pdb_newtool
+    $ make repro
+    ... now inside container
+    # tmux new -s vim
 
-# And then, online, create a pull request.
-# That is it.
-```
+The container will have the current directory mounted under `/src/UltiSnips`.
+This means all changes you make to UltiSnips' sources will directly be represented inside the container and therefore available for testing.
 
-## Conventions
-In an effort to try and make all tools look the same, stick to these conventions
-when writing a new one or modifying an existing one:
+In a second terminal we'll use `docker run` to get another shell in the already running container.
+In this shell we can then trigger the test execution:
 
-### Coding conventions
-Every pull request will be checked for style using Flake8. We ignore line length
-warnings and the use of lambdas. Do not abuse the first one though. We always try
-to stick to 80 characters, unless it's stupid to do so.
+    $ make shell_in_repro
+    ... now inside container
+    # ./test_all.py
 
-* Do not use camelCase. Stick to snake_case.
-* Write docstrings and comment your code, specially if it is not obvious!
-* Name your variables properly, we don't charge you for a few extra lines.
+## Documenting
 
-### Tool design conventions
+User documentation goes into [`doc/UltiSnips.txt`](https://github.com/SirVer/ultisnips/blob/00_contributing/doc/UltiSnips.txt).
+Developer documentation should go into this file.
 
-* Every tool should have the same structure: `check_input`, `do_task`, `main`.
-Do **not** deviate from this, unless you absolutely need to.
-* User interfaces must follow the `pdb_tool [-option] <file>` paradigm. Do not
-try and make it `pdb_tool -opt1 -opt2 -opt3`. See `pdb_rplchain` and `pdb_wc`
-for good examples of how to handle multiple options.
-* Avoid reading the entire file in memory unless you have to. This makes it nice
-for people processing very large files.
-* Following the previous item, make use of generators (`yield`) to output the
-results of your tool. 
+# Reproducing Bugs
 
-## Merging Pull Requests
-If you are tasked with merging a pull request yourself, you should know that there
-is an automated job running every time a push is made to the master branch. This job
-will trigger a version bump and automatically publish the new package to PyPi. By default,
-only the patch (x.x.Y) number is incremented. If you want to trigger a minor version (x.Y.x)
-update, start your commit with `[FEATURE]`. Note that since we use merge commits, this means
-you have to edit the title of the merge commit. It is your responsibility to handle this as
-a package maintainer! Finally, if your last commit message starts with `[SKIP]`, the automated
-job does not run, so use this flag if your commits are for documentation, README, etc.
+Reproducing bugs is the hardest part of getting them fixed.
+UltiSnips is usually used in complex interaction with other software and plugins.
+This makes reproducing issues even harder.
+
+Here is a process of creating a minimal viable reproduction case for your particular problem.
+Having this available in a bug report will increase the chances of your issue being fixed tremendously.
+
+1. Install [Docker](https://docs.docker.com/install/). It is useful to think of Docker as a lightweight virtual machine, i.e. a way of running exactly the same OS and userland configuration on any machine.
+2. Build the image using `make image_repro`.
+3. Launch the image using `make repro`. This drops you into a shell where you can run `vim` to get to a vim instance configured for UltiSnips.
+
+Now try to reproduce your issue.
+Keep in mind that all your changes to the container are lost once you exit the shell.
+You must edit the configuration outside the container and rebuild the image.
+You can add snippets to `docker/snippets/`.
+You can also copy more and more of your own `.vimrc` into `docker/docker_vimrc.vim` until your issue reproduces.
+Whenever you have edited `snippets` or `docker_vimrc.vim` you need to rerun `make image_repo && make repro`.
+
+Once you have a minimal complete repro case ready,
+
+1. fork UltiSnips,
+2. commit your changes to the Vim configuration into a branch,
+3. push the branch,
+4. link it in the issue.

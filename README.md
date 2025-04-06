@@ -1,152 +1,83 @@
-# pdb-tools
+![Build Status](https://github.com/SirVer/ultisnips/actions/workflows/main.yml/badge.svg)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/SirVer/ultisnips?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-[![PyPI version](https://badge.fury.io/py/pdb-tools.svg)](https://badge.fury.io/py/pdb-tools)
-[![tests](https://github.com/haddocking/pdb-tools/workflows/ci/badge.svg?branch=master)](https://github.com/haddocking/pdb-tools/actions?workflow=ci)
-[![codecov](https://codecov.io/gh/haddocking/pdb-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/haddocking/pdb-tools)
-[![DOI](https://zenodo.org/badge/27217350.svg)](https://doi.org/10.12688/f1000research.17456.1)
+UltiSnips
+=========
 
-A swiss army knife for manipulating and editing PDB files.
+UltiSnips is the ultimate solution for snippets in Vim. It has many features,
+speed being one of them.
 
+![GIF Demo](https://raw.github.com/SirVer/ultisnips/master/doc/demo.gif)
 
-## Looking for the _other_ pdb-tools?
-The Harms lab maintains a set of tools also called `pdbtools`, which perform a
-slightly different set of functions. You can find them [here](https://github.com/harmslab/pdbtools).
+In this demo I am editing a python file. I first expand the `#!` snippet, then
+the `class` snippet. The completion menu comes from
+[YouCompleteMe](https://github.com/Valloric/YouCompleteMe), UltiSnips also
+integrates with [deoplete](https://github.com/Shougo/deoplete.nvim), and more. I can
+jump through placeholders and add text while the snippet inserts text in other
+places automatically: when I add `Animal` as a base class, `__init__` gets
+updated to call the base class constructor. When I add arguments to the
+constructor, they automatically get assigned to instance variables. I then
+insert my personal snippet for `print` debugging. Note that I left insert mode,
+inserted another snippet and went back to add an additional argument to
+`__init__` and the class snippet was still active and added another instance
+variable.
 
+The official home of UltiSnips is at <https://github.com/sirver/ultisnips>.
+Please add pull requests and issues there.
 
-## About
-Manipulating PDB files is often painful. Extracting a particular chain or set of
-residues, renumbering residues, splitting or merging models and chains, or just
-ensuring the file is conforming to the PDB specifications are examples of tasks
-that can be done using any decent parsing library or graphical interface. These,
-however, almost always require 1) scripting knowledge, 2) time, and 3) installing
-one or more programs.
-
-`pdb-tools` were designed to be a swiss-knife for the PDB format. They have no
-external dependencies, besides obviously the [Python programming language](http://www.python.org).
-They are the descendant of a set of old FORTRAN77 programs that had the 
-particular advantage of working with streams, i.e. the output of one script 
-could be piped into another. Since FORTRAN77 is a pain too, I rewrote them in
-Python and added a few more utilities. 
-
-The philosophy of the scripts is simple: one script, one task. If you want to 
-do two things, pipe the scripts together. Requests for new scripts will be taken
-into consideration - use the Issues button or write them yourself and create a
-Pull Request.
+UltiSnips was started in Jun 2009 by @SirVer. In Dec 2015, maintenance was
+handed over to [@seletskiy](https://github.com/seletskiy) who ran out of time
+in early 2017. Since Jun 2019, @SirVer is maintaining UltiSnips again on a
+very constraint time budget. If you can help triaging issues it would be
+greatly appreciated.
 
 
-## Installation Instructions
-`pdb-tools` are available on PyPi and can be installed though `pip`. This is the
-recommended way as it makes updating/uninstalling rather simple:
-```bash
-pip install pdb-tools
-```
+Quick Start
+-----------
 
-Because we use semantic versioning in the development of `pdb-tools`, every bugfix
-or new feature results in a new version of the software that is automatically published
-on PyPI. As such, there is no difference between the code on github and the latest version
-you can install with `pip`. To update your installation to the latest version of the code
-run:
-```bash
-pip install --upgrade pdb-tools
-```
+This assumes you are using [Vundle](https://github.com/gmarik/Vundle.vim). Adapt
+for your plugin manager of choice. Put this into your `.vimrc`.
 
-## What can I do with them?
-The names of the tools should be self-explanatory. Their command-line interface
-is also pretty consistent. Therefore, here is a couple of examples to get you
-started:
+    " Track the engine.
+    Plugin 'SirVer/ultisnips'
 
-* Downloading a structure
-   ```bash
-   pdb_fetch 1brs > 1brs.pdb  # 6 chains
-   pdb_fetch -biounit 1brs > 1brs.pdb  # 2 chains
-   ```
+    " Snippets are separated from the engine. Add this if you want them:
+    Plugin 'honza/vim-snippets'
 
-* Renumbering a structure
-   ```bash
-   pdb_reres -1 1ctf.pdb > 1ctf_renumbered.pdb
-   ```
+    " Trigger configuration. You need to change this to something other than <tab> if you use one of the following:
+    " - https://github.com/Valloric/YouCompleteMe
+    " - https://github.com/nvim-lua/completion-nvim
+    let g:UltiSnipsExpandTrigger="<tab>"
+    let g:UltiSnipsJumpForwardTrigger="<c-b>"
+    let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
-* Selecting chain(s)
-   ```bash
-   pdb_selchain -A 1brs.pdb > 1brs_A.pdb
-   pdb_selchain -A,D 1brs.pdb > 1brs_AD.pdb
-   ```
+    " If you want :UltiSnipsEdit to split your window.
+    let g:UltiSnipsEditSplit="vertical"
 
-* Deleting hydrogens
-   ```bash
-   pdb_delelem -H 1brs.pdb > 1brs_noH.pdb
-   ```
+UltiSnips comes with comprehensive
+[documentation](https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt).
+As there are more options and tons of features I suggest you at least skim it.
 
-* Selecting backbone atoms
-   ```bash
-   pdb_selatom -CA,C,N,O 1brs.pdb > 1brs_bb.pdb
-   ```
+There are example uses for some power user features here:
 
-* Selecting chains, removing HETATM, and producing a valid PDB file
-  ```bash
-  pdb_selchain -A,D 1brs.pdb | pdb_delhetatm | pdb_tidy > 1brs_AD_noHET.pdb
-  ```
+  * [Snippets Aliases](doc/examples/snippets-aliasing/README.md)
+  * [Dynamic Tabstops/Tabstop Generation](doc/examples/tabstop-generation/README.md)
 
-*Note: On Windows the tools will have the `.exe` extension.*
+Screencasts
+-----------
 
+From a gentle introduction to really advanced in a few minutes: The blog posts
+of the screencasts contain more advanced examples of the things discussed in the
+videos.
 
-## What _can't_ I do with them?
-Operations that involve coordinates or numerical calculations are usually not in
-the scope of `pdb-tools`. Use a proper library for that, it will be much faster
-and scalable. Also, although we provide mmCIF<->PDB converters, we do not support
-large mmCIF files with more than 99999 atoms, or 9999 residues in a single chain.
-Our tools will complain if you try using them on such a molecule. 
+- [Episode 1: What are snippets and do I need them?](http://www.sirver.net/blog/2011/12/30/first-episode-of-ultisnips-screencast/)
+- [Episode 2: Creating Basic Snippets](http://www.sirver.net/blog/2012/01/08/second-episode-of-ultisnips-screencast/)
+- [Episode 3: What's new in version 2.0](http://www.sirver.net/blog/2012/02/05/third-episode-of-ultisnips-screencast/)
+- [Episode 4: Python Interpolation](http://www.sirver.net/blog/2012/03/31/fourth-episode-of-ultisnips-screencast/)
 
+Also the excellent [Vimcasts](http://vimcasts.org) dedicated three episodes to
+UltiSnips:
 
-## Citation
-We finally decided to write up a small publication describing the tools. If you
-used them in a project that is going to be published, please cite us:
-
-```
-Rodrigues JPGLM, Teixeira JMC, Trellet M and Bonvin AMJJ.
-pdb-tools: a swiss army knife for molecular structures. 
-F1000Research 2018, 7:1961 (https://doi.org/10.12688/f1000research.17456.1) 
-```
-
-If you use a reference manager that supports BibTex, use this record:
-```
-@Article{ 10.12688/f1000research.17456.1,
-AUTHOR = { Rodrigues, JPGLM and Teixeira, JMC and Trellet, M and Bonvin, AMJJ},
-TITLE = {pdb-tools: a swiss army knife for molecular structures [version 1; peer review: 2 approved]
-},
-JOURNAL = {F1000Research},
-VOLUME = {7},
-YEAR = {2018},
-NUMBER = {1961},
-DOI = {10.12688/f1000research.17456.1}
-}
-```
-
-## Requirements
-`pdb-tools` should run on Python 2.7+ and Python 3.x. We test on Python 2.7, 3.6,
-and 3.7. There are no dependencies.
-
-
-## Installing from Source
-Download the zip archive or clone the repository with git. We recommend the `git`
-approach since it makes updating the tools extremely simple.
-
-```bash
-# To download
-git clone https://github.com/haddocking/pdb-tools
-cd pdb-tools
-
-# To update
-git pull origin master
-
-# To install
-python setup.py install
-```
-
-## Contributing
-If you want to contribute to the development of `pdb-tools`, provide a bug fix,
-or a new tools, read our `CONTRIBUTING` instructions [here](https://github.com/haddocking/pdb-tools/blob/master/CONTRIBUTING.md).
-
-## License
-`pdb-tools` are open-source and licensed under the Apache License, version 2.0.
-For details, see the LICENSE file.
+- [Meet UltiSnips](http://vimcasts.org/episodes/meet-ultisnips/)
+- [Using Python interpolation in UltiSnips snippets](http://vimcasts.org/episodes/ultisnips-python-interpolation/)
+- [Using selected text in UltiSnips snippets](http://vimcasts.org/episodes/ultisnips-visual-placeholder/)
