@@ -1,3 +1,4 @@
 [flake8]
-extend-ignore = E203
 max-line-length = 88
+ignore = B001, P101
+exclude = src/fcache/posixemulation.py
