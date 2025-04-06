@@ -1,261 +1,152 @@
-# Change Log   
-All notable changes to SpiceyPy will be documented here
+## Unreleased
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project tries to adhere to [Semantic Versioning](http://semver.org/).
+* Fixed an issue with Git annotated tag sorting. When there was a newer
+  annotated tag A on an older commit and an older annotated tag B on a
+  newer commit, Dunamai would choose tag A, but will now correctly choose
+  tag B because the commit is newer.
 
-## [3.1.2] - 2020-09-??
-### Changed
-- main branch is now the default branch
+## v1.3.1 (2020-09-27)
 
-## [3.1.1] - 2020-05-25
-### Fixed
-- missing get_spice.py in manifest
+* Fixed ambiguous reference error when using Git if a tag and branch name
+  were identical.
 
-## [3.1.0] - 2020-05-25
-### Added
-- added irfnam, irfnum, irfrot, irftrn
-- added kpsolv, kepleq
-- better exceptions, many hundred spice toolkit defined exceptions
-- copy button to docs codeblocks
-- added CSPICE_SRC_DRI envvar override to specify cspice src directory during install
-- added CSPICE_SHARED_LIB envvar override to specify cspice.so/.dll/.dylib during install
+## v1.3.0 (2020-07-04)
 
-### Changed
-- switch to codecov for code coverage
-- various support type changes
-- renamed getspice.py to get_spice.py
+* Previously, when there were not yet any version-like tags, the distance would
+  be set to 0, so the only differentiator was the commit ID. Now, the distance
+  will be set to the number of commits so far. For example:
 
-### Fixed
-- fixed missing doc strings for callbacks
+  * No commits: base = 0.0.0, distance = 0
+  * 1 commit, no tags: base = 0.0.0, distance = 1
+  * 10 commits, no tags: base = 0.0.0, distance = 10
 
-### Removed
-- coveralls
-- test cmd class in setup.py
-- direct references to deprecated numpy matrix class
+## v1.2.0 (2020-06-12)
 
-## [3.0.2] - 2020-02-19
-### Added
-- et2datetime function
-- funding.yml
+* Added `--debug` flag.
 
-### Changed
-- changed http to https in docs/docstrings
+## v1.1.0 (2020-03-22)
 
-### Fixed
-- many small issues with the docs
-- author name in joss paper
-- fixing SyntaxWarning in python 3.8
-- year in docs
-- issue with urllib usage in gettestkernels
+* Added these functions to the public API:
+  * `serialize_pep440`
+  * `serialize_semver`
+  * `serialize_pvp`
+  * `bump_version`
 
-## [3.0.1] - 2020-01-10
-### Changed
-- removed old logic from getspice for old openssl versions
+## v1.0.0 (2019-10-26)
 
-### Removed
-- import of six in getspice
+* Changed the `Version` class to align with Dunamai's own semantics instead of
+  PEP 440's semantics.
 
-## [3.0.0] - 2020-01-09
-### Added
-- Python 3.8 support
+  Previously, `Version` implemented all of PEP 440's features, like epochs and
+  dev releases, even though Dunamai itself did not use epochs (unless you
+  created your own `Version` instance with one and serialized it) and always
+  set dev to 0 in the `from_git`/etc methods. The `serialize` method then
+  tried to generalize those PEP 440 concepts to other versioning schemes,
+  as in `0.1.0-epoch.1` for Semantic Versioning, even though that doesn't
+  have an equivalent meaning in that scheme.
 
-### Changed
-- using black for code linting
-- now using type hints 
-- vectorized functions now return numpy arrays instead of lists of arrays
+  Now, the `Version` class implements the semantics used by Dunamai, giving
+  it more power in the serialization to map those concepts in an appropriate
+  way for each scheme. For example, `dev0` is now only added for PEP 440 (in
+  order to be compatible with Pip's `--pre` flag), but `dev.0` is no longer
+  added for Semantic Versioning because it served no purpose there.
 
-### Deprecated
-- python 3.5 
-- python 2.7
+  API changes:
 
-## [2.3.2] - 2019-12-19
-### Added
-- wrapper for ev2lin
-- numpy string support
+  * `post` has been renamed to `distance`, and its type is simply `int`
+    rather than `Optional[int]`
+  * `epoch` and `dev` have been removed
+  * `pre_type` has been renamed to `stage`
+  * `pre_number` has been renamed to `revision`, and it is no longer required
+    when specifying a stage
+* Improved error reporting when the version control system cannot be detected
+  and when a specified VCS is unavailable.
+* Improved the default regular expression for tags:
+  * It now requires a full match of the tag.
+  * It now recognizes when the `base` and `stage` are separated by a hyphen.
+  * It now recognizes when the `stage` and `revision` are separated by a dot.
+  * It now allows a `stage` without a `revision`.
 
-### Fixed
-- some equality checks
+## v0.9.0 (2019-10-22)
 
-### Changed
-- updated MANIFEST.in to include test code
-- vectorization of et2utc 
-- vectorization of scencd
-- vectroization of sc2e
+* Added Fossil support.
+* Fixed case with Git/Mercurial/Subversion/Bazaar where, if you checked out an
+  older commit, then Dunamai would consider tags for commits both before and
+  after the commit that was checked out. It now only considers tags for the
+  checked out commit or one of its ancestors, making the results more
+  deterministic.
+* Changed VCS detection to be based on the result of VCS commands rather than
+  looking for VCS-specific directories/files. This avoids the risk of false
+  positives and simplifies cases with inconsistent VCS files (e.g.,
+  Fossil uses `.fslckout` on Linux and `_FOSSIL_` on Windows)
 
-## [2.3.1] - 2019-10-18
-### Changed
-- updated MANIFEST.in to include test code 
+## v0.8.1 (2019-08-30)
 
-## [2.3.0] - 2019-09-25
-### Added
-- wrapper for tkfram
-- wrapper for ckfrot
-- wrapper for zzdynrot
+* Fixed handling of annotated Git tags, which were previously ignored.
 
-### Fixed
-- issue with dafgda absolute value problem, see issue #302
+## v0.8.0 (2019-06-05)
 
-## [2.2.1] - 2019-08-19
-### Changed
-- set numpy version to 1.16.4 for python 2
-- other dependency changes to setup.py and requirements.txt
+* Changed `Version.from_any_vcs` to accept the `tag_dir` argument,
+  which will only be used if Subversion is the detected VCS.
+  Likewise, `dunamai from any` now accepts `--tag-dir`.
+* Added `Version.from_vcs` to make it easier for other tools to map from a
+  user's VCS configuration to the appropriate function.
 
-### Fixed
-- typo in a unit test fixed
+## v0.7.1 (2019-05-16)
 
-## [2.2.0] - 2019-02-24
-### Added
-- gfevnt wrapper
-- easier spice cell inits
-- python datetime to et converter
-- issue template
-- code of conduct
-- NAIF python lessons to docs
+* Fixed issue on Linux where shell commands were not interpreted correctly.
 
-### Changed
-- functions that modify a results spicecell now optionally create a return spicecell
-- convrt now "vectorized"
-- prioritized citation info in readme
+## v0.7.0 (2019-04-16)
 
-### Removed
-- removed anaconda build steps from appveyor, conda-fordge replaces it 
+* Added Bazaar support.
+* Added the `dunamai check` command and the corresponding `check_version`
+  function.
+* Added the option to check just the latest tag or to keep checking tags
+  until a match is found. The default behavior is now to keep checking.
+* Added enforcement of Semantic Versioning rule against numeric segments
+  with a leading zero.
+* Renamed the `with_metadata` and `with_dirty` arguments of `Version.serialize`
+  to `metadata` and `dirty` respectively.
+* Fixed the equality and ordering of `Version` to consider all attributes.
+  `dirty` and `commit` were ignored previously if neither `post` nor `dev`
+  were set, and `dirty=None` and `dirty=False` were not distinguished.
 
-### Fixed
-- newlines in changelog
+## v0.6.0 (2019-04-14)
 
-## [2.1.2] - 2018-08-17
-### Added
-- python 3.7 builds on travis / appveyor
+* Added Subversion support.
+* Added support for the PVP style.
+* Changed the type of the `style` argument in `Version.serialize`
+  from `str` to `Style`.
 
-### Changed
-- numpy to ctypes and back conversions improved
+## v0.5.0 (2019-03-31)
 
-### Removed
-- a few bool related internal things in support_types
-- conda builds on appveyor removed in favor of conda-forge distribution of spiceypy
+* Added built-in Semantic Versioning output style in addition to PEP 440.
+* Added style validation for custom output formats.
+* Added Darcs support.
 
-### Fixed
-- issues relating to c_bool usage. everything is now c_int
+## v0.4.0 (2019-03-29)
 
-## [2.1.1] - 2018-04-24
-### Added
-- wrapper functions for gffove and gfocce and associated callbacks
-- proxymanager for spice download by B. Seignovert
+* Added support for custom serialization formats.
 
-### Changed
-- simplifications in libspicehelper
+## v0.3.0 (2019-03-29)
 
-### Fixed
-- issue with cassini example in doc
-- termpt docstring by Marcel Stefko
-- various things in ci build configs
-- missing dll/so file issue with pip installs
+* Added Mercurial support.
+* Added a CLI.
+* Renamed `Version.from_git_describe` to `Version.from_git`.
+* Changed behavior of `Version.serialize` argument `with_metadata` so that,
+  by default, metadata is excluded when post and dev are not set.
+* Added `with_dirty` argument to `Version.serialize` and removed `flag_dirty`
+  argument from `Version.from_git`. The information should always be collected,
+  and it is up to the serialization step to decide what to do with it.
+* Added `Version.from_any_vcs`.
+* Removed `source` attribute of `Version` since some VCSes may require multiple
+  commands in conjunction and therefore not have a single source string.
 
-## [2.1.0] - 2017-11-09
-### Added
-- Completed wrapping of all new N66 DSK functions
-- 3.6 classifier
-- context manager for turning on/off found flag catches
-- contributor guide
-- freebsd support
-- added tests for dozens of functions, wrapped almost all remaining functions
+## v0.2.0 (2019-03-26)
 
-### Fixed
-- added six and numpy to setup_requires setup.py kwargs
-- bugs in some tests
+* Fixed a wrong Git command being used.
+* Made metadata serialization opt-in.
 
-### Changed
-- changed naming of vectorToList to cVectorToPython
-- Updated getspice module to use urllib3 for OpenSSL library versions older
-  than OpenSSL 1.0.1g.
-- getspice module provides now a class that handles the downloading and
-  unpacking of N066 CSPICE distribution.
-- Updated setup to pack the CSPICE installation code into a class that
-  extends the setuptools.command.install command.
-- made vectorized functions more consistent
-- changed tests to point to smaller kernel set hosted on github
+## v0.1.0 (2019-03-26)
 
-## [2.0.0] - 2017-06-09
-### Added
-- Implemented most of the new functions from N66 SPICE
-- IntMatrixType support type
-- SpiceDLADescr struct
-
-### Changed
-- now backing N66 CSPICE
-- now builds 2.7, 3.4, 3.5, 3.6
-
-### Deprecated
-- 32 bit builds
-
-### Fixed
-- toPythonString now strips whitespace
-
-## [1.1.1] - 2017-04-23
-### Added
-- added python3.6 builds
-
-### Fixed
-- fixed formatting on changelog
-- fixed issues with rtd builds
-
-### Changed
-- version updated
-- converted all downloads to use https
-
-## [1.1.0] - 2016-10-19   
-### Added    
-- wrapper functions and tests for fovray, fovtrg, pxfrm2, occult #158
-- wrapper functions and tests for spklef, spkopa, spkpds, spksub, spkuds, spkuef #155
-- tests for srxpt and sincpt #154
-- a bunch of other tests for CK related functions
-- example added to docs
-- automated artifact deployments (mostly) to pypi and conda cloud
-
-### Fixed   
-- improved use of six api to have better spicecells
-
-### Changed   
-- Start versioning based on the current English version at 0.3.0 to help
-- refactored tests to be cleaner with kernel files
-- fixed spice toolkit version to N65 pending new toolkit release.
-
-## [1.0.0] - 2016-03-27  
-### Added  
-- DOI citation information
-
-### Changed  
-- updated versions for pytest, coverage, coveralls
-- README updates
-
-## [0.7.0] - 2016-03-26  
-### Added  
-- python wheel builds in appveyor #117
-- wrapper for gfilum function
-
-### Changed  
-- converted README to rst format
-
-### Fixed  
-- inconsistencies in doc strings #143
-- issue #136
-
-## [0.6.8] - 2016-03-07
-Got to a semi complete api here, lots of commits
-before things so this version can be considered a bit of a baseline
-
-### Added
-- many things
-
-### Changed
-- the game
-
-### Deprecated
-- nothing important
-
-### Removed
-- what had to go
-
-### Fixed
-- it
+* Initial release.
