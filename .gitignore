@@ -1,16 +1,17 @@
-syntax: glob
+.idea/
+venv
 *.pyc
-*.egg-info
-*.egg
-EGG-INFO
-dist
-build
-py2*
-py3*
-.tox
-*.wpr
-*.wpu
-*.bak
-*.class
-.venv
-.env
+*.pyo
+*.swp
+
+feedgen/tests/tmp_Atomfeed.xml
+
+feedgen/tests/tmp_Rssfeed.xml
+
+tmp_Atomfeed.xml
+
+tmp_Rssfeed.xml
+
+# testing artifacts
+.coverage
+*.egg-info/

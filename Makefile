@@ -1,38 +1,54 @@
-.PHONY: docs
+sdist: doc
+	python setup.py sdist
 
-define PRINT_HELP_PYSCRIPT
-import re, sys
+bdist_wheel: doc
+	python setup.py bdist_wheel
 
-for line in sys.stdin:
-	match = re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line)
-	if match:
-		target, help = match.groups()
-		print("%-20s %s" % (target, help))
-endef
-export PRINT_HELP_PYSCRIPT
+clean: doc-clean
+	@echo Removing binary files...
+	@rm -f `find feedgen -name '*.pyc'`
+	@rm -f `find feedgen -name '*.pyo'`
+	@rm -rf feedgen.egg-info/ build/
+	@echo Removing source distribution files...
+	@rm -rf dist/
+	@rm -f MANIFEST
+	@rm -f tmp_Atomfeed.xml tmp_Rssfeed.xml
 
-help: ## display this message
-	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
+doc: doc-clean doc-html doc-man
 
-generate: ## generate environment for tests
-	cd pyroma/testdata/complete
-	python setup.py sdist --formats=bztar,gztar,tar,zip
-	cp pyroma/testdata/complete/dist/complete-1.0.dev1.* pyroma/testdata/distributions/
+doc-clean:
+	@echo Removing docs...
+	@make -C doc clean
+	@rm -rf docs
 
-tests: generate ## run tests
-	python -m unittest pyroma.tests
+doc-html:
+	@echo 'Generating HTML'
+	@make -C doc html
+	@mkdir -p docs/html
+	@echo 'Copying html to into docs dir'
+	@cp doc/_build/html/*.html docs/html/
+	@cp doc/_build/html/*.js docs/html/
+	@cp -r doc/_build/html/_static/ docs/html/
+	@cp -r doc/_build/html/ext/ docs/html/
 
-clean: clean-pyc ## remove all
+doc-man:
+	@echo 'Generating manpage'
+	@make -C doc man
+	@mkdir -p docs/man
+	@echo 'Copying manpage to into docs dir'
+	@cp doc/_build/man/*.1 docs/man/
 
-clean-pyc: ## remove Python file artifacts
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
-	find . -name 'pip-selfcheck.json' -exec rm -fr {} +
-	find . -name 'pyvenv.cfg' -exec rm -fr {} +
+doc-latexpdf:
+	@echo 'Generating pdf'
+	@make -C doc latexpdf
+	@mkdir -p docs/pdf
+	@echo 'Copying pdf to into docs dir'
+	@cp doc/_build/latex/*.pdf docs/pdf/
 
-prepare-release:
-	python fetch_classifiers.py
+publish:
+	twine upload dist/*
 
-
+test:
+	coverage run --source=feedgen -m unittest discover -s tests
+	flake8 $$(find setup.py tests feedgen -name '*.py')
+	bandit -r feedgen
