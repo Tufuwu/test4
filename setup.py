@@ -1,27 +1,58 @@
-import setuptools
+"""
+Django-MongoEngine
+------------------
 
-with open("README.md", "r") as fh:
+Django support for MongoDB using MongoEngine.
 
-    long_description = fh.read()
+This is work-in-progress. Some things working, some don't. Fix what you need and make
+pull-request.
 
-setuptools.setup(
-     name='vtt_to_srt3',
-     version='0.1.9.0',
-     author="Jeison Cardoso",
-     author_email="cardoso.jeison@gmail.com",
-     description="vtt to srt subtitles converter package",
-     long_description=long_description,
-     long_description_content_type="text/markdown",
-     url="https://github.com/jsonzilla/vtt-to-srt.py",
-     packages=setuptools.find_packages(),
-     classifiers=[
-         "Programming Language :: Python :: 3.7",
-         "Operating System :: OS Independent",
-     ],
-     entry_points={
-        "console_scripts": [
-            "vtt_to_srt=vtt_to_srt.vtt_to_srt:main",
-        ]
-    }
+Links
+`````
 
- )
+* `development version
+  <https://github.com/MongoEngine/django-mongoengine>`_
+
+"""
+from setuptools import setup, find_packages
+import sys
+import os
+
+
+__version__ = '0.4.6'
+__description__ = 'Django support for MongoDB via MongoEngine'
+__license__ = 'BSD'
+__author__ = 'Ross Lawley'
+__email__ = 'ross.lawley@gmail.com'
+
+
+sys.path.insert(0, os.path.dirname(__file__))
+
+
+setup(
+    name='django-mongoengine',
+    version=__version__,
+    url='https://github.com/mongoengine/django-mongoengine',
+    download_url='https://github.com/mongoengine/django-mongoengine/tarball/master',
+    license=__license__,
+    author=__author__,
+    author_email=__email__,
+    description=__description__,
+    long_description=__doc__,
+    zip_safe=False,
+    platforms='any',
+    install_requires=["django>2.2,<3.3", "mongoengine>=0.14"],
+    packages=find_packages(exclude=('doc', 'docs',)),
+    include_package_data=True,
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Framework :: Django'
+    ]
+)
