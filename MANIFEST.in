@@ -1,2 +1,2 @@
-include license.bsd license.lgpl readme.rst
-recursive-include docs *.html *.css *.png *.gif *.js
+include kernel_gateway/jupyter_websocket/swagger.*
+include LICENSE.md

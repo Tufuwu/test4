@@ -1,51 +1,91 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
 
+import os
+import sys
 from setuptools import setup
 
-import feedgen.version
+here = os.path.abspath(os.path.dirname(__file__))
 
-packages = ['feedgen', 'feedgen/ext']
+version_ns = {}
+with open(os.path.join(here, 'kernel_gateway', '_version.py')) as f:
+    exec(f.read(), {}, version_ns)
 
-setup(name='feedgen',
-      packages=packages,
-      version=feedgen.version.version_full_str,
-      description='Feed Generator (ATOM, RSS, Podcasts)',
-      author='Lars Kiesow',
-      author_email='lkiesow@uos.de',
-      url='https://lkiesow.github.io/python-feedgen',
-      keywords=['feed', 'ATOM', 'RSS', 'podcast'],
-      license='FreeBSD and LGPLv3+',
-      install_requires=['lxml', 'python-dateutil'],
-      classifiers=[
-        'Development Status :: 5 - Production/Stable',
+setup_args = dict(
+    name='jupyter_kernel_gateway',
+    author='Jupyter Development Team',
+    author_email='jupyter@googlegroups.com',
+    url='http://github.com/jupyter-incubator/kernel_gateway',
+    description='A web server for spawning and communicating with Jupyter kernels',
+    long_description='''\
+Jupyter Kernel Gateway is a web server that supports different mechanisms for
+spawning and communicating with Jupyter kernels, such as:
+
+* A Jupyter Notebook server-compatible HTTP API used for requesting kernels
+  and talking the `Jupyter kernel protocol <https://jupyter-client.readthedocs.io/en/latest/messaging.html>`_
+  with the kernels over Websockets
+* A HTTP API defined by annotated notebook cells that maps HTTP verbs and
+  resources to code to execute on a kernel
+
+The server launches kernels in its local process/filesystem space. It can be
+containerized and scaled out using common technologies like
+`tmpnb <https://github.com/jupyter/tmpnb>`_,
+`Cloud Foundry <https://github.com/cloudfoundry>`_, and
+`Kubernetes <http://kubernetes.io/>`_.
+''',
+    version=version_ns['__version__'],
+    license='BSD',
+    platforms="Linux, Mac OS X, Windows",
+    keywords=['Interactive', 'Interpreter', 'Kernel', 'Web', 'Cloud'],
+    packages=[
+        'kernel_gateway',
+        'kernel_gateway.base',
+        'kernel_gateway.jupyter_websocket',
+        'kernel_gateway.notebook_http',
+        'kernel_gateway.notebook_http.cell',
+        'kernel_gateway.notebook_http.swagger',
+        'kernel_gateway.services',
+        'kernel_gateway.services.kernels',
+        'kernel_gateway.services.kernelspecs',
+        'kernel_gateway.services.sessions',
+    ],
+    scripts=[
+        'scripts/jupyter-kernelgateway'
+    ],
+    install_requires=[
+        'jupyter_core>=4.4.0',
+        'jupyter_client>=5.2.0',
+        'notebook>=5.7.6,<7.0',
+        'traitlets>=4.2.0',
+        'tornado>=4.2.0',
+        'requests>=2.7,<3.0'
+    ],
+    python_requires='>=3.6.1',
+    classifiers=[
         'Intended Audience :: Developers',
-        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
-        'License :: OSI Approved :: GNU Lesser General Public License v3 ' +
-        'or later (LGPLv3+)',
-        'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
-        'Topic :: Communications',
-        'Topic :: Internet',
-        'Topic :: Text Processing',
-        'Topic :: Text Processing :: Markup',
-        'Topic :: Text Processing :: Markup :: XML'
-        ],
-      test_suite="tests",
-      long_description='''\
-Feedgenerator
-=============
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+    ],
+    include_package_data=True,
+)
 
-This module can be used to generate web feeds in both ATOM and RSS format. It
-has support for extensions. Included is for example an extension to produce
-Podcasts.
+if 'setuptools' in sys.modules:
+    # setupstools turns entrypoint scripts into executables on windows
+    setup_args['entry_points'] = {
+        'console_scripts': [
+            'jupyter-kernelgateway = kernel_gateway:launch_instance'
+        ]
+    }
+    # Don't bother installing the .py scripts if if we're using entrypoints
+    setup_args.pop('scripts', None)
 
-It is licensed under the terms of both, the FreeBSD license and the LGPLv3+.
-Choose the one which is more convenient for you. For more details have a look
-at license.bsd and license.lgpl.
-''')
+if __name__ == '__main__':
+    setup(**setup_args)
