@@ -1,47 +1,83 @@
-from setuptools import setup
+"""
+Links
+`````
+* `documentation
+  <http://pythonhosted.org/pyramid_storage/>`_
+* `development version
+  <https://github.com/danjac/pyramid_storage>`_
 
-try:
-    import pypandoc
-    long_description = pypandoc.convert_file('README.md', 'rst')
-except(IOError, ImportError):
-    long_description = open('README.md').read()
+"""
+
+from setuptools import setup, Command
+
+
+class PyTest(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import sys
+        import subprocess
+        errno = subprocess.call([sys.executable, 'runtests.py'])
+        raise SystemExit(errno)
+
+
+docs_extras = [
+    'Sphinx',
+    'docutils',
+    'repoze.sphinx.autointerface',
+]
+
+tests_require = [
+    'pytest',
+    'mock',
+]
+
 
 setup(
-    name='pyvault',
-    version='2.4.1',
-    description='Python password manager',
-    long_description=long_description,
-    author='Gabriel Bordeaux',
-    author_email='pypi@gab.lc',
-    url='https://github.com/gabfl/vault',
-    license='MIT',
-    packages=['vault', 'vault.lib', 'vault.models',
-              'vault.modules', 'vault.views'],
-    package_dir={'vault': 'src'},
-    install_requires=[
-        'pycryptodome==3.12.0',
-        'pyperclip',
-        'tabulate',
-        'passwordgenerator',
-        'SQLAlchemy==1.4.28',
-        'sqlcipher3==0.4.5'
-    ],  # external dependencies
-    entry_points={
-        'console_scripts': [
-            'vault = vault.vault:main',
-        ],
-    },
-    classifiers=[  # see https://pypi.org/pypi?%3Aaction=list_classifiers
-        'Topic :: Security',
-        'Topic :: Security :: Cryptography',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: MacOS',
-        'Operating System :: POSIX :: Linux',
-        'Natural Language :: English',
-        #  'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python',
-        'Development Status :: 4 - Beta',
-        #  'Development Status :: 5 - Production/Stable',
+    name='pyramid_storage',
+    cmdclass={'test': PyTest},
+    version='0.4.0.dev0',
+    license='BSD',
+    author='Dan Jacob',
+    author_email='danjac354@gmail.com',
+    description='File storage package for Pyramid',
+    long_description=__doc__,
+    url='https://github.com/danjac/pyramid_storage/',
+    packages=[
+        'pyramid_storage',
     ],
+    zip_safe=False,
+    platforms='any',
+    install_requires=[
+        'pyramid',
+    ],
+    tests_require=tests_require,
+    extras_require={
+        'docs': docs_extras,
+        's3': ['boto'],
+        'gcloud': ['google-cloud-storage'],
+    },
+    test_suite='pyramid_storage',
+    classifiers=[
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Topic :: Communications :: Email',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Framework :: Pyramid',
+    ]
 )
