@@ -1,9 +1,4 @@
-tags
-*.py[co]
-MANIFEST
-dist/*
-agithub.egg-info/
-build/
-dist/
-.tox
-.eggs
+*.pyc
+*.swp
+db.sqlite3
+vagrant/.vagrant/
