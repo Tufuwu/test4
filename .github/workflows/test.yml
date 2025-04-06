@@ -1,25 +1,23 @@
-name: pytest
-
-on: [push]
-
+---
+name: build
+on: push
 jobs:
-  build:
-
+  make:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9"]
+        make_target:
+          - test
+          - itest_xenial
+          - itest_bionic
+          - itest_stretch
+          - itest_buster
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test with pytest
-      run: |
-        pytest
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - run: pip install tox
+      - run: sudo apt-get install -y --no-install-recommends zsh
+      - run: make ${{ matrix.make_target }}
