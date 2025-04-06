@@ -1,56 +1,63 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[cod]
 
 # C extensions
 *.so
 
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
 .installed.cfg
-lib
-lib64
-__pycache__
-/.eggs/
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
 # Installer logs
 pip-log.txt
+pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-.cache
+htmlcov/
+.tox/
 .coverage
-/.pytest_cache/
-.tox
-/htmlcov/
+.cache
+nosetests.xml
+coverage.xml
 
 # Translations
 *.mo
+*.pot
 
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
+# Django stuff:
+*.log
 
-# virtualenv
-venv*
+# Sphinx documentation
+docs/_build/
 
-# vim
-*.sw?
+# PyBuilder
+target/
 
-# notes
-.notes
-test.sh
-test_vars_out
-.notes
-pytest
-app_spec
-app_spec.pkl
-ably/types/options.py.orig
-test/ably/restsetup.py.orig
+# PyCharm & Atlassian
+.idea/
+*.iml
+atlassian-ide-plugin.xml
+
+# Line Profiler Logs
+*.py.prof
+*.py.lprof
