@@ -1,62 +1,109 @@
-# Copyright (c) 2017-2020 Renata Hodovan, Akos Kiss.
-#
-# Licensed under the BSD 3-Clause License
-# <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
-# This file may not be copied, modified, or distributed except
-# according to those terms.
+import os
+import re
+from codecs import open
 
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
+
+here = os.path.abspath(os.path.dirname(__file__))
 
 
-def grammarinator_version():
-    def _version_scheme(version):
-        return version.format_with('{tag}')
+with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+    long_description = f.read()
 
-    def _local_scheme(version):
-        if version.exact and not version.dirty:
-            return ''
-        parts = ['{distance}'.format(distance=version.distance)]
-        if version.node:
-            parts.append('{node}'.format(node=version.node))
-        if version.dirty:
-            parts.append('d{time:%Y%m%d}'.format(time=version.time))
-        return '+{parts}'.format(parts='.'.join(parts))
 
-    return { 'version_scheme': _version_scheme, 'local_scheme': _local_scheme }
+def read_version():
+    regexp = re.compile(r'^VERSION\W*=\W*\(([^\(\)]*)\)')
+    init_py = os.path.join(here, 'clickhouse_sqlalchemy', '__init__.py')
+    with open(init_py, encoding='utf-8') as f:
+        for line in f:
+            match = regexp.match(line)
+            if match is not None:
+                return match.group(1).replace(', ', '.')
+        else:
+            raise RuntimeError(
+                'Cannot find version in clickhouse_sqlalchemy/__init__.py'
+            )
 
+
+dialects = [
+    'clickhouse{}=clickhouse_sqlalchemy.drivers.{}'.format(driver, d_path)
+
+    for driver, d_path in [
+        ('', 'http.base:ClickHouseDialect_http'),
+        ('.http', 'http.base:ClickHouseDialect_http'),
+        ('.native', 'native.base:ClickHouseDialect_native')
+    ]
+]
 
 setup(
-    name='grammarinator',
-    packages=find_packages(),
-    url='https://github.com/renatahodovan/grammarinator',
-    license='BSD',
-    author='Renata Hodovan, Akos Kiss',
-    author_email='hodovan@inf.u-szeged.hu, akiss@inf.u-szeged.hu',
-    description='Grammarinator: Grammar-based Random Test Generator',
-    long_description=open('README.rst').read(),
-    install_requires=['antlerinator==4.8', 'autopep8', 'jinja2', 'setuptools'],
-    zip_safe=False,
-    include_package_data=True,
-    setup_requires=['setuptools_scm'],
-    use_scm_version=grammarinator_version,
-    entry_points={
-        'console_scripts': [
-            'grammarinator-process = grammarinator.process:execute',
-            'grammarinator-generate = grammarinator.generate:execute',
-            'grammarinator-parse = grammarinator.parse:execute',
-        ]
-    },
+    name='clickhouse-sqlalchemy',
+    version=read_version(),
+
+    description='Simple ClickHouse SQLAlchemy Dialect',
+    long_description=long_description,
+
+    url='https://github.com/xzkostyan/clickhouse-sqlalchemy',
+
+    author='Konstantin Lebedev',
+    author_email='kostyan.lebedev@gmail.com',
+
+    license='MIT',
+
     classifiers=[
+        'Development Status :: 4 - Beta',
+
+
+        'Environment :: Console',
+
+
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'Intended Audience :: Information Technology',
+
+
+        'License :: OSI Approved :: MIT License',
+
+
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
+
+
+        'Programming Language :: SQL',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
-        'Topic :: Software Development :: Code Generators',
-        'Topic :: Software Development :: Testing',
+
+        'Topic :: Database',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Application Frameworks',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Scientific/Engineering :: Information Analysis'
+    ],
+
+    keywords='ClickHouse db database cloud analytics',
+
+    packages=find_packages('.', exclude=["tests*"]),
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4',
+    install_requires=[
+        'sqlalchemy>=1.3,<1.4',
+        'requests',
+        'clickhouse-driver>=0.1.2',
+        'ipaddress; python_version<"3.4"',
+    ],
+    # Registering `clickhouse` as dialect.
+    entry_points={
+        'sqlalchemy.dialects': dialects
+    },
+    test_suite='nose.collector',
+    tests_require=[
+        'nose',
+        'sqlalchemy>=1.3,<1.4',
+        'mock',
+        'requests',
+        'responses',
+        'enum34; python_version<"3.4"',
+        'parameterized'
     ],
 )

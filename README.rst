@@ -1,190 +1,322 @@
-=============
-Grammarinator
-=============
-*ANTLRv4 grammar-based test generator*
+ClickHouse SQLAlchemy
+=====================
 
-.. image:: https://img.shields.io/pypi/v/grammarinator?logo=python&logoColor=white
-   :target: https://pypi.org/project/grammarinator/
-.. image:: https://img.shields.io/pypi/l/grammarinator?logo=open-source-initiative&logoColor=white
-   :target: https://pypi.org/project/grammarinator/
-.. image:: https://img.shields.io/github/workflow/status/renatahodovan/grammarinator/main/master?logo=github&logoColor=white
-   :target: https://github.com/renatahodovan/grammarinator/actions
-.. image:: https://img.shields.io/coveralls/github/renatahodovan/grammarinator/master?logo=coveralls&logoColor=white
-   :target: https://coveralls.io/github/renatahodovan/grammarinator
-
-*Grammarinator* is a random test generator / fuzzer that creates test cases
-according to an input ANTLR_ v4 grammar. The motivation behind this
-grammar-based approach is to leverage the large variety of publicly
-available `ANTLR v4 grammars`_.
-
-The `trophy page`_ of the found issues is available from the wiki.
-
-.. _ANTLR: http://www.antlr.org
-.. _`ANTLR v4 grammars`: https://github.com/antlr/grammars-v4
-.. _`trophy page`: https://github.com/renatahodovan/grammarinator/wiki
+ClickHouse dialect for SQLAlchemy to `ClickHouse database <https://clickhouse.yandex/>`_.
 
 
-Requirements
+.. image:: https://img.shields.io/pypi/v/clickhouse-sqlalchemy.svg
+    :target: https://pypi.org/project/clickhouse-sqlalchemy
+
+.. image:: https://coveralls.io/repos/github/xzkostyan/clickhouse-sqlalchemy/badge.svg?branch=master
+    :target: https://coveralls.io/github/xzkostyan/clickhouse-sqlalchemy?branch=master
+
+.. image:: https://img.shields.io/pypi/l/clickhouse-sqlalchemy.svg
+    :target: https://pypi.org/project/clickhouse-sqlalchemy
+
+.. image:: https://img.shields.io/pypi/pyversions/clickhouse-sqlalchemy.svg
+    :target: https://pypi.org/project/clickhouse-sqlalchemy
+
+.. image:: https://img.shields.io/pypi/dm/clickhouse-sqlalchemy.svg
+    :target: https://pypi.org/project/clickhouse-sqlalchemy
+
+.. image:: https://github.com/xzkostyan/clickhouse-sqlalchemy/actions/workflows/actions.yml/badge.svg
+   :target: https://github.com/xzkostyan/clickhouse-sqlalchemy/actions/workflows/actions.yml
+
+Installation
 ============
 
-* Python_ >= 3.5
-* pip_ and setuptools Python packages (the latter is automatically installed by
-  pip).
-* Java_ SE >= 7 JRE or JDK
+The package can be installed using ``pip``:
 
-.. _Python: https://www.python.org
-.. _pip: https://pip.pypa.io
-.. _Java: https://www.oracle.com/java/
+    .. code-block:: bash
 
+       pip install clickhouse-sqlalchemy
 
-Install
-=======
+Interfaces support
+------------------
 
-The quick way (to install the latest official release)::
-
-    pip3 install grammarinator
-
-Or clone the project and run setuptools (to install the freshest development
-revision)::
-
-    python3 setup.py install
+- **native** [recommended] (TCP) via `clickhouse-driver <https://github.com/mymarilyn/clickhouse-driver>`_
+- **http** via requests
 
 
-Usage
-=====
+Connection Parameters
+=====================
 
-As a first step, *Grammarinator* takes an `ANTLR v4 grammar`_ and creates a test
-generator script in Python3. Such a generator can be subclassed later to
-customize it further if needed.
+ClickHouse SQLAlchemy uses the following syntax for the connection string:
 
-Basic command-line syntax of test generator creation::
+    .. code-block:: python
 
-    grammarinator-process <grammar-file(s)> -o <output-directory> --no-actions
+     'clickhouse+<driver>://<user>:<password>@<host>:<port>/<database>[?key=value..]'
 
-..
+Where:
 
-    **Notes**
-
-    *Grammarinator* uses the `ANTLR v4 grammar`_ format as its input, which
-    makes existing grammars (lexer and parser rules) easily reusable. However,
-    because of the inherently different goals of a fuzzer and a parser, inlined
-    code (actions and conditions, header and member blocks) are most probably
-    not reusable, or even preventing proper execution. For first experiments
-    with existing grammar files, ``grammarinator-process`` supports the
-    command-line option ``--no-actions``, which skips all such code blocks
-    during fuzzer generation. Once inlined code is tuned for fuzzing, that
-    option may be omitted.
-
-.. _`ANTLR v4 grammar`: https://github.com/antlr/grammars-v4
-
-After having generated and optionally customized a fuzzer, it can be executed
-by the ``grammarinator-generate`` script (or by manually instantiating it in a
-custom-written driver, of course).
-
-Basic command-line syntax of ``grammarinator-generate``::
-
-    grammarinator-generate <generator> -r <start-rule> -d <max-depth> \
-      -o <output-pattern> -n <number-of-tests> \
-      -t <transformer1> -t <transformer2>
-
-Beside generating test cases from scratch based on the ANTLR grammar,
-Grammarinator is also able to recombine existing inputs or mutate only a small
-portion of them. To use these additional generation approaches, a population of
-selected test cases has to be prepared. The preparation happens with the
-``grammarinator-parse`` tool, which processes the input files with an ANTLR
-grammar (possibly with the same one as the generator grammar) and builds
-grammarinator tree representations from them (with .grt extension). Having a
-population of such .grt files, ``grammarinator-generate`` can make use of them
-with the ``--population`` cli option. If the ``--population`` option is set,
-then Grammarinator will choose a strategy (generation, mutation, or
-recombination) randomly at the creation of every new test case. If any of the
-strategies is unwanted, they can be disabled with the ``--no-generate``,
-``--no-mutate`` or ``--no-recombine`` options.
-
-Basic command line syntax of ``grammarinator-parse``::
-
-  grammarinator-parse <grammar-file(s)> -r <start-rule>\
-    -i <input_file> -o <output-directory>
-
-..
-
-    **Notes**
-
-    Real-life grammars often use recursive rules to express certain patterns.
-    However, when using such rule(s) for generation, we can easily end up in an
-    unexpectedly deep call stack. With the ``--max-depth`` or ``-d`` options,
-    this depth - and also the size of the generated test cases - can be
-    controlled.
-
-    Another specialty of the ANTLR grammars is that they support so-called
-    hidden tokens. These rules typically describe such elements of the target
-    language that can be placed basically anywhere without breaking the syntax.
-    The most common examples are comments or whitespaces. However, when using
-    these grammars - which don't define explicitly where whitespace may or may
-    not appear in rules - to generate test cases, we have to insert the missing
-    spaces manually. This can be done by applying a serializer (with the ``-s``
-    option) to the tree representation of the output tests. A simple serializer
-    - that inserts a space after every unparser rule - is provided by
-    *Grammarinator* (``grammarinator.runtime.simple_space_serializer``).
-
-    In some cases, we may want to postprocess the output tree itself (without
-    serializing it). For example, to enforce some logic that cannot be expressed
-    by a context-free grammar. For this purpose the transformer mechanism can be
-    used (with the ``-t`` option). Similarly to the serializers, it will take a
-    tree as input, but instead of creating a string representation, it is
-    expected to return the modified (transformed) tree object.
-
-    As a final thought, one must not forget that the original purpose of
-    grammars is the syntax-wise validation of various inputs. As a consequence,
-    these grammars encode syntactic expectations only and not semantic rules. If
-    we still want to add semantic knowledge into the generated test, then we can
-    inherit custom fuzzers from the generated ones and redefine methods
-    corresponding to lexer or parser rules in ways that encode the required
-    knowledge (e.g.: HTMLCustomGenerator_).
-
-.. _HTMLCustomGenerator: examples/fuzzer/HTMLCustomGenerator.py
+- *driver* is driver to use. Possible choices: ``http``, ``native``. ``http`` is default.
+- *database* is database connect to. Default is ``default``.
 
 
-Working Example
+Drivers options
 ===============
 
-The repository contains a minimal example_ to generate HTML files. To give it
-a try, run the processor first::
+There are several options can be specified in query string.
 
-    grammarinator-process examples/grammars/HTMLLexer.g4 examples/grammars/HTMLParser.g4 \
-      -o examples/fuzzer/
+HTTP
+----
+
+- *port* is port ClickHouse server is bound to. Default is ``8123``.
+- *timeout* in seconds. There is no timeout by default.
+- *protocol* to use. Possible choices: ``http``, ``https``. ``http`` is default.
+
+Connection string to database `test` in default ClickHouse installation:
+
+    .. code-block:: python
+
+         'clickhouse://default:@localhost/test'
 
 
-Then, use the generator to produce test cases::
+When you are using `nginx` as proxy server for ClickHouse server connection string might look like:
 
-    grammarinator-generate HTMLCustomGenerator.HTMLCustomGenerator -r htmlDocument -d 20 \
-      -o examples/tests/test_%d.html -n 100 \
-      -s HTMLGenerator.html_space_serializer \
-      --sys-path examples/fuzzer/
+    .. code-block:: python
 
-.. _example: examples/
+         'clickhouse://user:password@example.com:8124/test?protocol=https'
+
+Where ``8124`` is proxy port.
+
+If you need control over the underlying HTTP connection, pass a `requests.Session
+<https://requests.readthedocs.io/en/master/user/advanced/#session-objects>`_ instance
+to ``create_engine()``, like so:
+
+    .. code-block:: python
+
+        from sqlalchemy import create_engine
+        from requests import Session
+
+        uri = 'clickhouse://default:@localhost/test'
+
+        engine = create_engine(uri, connect_args={'http_session': Session()})
 
 
-Compatibility
+Native
+------
+
+Please note that native connection **is not encrypted**. All data including
+user/password is transferred in plain text. You should use this connection over
+SSH or VPN (for example) while communicating over untrusted network.
+
+Connection string to database `test` in default ClickHouse installation:
+
+    .. code-block:: python
+
+         'clickhouse+native://default:@localhost/test'
+
+All connection string parameters are proxied to `clickhouse-driver`.
+See it's `parameters <https://clickhouse-driver.readthedocs.io/en/latest/api.html#clickhouse_driver.connection.Connection>`_.
+
+
+Features
+========
+
+SQLAlchemy declarative support
+------------------------------
+
+Both declarative and constructor-style tables support:
+
+    .. code-block:: python
+
+        from sqlalchemy import create_engine, Column, MetaData, literal
+
+        from clickhouse_sqlalchemy import Table, make_session, get_declarative_base, types, engines
+
+        uri = 'clickhouse://default:@localhost/test'
+
+        engine = create_engine(uri)
+        session = make_session(engine)
+        metadata = MetaData(bind=engine)
+
+        Base = get_declarative_base(metadata=metadata)
+
+        class Rate(Base):
+            day = Column(types.Date, primary_key=True)
+            value = Column(types.Int32)
+            other_value = Column(
+                types.DateTime,
+                clickhouse_codec=('DoubleDelta', 'ZSTD'),
+            )
+
+            __table_args__ = (
+                engines.Memory(),
+            )
+
+        another_table = Table('another_rate', metadata,
+            Column('day', types.Date, primary_key=True),
+            Column('value', types.Int32, server_default=literal(1)),
+            engines.Memory()
+        )
+
+Tables created in declarative way have lowercase with words separated by underscores naming convention.
+But you can easy set you own via SQLAlchemy ``__tablename__`` attribute.
+
+Basic DDL support
+-----------------
+
+You can emit simple DDL. Example ``CREATE/DROP`` table:
+
+    .. code-block:: python
+
+        table = Rate.__table__
+        table.create()
+        another_table.create()
+
+
+        another_table.drop()
+        table.drop()
+
+
+Basic INSERT clause support
+---------------------------
+
+Simple batch INSERT:
+
+    .. code-block:: python
+
+        from datetime import date, timedelta
+        from sqlalchemy import func
+
+        today = date.today()
+        rates = [{'day': today - timedelta(i), 'value': 200 - i} for i in range(100)]
+
+        # Emits single INSERT statement.
+        session.execute(table.insert(), rates)
+
+
+Common SQLAlchemy query method chaining
+---------------------------------------
+
+``order_by``, ``filter``, ``limit``, ``offset``, etc. are supported:
+
+    .. code-block:: python
+
+        session.query(func.count(Rate.day)) \
+            .filter(Rate.day > today - timedelta(20)) \
+            .scalar()
+
+        session.query(Rate.value) \
+            .order_by(Rate.day.desc()) \
+            .first()
+
+        session.query(Rate.value) \
+            .order_by(Rate.day) \
+            .limit(10) \
+            .all()
+
+        session.query(func.sum(Rate.value)) \
+            .scalar()
+
+
+Advanced INSERT clause support
+------------------------------
+INSERT FROM SELECT statement:
+
+    .. code-block:: python
+
+        from sqlalchemy import cast
+
+        # Labels must be present.
+        select_query = session.query(
+            Rate.day.label('day'),
+            cast(Rate.value * 1.5, types.Int32).label('value')
+        ).subquery()
+
+        # Emits single INSERT FROM SELECT statement
+        session.execute(
+            another_table.insert()
+            .from_select(['day', 'value'], select_query)
+        )
+
+
+Many but not all of SQLAlchemy features are supported out of the box.
+
+UNION ALL example:
+
+    .. code-block:: python
+
+        from sqlalchemy import union_all
+
+        select_rate = session.query(
+            Rate.day.label('date'),
+            Rate.value.label('x')
+        )
+        select_another_rate = session.query(
+            another_table.c.day.label('date'),
+            another_table.c.value.label('x')
+        )
+
+        union_all(select_rate, select_another_rate).execute().fetchone()
+
+
+External data for query processing
+----------------------------------
+
+Currently can be used with native interface.
+
+    .. code-block:: python
+
+        ext = Table(
+            'ext', metadata, Column('x', types.Int32),
+            clickhouse_data=[(101, ), (103, ), (105, )], extend_existing=True
+        )
+
+        rv = session.query(Rate) \
+            .filter(Rate.value.in_(session.query(ext.c.x))) \
+            .execution_options(external_tables=[ext]) \
+            .all()
+
+        print(rv)
+
+Supported ClickHouse-specific SQL
+---------------------------------
+
+- ``SELECT`` query:
+    - ``WITH TOTALS``
+    - ``SAMPLE``
+    - lambda functions: ``x -> expr``
+    - ``JOIN``
+
+See `tests <https://github.com/xzkostyan/clickhouse-sqlalchemy/tree/master/tests>`_ for examples.
+
+
+Overriding default query settings
+---------------------------------
+
+Set lower priority to query and limit max number threads to execute the request.
+
+    .. code-block:: python
+
+        rv = session.query(func.sum(Rate.value)) \
+            .execution_options(settings={'max_threads': 2, 'priority': 10}) \
+            .scalar()
+
+        print(rv)
+
+
+Running tests
 =============
 
-*Grammarinator* was tested on:
+    .. code-block:: bash
 
-* Linux (Ubuntu 16.04 / 18.04)
-* Mac OS X (Sierra 10.12 / High Sierra 10.13 / Mojave 10.14 / Catalina 10.15)
-* Windows (Server 2012 R2 / Server version 1809 / Windows 10)
+        mkvirtualenv testenv && python setup.py test
 
-
-Citations
-=========
-
-Background on *Grammarinator* is published in (R. Hodovan, A. Kiss, T. Gyimothy:
-"Grammarinator: A Grammar-Based Open Source Fuzzer", A-TEST 2018).
+``pip`` will automatically install all required modules for testing.
 
 
-Copyright and Licensing
-=======================
+License
+=======
 
-Licensed under the BSD 3-Clause License_.
+ClickHouse SQLAlchemy is distributed under the `MIT license
+<http://www.opensource.org/licenses/mit-license.php>`_.
 
-.. _License: LICENSE.rst
+How to Contribute
+=================
+
+#. Check for open issues or open a fresh issue to start a discussion around a feature idea or a bug.
+#. Fork `the repository <https://github.com/xzkostyan/clickhouse-sqlalchemy>`_ on GitHub to start making your changes to the **master** branch (or branch off of it).
+#. Write a test which shows that the bug was fixed or that the feature works as expected.
+#. Send a pull request and bug the maintainer until it gets merged and published.
