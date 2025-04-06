@@ -1,60 +1,83 @@
-short_ver = 2.0.0
-long_ver = $(shell git describe --long 2>/dev/null || echo $(short_ver)-0-unknown-g`git describe --always`)
-generated = pglookout/version.py
+.PHONY: clean clean-test clean-pyc clean-build docs help
+.DEFAULT_GOAL := help
+define BROWSER_PYSCRIPT
+import os, webbrowser, sys
+try:
+	from urllib import pathname2url
+except:
+	from urllib.request import pathname2url
 
-PYTHON ?= python3
-PYLINT_DIRS = pglookout/ test/
+webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
+endef
+export BROWSER_PYSCRIPT
 
-all: $(generated)
-	: 'try "make rpm" or "make deb" or "make test"'
+define PRINT_HELP_PYSCRIPT
+import re, sys
 
-pglookout/version.py: version.py
-	$(PYTHON) $^ $@
+for line in sys.stdin:
+	match = re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line)
+	if match:
+		target, help = match.groups()
+		print("%-20s %s" % (target, help))
+endef
+export PRINT_HELP_PYSCRIPT
+BROWSER := python -c "$$BROWSER_PYSCRIPT"
 
-test: flake8 pylint unittest
+help:
+	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
-unittest: $(generated)
-	$(PYTHON) -m pytest -vv test/
+clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
 
-flake8: $(generated)
-	$(PYTHON) -m flake8 --ignore E722 --max-line-len=125 $(PYLINT_DIRS)
 
-pylint: $(generated)
-	$(PYTHON) -m pylint --rcfile .pylintrc $(PYLINT_DIRS)
+clean-build: ## remove build artifacts
+	rm -fr build/
+	rm -fr dist/
+	rm -fr .eggs/
+	find . -name '*.egg-info' -exec rm -fr {} +
+	find . -name '*.egg' -exec rm -f {} +
 
-coverage:
-	$(PYTHON) -m pytest $(PYTEST_ARG) --cov-report term-missing --cov pglookout test/
+clean-pyc: ## remove Python file artifacts
+	find . -name '*.pyc' -exec rm -f {} +
+	find . -name '*.pyo' -exec rm -f {} +
+	find . -name '*~' -exec rm -f {} +
+	find . -name '__pycache__' -exec rm -fr {} +
 
-clean:
-	$(RM) -r *.egg-info/ build/ dist/
-	$(RM) ../pglookout_* test-*.xml $(generated)
+clean-test: ## remove test and coverage artifacts
+	rm -fr .tox/
+	rm -f .coverage
+	rm -fr htmlcov/
 
-deb: $(generated)
-	cp debian/changelog.in debian/changelog
-	dch -v $(long_ver) "Automatically built package"
-	dpkg-buildpackage -A -uc -us
+lint: ## check style with flake8
+	flake8 dask_image tests
 
-rpm: $(generated)
-	git archive --output=pglookout-rpm-src.tar --prefix=pglookout/ HEAD
-	# add generated files to the tar, they're not in git repository
-	tar -r -f pglookout-rpm-src.tar --transform=s,pglookout/,pglookout/pglookout/, $(generated)
-	rpmbuild -bb pglookout.spec \
-		--define '_topdir $(PWD)/rpm' \
-		--define '_sourcedir $(shell pwd)' \
-		--define 'major_version $(short_ver)' \
-		--define 'minor_version $(subst -,.,$(subst $(short_ver)-,,$(long_ver)))'
-	$(RM) pglookout-rpm-src.tar
+test: ## run tests quickly with the default Python
+	python setup.py test
 
-build-dep-fed:
-	sudo dnf -y install --best --allowerasing \
-		python3-devel python3-pytest python3-pylint \
-		python3-mock python3-psycopg2 \
-		python3-requests rpm-build systemd-python3 \
-		python3-flake8 python3-pytest-cov
+test-all: ## run tests on every Python version with tox
+	tox
 
-build-dep-deb:
-	sudo apt-get install \
-		build-essential devscripts dh-systemd \
-		python3-all python3-setuptools python3-psycopg2 python3-requests
+coverage: ## check code coverage quickly with the default Python
+	coverage run --source dask_image setup.py test
+	coverage report -m
+	coverage html
+	$(BROWSER) htmlcov/index.html
 
-.PHONY: rpm
+docs: ## generate Sphinx HTML documentation, including API docs
+	rm -f docs/dask_image.rst
+	rm -f docs/modules.rst
+	sphinx-apidoc -o docs/ dask_image
+	$(MAKE) -C docs clean
+	$(MAKE) -C docs html
+	$(BROWSER) docs/_build/html/index.html
+
+release: clean ## package and upload a release
+	python setup.py sdist upload
+	python setup.py bdist_wheel upload
+
+dist: clean ## builds source and wheel package
+	python setup.py sdist
+	python setup.py bdist_wheel
+	ls -l dist
+
+install: clean ## install the package to the active Python's site-packages
+	python setup.py install

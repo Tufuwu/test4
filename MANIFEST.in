@@ -1,15 +1,14 @@
-include LICENSE
-include MANIFEST.in
-include NEWS
+include AUTHORS.rst
+include CONTRIBUTING.rst
+include HISTORY.rst
+include LICENSE.txt
 include README.rst
-include debian/*
-include examples/*
-include pglookout.json
-include pglookout.spec
-include pglookout.unit
-include pglookout/*.py
-include setup.py
-include test/*.py
-include version.py
 
-recursive-exclude *~ *.pyc \.*
+recursive-include tests *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
+
+include versioneer.py
+include dask_image/_version.py

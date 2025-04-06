@@ -1,61 +1,79 @@
-from setuptools import setup, find_packages
-import os
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
-import version
+
+import setuptools
+from setuptools import setup
+from setuptools.command.test import test as TestCommand
+import versioneer
 
 
-readme_path = os.path.join(os.path.dirname(__file__), "README.rst")
-with open(readme_path, "r") as fp:
-    readme_text = fp.read()
+class PyTest(TestCommand):
+    description = "Run test suite with pytest"
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        import pytest
+        sys.exit(pytest.main(self.test_args))
 
 
-version_for_setup_py = version.get_project_version("pglookout/version.py")
-version_for_setup_py = ".dev".join(version_for_setup_py.split("-", 2)[:2])
+with open("README.rst") as readme_file:
+    readme = readme_file.read()
 
+with open("HISTORY.rst") as history_file:
+    history = history_file.read()
 
-requires = [
-    "psycopg2 >= 2.0.0",
-    "requests >= 1.2.0",
+requirements = [
+    "dask[array] >=0.16.1",
+    "numpy >=1.11.3",
+    "scipy >=0.19.1",
+    "pims >=0.4.1",
 ]
 
-if sys.version_info[0] == 2:
-    requires.append("futures")
+test_requirements = [
+    "flake8 >=3.4.1",
+    "pytest >=3.0.5",
+    "pytest-flake8 >=0.8.1",
+    "pytest-timeout >=1.0.0",
+    "tifffile >=2018.10.18",
+]
+
+cmdclasses = {
+    "test": PyTest,
+}
+cmdclasses.update(versioneer.get_cmdclass())
 
 
 setup(
-    name="pglookout",
-    version=version_for_setup_py,
+    name="dask-image",
+    version=versioneer.get_version(),
+    description="Distributed image processing",
+    long_description=readme + "\n\n" + history,
+    author="dask-image contributors",
+    url="https://github.com/dask/dask-image",
+    cmdclass=cmdclasses,
+    packages=setuptools.find_packages(exclude=["tests*"]),
+    include_package_data=True,
+    python_requires='>=3.5',
+    install_requires=requirements,
+    license="BSD 3-Clause",
     zip_safe=False,
-    packages=find_packages(exclude=["test"]),
-    install_requires=requires,
-    extras_require={},
-    dependency_links=[],
-    package_data={},
-    data_files=[],
-    entry_points={
-        "console_scripts": [
-            "pglookout = pglookout.pglookout:main",
-            "pglookout_current_master = pglookout.current_master:main",
-        ],
-    },
-    author="Hannu Valtonen",
-    author_email="hannu.valtonen@aiven.io",
-    license="Apache 2.0",
-    platforms=["POSIX", "MacOS"],
-    description="PostgreSQL replication monitoring and failover daemon",
-    long_description=readme_text,
-    url="https://github.com/aiven/pglookout/",
+    keywords="dask-image",
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
+        "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
-        "Intended Audience :: Information Technology",
-        "Intended Audience :: System Administrators",
-        "License :: OSI Approved :: Apache Software License",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
-        "Topic :: Database :: Database Engines/Servers",
-        "Topic :: Software Development :: Libraries",
     ],
+    tests_require=test_requirements
 )
