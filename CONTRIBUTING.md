@@ -1,195 +1,131 @@
-## Getting Help
+# Contributor's Guide
 
-If you encounter any issues installing or using NetBox, try one of the
-following resources to get assistance. Please **do not** open a GitHub issue
-except to report bugs or request features.
+If you're reading this, you're probably looking to contributing to Camelot. *Time is the only real currency*, and the fact that you're considering spending some here is *very* generous of you. Thank you very much!
 
-### GitHub Discussions
+This document will help you get started with contributing documentation, code, testing and filing issues. If you have any questions, feel free to reach out to [Vinayak Mehta](https://vinayak-mehta.github.io), the author and maintainer.
 
-GitHub's discussions are the best place to get help or propose rough ideas for
-new functionality. Their integration with GitHub allows for easily cross-
-referencing and converting posts to issues as needed. There are several
-categories for discussions:
+## Code Of Conduct
 
-* **General** - General community discussion
-* **Ideas** - Ideas for new functionality that isn't yet ready for a formal
-  feature request
-* **Q&A** - Request help with installing or using NetBox
+The following quote sums up the **Code Of Conduct**.
 
-### Mailing List
+   > Be cordial or be on your way. --Kenneth Reitz
 
-We also have a Google Groups [mailing list](https://groups.google.com/g/netbox-discuss)
-for general discussion, however we're encouraging people to use GitHub
-discussions where possible, as it's much easier for newcomers to review past
-discussions.
+Kenneth Reitz has also written an [essay](https://www.kennethreitz.org/essays/be-cordial-or-be-on-your-way) on this topic, which you should read.
 
-### Slack
+As the [Requests Code Of Conduct](http://docs.python-requests.org/en/master/dev/contributing/#be-cordial) states, **all contributions are welcome**, as long as everyone involved is treated with respect.
 
-For real-time chat, you can join the **#netbox** Slack channel on [NetworkToCode](https://slack.networktocode.com/).
-Unfortunately, the Slack channel does not provide long-term retention of chat
-history, so try to avoid it for any discussions would benefit from being
-preserved for future reference.
+## Your first contribution
 
-## Reporting Bugs
+A great way to start contributing to Camelot is to pick an issue tagged with the [help wanted](https://github.com/camelot-dev/camelot/labels/help%20wanted) tag or the [good first issue](https://github.com/camelot-dev/camelot/labels/good%20first%20issue) tag. If you're unable to find a good first issue, feel free to contact the maintainer.
 
-* First, ensure that you're running the [latest stable version](https://github.com/netbox-community/netbox/releases)
-of NetBox. If you're running an older version, it's possible that the bug has
-already been fixed.
+## Setting up a development environment
 
-* Next, check the GitHub [issues list](https://github.com/netbox-community/netbox/issues)
-to see if the bug you've found has already been reported. If you think you may
-be experiencing a reported issue that hasn't already been resolved, please
-click "add a reaction" in the top right corner of the issue and add a thumbs
-up (+1). You might also want to add a comment describing how it's affecting your
-installation. This will allow us to prioritize bugs based on how many users are
-affected.
+To install the dependencies needed for development, you can use pip:
 
-* When submitting an issue, please be as descriptive as possible. Be sure to
-provide all information request in the issue template, including:
+<pre>
+$ pip install "camelot-py[dev]"
+</pre>
 
-    * The environment in which NetBox is running
-    * The exact steps that can be taken to reproduce the issue
-    * Expected and observed behavior
-    * Any error messages generated
-    * Screenshots (if applicable)
+Alternatively, you can clone the project repository, and install using pip:
 
-* Please avoid prepending any sort of tag (e.g. "[Bug]") to the issue title.
-The issue will be reviewed by a maintainer after submission and the appropriate
-labels will be applied for categorization.
+<pre>
+$ pip install ".[dev]"
+</pre>
 
-* Keep in mind that we prioritize bugs based on their severity and how much
-work is required to resolve them. It may take some time for someone to address
-your issue.
+## Pull Requests
 
-* For more information on how bug reports are handled, please see our [issue
-intake policy](https://github.com/netbox-community/netbox/wiki/Issue-Intake-Policy).
+### Submit a pull request
 
-## Feature Requests
+The preferred workflow for contributing to Camelot is to fork the [project repository](https://github.com/camelot-dev/camelot) on GitHub, clone, develop on a branch and then finally submit a pull request. Here are the steps:
 
-* First, check the GitHub [issues list](https://github.com/netbox-community/netbox/issues)
-to see if the feature you're requesting is already listed. (Be sure to search
-closed issues as well, since some feature requests have been rejected.) If the
-feature you'd like to see has already been requested and is open, click "add a
-reaction" in the top right corner of the issue and add a thumbs up (+1). This
-ensures that the issue has a better chance of receiving attention. Also feel
-free to add a comment with any additional justification for the feature.
-(However, note that comments with no substance other than a "+1" will be
-deleted. Please use GitHub's reactions feature to indicate your support.)
+1. Fork the project repository. Click on the ‘Fork’ button near the top of the page. This creates a copy of the code under your account on the GitHub.
 
-* Due to a large backlog of feature requests, we are not currently accepting
-any proposals which substantially extend NetBox's functionality beyond its
-current feature set. This includes the introduction of any new views or models
-which have not already been proposed in an existing feature request.
+2. Clone your fork of Camelot from your GitHub account:
 
-* Before filing a new feature request, consider raising your idea on the
-mailing list first. Feedback you receive there will help validate and shape the
-proposed feature before filing a formal issue.
+<pre>
+$ git clone https://www.github.com/[username]/camelot
+</pre>
 
-* Good feature requests are very narrowly defined. Be sure to thoroughly
-describe the functionality and data model(s) being proposed. The more effort
-you put into writing a feature request, the better its chance is of being
-implemented. Overly broad feature requests will be closed.
+3. Create a branch to hold your changes:
 
-* When submitting a feature request on GitHub, be sure to include all
-information requested by the issue template, including:
+<pre>
+$ git checkout -b my-feature
+</pre>
 
-    * A detailed description of the proposed functionality
-    * A use case for the feature; who would use it and what value it would add
-      to NetBox
-    * A rough description of changes necessary to the database schema (if
-      applicable)
-    * Any third-party libraries or other resources which would be involved
+Always branch out from `master` to work on your contribution. It's good practice to never work on the `master` branch!
 
-* Please avoid prepending any sort of tag (e.g. "[Feature]") to the issue
-title. The issue will be reviewed by a moderator after submission and the
-appropriate labels will be applied for categorization.
+**Protip: `git stash` is a great way to save the work that you haven't committed yet, to move between branches.**
 
-* For more information on how feature requests are handled, please see our
-[issue intake policy](https://github.com/netbox-community/netbox/wiki/Issue-Intake-Policy).
+4. Work on your contribution. Add changed files using `git add` and then `git commit` them:
 
-## Submitting Pull Requests
+<pre>
+$ git add modified_files
+$ git commit
+</pre>
 
-* If you're interested in contributing to NetBox, be sure to check out our
-[getting started](https://netbox.readthedocs.io/en/stable/development/getting-started/)
-documentation for tips on setting up your development environment.
+5. Finally, push them to your GitHub fork:
 
-* Be sure to open an issue **before** starting work on a pull request, and
-discuss your idea with the NetBox maintainers before beginning work. This will
-help prevent wasting time on something that might we might not be able to
-implement. When suggesting a new feature, also make sure it won't conflict with
-any work that's already in progress.
+<pre>
+$ git push -u origin my-feature
+</pre>
 
-* Once you've opened or identified an issue you'd like to work on, ask that it
-be assigned to you so that others are aware it's being worked on. A maintainer
-will then mark the issue as "accepted."
+Now it's time to go to the your fork of Camelot and create a pull request! You can [follow these instructions](https://help.github.com/articles/creating-a-pull-request-from-a-fork/) to do this.
 
-* Any pull request which does _not_ relate to an **accepted** issue will be closed.
+### Work on your pull request
 
-* All new functionality must include relevant tests where applicable.
+We recommend that your pull request complies with the following rules:
 
-* When submitting a pull request, please be sure to work off of the `develop`
-branch, rather than `master`. The `develop` branch is used for ongoing
-development, while `master` is used for tagging stable releases.
+- Make sure your code follows [pep8](http://pep8.org).
 
-* In most cases, it is not necessary to add a changelog entry: A maintainer will
-take care of this when the PR is merged. (This helps avoid merge conflicts
-resulting from multiple PRs being submitted simultaneously.)
+- In case your pull request contains function docstrings, make sure you follow the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html) format. All function docstrings in Camelot follow this format. Moreover, following the format will make sure that the API documentation is generated flawlessly.
 
-* All code submissions should meet the following criteria (CI will enforce
-these checks):
+- Make sure your commit messages follow [the seven rules of a great git commit message](https://chris.beams.io/posts/git-commit/):
+    - Separate subject from body with a blank line
+    - Limit the subject line to 50 characters
+    - Capitalize the subject line
+    - Do not end the subject line with a period
+    - Use the imperative mood in the subject line
+    - Wrap the body at 72 characters
+    - Use the body to explain what and why vs. how
 
-    * Python syntax is valid
-    * All tests pass when run with `./manage.py test`
-    * PEP 8 compliance is enforced, with the exception that lines may be
-      greater than 80 characters in length
+- Please prefix the title of your pull request with [MRG] (Ready for Merge), if the contribution is complete and ready for a detailed review. An incomplete pull request's title should be prefixed with [WIP] (to indicate a work in progress), and changed to [MRG] when it's complete. A good [task list](https://blog.github.com/2013-01-09-task-lists-in-gfm-issues-pulls-comments/) in the PR description will ensure that other people get a better idea of what it proposes to do, which will also increase collaboration.
 
-## Commenting
+- If contributing new functionality, make sure that you add a unit test for it, while making sure that all previous tests pass. Camelot uses [pytest](https://docs.pytest.org/en/latest/) for testing. Tests can be run using:
 
-Only comment on an issue if you are sharing a relevant idea or constructive
-feedback. **Do not** comment on an issue just to show your support (give the
-top post a :+1: instead) or ask for an ETA. These comments will be deleted to
-reduce noise in the discussion.
+<pre>
+$ python setup.py test
+</pre>
 
-## Issue Lifecycle
+## Writing Documentation
 
-New issues are handled according to our [issue intake policy](https://github.com/netbox-community/netbox/wiki/Issue-Intake-Policy).
-Maintainers will assign label(s) and/or close new issues as the policy
-dictates. This helps ensure a productive development environment and avoid
-accumulating a large backlog of work.
+Writing documentation, function docstrings, examples and tutorials is a great way to start contributing to open-source software! The documentation is present inside the `docs/` directory of the project repository.
 
-The core maintainers group has chosen to make use of GitHub's [Stale bot](https://github.com/apps/stale)
-to aid in issue management.
+It is written in [reStructuredText](https://en.wikipedia.org/wiki/ReStructuredText), with [Sphinx](http://www.sphinx-doc.org/en/master/) used to generate these lovely HTML files that you're currently reading (unless you're reading this on GitHub). You can edit the documentation using any text editor and then generate the HTML output by running `make html` in the `docs/` directory.
 
-* Issues will be marked as stale after 45 days of no activity.
-* Then after 15 more days of inactivity, the issue will be closed.
-* Any issue bearing one of the following labels will be exempt from all Stale
-  bot actions:
-  * `status: accepted`
-  * `status: blocked`
-  * `status: needs milestone`
+The function docstrings are written using the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html) extension for Sphinx. Make sure you check out its format guidelines before you start writing one.
 
-It is natural that some new issues get more attention than others. Stale bot
-helps bring renewed attention to potentially valuable issues that may have been
-overlooked.
+## Filing Issues
 
-## Maintainer Guidance
+We use [GitHub issues](https://github.com/camelot-dev/camelot/issues) to keep track of all issues and pull requests. Before opening an issue (which asks a question or reports a bug), please use GitHub search to look for existing issues (both open and closed) that may be similar.
 
-* Maintainers are expected to contribute at least four hours per week to the
-  project on average. This can be employer-sponsored or individual time, with
-  the understanding that all contributions are submitted under the Apache 2.0
-  license and that your employer may not make claim to any contributions.
-  Contributions include code work, issue management, and community support. All
-  development must be in accordance with our [development guidance](https://netbox.readthedocs.io/en/stable/development/).
+### Questions
 
-* Maintainers are expected to attend (where feasible) our biweekly ~30-minute
-  sync to review agenda items. This meeting provides opportunity to present and
-  discuss pressing topics. Meetings are held as virtual audio/video conferences.
+Please don't use GitHub issues for support questions. A better place for them would be [Stack Overflow](http://stackoverflow.com). Make sure you tag them using the `python-camelot` tag.
 
-* Official channels for communication include:
+### Bug Reports
 
-    * GitHub issues, pull requests, and discussions
-    * The [netbox-discuss](https://groups.google.com/g/netbox-discuss) mailing list
-    * The **#netbox** channel on [NetworkToCode Slack](https://networktocode.slack.com/)
+In bug reports, make sure you include:
 
-* Maintainers with no substantial recorded activity in a 60-day period will be
-  removed from the project.
+- Your operating system type and Python version number, along with the version numbers of NumPy, OpenCV and Camelot. You can use the following code snippet to find this information:
+
+<pre>
+import platform; print(platform.platform())
+import sys; print('Python', sys.version)
+import numpy; print('NumPy', numpy.__version__)
+import cv2; print('OpenCV', cv2.__version__)
+import camelot; print('Camelot', camelot.__version__)
+</pre>
+
+- The complete traceback. Just adding the exception message or a part of the traceback won't help us fix your issue sooner.
+- Steps to reproduce the bug, using code snippets. See [Creating and highlighting code blocks](https://help.github.com/articles/creating-and-highlighting-code-blocks/).
+- A link to the PDF document that you were trying to extract tables from, telling us what you expected the code to do and what actually happened.

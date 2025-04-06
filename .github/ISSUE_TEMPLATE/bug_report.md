@@ -1,42 +1,48 @@
 ---
-name: 🐛 Bug Report
-about: Report a reproducible bug in the current release of NetBox
+name: Bug report
+about: Please follow this template to submit bug reports.
+title: ''
+labels: bug
+assignees: ''
 
 ---
 
-<!--
-    NOTE: IF YOUR ISSUE DOES NOT FOLLOW THIS TEMPLATE, IT WILL BE CLOSED.
+<!-- Please read the filing issues section of the contributor's guide first: https://camelot-py.readthedocs.io/en/master/dev/contributing.html -->
 
-    This form is only for reproducible bugs. If you need assistance with
-    NetBox installation, or if you have a general question, DO NOT open an
-    issue. Instead, post to our mailing list:
+**Describe the bug**
+A clear and concise description of what the bug is.
 
-        https://groups.google.com/g/netbox-discuss
+**Steps to reproduce the bug**
+Steps used to install `camelot`:
+1. Add step here (you can add more steps too)
 
-    Please describe the environment in which you are running NetBox. Be sure
-    that you are running an unmodified instance of the latest stable release
-    before submitting a bug report, and that any plugins have been disabled.
--->
-### Environment
-* Python version: 
-* NetBox version: 
+Steps to reproduce the behavior:
+1. Add step here (you can add more steps too)
 
-<!--
-    Describe in detail the exact steps that someone else can take to reproduce
-    this bug using the current stable release of NetBox. Begin with the
-    creation of any necessary database objects and call out every operation
-    being performed explicitly. If reporting a bug in the REST API, be sure to
-    reconstruct the raw HTTP request(s) being made: Don't rely on a client
-    library such as pynetbox.
--->
-### Steps to Reproduce
-1. 
-2. 
-3. 
+**Expected behavior**
+A clear and concise description of what you expected to happen.
 
-<!-- What did you expect to happen? -->
-### Expected Behavior
+**Code**
+Add the Camelot code snippet that you used.
+```
+import camelot
 
+# add your code here
+```
 
-<!-- What happened instead? -->
-### Observed Behavior
+**PDF**
+Add the PDF file that you want to extract tables from.
+
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
+
+**Environment**
+ - OS: [e.g. MacOS]
+ - Python version:
+ - Numpy version:
+ - OpenCV version:
+ - Ghostscript version:
+ - Camelot version:
+
+**Additional context**
+Add any other context about the problem here.
