@@ -1,43 +1,57 @@
-#!/usr/bin/env python
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+import io
+import os
 
 from setuptools import setup, find_packages
 
-version = open("VERSION").read().strip()
-download_url = "https://github.com/akretion/roulier/archive/%s.zip" % version
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+
+# This reads the __version__ variable from openfermion/_version.py
+__version__ = ''
+exec(open('src/openfermion/_version.py').read())
+
+# Readme file as long_description:
+long_description = ('===========\n' +
+                    'OpenFermion\n' +
+                    '===========\n')
+stream = io.open('README.rst', encoding='utf-8')
+stream.readline()
+long_description += stream.read()
+
+# Read in requirements.txt
+requirements = open('requirements.txt').readlines()
+requirements = [r.strip() for r in requirements]
 
 setup(
-    name="roulier",
-    version=version,
-    packages=find_packages(),
-    install_requires=[
-        "lxml",
-        "Jinja2",
-        "requests",
-        "cerberus",
-        "zplgrf",
-        "unidecode",
-        "pycountry",
-    ],
-    extras_requires={
-        "dev": ["ptpython", "pytest"],
-    },
-    author="Hparfr <https://github.com/hparfr>",
-    author_email="roulier@hpar.fr",
-    description="Label parcels without pain",
-    include_package_data=True,
+    name='openfermion',
+    version=__version__,
+    author='The OpenFermion Developers',
+    author_email='help@openfermion.org',
+    url='http://www.openfermion.org',
+    description=('The electronic structure package for quantum computers.'),
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    package_data={"roulier": ["*.xml", "*.xsl", "*.zpl"]},
-    url="https://github.com/akretion/roulier",
-    download_url=download_url,
-    keywords=["carrier", "logistics", "delivery"],
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Developers",
-        "Topic :: Software Development :: Build Tools",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
-        "Programming Language :: Python :: 3.6",
-    ],
-)
+    install_requires=requirements,
+    license='Apache 2',
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
+    include_package_data=True,
+    package_data={
+        '': [os.path.join('src', 'openfermion', 'data', '*.hdf5'),
+             os.path.join('src', 'openfermion', 'data', '*.npy')]
+    },
+    data_files=[('openfermion/examples', [
+                 'examples/binary_code_transforms_demo.ipynb',
+                 'examples/bosonic_operator_tutorial.ipynb',
+                 'examples/jordan_wigner_and_bravyi_kitaev_transforms.ipynb',
+                 'examples/openfermion_tutorial.ipynb',
+                 'examples/performance_benchmarks.py'])],
+    )

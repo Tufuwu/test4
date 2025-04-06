@@ -1,5 +1,8 @@
-include *.md
-include VERSION
-recursive-include roulier *.xml
-recursive-include roulier *.xsl
-recursive-include roulier *.zpl
+include LICENSE
+include MANIFEST.in
+include NOTICE
+include README.rst
+include requirements.txt
+include setup.py
+include examples/*.py examples/*.ipynb
+recursive-include src *.py *.hdf5 *.npy bad_type_operator.data geometry_example.txt
