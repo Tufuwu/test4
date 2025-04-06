@@ -1,45 +1,47 @@
-black = black -S -l 120 --target-version py38
-isort = isort -w 120
+.PHONY: setup setup_pipenv install docs-serve update test test_mypy test_unit test_format test_doctests assert_package_safety publish format enforce_docs
+PIPENV_VERBOSITY=-1
 
-.PHONY: install
+setup: setup_pipenv install
+
+setup_pipenv:
+	pip install pipenv
+
 install:
-	pip install -U setuptools pip
-	pip install -U .
-	pip install -r tests/requirements.txt
+	pipenv install --dev --skip-lock
 
-.PHONY: format
+update:
+	pipenv update --dev
+	pipenv clean
+	pipenv run  pip list --outdated
+
+docs_serve:
+	pipenv run mkdocs serve --dev-addr 0.0.0.0:8004
+
+test: test_mypy test_unit enforce_docs test_doctests test_format
+
+test_mypy:
+	pipenv run mypy --config-file mypy.ini lagom tests
+
+test_unit:
+	pipenv run pytest tests -vv
+
+test_format:
+	pipenv run black --check tests lagom
+
+test_doctests:
+	pipenv run  pytest --doctest-modules lagom
+
+assert_package_safety:
+	pip freeze | safety check --stdin
+
+publish:
+	./scripts/publish.sh
+
+coverage:
+	pipenv run pytest tests -vv --cov=lagom --cov-report=html
+
 format:
-	$(isort) pydf tests
-	$(black) pydf tests
+	pipenv run black tests lagom
 
-.PHONY: lint
-lint:
-	python setup.py check -rms
-	flake8 pydf tests
-	$(isort) --check-only pydf tests
-	$(black) --check pydf tests
-
-.PHONY: test
-test:
-	pytest --cov=pydf
-
-.PHONY: testcov
-testcov:
-	pytest --cov=pydf && (echo "building coverage html"; coverage html)
-
-.PHONY: all
-all: testcov lint
-
-.PHONY: clean
-clean:
-	rm -rf `find . -name __pycache__`
-	rm -f `find . -type f -name '*.py[co]' `
-	rm -f `find . -type f -name '*~' `
-	rm -f `find . -type f -name '.*~' `
-	rm -rf .cache
-	rm -rf htmlcov
-	rm -rf *.egg-info
-	rm -f .coverage
-	rm -f .coverage.*
-	rm -rf build
-	python setup.py clean
+enforce_docs:
+	pipenv run interrogate --ignore-semiprivate --ignore-magic --ignore-private --fail-under 70 -vv lagom

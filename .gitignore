@@ -1,17 +1,14 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
+venv
+.pytest_cache
+.mypy_cache
+/dist/
 
-dist/
-*.egg-info/
-.installed.cfg
-*.egg
-.idea/
-.vscode/
-build
-env
-.coverage
-.cache/
-benchmark/pdf_cache/
-benchmark/output/
-htmlcov/
+/.coverage
+/coverage.xml
+/htmlcov
+
+/html
+
+Pipfile.lock
+
+lagom/githash.txt
