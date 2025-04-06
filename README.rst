@@ -1,45 +1,52 @@
-Logya README
-============
+===================
+django-adminactions
+===================
 
-.. image:: https://badge.fury.io/py/logya.png
-        :target: https://pypi.org/project/logya/
+Collection of useful actions to use with
+django.contrib.admin.ModelAdmin and/or django.contrib.admin.AdminSite
 
-Logya is a static site generator written in Python designed to be easy to use and flexible.
+Please see the changelog at http://django-adminactions.readthedocs.org/en/latest/changes.html
 
-Quickstart
-----------
+Actions
+=======
 
-::
-
-    # install logya and required packages
-    pip install logya
-
-    # create a barebone site
-    logya create mysite
-    cd mysite
-
-    # add content and then generate the site in the deploy directory
-    logya gen
-
-    # serve the site from deploy on http://localhost:8080
-    logya serve
+* Export as CSV
+* Export as Excel
+* Export as fixture
+* Export delete tree
+* Mass update records
+* Graph queryset
+* Merge records
 
 
-Please see the `documentation`_ for more information on how to use Logya for creating Web sites.
+Project links
+-------------
 
-Sites built with Logya
-----------------------
++--------------------+----------------+-----------------------------------------+
+| Stable             | |master-build| | |master-cov|                            |
++--------------------+----------------+-----------------------------------------+
+| Development        | |dev-build|    | |dev-cov|                               |
++--------------------+----------------+-----------------------------------------+
+| Project home page: | https://github.com/saxix/django-adminactions             |
++--------------------+---------------+------------------------------------------+
+| Issue tracker:     | https://github.com/saxix/django-adminactions/issues?sort |
++--------------------+---------------+------------------------------------------+
+| Download:          | http://pypi.python.org/pypi/django-adminactions/         |
++--------------------+---------------+------------------------------------------+
+| Documentation:     | https://django-adminactions.readthedocs.org/en/latest/   |
++--------------------+---------------+--------------+---------------------------+
 
-* https://d3-geomap.github.io/
-* https://exploring-data.com/
-* https://geeksta.net/
-* https://guitarstreams.com/
-* https://ramiro.org/
-* https://programminglanguages.info/
-* https://punknroll.net/
-* https://strahlungsarmehandys.com/
-* https://www.linux-netbook.com/
-* https://www.spaghetti-western.de/
 
-.. _`documentation`: https://ramiro.org/logya/docs/
-.. _`GitHub Issues`: https://github.com/yaph/logya/issues
+
+.. |master-build| image:: https://github.com/saxix/django-adminactions/actions/workflows/test.yml/badge.svg?branch=master
+                    :target: http://travis-ci.org/saxix/django-adminactions/
+
+.. |master-cov| image:: https://codecov.io/github/saxix/django-adminactions/coverage.svg?branch=master
+    :target: https://codecov.io/github/saxix/django-adminactions?branch=develop
+
+
+.. |dev-build| image:: https://github.com/saxix/django-adminactions/actions/workflows/test.yml/badge.svg?branch=develop
+                  :target: http://travis-ci.org/saxix/django-adminactions/
+
+.. |dev-cov| image:: https://codecov.io/github/saxix/django-adminactions/coverage.svg?branch=develop
+    :target: https://codecov.io/github/saxix/django-adminactions?branch=develop

@@ -1,76 +1,49 @@
-.PHONY: clean-pyc clean-build docs clean install uninstall
+VERSION=2.0.0
+BUILDDIR=${PWD}/~build
+BINDIR=${PWD}/~build/bin
+PYTHONPATH:=${PWD}/tests/:${PWD}
+DJANGO?='3.1.x'
 
-help:
-	@echo "clean - remove all build, test, coverage and Python artifacts"
-	@echo "clean-build - remove build artifacts"
-	@echo "clean-pyc - remove Python file artifacts"
-	@echo "clean-sites - remove deploy directory from starter site"
-	@echo "clean-test - remove test and coverage artifacts"
-	@echo "lint - check style with flake8"
-	@echo "test - run tests quickly with the default Python"
-	@echo "test-all - run tests on every Python version with tox"
-	@echo "coverage - check code coverage quickly with the default Python"
-	@echo "docs - generate Sphinx HTML documentation, including API docs"
-	@echo "docs-release - generate and upload docs to PyPI"
-	@echo "release - package and upload a release"
-	@echo "dist - package"
+.mkbuilddir:
+	mkdir -p ${BUILDDIR}
 
-clean: clean-build clean-pyc clean-sites clean-test
+develop:
+	pip install -e .[dev]
 
-clean-build:
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	rm -fr *.egg-info
 
-clean-pyc:
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
+demo:
+	PYTHONPATH=${PWD}:${PWD}/tests:${PWD}/src django-admin.py migrate --settings=demo.settings --noinput
+	PYTHONPATH=${PWD}:${PWD}/tests:${PWD}/src  django-admin.py loaddata adminactions.json demoproject.json --settings=demo.settings
+	PYTHONPATH=${PWD}:${PWD}/tests:${PWD}/src  django-admin.py runserver --settings=demo.settings
 
-clean-sites:
-	find logya/sites/ -type d -name deploy -exec rm -rf {} +
+qa:
+	flake8 src/ tests/
+	isort -rc src tests --check-only
+	check-manifest
+	py.test tests/ --cov=adminactions --cov-report=html --cov-config=tests/.coveragerc
 
-clean-test:
-	rm -fr t/
-	rm -fr .tox/
-	rm -f .coverage
-	rm -fr htmlcov/
+clean:
+	rm -fr ${BUILDDIR} dist *.egg-info .coverage coverage.xml pytest.xml .cache MANIFEST
+	find . -name __pycache__ | xargs rm -rf
+	find . -name "*.py?" -o -name "*.orig" -prune | xargs rm -rf
+	find adminactions/locale -name django.mo | xargs rm -f
 
-install: clean
-	python setup.py install
 
-uninstall:
-	pip uninstall -y logya
-
-reinstall: uninstall install
-
-lint:
-	flake8 logya tests
-
-test:
-	python setup.py test
+fullclean:
+	rm -fr .tox .cache
+	rm -fr *.sqlite
+	$(MAKE) clean
+	mysql -e 'DROP DATABASE IF EXISTS adminactions;';
+	psql -c 'DROP DATABASE IF EXISTS adminactions;' -U postgres;
+	mysql -e 'DROP DATABASE IF EXISTS test_adminactions;';
+	psql -c 'DROP DATABASE IF EXISTS test_adminactions;' -U postgres;
 
 coverage:
-	coverage run --source logya setup.py test
-	coverage report -m
+	 py.test src tests -vv --capture=no --doctest-modules --cov=adminactions --cov-report=html --cov-config=tests/.coveragerc
 
-docs:
-	rm -f docs/logya.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ logya
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	firefox docs/_build/html/index.html
-
-dist: clean
-	python setup.py sdist
-	python setup.py bdist_wheel
-	ls -l dist
-
-# Call example: make release version=4.7.1
-release: dist
-	git tag -a $(version) -m 'Create version $(version)'
-	git push --tags
-	twine upload dist/*
+docs: .mkbuilddir
+	mkdir -p ${BUILDDIR}/docs
+	sphinx-build -aE docs/source ${BUILDDIR}/docs
+ifdef BROWSE
+	open ${BUILDDIR}/docs/index.html
+endif

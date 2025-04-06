@@ -1,58 +1,61 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-import io
+import ast
+import codecs
+import os
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+import re
+from setuptools import find_packages, setup
 
-from logya import __version__
+ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__)))
+init = os.path.join(ROOT, 'src', 'adminactions', '__init__.py')
 
-# Use io.open to be able to set encoding to utf-8.
-with io.open('README.rst', encoding='utf-8') as f:
-    readme = f.read()
 
-with io.open('requirements.txt', encoding='utf-8') as f:
-    requirements = f.read().splitlines()
+def read(*parts):
+    with codecs.open(os.path.join(ROOT, 'src', 'requirements', *parts), 'r') as fp:
+        return fp.read()
+
+
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+with open(init, 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
+
+requirements = read("install.pip")
+tests_require = read('testing.pip')
+dev_require = read('develop.pip')
 
 setup(
-    name='logya',
-    version=__version__,
-    description='Logya: easy to use and flexible static Web site generator.',
-    long_description=readme,
-    url='https://ramiro.org/logya/',
-    author='Ramiro Gómez',
-    author_email='code@ramiro.org',
-    maintainer='Ramiro Gómez',
-    maintainer_email='code@ramiro.org',
-    keywords=['Website Generator'],
+    name='django-adminactions',
+    version=version,
+    url='https://github.com/saxix/django-adminactions',
+    download_url='https://github.com/saxix/django-adminactions',
+    author='sax',
+    author_email='s.apostolico@gmail.com',
+    description="Collections of useful actions to use with django.contrib.admin.ModelAdmin",
     license='MIT',
-    packages=['logya'],
-    package_data={'': ['LICENSE']},
+    package_dir={'': 'src'},
+    packages=find_packages('src'),
     include_package_data=True,
-    exclude_package_data={'': ['*.pyc']},
     install_requires=requirements,
+    tests_require=tests_require,
+    extras_require={
+        'test': requirements + tests_require,
+        'dev': dev_require + tests_require,
+    },
+    zip_safe=False,
+    platforms=['any'],
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
+        'Environment :: Web Environment',
+        'Framework :: Django',
+        'Operating System :: OS Independent',
+        'Framework :: Django :: 2.2',
+        'Framework :: Django :: 3.0',
+        'Framework :: Django :: 3.1',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content :: News/Diary',
-        'Topic :: Internet :: WWW/HTTP :: Site Management',
-        'Topic :: Text Processing :: Markup :: HTML'
-    ],
-    entry_points={
-        'console_scripts': [
-            'logya = logya.main:main'
-        ]
-    },
-    test_suite='tests',
-    tests_require=['tox'],
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Intended Audience :: Developers'],
+    long_description=open('README.rst').read()
 )
