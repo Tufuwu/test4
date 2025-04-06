@@ -1,6 +1,11 @@
+*.eggs
 *.pyc
-*.pyo
-build
-dist
+*.swp
+*.un~
 *.egg-info
-__pycache__
+*.egg/dist/
+build/
+dist/
+.tox/
+
+.idea/
