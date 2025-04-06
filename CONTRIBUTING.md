@@ -1,35 +1,7 @@
-# Contributing
+# Contributing to the project
 
-## Looking for something you can do?
+Thank you for your interest in contributing to the project!
 
-You can find our list of [issues](https://github.com/Exodus-Privacy/etip/issues) and in particular the ones with the tag ["good first issue"](https://github.com/Exodus-Privacy/etip/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or ["hacktoberfest"](https://github.com/Exodus-Privacy/etip/issues?q=is%3Aissue+is%3Aopen+label%3Ahacktoberfest)
-
-[Documentation](README.md#development-environment) is available to help you set up your local instance.
-
-## What you need to respect
-
-### Code of conduct
-
-Please follow [Exodus Privacy's code of conduct](https://exodus-privacy.eu.org/en/page/who/)
-
-### Tests
-
-You need to make sure your changes do not break the existing tests.
-
-You can execute the tests with the following command:
-
-```sh
-source venv/bin/activate
-cd etip
-python manage.py test --settings=etip.settings.dev
-```
-
-If you are adding a new feature, it's deeply appreciated if you can write tests for it :)
-
-### Linter
-
-The following linters are used:
-
-* [flake8](https://pypi.org/project/flake8/) for the python code
-
-[LGTM](https://lgtm.com) is also run on each new Pull Requests.
+For information on mwclient development, please see
+https://mwclient.readthedocs.io/en/latest/development/
+(or the local file `docs/source/development/index.rst` from which the webpage is generated)

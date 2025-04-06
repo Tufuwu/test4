@@ -1,5 +1,10 @@
 *.pyc
-venv/
-etip/db.sqlite3
-.idea
-.vscode
+build
+dist
+.cache
+*~
+*.egg
+*.egg-info
+.eggs
+.tox
+.idea/*
