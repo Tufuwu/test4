@@ -1,134 +1,213 @@
-[![Build Status](https://travis-ci.org/uwescience/pulse2percept.svg?branch=master)](https://travis-ci.org/uwescience/pulse2percept)
-[![Coverage Status](https://coveralls.io/repos/github/uwescience/pulse2percept/badge.svg?branch=master)](https://coveralls.io/github/uwescience/pulse2percept?branch=master)
-[![PyPI](https://img.shields.io/pypi/v/pulse2percept.svg)](https://pypi.org/project/pulse2percept)
-[![Documentation Status](https://readthedocs.org/projects/pulse2percept/badge/?version=latest)](https://pulse2percept.readthedocs.io/en/latest/?badge=latest)
-[![license](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/uwescience/pulse2percept/blob/master/LICENSE)
+# pyulog
 
-# pulse2percept: A Python-based simulation framework for bionic vision
+This repository contains a python package to parse ULog files and scripts to
+convert and display them. ULog is a self-describing logging format which is
+documented [here](https://dev.px4.io/en/log/ulog_file_format.html).
 
-## Summary
+The provided [command line scripts](#scripts) are:
+- `ulog_info`: display information from an ULog file.
+- `ulog_messages`: display logged messages from an ULog file.
+- `ulog_params`: extract parameters from an ULog file.
+- `ulog2csv`: convert ULog to CSV files.
+- `ulog2kml`: convert ULog to KML files.
 
-By 2020 roughly 200 million people will suffer from retinal diseases such as
-macular degeneration or retinitis pigmentosa. Consequently, a variety of retinal
-sight restoration procedures are being developed to target these diseases.
-Electronic prostheses (currently being implanted in patients) directly stimulate
-remaining retinal cells using electrical current, analogous to a cochlear
-implant. Optogenetic prostheses (soon to be implanted in human) use optogenetic
-proteins to make remaining retinal cells responsive to light, then use light
-diodes (natural illumination is inadequate) implanted in the eye to stimulate
-these light sensitive cells.
-
-However, these devices do not restore anything resembling natural vision:
-Interactions between the electronics and the underlying neurophysiology result
-in significant distortions of the perceptual experience.
-
-We have developed a computer model that has the goal of predicting the perceptual
-experience of retinal prosthesis patients.
-The model was developed using a variety of patient data describing the brightness
-and shape of phosphenes elicited by stimulating single electrodes, and validated
-against an independent set of behavioral measures examining spatiotemporal
-interactions across multiple electrodes.
-
-The model takes as input a series of (simulated) electrical pulse trains---one pulse
-train per electrode in the array---and converts them into an image sequence that
-corresponds to the predicted perceptual experience of a patient:
-
-<img src="doc/_static/model.jpg" width="100%"/>
-
-If you use pulse2percept in a scholary publication, please cite as:
-> M Beyeler, GM Boynton, I Fine, A Rokem (2017). pulse2percept: A Python-based
-> simulation framework for bionic vision. Proceedings of the 16th Python in
-> Science Conference, p.81-88,
-> doi:[10.25080/shinma-7f4c6e7-00c](https://doi.org/10.25080/shinma-7f4c6e7-00c).
-
-Or use the following BibTex:
-
-```bibtex
-@InProceedings{ BeyelerSciPy2017,
-  author    = { {M}ichael {B}eyeler and {G}eoffrey {M}. {B}oynton and {I}one {F}ine and {A}riel {R}okem },
-  title     = { pulse2percept: {A} {P}ython-based simulation framework for bionic vision },
-  booktitle = { {P}roceedings of the 16th {P}ython in {S}cience {C}onference },
-  pages     = { 81 - 88 },
-  year      = { 2017 },
-  doi       = { 10.25080/shinma-7f4c6e7-00c },
-  editor    = { {K}aty {H}uff and {D}avid {L}ippa and {D}illon {N}iederhut and {M} {P}acer }
-}
-```
-
-Scientific studies referencing pulse2percept:
-
--   A Lozano, JS Suarez, C Soto-Sanchez, J Garrigos, J-J Martinez, JM Ferrandez Vicente, E Fernandez-Jover (2019). Neurolight Alpha: Interfacing Computational Neural Models for Stimulus Modulation in Cortical Visual Neuroprostheses. *International Work-Conference on the Interplay Between Natural and Artificial Computation (IWINAC)*, [doi:10.1007/978-3-030-19591-5_12](https://doi.org/10.1007/978-3-030-19591-5_12).
--   NP Cottaris, H Jiang, X Ding, BA Wandell, DH Brainard (2019). A computational-observer model of spatial contrast sensitivity: Effects of wave-front-based optics, cone-mosaic structure, and inference engine. *Journal of Vision* 19(8), [doi:10.1167/19.4.8](https://doi.org/10.1167/19.4.8).
--   L Wang, F Sharifian, J Napp, C Nath, S Pollmann (2018). Cross-task perceptual learning of object recognition in simulated retinal implant perception. *Journal of Vision* 18(22), [doi:10.1167/18.13.22](https://doi.org/10.1167/18.13.22).
--   M Beyeler, D Nanduri, JD Weiland, A Rokem, GM Boynton, I Fine (2018). A model of ganglion axon pathways accounts for percepts elicited by retinal implants. *bioRxiv 453035*, [doi:10.1101/453035](https://doi.org/10.1101/453035).
--   J Huth, T Masquelier, A Arleo (2018). Convis: A toolbox to fit and simulate filter-based models of early visual processing. *Frontiers in Neuroinformatics*, [doi:10.3389/fninf.2018.00009](https://doi.org/10.3389/fninf.2018.00009).
--   J Steffen, J Napp, S Pollmann, K Tönnies (2018). Perception Enhancement for Bionic Vision - Preliminary Study on Object Classification with Subretinal Implants. *Proceedings of the 7th International Conference on Pattern Recognition Applications and Methods, 169-177*. [doi:10.5220/0006648901690177](https://doi.org/10.5220/0006648901690177)
--   JR Golden, C Erickson-Davis, NP Cottaris, N Parthasarathy, F Rieke, DH Brainard, BA Wandell, EJ Chichilnisky (2018): Simulation of visual perception and learning with a retinal prosthesis. *bioRxiv 206409*, [doi:10.1101/206409](https://doi.org/10.1101/206409).
 
 ## Installation
 
-### Prerequisites
+Installation with package manager:
+```bash
+pip install pyulog
+```
 
-pulse2percept requires the following software installed for your platform:
+Installation from source:
+```bash
+python setup.py build install
+```
 
-1.  [Python](http://www.python.org) 3.5 - 3.7
+## Development
 
-2.  [NumPy](http://www.numpy.org)
-
-3.  [SciPy](http://www.scipy.org)
-
-4.  [JobLib](https://github.com/joblib/joblib)
-
-5.  [scikit-image](http://scikit-image.org/)
-
-Optional packages:
-
-1.  [Dask](https://github.com/dask/dask) for parallel processing
-    (a joblib alternative). Use conda to install.
-
-2.  [Numba](http://numba.pydata.org/). Use conda to install.
-
-3.  [ffmpeg codec](http://adaptivesamples.com/how-to-install-ffmpeg-on-windows)
-    if you're on Windows and want to use functions in the `files`
-    module.
-
-You can install all required packages in one fell swoop:
+To install the code in a format so that it can be easily edited use the
+following command (this will install the package as a link to the repo):
 
 ```bash
-$ pip install -r requirements.txt
+pip install -e .
 ```
 
-### Stable version
-
-The latest stable release of pulse2percept can be installed with pip:
+## Testing
 
 ```bash
-$ pip install pulse2percept
+nosetests -sv
 ```
 
-### Development version
-
-In order to get the bleeding-edge version of pulse2percept,
-use the commands:
+or 
 
 ```bash
-$ git clone https://github.com/uwescience/pulse2percept.git
-$ cd pulse2percept
-$ python setup.py install
+python setup.py test
 ```
 
-To test pulse2percept after installation, execute in Python:
+## Code Checking 
 
-```python
->>> import pulse2percept
+```bash
+pylint pyulog/*.py
 ```
 
-### Getting started
+<span id="scripts"></span>
+## Command Line Scripts
 
-A number of useful examples can be found in the "examples/notebooks"
-folder, including the following:
+All scripts are installed as system-wide applications (i.e. they be called on the command line without specifying Python or a system path), and support the `-h` flag for getting usage instructions.
 
--   [0.0-example-usage.ipynb](https://github.com/uwescience/pulse2percept/blob/master/examples/notebooks/0.0-example-usage.ipynb): How to use the model.
--   [0.1-image2percept.ipynb](https://github.com/uwescience/pulse2percept/blob/master/examples/notebooks/0.1-image2percept.ipynb): How to convert an image to a percept.
+The sections below show the usage syntax and sample output (from [test/sample.ulg](test/sample.ulg)): 
 
-Detailed documentation can be found at [pulse2percept.readthedocs.io](https://pulse2percept.readthedocs.io).
+###  Display information from an ULog file (ulog_info)
+
+Usage:
+```bash
+usage: ulog_info [-h] [-v] file.ulg
+
+Display information from an ULog file
+
+positional arguments:
+  file.ulg       ULog input file
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -v, --verbose  Verbose output
+```
+
+Example output:
+```bash
+$ ulog_info sample.ulg
+Logging start time: 0:01:52, duration: 0:01:08
+Dropouts: count: 4, total duration: 0.1 s, max: 62 ms, mean: 29 ms
+Info Messages:
+ sys_name: PX4
+ time_ref_utc: 0
+ ver_hw: AUAV_X21
+ ver_sw: fd483321a5cf50ead91164356d15aa474643aa73
+
+Name (multi id, message size in bytes)    number of data points, total bytes
+ actuator_controls_0 (0, 48)                 3269     156912
+ actuator_outputs (0, 76)                    1311      99636
+ commander_state (0, 9)                       678       6102
+ control_state (0, 122)                      3268     398696
+ cpuload (0, 16)                               69       1104
+ ekf2_innovations (0, 140)                   3271     457940
+ estimator_status (0, 309)                   1311     405099
+ sensor_combined (0, 72)                    17070    1229040
+ sensor_preflight (0, 16)                   17072     273152
+ telemetry_status (0, 36)                      70       2520
+ vehicle_attitude (0, 36)                    6461     232596
+ vehicle_attitude_setpoint (0, 55)           3272     179960
+ vehicle_local_position (0, 123)              678      83394
+ vehicle_rates_setpoint (0, 24)              6448     154752
+ vehicle_status (0, 45)                       294      13230
+```
+
+### Display logged messages from an ULog file (ulog_messages)
+
+Usage:
+```
+usage: ulog_messages [-h] file.ulg
+
+Display logged messages from an ULog file
+
+positional arguments:
+  file.ulg    ULog input file
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+Example output:
+```
+ubuntu@ubuntu:~/github/pyulog/test$ ulog_messages sample.ulg
+0:02:38 ERROR: [sensors] no barometer found on /dev/baro0 (2)
+0:02:42 ERROR: [sensors] no barometer found on /dev/baro0 (2)
+0:02:51 ERROR: [sensors] no barometer found on /dev/baro0 (2)
+0:02:56 ERROR: [sensors] no barometer found on /dev/baro0 (2)
+```
+
+### Extract parameters from an ULog file (ulog_params)
+
+Usage:
+```
+usage: ulog_params [-h] [-d DELIMITER] [-i] [-o] file.ulg [params.txt]
+
+Extract parameters from an ULog file
+
+positional arguments:
+  file.ulg              ULog input file
+  params.txt            Output filename (default=stdout)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DELIMITER, --delimiter DELIMITER
+                        Use delimiter in CSV (default is ',')
+  -i, --initial         Only extract initial parameters
+  -o, --octave          Use Octave format
+```
+
+Example output (to console):
+```
+ubuntu@ubuntu:~/github/pyulog/test$ ulog_params sample.ulg
+ATT_ACC_COMP,1
+ATT_BIAS_MAX,0.0500000007451
+ATT_EXT_HDG_M,0
+...
+VT_OPT_RECOV_EN,0
+VT_TYPE,0
+VT_WV_LND_EN,0
+VT_WV_LTR_EN,0
+VT_WV_YAWR_SCL,0.15000000596
+```
+
+### Convert ULog to CSV files (ulog2csv)
+
+Usage:
+```
+usage: ulog2csv [-h] [-m MESSAGES] [-d DELIMITER] [-o DIR] file.ulg
+
+Convert ULog to CSV
+
+positional arguments:
+  file.ulg              ULog input file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m MESSAGES, --messages MESSAGES
+                        Only consider given messages. Must be a comma-
+                        separated list of names, like
+                        'sensor_combined,vehicle_gps_position'
+  -d DELIMITER, --delimiter DELIMITER
+                        Use delimiter in CSV (default is ',')
+  -o DIR, --output DIR  Output directory (default is same as input file)
+```
+
+
+### Convert ULog to KML files (ulog2kml)
+
+> **Note** The `simplekml` module must be installed on your computer. If not already present, you can install it with:
+  ```
+  pip install simplekml
+  ```
+
+Usage:
+```
+usage: ulog2kml [-h] [-o OUTPUT_FILENAME] [--topic TOPIC_NAME]
+                [--camera-trigger CAMERA_TRIGGER]
+                file.ulg
+
+Convert ULog to KML
+
+positional arguments:
+  file.ulg              ULog input file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o OUTPUT_FILENAME, --output OUTPUT_FILENAME
+                        output filename
+  --topic TOPIC_NAME    topic name with position data
+                        (default=vehicle_gps_position)
+  --camera-trigger CAMERA_TRIGGER
+                        Camera trigger topic name (e.g. camera_capture)
+```

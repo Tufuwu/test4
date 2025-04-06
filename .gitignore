@@ -1,10 +1,8 @@
-*.npz
-*__pycache__
-*.ipynb_checkpoints
+__pycache__
 *.pyc
 build/
 dist/
-pulse2percept.egg-info/
-*.eps
-*.log
-*.png
+*.egg-info
+.eggs/
+
+

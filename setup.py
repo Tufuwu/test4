@@ -1,37 +1,69 @@
+#!/usr/bin/env python
+"""Python log parser for ULog.
+
+This module allows you to parse ULog files, which are used within the PX4
+autopilot middleware.
+
+The file format is documented on https://dev.px4.io/advanced-ulog-file-format.html
+
+"""
+
+from __future__ import print_function
 import os
-import numpy as np
-from setuptools import find_packages, setup
-from setuptools.extension import Extension
-from Cython.Build import cythonize
+import sys
+import versioneer
 
-extensions = [
-    Extension('pulse2percept.fast_retina', ['pulse2percept/fast_retina.pyx'],
-              include_dirs=[np.get_include()],
-              extra_compile_args=['-O3'])
-]
+from setuptools import setup, find_packages
 
-# Get version and release info, which is all stored in pulse2percept/version.py
-ver_file = os.path.join('pulse2percept', 'version.py')
-with open(ver_file) as f:
-    exec(f.read())
+DOCLINES = __doc__.split("\n")
 
-opts = dict(name=NAME,
-            maintainer=MAINTAINER,
-            maintainer_email=MAINTAINER_EMAIL,
-            description=DESCRIPTION,
-            long_description=LONG_DESCRIPTION,
-            url=URL,
-            download_url=DOWNLOAD_URL,
-            license=LICENSE,
-            classifiers=CLASSIFIERS,
-            author=AUTHOR,
-            author_email=AUTHOR_EMAIL,
-            platforms=PLATFORMS,
-            version=VERSION,
-            packages=find_packages(),
-            ext_modules=cythonize(extensions),
-            install_requires=REQUIRES)
+CLASSIFIERS = """\
+Development Status :: 1 - Planning
+Intended Audience :: Science/Research
+Intended Audience :: Developers
+License :: OSI Approved :: BSD License
+Programming Language :: Python
+Programming Language :: Python :: 3
+Programming Language :: Other
+Topic :: Software Development
+Topic :: Scientific/Engineering :: Artificial Intelligence
+Topic :: Scientific/Engineering :: Mathematics
+Topic :: Scientific/Engineering :: Physics
+Operating System :: Microsoft :: Windows
+Operating System :: POSIX
+Operating System :: Unix
+Operating System :: MacOS
+"""
 
+# pylint: disable=invalid-name
 
-if __name__ == '__main__':
-    setup(**opts)
+setup(
+    name='pyulog',
+    maintainer="James Goppert",
+    maintainer_email="james.goppert@gmail.com",
+    description=DOCLINES[0],
+    long_description="\n".join(DOCLINES[2:]),
+    url='https://github.com/PX4/pyulog',
+    author='Beat Kueng',
+    author_email='beat-kueng@gmx.net',
+    download_url='https://github.com/PX4/pyulog',
+    license='BSD 3-Clause',
+    classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
+    platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
+    install_requires=['numpy'],
+    tests_require=['nose', 'ddt'],
+    test_suite='nose.collector',
+    entry_points = {
+        'console_scripts': [
+            'ulog_extract_gps_dump=pyulog.extract_gps_dump:main',
+            'ulog_info=pyulog.info:main',
+            'ulog_messages=pyulog.messages:main',
+            'ulog_params=pyulog.params:main',
+            'ulog2csv=pyulog.ulog2csv:main',
+            'ulog2kml=pyulog.ulog2kml:main',
+        ],
+    },
+    packages=find_packages(),
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
+)
