@@ -3,58 +3,62 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# stgit generated dirs
-patches-*
+# C extensions
+*.so
 
-# CTag
-tags
-TAGS
+# Distribution / packaging
+.Python
+env/
+venv/
+*.egg
+*.egg-info/
+?eggs/
+dist/
+build/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
 
-# quilt files
-/patches
-/series
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
-# patch files
-/*.patch
-/*.diff
-/*.mbox
-
-# cscope files
-cscope.*
-
-# misc files
-*.orig
-*.rej
-
-*.swp
-*~
-\#*\#
-
-*.sql
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 htmlcov/
 .tox/
-.venv/
 .coverage
 .coverage.*
+.cache
+.pytest_cache
+nosetests.xml
+coverage.xml
+junit.xml
+*,cover
+.hypothesis/
 
-# Django stuff
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
 *.log
 
-# Sphinx stuff
-/docs/_build
-/docs/api/samples
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+.idea
 
-# Selenium test artifacts
-/selenium.log
-/selenium_screenshots
+# Sphinx documentation
+docs/_build/
 
-# Patchwork configuration files
-patchwork/settings/production.py
-
-# docker-compose configuration files
-/.env
-
-# django-dbbackup files
-/.backups
+# PyBuilder
+target/
