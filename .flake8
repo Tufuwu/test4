@@ -1,12 +1,5 @@
 [flake8]
-max-line-length = 99
-select: E,W,F,C,N
-exclude:
-    .git
-    __pycache__
-    .venv
-    venv
-    build
-    *.egg_info
-    dist
-    snap
+import-order-style = google
+max-line-length = 90
+exclude = .tox,build,docs,bin,examples,flask_appbuilder/templates,flask_appbuilder/static,venv
+ignore = E203,W503,W605
