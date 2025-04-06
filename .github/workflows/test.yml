@@ -1,53 +1,39 @@
-name: Test Suite
-on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
+name: Test Squire
+
+on: [push, pull_request]
 
 jobs:
-  linter:
-    runs-on: ubuntu-latest
+  test:
+    name: Test Code
+    runs-on: ${{ matrix.ubuntu }}
+    strategy:
+      matrix:
+        python: ["3.9"]
+        ubuntu: ["ubuntu-latest"]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.9"
-      - uses: pre-commit/action@v2.0.0
-        with:
-          extra_args: --all-files --show-diff-on-failure
-
-  unit-and-integration-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      # See https://debian.neo4j.com/
-      - name: Neo4j setup
-        run: |
-          wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo apt-key add -
-          echo 'deb https://debian.neo4j.com stable 3.5' | sudo tee /etc/apt/sources.list.d/neo4j.list
-          sudo apt-get update
-      - name: Install Neo4j
-        run: sudo apt-get install neo4j
-      - name: Disable auth for neo4j
-        run: |
-          sudo sed -i 's/#dbms.security.auth_enabled=false/dbms.security.auth_enabled=false/g' /etc/neo4j/neo4j.conf
-          sudo service neo4j restart
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.9"
-      # Cache our pip dir for efficiency; see https://medium.com/ai2-blog/python-caching-in-github-actions-e9452698e98d.
-      - uses: actions/cache@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Cache dependencies # caching dependency will make our build faster.
+        uses: actions/cache@v4 # for more info checkout pip section documentation at https://github.com/actions/cache
         with:
           path: ~/.cache/pip
-          key: ${{ hashFiles('setup.py') }}-${{ hashFiles('test-requirements.txt') }}
-      - name: Install cartography
-        run: |
-          pip install -e .
-          pip install -r test-requirements.txt
-      - name: make test_unit
-        run: make test_unit
-      - name: make test_integration
-        run: make test_integration
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Setup Python Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python }}'
+      - name: Install requirements
+        run: pip install -r requirements/ci.txt
+      - name: Run Tests
+        run: coverage run manage.py test
+      - name: Output Coverage
+        run: coverage report && coverage xml
+      - name: Upload coverage to CodeCov
+        uses: codecov/codecov-action@v2 # https://github.com/codecov/codecov-action
+        with:
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          files: ./coverage/coverage.xml
+          flags: unittests
