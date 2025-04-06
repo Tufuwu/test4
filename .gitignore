@@ -1,13 +1,14 @@
-# Python
-*.pyc
-/*.egg-info
-/.eggs
-/dist
+.idea
+__pycache__
 
-# coverage
-/.coverage
-/htmlcov
+html-coverage
+html-report
 
-# tests
-*.vcd
-*.gtkw
+build
+
+*.dot
+*.svg
+sandbox
+
+dist
+*.egg-info
