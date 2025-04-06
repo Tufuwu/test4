@@ -1,25 +1,37 @@
----
-name: build
+name: CodeCov tests
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  unit-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+        requirements-file: [
+            django-2.2.txt,
+            django-3.1.txt,
+            django-3.2.txt
+        ]
+        os: [
+          ubuntu-latest,
+        ]
 
     steps:
-      - uses: actions/checkout@v1
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r tests/requirements/${{ matrix.requirements-file }}
+        python setup.py install
 
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.9
+    - name: Run coverage
+      run: coverage run setup.py test
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade -r requirements-test.txt
-
-      - name: Run pre-commit on all files
-        run: pre-commit run --all-files
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v1
