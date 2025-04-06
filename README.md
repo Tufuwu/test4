@@ -1,172 +1,108 @@
+<img src="static_intel/intel_owl.jpeg" width=500 height=200 alt="Intel Owl"/>
 
-# Dunamai
-[![Version](https://img.shields.io/pypi/v/dunamai)](https://pypi.org/project/dunamai)
-[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/intelowlproject/IntelOwl.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/intelowlproject/IntelOwl/context:python)
+[![CodeFactor](https://www.codefactor.io/repository/github/intelowlproject/intelowl/badge)](https://www.codefactor.io/repository/github/intelowlproject/intelowl)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+![Pull request automation](https://github.com/intelowlproject/IntelOwl/workflows/Pull%20request%20automation/badge.svg)
 
-Dunamai is a Python 3.5+ library and command line tool for producing dynamic,
-standards-compliant version strings, derived from tags in your version
-control system. This facilitates uniquely identifying nightly or per-commit
-builds in continuous integration and releasing new versions of your software
-simply by creating a tag.
+<img src="static_intel/xscode-banner.png" width=600 height=125 alt="Get Support"/><br/>
+_For urgent issues and priority support, visit [https://xscode.com/intelowlproject/IntelOwl](https://xscode.com/intelowlproject/IntelOwl)._
 
-Dunamai is also available as a [GitHub Action](https://github.com/marketplace/actions/run-dunamai).
+# Intel Owl
 
-## Features
-* Version control system support:
-  * [Git](https://git-scm.com) (minimum version: 2.7.0)
-  * [Mercurial](https://www.mercurial-scm.org)
-  * [Darcs](http://darcs.net)
-  * [Subversion](https://subversion.apache.org)
-  * [Bazaar](https://bazaar.canonical.com/en)
-  * [Fossil](https://www.fossil-scm.org/home/doc/trunk/www/index.wiki)
-* Version styles:
-  * [PEP 440](https://www.python.org/dev/peps/pep-0440)
-  * [Semantic Versioning](https://semver.org)
-  * [Haskell Package Versioning Policy](https://pvp.haskell.org)
-  * Custom output formats
-* Can be used for projects written in any programming language.
-  For Python, this means you do not need a setup.py.
+Do you want to get **threat intelligence data** about a malware, an IP or a domain? Do you want to get this kind of data from multiple sources at the same time using **a single API request**?
 
-## Usage
-Install with `pip install dunamai`, and then use as either a CLI:
+You are in the right place!
 
-```console
-# Suppose you are on commit g29045e8, 7 commits after the v0.2.0 tag.
-# Note that the "v" prefix on the tag is required, unless you specify
-# a different tag style using "--pattern".
+Intel Owl is an Open Source Intelligence, or OSINT solution to get threat intelligence data about a specific file, an IP or a domain from a single API at scale. It integrates a number of analyzers available online and is for everyone who needs a single point to query for info about a specific file or observable.
 
-# Auto-detect the version control system and generate a version:
-$ dunamai from any
-0.2.0.post7.dev0+g29045e8
+### Features
 
-# Or use an explicit VCS and style:
-$ dunamai from git --no-metadata --style semver
-0.2.0-post.7
+- Provides enrichment of threat intel for malware as well as observables (IP, Domain, URL and hash).
+- This application is built to **scale out** and to **speed up the retrieval of threat info**.
+- It can be integrated easily in your stack of security tools ([pyintelowl](https://github.com/intelowlproject/pyintelowl)) to automate common jobs usually performed, for instance, by SOC analysts manually.
+- Intel Owl is composed of **analyzers** that can be run to retrieve data from external sources (like VirusTotal or AbuseIPDB) or to generate intel from internal analyzers (like Yara or Oletools)
+- API written in Django and Python 3.7.
+- Inbuilt frontend client: **[IntelOwl-ng](https://github.com/intelowlproject/IntelOwl-ng)** provides features such as dashboard, visualizations of analysis data, easy to use forms for requesting new analysis, etc. [Live Demo](https://intelowlclient.firebaseapp.com/).
 
-# Custom formats:
-$ dunamai from any --format "v{base}+{distance}.{commit}"
-v0.2.0+7.g29045e8
+## Documentation
 
-# Validation of custom formats:
-$ dunamai from any --format "v{base}" --style pep440
-Version 'v0.2.0' does not conform to the PEP 440 style
+[![Documentation Status](https://readthedocs.org/projects/intelowl/badge/?version=latest)](https://intelowl.readthedocs.io/en/latest/?badge=latest)
 
-# Validate your own freeform versions:
-$ dunamai check 0.01.0 --style semver
-Version '0.01.0' does not conform to the Semantic Versioning style
+Documentation about IntelOwl installation, usage, configuration and contribution can be found at https://intelowl.readthedocs.io/.
 
-# More info:
-$ dunamai --help
-$ dunamai from --help
-$ dunamai from git --help
-```
+## Blog posts
 
-Or as a library:
+To know more about the project and it's growth over time, you may be interested in reading the following:
 
-```python
-from dunamai import Version, Style
+- [Intel Owl on Daily Swig](https://portswigger.net/daily-swig/intel-owl-osint-tool-automates-the-intel-gathering-process-using-a-single-api)
+- [Honeynet: v1.0.0 Announcement](https://www.honeynet.org/?p=7558)
+- [Certego Blog: First announcement](https://www.certego.net/en/news/new-year-new-tool-intel-owl/)
 
-# Let's say you're on commit g644252b, which is tagged as v0.1.0.
-version = Version.from_git()
-assert version.serialize() == "0.1.0"
+## Available services or analyzers
 
-# Let's say there was a v0.1.0rc5 tag 44 commits ago
-# and you have some uncommitted changes.
-version = Version.from_any_vcs()
-assert version.serialize() == "0.1.0rc5.post44.dev0+g644252b"
-assert version.serialize(metadata=False) == "0.1.0rc5.post44.dev0"
-assert version.serialize(dirty=True) == "0.1.0rc5.post44.dev0+g644252b.dirty"
-assert version.serialize(style=Style.SemVer) == "0.1.0-rc.5.post.44+g644252b"
-```
+You can see the full list of all available analyzers in the [documentation](https://intelowl.readthedocs.io/en/latest/Usage.html#available-analyzers) or [live demo](https://intelowlclient.firebaseapp.com/pages/analyzers/table).
 
-The `serialize()` method gives you an opinionated, PEP 440-compliant default
-that ensures that versions for untagged commits are compatible with Pip's
-`--pre` flag. The individual parts of the version are also available for you
-to use and inspect as you please:
+| Inbuilt modules 	| External Services 	| Free modules that require additional configuration 	|
+|-	|-	|-	|
+| - Static Document, RTF, PDF, PE, Generic File Analysis<br>- Strings analysis with ML<br>- PE Emulation with Speakeasy<br>- PE Signature verification<br>- PE Capabilities Extraction<br>- Emulated Javascript Analysis<br>- Android Malware Analysis<br>- SPF and DMARC Validator<br>- more... 	| - GreyNoise v2<br>- Intezer Scan<br>- VirusTotal v2+v3<br>- HybridAnalysis<br>- Censys.io<br>- Shodan<br>- AlienVault OTX<br>- Threatminer<br>- Abuse.ch<br>- many more.. 	| - Cuckoo (requires at least one working Cuckoo instance)<br>- MISP (requires at least one working MISP instance)<br>- Yara (Community, Neo23x0, Intezer, McAfee rules are already available. There's the chance to add your own rules) 	|
 
-```python
-assert version.base == "0.1.0"
-assert version.stage == "rc"
-assert version.revision == 5
-assert version.distance == 44
-assert version.commit == "g644252b"
-assert version.dirty is True
-```
+## Legal notice
 
-## Comparison to Versioneer
-[Versioneer](https://github.com/warner/python-versioneer) is another great
-library for dynamic versions, but there are some design decisions that
-prompted the creation of Dunamai as an alternative:
+You as a user of this project must review, accept and comply with the license
+terms of each downloaded/installed package listed below. By proceeding with the
+installation, you are accepting the license terms of each package, and
+acknowledging that your use of each package will be subject to its respective
+license terms.
 
-* Versioneer requires a setup.py file to exist, or else `versioneer install`
-  will fail, rendering it incompatible with non-setuptools-based projects
-  such as those using Poetry or Flit. Dunamai can be used regardless of the
-  project's build system.
-* Versioneer has a CLI that generates Python code which needs to be committed
-  into your repository, whereas Dunamai is just a normal importable library
-  with an optional CLI to help statically include your version string.
-* Versioneer produces the version as an opaque string, whereas Dunamai provides
-  a Version class with discrete parts that can then be inspected and serialized
-  separately.
-* Versioneer provides customizability through a config file, whereas Dunamai
-  aims to offer customizability through its library API and CLI for both
-  scripting support and use in other libraries.
+[osslsigncode](https://github.com/develar/osslsigncode),
+[stringsifter](https://github.com/fireeye/stringsifter),
+[peepdf](https://github.com/jesparza/peepdf),
+[pefile](https://github.com/erocarrera/pefile),
+[oletools](https://github.com/decalage2/oletools),
+[XLMMacroDeobfuscator](https://github.com/DissectMalware/XLMMacroDeobfuscator),
+[MaxMind-DB-Reader-python](https://github.com/maxmind/MaxMind-DB-Reader-python),
+[pysafebrowsing](https://github.com/Te-k/pysafebrowsing),
+[PyMISP](https://github.com/MISP/PyMISP),
+[OTX-Python-SDK](https://github.com/AlienVault-OTX/OTX-Python-SDK),
+[yara-python](https://github.com/VirusTotal/yara-python),
+[GitPython](https://github.com/gitpython-developers/GitPython),
+[Yara community rules](https://github.com/Yara-Rules),
+[StrangerealIntel Daily Ioc Yara rules](https://github.com/StrangerealIntel/DailyIOC),
+[Neo23x0 Yara rules](https://github.com/Neo23x0/signature-base),
+[Intezer Yara rules](https://github.com/intezer/yara-rules),
+[McAfee Yara rules](https://github.com/advanced-threat-research/Yara-Rules),
+[Stratosphere Yara rules](https://github.com/stratosphereips/yara-rules),
+[FireEye Yara rules](https://github.com/fireeye/red_team_tool_countermeasures),
+[ReversingLabs Yara rules](https://github.com/reversinglabs/reversinglabs-yara-rules),
+[Samir Yara rules](https://github.com/sbousseaden/YaraHunts),
+[InQuest Yara rules](https://github.com/InQuest/yara-rules),
+[APKiD](https://github.com/rednaga/APKiD/blob/master/LICENSE.COMMERCIAL),
+[Box-JS](https://github.com/CapacitorSet/box-js/blob/master/LICENSE),
+[Capa](https://github.com/fireeye/capa/blob/master/LICENSE.txt),
+[Quark-Engine](https://github.com/quark-engine/quark-engine),
+[IntelX](https://intelx.io/terms-of-service),
+[Speakeasy](https://github.com/fireeye/speakeasy),
+[Checkdmarc](https://github.com/domainaware/checkdmarc)
+[Manalyze](https://github.com/JusticeRage/Manalyze)
 
-## Integration
-* Setting a `__version__` statically:
+## Acknowledgments
 
-  ```console
-  $ echo "__version__ = '$(dunamai from any)'" > your_library/_version.py
-  ```
-  ```python
-  # your_library/__init__.py
-  from your_library._version import __version__
-  ```
+This project was created and will be upgraded thanks to the following organizations:
 
-  Or dynamically (but Dunamai becomes a runtime dependency):
+<a href="https://www.certego.net"> <img style="margin-right: 2px" src="static_intel/Certego.png" alt="Certego Logo"/> </a>
+<a href="https://www.honeynet.org"> <img style="border: 0.2px solid black" src="static_intel/logo-thp-100.png" alt="Honeynet.org logo"> </a>
 
-  ```python
-  # your_library/__init__.py
-  import dunamai as _dunamai
-  __version__ = _dunamai.get_version("your-library", third_choice=_dunamai.Version.from_any_vcs).serialize()
-  ```
+#### Google Summer Of Code
 
-* setup.py (no install-time dependency on Dunamai as long as you use wheels):
+The project was accepted to the GSoC 2020 under the Honeynet Project!! A lot of [new features](https://www.honeynet.org/gsoc/gsoc-2020/google-summer-of-code-2020-project-ideas/#intel-owl-improvements) were developed by Eshaan Bansal ([Twitter](https://twitter.com/mask0fmydisguis)).
 
-  ```python
-  from setuptools import setup
-  from dunamai import Version
+Stay tuned for the upcoming GSoC 2021! Join the [Honeynet Slack chat](https://gsoc-slack.honeynet.org/) for more info.
 
-  setup(
-      name="your-library",
-      version=Version.from_any_vcs().serialize(),
-  )
-  ```
+## About the author and maintainers
 
-  Or you could use a static inclusion approach as in the prior example.
+Feel free to contact the main developers at any time:
+- Matteo Lodi ([Twitter](https://twitter.com/matte_lodi)): Author and creator
+- Eshaan Bansal ([Twitter](https://twitter.com/mask0fmydisguis)): Principal maintainer
 
-* [Poetry](https://poetry.eustace.io):
-
-  ```console
-  $ poetry version $(dunamai from any)
-  ```
-
-## Development
-This project is managed using [Poetry](https://poetry.eustace.io).
-Development requires Python 3.6+ because of [Black](https://github.com/ambv/black).
-
-* If you want to take advantage of the default VSCode integration, then first
-  configure Poetry to make its virtual environment in the repository:
-  ```
-  poetry config settings.virtualenvs.in-project true
-  ```
-* After cloning the repository, activate the tooling:
-  ```
-  poetry install
-  poetry run pre-commit install
-  ```
-* Run unit tests:
-  ```
-  poetry run pytest --cov
-  poetry run tox
-  ```
+We also have a dedicated twitter account for the project: [@intel_owl](https://twitter.com/intel_owl).
