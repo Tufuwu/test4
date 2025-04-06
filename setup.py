@@ -1,78 +1,68 @@
-#!/usr/bin/env python
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# Copyright 2019 The Keras Tuner Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# NOTE: The configuration for the package, including the name, version, and
-# other information are set in the setup.cfg file.
+"""Setup script."""
 
-import os
-import sys
+from __future__ import absolute_import
 
+from setuptools import find_packages
 from setuptools import setup
 
+version = '1.0.3'
 
-# First provide helpful messages if contributors try and run legacy commands
-# for tests or docs.
-
-TEST_HELP = """
-Note: running tests is no longer done using 'python setup.py test'. Instead
-you will need to run:
-
-    tox -e test
-
-If you don't already have tox installed, you can install it with:
-
-    pip install tox
-
-If you only want to run part of the test suite, you can also use pytest
-directly with::
-
-    pip install -e .[test]
-    pytest
-
-For more information, see:
-
-  http://docs.astropy.org/en/latest/development/testguide.html#running-tests
-"""
-
-if 'test' in sys.argv:
-    print(TEST_HELP)
-    sys.exit(1)
-
-DOCS_HELP = """
-Note: building the documentation is no longer done using
-'python setup.py build_docs'. Instead you will need to run:
-
-    tox -e build_docs
-
-If you don't already have tox installed, you can install it with:
-
-    pip install tox
-
-You can also build the documentation with Sphinx directly using::
-
-    pip install -e .[docs]
-    cd docs
-    make html
-
-For more information, see:
-
-  http://docs.astropy.org/en/latest/install.html#builddocs
-"""
-
-if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
-    print(DOCS_HELP)
-    sys.exit(1)
-
-VERSION_TEMPLATE = """
-# Note that we need to fall back to the hard-coded version if either
-# setuptools_scm can't be imported or setuptools_scm can't determine the
-# version, so we catch the generic 'Exception'.
-try:
-    from setuptools_scm import get_version
-    version = get_version(root='..', relative_to=__file__)
-except Exception:
-    version = '{version}'
-""".lstrip()
-
-setup(use_scm_version={'write_to': os.path.join('astrocut', 'version.py'),
-                       'write_to_template': VERSION_TEMPLATE})
+setup(
+    name='keras-tuner',
+    version=version,
+    description='Hypertuner for Keras',
+    url='https://github.com/keras-team/keras-tuner',
+    author='The Keras Tuner authors',
+    author_email='kerastuner@google.com',
+    license='Apache License 2.0',
+    # tensorflow isn't a dependency because it would force the
+    # download of the gpu version or the cpu version.
+    # users should install it manually.
+    install_requires=[
+        'packaging',
+        'future',
+        'numpy',
+        'tabulate',
+        'terminaltables',
+        'colorama',
+        'tqdm',
+        'requests',
+        'scipy',
+        'scikit-learn',
+        'tensorboard',
+        'ipython'
+    ],
+    extras_require={
+        'tests': ['pytest',
+                  'flake8',
+                  'mock',
+                  'portpicker',
+                  'pytest-xdist',
+                  'pytest-cov'],
+    },
+    classifiers=[
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3.6',
+        'Operating System :: Unix',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: MacOS',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Software Development'
+    ],
+    packages=find_packages(exclude=('tests',))
+)

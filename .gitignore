@@ -1,63 +1,22 @@
-# Compiled files
-*.py[cod]
-*.a
-*.o
-*.so
-__pycache__
-
-# Ignore .c files by default to avoid including generated code. If you want to
-# add a non-generated .c extension, use `git add -f filename.c`.
-*.c
-
-# Other generated files
-*/version.py
-*/cython_version.py
-htmlcov
-.coverage
-MANIFEST
-.ipynb_checkpoints
-pip-wheel-metadata/
-
-# Sphinx
-docs/api
-docs/_build
-
-# Eclipse editor project files
-.project
-.pydevproject
-.settings
-
-# Pycharm editor project files
+*.swp
 .idea
-
-# Floobits project files
-.floo
-.flooignore
-
-# Packages/installer info
-*.egg
-*.egg-info
-*.eggs/
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-distribute-*.tar.gz
-
-# Other
-.cache
-.tox
-.*.sw[op]
-*~
-.project
-.pydevproject
-.settings
-.tmp/
-
-# Mac OSX
-.DS_Store
+*.pyc
+.pytest_cache
+.vscode/
+build/
+dist/
+bigquery/
+export/
+logs/
+Keras_Tuner.egg-info/
+results/
+tmp/
+.ipynb_checkpoints/
+*_tutorial_results/
+tmp.py
+.coverage
+.coverage.*
+htmlcov
+old_code/
+docs/site
+docs/sources
