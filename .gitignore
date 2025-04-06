@@ -1,8 +1,11 @@
-*~
 *.pyc
+*.db
 .coverage
-venv
-build
-dist
-*.egg-info
-.vscode
+MANIFEST
+dist/
+build/
+env/
+html/
+htmlcov/
+*.egg-info/
+.tox/
