@@ -1,45 +1,48 @@
+# (c) Copyright [2018-2020] Micro Focus or one of its affiliates.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#!/usr/bin/env python
+import collections
 from setuptools import setup, find_packages
-import sys
-from pathlib import Path
 
-CURRENT_DIRECTORY = Path(__file__).parent.absolute()
 
-CURRENT_PYTHON = sys.version_info[:2]
-REQUIRED_PYTHON = (3, 7)
-if CURRENT_PYTHON < REQUIRED_PYTHON:
-    sys.stderr.write("""
-==========================
-Unsupported Python version
-==========================
-This version of ibllib requires Python {}.{}, but you're trying to
-install it on Python {}.{}.
-""".format(*(REQUIRED_PYTHON + CURRENT_PYTHON)))
-    sys.exit(1)
+ReqOpts = collections.namedtuple('ReqOpts', ['skip_requirements_regex', 'default_vcs'])
 
-with open("README.md", 'r') as f:
-    long_description = f.read()
-
-with open('requirements.txt') as f:
-    require = [x.strip() for x in f.readlines() if not x.startswith('git+')]
-
+opts = ReqOpts(None, 'git')
 setup(
-    name='ibllib',
-    version='1.10.0',
-    python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
-    description='IBL libraries',
-    license="MIT",
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    author='IBL Staff',
-    url="https://www.internationalbrainlab.com/",
-    packages=find_packages(exclude=['scratch']),  # same as name
-    include_package_data=True,
-    # external packages as dependencies
-    install_requires=require,
-    entry_points={
-        'console_scripts': [
-            'onelight=oneibl.onelight:one',
-        ],
-    },
-    scripts={},
+    name='VerticaPy',
+    version='0.4.0',
+    description='A Python library that exposes sci-kit like functionality to conduct data science projects on data stored in Vertica.',
+    author='Badr Ouali',
+    author_email='badr.ouali@vertica.com',
+    url='https://github.com/vertica/VerticaPy',
+    keywords="machine-learning database vertica",
+    packages=find_packages(),
+    license="Apache License 2.0",
+    install_requires=[
+    ],
+    classifiers=[
+        "Development Status :: 2 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Data Science",
+        "Topic :: Machine Learning",
+        "Topic :: Database",
+        "Topic :: Database :: Database Engines/Servers",
+        "Operating System :: OS Independent"
+    ]
 )
