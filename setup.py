@@ -1,59 +1,57 @@
-from setuptools import setup
+# -*- coding: utf-8 -*-
+import re
+import sys
 
-# we pin these dependencies in the requirements files -- all of these
-# should be python 3 compatible
-DEPENDENCIES = [
-    "glean_sdk>=31.1.3",
-    "beautifulsoup4>=4.7.1",
-    "colorama>=0.4.1",
-    "configobj>=5.0.6",
-    "mozdevice>=4.0.0,<5",
-    "mozfile>=2.0.0",
-    "mozinfo>=1.1.0",
-    "mozinstall>=2.0.0",
-    "mozlog>=4.0",
-    "mozprocess>=1.2.0",
-    "mozprofile>=2.2.0",
-    "mozrunner>=8.0.2",
-    "mozversion>=2.1.0",
-    "redo>=2.0.2",
-    "requests>=2.21.0",
-    "taskcluster>=6.0.0",
-]
+from setuptools import find_packages, setup
 
-desc = """Regression range finder for Mozilla nightly builds"""
-long_desc = """Regression range finder for Mozilla nightly builds.
-For more information see the mozregression website:
-http://mozilla.github.io/mozregression/"""
+with open("portal/__init__.py", "r") as fd:
+    version = re.search(
+        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', fd.read(), re.MULTILINE
+    ).group(1)
+
+try:
+    from semantic_release import setup_hook
+
+    setup_hook(sys.argv)
+except ImportError:
+    pass
 
 setup(
-    name="mozregression",
-    use_scm_version=True,
-    description=desc,
-    long_description=long_desc,
-    author="Mozilla Automation and Tools Team",
-    author_email="tools@lists.mozilla.org",
-    url="http://github.com/mozilla/mozregression",
-    license="MPL 2.0",
-    packages=["mozregression"],
-    entry_points="""
-          [console_scripts]
-          mozregression = mozregression.main:main
-        """,
-    package_data={"mozregression": ["*.yaml"]},
-    platforms=["Any"],
-    python_requires=">=3.6",
-    setup_requires=["setuptools_scm"],
-    install_requires=DEPENDENCIES,
-    classifiers=[
-        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
-        "Development Status :: 5 - Production/Stable",
-        "Environment :: Console",
-        "Intended Audience :: Developers",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3 :: Only",
+    name="codeforlife-portal",
+    version=version,
+    packages=find_packages(),
+    include_package_data=True,
+    install_requires=[
+        "django>=1.10.8, <= 1.11.24",
+        "django-countries==5.4",
+        "djangorestframework>=3.8.2, < 3.9.0",
+        "django-autoconfig==0.8.0",
+        "django-pipeline==1.6.14",
+        "django-recaptcha==2.0.5",
+        "pyyaml==4.2b1",
+        "rapid-router >= 1.0.0.post.dev1",
+        "aimmo",
+        "reportlab>=3.5.32,<3.6.0",
+        "django-formtools==2.1",
+        "django-otp<=0.7.0",  # we needed to fix this due to a wide ranged dependency in django-two-factor-auth
+        "requests>=2.22.0,<2.23.0",
+        "django-treebeard==4.3",
+        "django-sekizai==1.0.0",
+        "django-classy-tags==1.*",
+        "Pillow==5.4.1",
+        "sqlparse",
+        "libsass",
+        "phonenumbers>=8.11.0, <8.12.0",
+        "more-itertools==5.0.0",  # 8.0.2 doesn't support Python <=3.4
+        "future",
+        "django-hijack>=2.1.10, <2.2.0",
+        "django-hijack-admin>=2.1.10, <2.2.0",
+        f"cfl-common=={version}",
     ],
+    classifiers=[
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.7",
+        "Framework :: Django",
+    ],
+    zip_safe=False,
 )

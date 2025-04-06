@@ -1,104 +1,62 @@
-# mozregression
+![Build Status](https://github.com/ocadotechnology/codeforlife-portal/workflows/CI%2FCD/badge.svg)
+[![codecov](https://codecov.io/gh/ocadotechnology/codeforlife-portal/branch/master/graph/badge.svg)](https://codecov.io/gh/ocadotechnology/codeforlife-portal)
+[![Code Climate](https://codeclimate.com/github/ocadotechnology/codeforlife-portal/badges/gpa.svg)](https://codeclimate.com/github/ocadotechnology/codeforlife-portal)
 
-mozregression is an interactive regression rangefinder for quickly tracking down the source of bugs in Mozilla nightly and integration builds.
+## A [Code for Life](https://www.codeforlife.education/) repository
 
-You can start using mozregression today:
+- Ocado Technology's [Code for Life initiative](https://www.codeforlife.education/) has been developed to inspire the next generation of computer scientists and to help teachers deliver the computing curriculum.
+- This repository hosts the source code of the **main website**: the portal for the Code For Life initiative, the registration/log in, the teachers' dashboards, the teaching materials, etc
+- The other repos for Code For Life:
+  - the first game, [Rapid Router](https://github.com/ocadotechnology/rapid-router)
+  - the new game for teenagers, [currently at a very early stage](https://github.com/ocadotechnology/aimmo)
+  - the [deployment code for Google App Engine](https://github.com/ocadotechnology/codeforlife-deploy-appengine)
 
-- [start with our installation guide](https://mozilla.github.io/mozregression/install.html), then
-- take a look at [our Quick Start document](https://mozilla.github.io/mozregression/quickstart.html).
+## Running Locally
 
-## Status
+- Clone the repo. Fork it first if you want to contribute, or make sure you work on separate branches.
+- Install prerequisites. E.g. on Ubuntu / Linux Mint:
+  - `sudo apt-get install git`
+  - `sudo apt-get install python-dev`
+  - `sudo apt-get install libxml2-dev libxslt1-dev zlib1g-dev`
+- Make and activate a virtualenv (We recommend [pipenv](<(https://docs.pipenv.org/)>))
+  - On **Mac**, run `brew install pipenv` using the `brew` package manager. Then run `pipenv install` followed by `pipenv shell`.
+  - On Linux, follow the instructions [here](https://docs.pipenv.org/install/#installing-pipenv) to install pipenv. Then run `pipenv install` followed by `pipenv shell`.
+- `./run` - This will:
+  - sync the database
+  - collect the static files
+  - run the server
+- Once you see `Quit the server with CONTROL-C`, you can open the portal in your browser at `localhost:8000`.
 
-[![Latest Version](https://img.shields.io/pypi/v/mozregression.svg)](https://pypi.python.org/pypi/mozregression/)
-[![License](https://img.shields.io/pypi/l/mozregression.svg)](https://pypi.python.org/pypi/mozregression/)
+- To setup test dependencies run `pipenv install --dev` and then `pytest` to run tests.
 
-Build status:
+- If you have problems seeing the portal on machines with different locale (e.g. Polish), check the terminal for errors mentioning `ValueError: unknown locale: UTF-8`. If you see them, you need to have environment variables `LANG` and `LC_ALL` both set to `en_US.UTF-8`.
+  - Either export them in your `.bashrc` or `.bash_profile`
+  - or restart the portal with command `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 ./run`.
 
-- Linux:
-  [![Linux Build Status](https://travis-ci.org/mozilla/mozregression.svg?branch=master)](https://travis-ci.org/mozilla/mozregression)
-  [![Coverage Status](https://img.shields.io/coveralls/mozilla/mozregression.svg)](https://coveralls.io/r/mozilla/mozregression)
-- Windows: [![Windows Build status](https://ci.appveyor.com/api/projects/status/bcg7t1pt2bahggdr?svg=true)](https://ci.appveyor.com/project/wlach/mozregression/branch/master)
+## How to contribute!
 
-For more information see:
+**Guidelines** Read the [contributing guidelines](CONTRIBUTING.md), thanks!<br>
+You can also read about the [life cycle of a code change](docs/life-cycle-of-a-code-change.md).
 
-https://mozilla.github.io/mozregression/
+One word of caution: please do not add any issues related to security. Evil hackers are everywhere nowadays... If you do find a security issue, let us know using our [contact form][c4l-contact-form].
 
-## Contact
+**Want to help?** You can contact us using this [contact form][c4l-contact-form] and we'll get in touch as soon as possible! Thanks a lot.
 
-You can chat with the mozregression developers on Mozilla's instance of [Matrix](https://chat.mozilla.org/#/room/#mozregression:mozilla.org): https://chat.mozilla.org/#/room/#mozregression:mozilla.org
+## Common Problems
 
-## Issue Tracking
+### Unapplied migrations on first run
 
-Found a problem with mozregression? Have a feature request? We track bugs [on bugzilla](https://bugzilla.mozilla.org/buglist.cgi?quicksearch=product%3ATesting%20component%3Amozregression&list_id=14890897).
-You can file a new bug [here](https://bugzilla.mozilla.org/enter_bug.cgi?product=Testing&component=mozregression).
+It may be that some migrations were changed and you have .pyc files from the old ones. Try removing all .pyc migrations by running `rm migrations/*.pyc` from the repository.
 
-## Building And Developing mozregression
+### Mac OS Mojave
 
-Want to hack on mozregression ? Cool!
+On MacOS Mojave there is an error when installing `Pillow 3.3.2`.
+To fix this issue you need to run the following command:
 
-### Installing dependencies
-
-To make setup more deterministic, we have provided requirements files to use a known-working
-set of python dependencies. From your mozregression checkout, you can install these inside
-a virtual development environment.
-
-After checking out the mozregression repository from GitHub, this is a two step process:
-
-1. Be sure you are using Python 3.6 or above: earlier versions are not supported (if you
-   are not sure, run `python --version` or `python3 --version` on the command line).
-
-2. If you don't have it already, install [virtualenv](https://virtualenv.pypa.io/en/stable/).
-
-3. From inside your mozregression checkout, create a virtualenv, activate it, and install the dependencies. The instructions are slightly different depending on whether you are using Windows or Linux/MacOS.
-
-On Windows:
-
-```bash
-virtualenv -p python venv
-venv\Scripts\activate
-pip install -r requirements\build.txt -r requirements\linters.txt
-pip install -e .
+```
+sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
 ```
 
-On Linux/MacOS:
+cf: https://github.com/python-pillow/Pillow/issues/3438#issuecomment-435169249
 
-```bash
-virtualenv -p python3 venv
-source venv/bin/activate
-pip install -r requirements/build.txt -r requirements/linters.txt
-pip install -e .
-```
-
-### Hacking on mozregression
-
-After running the above commands, you should be able to run the command-line version of
-mozregression as normal (e.g. `mozregression --help`) inside the virtual environment. If
-you wish to try running the GUI, use the provided helper script:
-
-```bash
-python gui/build.py run
-```
-
-To run the unit tests for the console version:
-
-```bash
-pytest tests
-```
-
-For the GUI version:
-
-```bash
-python gui/build.py test
-```
-
-Before submitting a pull request, please lint your code for errors and formatting (we use [black](https://black.readthedocs.io/en/stable/), [flake8](https://flake8.pycqa.org/en/latest/) and [isort](https://isort.readthedocs.io/en/latest/))
-
-```bash
-./bin/lint-check.sh
-```
-
-If it turns up errors, try using the `lint-fix.sh` script to fix any errors which can be addressed automatically:
-
-```bash
-./bin/lint-fix.sh
-```
+[c4l-contact-form]: https://www.codeforlife.education/help/#contact

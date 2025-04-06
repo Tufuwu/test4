@@ -1,6 +1,7 @@
-exclude .coveragerc .gitignore .linter-files .travis.yml CODE_OF_CONDUCT.md appveyor.yml setup.cfg
-recursive-exclude bin *
-recursive-exclude docs *
-recursive-exclude tests *
-recursive-exclude gui *
-recursive-exclude requirements *
+include README.md
+graft deploy/static
+graft deploy/templates
+graft portal/static
+graft portal/templates
+prune cfl_common
+prune example_project
