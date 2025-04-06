@@ -1,198 +1,194 @@
-========
-Mapchete
-========
+.. image:: https://github.com/mgaitan/sphinxcontrib-mermaid/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/mgaitan/sphinxcontrib-mermaid/actions/workflows/test.yml
 
-Tile-based geodata processing.
+This extension allows you to embed `Mermaid <https://mermaid-js.github.io/mermaid>`_ graphs in your
+documents, including general flowcharts, sequence and gantt diagrams.
 
-.. image:: https://badge.fury.io/py/mapchete.svg
-    :target: https://badge.fury.io/py/mapchete
+It adds a directive to embed mermaid markup. For example::
 
-.. image:: https://travis-ci.org/ungarj/mapchete.svg?branch=master
-    :target: https://travis-ci.org/ungarj/mapchete
+  .. mermaid::
 
-.. image:: https://coveralls.io/repos/github/ungarj/mapchete/badge.svg?branch=master
-    :target: https://coveralls.io/github/ungarj/mapchete?branch=master
-
-.. image:: https://readthedocs.org/projects/mapchete/badge/?version=latest
-    :target: http://mapchete.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
-
-.. image:: https://img.shields.io/pypi/pyversions/mapchete.svg
-    :target: https://pypi.python.org/pypi/mapchete
-
-Mapchete processes raster and vector geodata in digestable chunks.
-
-Processing larger amounts of data requires chunking the input data into smaller tiles
-and process them one by one. Python provides a lot of useful packages to process geodata
-like shapely_ or numpy_. From within your process code you will have access to the geodata
-in the form of ``NumPy`` arrays for raster data or GeoJSON-like feature dictionaries for
-vector data.
-
-With the help of fiona_ and rasterio_ Mapchete takes care about resampling and
-reprojecting geodata, applying your Python code to the tiles and writing the output either
-into a single file or into a directory of files organized in a WMTS_-like tile pyramid.
-Details on tiling scheme and available map projections are outlined in the
-`tiling documentation`_.
-
-.. _shapely: http://toblerity.org/shapely/
-.. _numpy: http://www.numpy.org/
-.. _fiona: https://github.com/Toblerity/Fiona
-.. _rasterio: https://github.com/mapbox/rasterio/
-.. _WMTS: https://en.wikipedia.org/wiki/Web_Map_Tile_Service
-.. _`tiling documentation`: https://mapchete.readthedocs.io/en/latest/tiling.html
+     sequenceDiagram
+        participant Alice
+        participant Bob
+        Alice->John: Hello John, how are you?
+        loop Healthcheck
+            John->John: Fight against hypochondria
+        end
+        Note right of John: Rational thoughts <br/>prevail...
+        John-->Alice: Great!
+        John->Bob: How about you?
+        Bob-->John: Jolly good!
 
 
-.. figure:: https://mapchete.readthedocs.io/en/latest/_images/mercator_pyramid.svg
-   :align: center
-   :target: https://mapchete.readthedocs.io/en/latest/tiling.html
+By default, the HTML builder will simply render this as a ``div`` tag with
+``class="mermaid"``, injecting the external javascript, css and initialization code to
+make mermaid works.
 
-   (standard Web Mercator pyramid used in the web)
-
-
------
-Usage
------
-
-You need a ``.mapchete`` file for the process configuration. The configuration is based
-on the ``YAML`` syntax.
-
-.. code-block:: yaml
-
-    process: my_python_process.py  # or a Python module path: mypythonpackage.myprocess
-    zoom_levels:
-        min: 0
-        max: 12
-    input:
-        dem: /path/to/dem.tif
-        land_polygons: /path/to/polygon/file.geojson
-    output:
-        format: PNG_hillshade
-        path: /output/path
-    pyramid:
-        grid: mercator
-
-    # process specific parameters
-    resampling: cubic_spline
+For other builders (or if ``mermaid_output_format`` config variable is set differently), the extension
+will use `mermaid-cli <https://github.com/mermaidjs/mermaid.cli>`_ to render as
+to a PNG or SVG image, and then used in the proper code.
 
 
-You also need either a ``.py`` file or a Python module path where you specify the process
-itself.
+.. mermaid::
 
-.. code-block:: python
-
-    def execute(mp, resampling="nearest"):
-
-        # Open elevation model.
-        with mp.open("dem") as src:
-            # Skip tile if there is no data available or read data into a NumPy array.
-            if src.is_empty(1):
-                return "empty"
-            else:
-                dem = src.read(1, resampling=resampling)
-
-        # Create hillshade using a built-in hillshade function.
-        hillshade = mp.hillshade(dem)
-
-        # Clip with polygons from vector file and return result.
-        with mp.open("land_polygons") as land_file:
-            return mp.clip(hillshade, land_file.read())
+   sequenceDiagram
+      participant Alice
+      participant Bob
+      Alice->John: Hello John, how are you?
+      loop Healthcheck
+          John->John: Fight against hypochondria
+      end
+      Note right of John: Rational thoughts <br/>prevail...
+      John-->Alice: Great!
+      John->Bob: How about you?
+      Bob-->John: Jolly good!
 
 
-You can then interactively inspect the process output directly on a map in a
-browser (first, install dependencies by ``pip install mapchete[serve]`` go to
-``localhost:5000``):
+You can also embed external mermaid files, by giving the file name as an
+argument to the directive and no additional content::
 
-.. code-block:: shell
+   .. mermaid:: path/to/mermaid-gantt-code.mmd
 
-    $ mapchete serve hillshade.mapchete --memory
-
-
-The ``serve`` tool recognizes changes in your process configuration or in the
-process file. If you edit one of these, just refresh the browser and inspect the
-changes (note: use the ``--memory`` flag to make sure to reprocess each tile and
-turn off browser caching).
-
-Once you are done with editing, batch process everything using the ``execute``
-tool.
-
-.. code-block:: shell
-
-    $ mapchete execute hillshade.mapchete
+As for all file references in Sphinx, if the filename is not absolute, it is
+taken as relative to the source directory.
 
 
--------------
-Documentation
--------------
+In addition, you can use mermaid to automatically generate a diagram to show the class inheritance using the directive ``autoclasstree``. It accepts one or more fully qualified
+names to a class or a module. In the case of a module, all the class found will be included.
 
-There are many more options such as zoom-dependent process parameters, metatiling, tile
-buffers or interpolating from an existing output of a higher zoom level. For deeper
-insights, please go to the documentation_.
+Of course, these objects need to be importable to make its diagram.
 
-.. _documentation: http://mapchete.readthedocs.io/en/latest/index.html
+If an optional attribute ``:full:`` is given, it will show the complete hierarchy of each class.
 
-Mapchete is used in many preprocessing steps for the `EOX Maps`_ layers:
-
-* Merge multiple DEMs into one global DEM.
-* Create a customized relief shade for the Terrain Layer.
-* Generalize landmasks & coastline from OSM for multiple zoom levels.
-* Extract cloudless pixel for Sentinel-2 cloudless_.
-
-.. _cloudless: https://cloudless.eox.at/
-.. _`EOX Maps`: http://maps.eox.at/
+The option ``:namespace: <value>`` limits to the base classes that belongs to this namespace.
+Meanwhile, the flag ``:strict:`` only process the classes that are strictly defined in the given
+module (ignoring classes imported from other modules).
 
 
-------------
+For example::
+
+    .. autoclasstree:: sphinx.util.SphinxParallelError sphinx.util.ExtensionError
+       :full:
+
+.. autoclasstree:: sphinx.util.SphinxParallelError sphinx.util.ExtensionError
+   :full:
+
+
+Or directly the module::
+
+    .. autoclasstree:: sphinx.util
+
+
+.. autoclasstree:: sphinx.util
+
+
 Installation
 ------------
 
-via PyPi:
+You can install it using pip
 
-.. code-block:: shell
+::
 
-    $ pip install mapchete
+    pip install sphinxcontrib-mermaid
 
+Then add ``sphinxcontrib.mermaid`` in ``extensions`` list of your project's ``conf.py``::
 
-from source:
-
-.. code-block:: shell
-
-    $ git clone git@github.com:ungarj/mapchete.git && cd mapchete
-    $ pip install .
-
+    extensions = [
+        ...,
+        'sphinxcontrib.mermaid'
+    ]
 
 
-To make sure Rasterio, Fiona and Shapely are properly built against your local GDAL and
-GEOS installations, don't install the binaries but build them on your system:
+Directive options
+------------------
 
-.. code-block:: shell
+``:alt:``: determines the image's alternate text for HTML output.  If not given, the alternate text defaults to the mermaid code.
 
-    $ pip install --upgrade rasterio fiona shapely --no-binary :all:
+``:align:``: determines the image's position. Valid options are ``'left'``, ``'center'``, ``'right'``
 
-
-To keep the core dependencies minimal if you install mapchete using ``pip``, some features
-are only available if you manually install additional dependencies:
-
-.. code-block:: shell
-
-    # for contour extraction:
-    $ pip install mapchete[contours]
-
-    # for S3 bucket reading and writing:
-    $ pip install mapchete[s3]
-
-    # for mapchete serve:
-    $ pip install mapchete[serve]
-
-    # for VRT generation:
-    $ pip install mapchete[vrt]
+``:caption:``: can be used to give a caption to the diagram.
 
 
--------
-License
--------
+Config values
+-------------
 
-MIT License
+``mermaid_output_format``
 
-Copyright (c) 2015 - 2020 `EOX IT Services`_
+   The output format for Mermaid when building HTML files.  This must be either ``'raw'``
+   ``'png'`` or ``'svg'``; the default is ``'raw'``. ``mermaid-cli`` is required if it's not ``raw``
 
-.. _`EOX IT Services`: https://eox.at/
+``mermaid_version``
+
+  The version of mermaid that will be used to parse ``raw`` output in HTML files. This should match a version available on https://unpkg.com/browse/mermaid/. The default is ``"latest"``.
+
+  If it's set to ``""``, the lib won't be automatically included from the CDN service and you'll need to add it as a local
+  file in ``html_js_files``. For instance, if you download the lib to `_static/js/mermaid.js`, in ``conf.py``::
+
+
+    html_js_files = [
+       'js/mermaid.js',
+    ]
+
+
+``mermaid_init_js``
+
+  Mermaid initilizaction code. Default to ``"mermaid.initialize({startOnLoad:true});"``.
+
+.. versionchanged:: 0.7
+    The init code doesn't include the `<script>` tag anymore. It's automatically added at build time.
+
+
+``mermaid_cmd``
+
+   The command name with which to invoke ``mermaid-cli`` program.  The default is ``'mmdc'``; you may need to set this to a full path if it's not in the executable search path.
+
+``mermaid_cmd_shell``
+
+   When set to true, the ``shell=True`` argument will be passed the process execution command.  This allows commands other than binary executables to be executed on Windows.  The default is false.
+
+``mermaid_params``
+
+   For individual parameters, a list of parameters can be added. Refer to `<https://github.com/mermaidjs/mermaid.cli#options>`_.
+   Examples::
+
+      mermaid_params = ['--theme', 'forest', '--width', '600', '--backgroundColor', 'transparent']
+
+   This will render the mermaid diagram with theme forest, 600px width and transparent background.
+
+``mermaid_sequence_config``
+
+    Allows overriding the sequence diagram configuration. It could be useful to increase the width between actors. It **needs to be a json file**
+    Check options in the `documentation <https://mermaid-js.github.io/mermaid/#/mermaidAPI?id=configuration>`_
+
+``mermaid_verbose``
+
+    Use the verbose mode when call mermaid-cli, and show its output in the building
+    process.
+
+``mermaid_pdfcrop``
+
+    If using latex output, it might be useful to crop the pdf just to the needed space. For this, ``pdfcrop`` can be used.
+    State binary name to use this extra function.
+
+
+Markdown support
+----------------
+
+You can include Mermaid diagrams in your Markdown documents in Sphinx.
+You just need to setup the `markdown support in Sphinx <https://www.sphinx-doc.org/en/master/usage/markdown.html>`_ via
+`myst-parser <https://myst-parser.readthedocs.io/>`_
+. See a `minimal configuration from the tests <https://github.com/mgaitan/sphinxcontrib-mermaid/blob/master/tests/roots/test-markdown/conf.py>`_
+
+Then in your `.md` documents include a code block as in reStructuredTexts::
+
+
+ ```{mermaid}
+
+     sequenceDiagram
+       participant Alice
+       participant Bob
+       Alice->John: Hello John, how are you?
+ ```
+
+
