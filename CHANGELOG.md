@@ -1,78 +1,31 @@
-# Changelog
-All notable changes to this project will be documented in this file.
+# soft-webauthn changelog
 
-The format of this changelog is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+## 0.1.3
 
-## [Unreleased]
-### Changed
-- Use Model.__str__() for related fields. In 1.x the primary key was used for related fields.
+* fixed: fido2 version dependency (upper limit)
 
-### Added
-- Test on Django 3.0, 3.1 & 3.2
-- Test on Python 3.9 (for Django versions with support).
+## 0.1.2
 
-### Removed
-- Drop support for Python 2 and Python 3.4.
-- Drop support for Django 1.11.
+* fixed challenge attribute in clientDataJSON (PR#9 thanks to @kverdecia)
 
-## [1.1.0]
-### Added
-- Add support for Django 3.0.
-- Test on Python 3.8 (for Django versions with support).
+## 0.1.1
 
-## [1.0.1]
-### Added
-- Test on Django 2.2.
+* fix sign_count (PR#6 thanks to @sstoel)
+* fix attestation format (PR#4 thanks to @sstoel)
 
-### Fixed
-- Fixed bug with filename getting duplicate .csv extension.
+## 0.1.0
 
-## [1.0.0]
-### Added
-- Add CHANGELOG.md to release.
+* update fido2 library and adapt to API breaking changes
 
-## [0.5.0]
-### Added
-- Test on Django 2.0 and 2.1.
-- Test with pypy and pypy3.5.
+## 0.0.3
 
-### Removed
-- Drop testing on Django < 1.11.
+* fix fido2 package version pinning
+* started changelog
 
-## [0.4.0]
-### Fixed
-- Fixed bug with numeric choice fields with 0 values.
+## 0.0.2
 
-## [0.3.0]
-### Added
-- More documentation in the README.
-- More tests.
-- Check that `get_context_data(self, **kwargs)` is not being overridden.
+* documentation update
 
-### Fixed
-- Fixed issue with unicode csv data on Python 2.
+## 0.0.1
 
-### Removed
-- Drop support for Python 3.3.
-
-## [0.2.0] - 2017-08-07
-### Added
-- Allow `get_fields(self, queryset)` to be overridden.
-
-### Fixed
-- Fixed issue with blank value in choice field.
-
-## [0.1.0] - 2017-08-01
-### Added
-- Initial version.
-
-[Unreleased]: https://github.com/benkonrath/django-csv-export-view/compare/1.1.0...HEAD
-[1.1.0]: https://github.com/benkonrath/django-csv-export-view/compare/1.0.1...1.1.0
-[1.0.1]: https://github.com/benkonrath/django-csv-export-view/compare/1.0.0...1.0.1
-[1.0.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.5.0...1.0.0
-[0.5.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.4.0...0.5.0
-[0.4.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.3.0...0.4.0
-[0.3.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.2.0...0.3.0
-[0.2.0]: https://github.com/benkonrath/django-csv-export-view/compare/0.1.0...0.2.0
-[0.1.0]: https://github.com/benkonrath/django-csv-export-view/compare/4a8792dbaf97c7fdb5de77dbc9fc0c28c5c54eab...0.1.0
+* initial implementation

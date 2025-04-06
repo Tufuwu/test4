@@ -1,156 +1,56 @@
-# django-csv-export-view
+# Python software webauthn token
 
-A Django class-based view for CSV export.
+[![Build Status](https://travis-ci.org/bodik/soft-webauthn.svg?branch=master)](https://travis-ci.org/bodik/soft-webauthn)
 
-[![Build Status](https://travis-ci.org/benkonrath/django-csv-export-view.svg?branch=master)](https://travis-ci.org/benkonrath/django-csv-export-view)
+Package is used for testing webauthn enabled web applications. The use-case is
+authenticator and browser emulation during web application development
+continuous integration.
 
-## Features
+`SoftWebauthnDevice` class interface exports basic navigator interface used for
+webauthn features:
 
-* Easy CSV exports by setting a Django `model` and a `fields` or `exclude` iterable
-* Works with existing class-based view mixins for access control
-* Generates Microsoft Excel friendly CSV by default
-* Proper HTTP headers set for CSV
-* Easy to override defaults as needed
-* Easy integration into Django Admin
+* `SoftWebauthnDevice.create(...)` aka `navigator.credentials.create(...)`
+* `SoftWebauthnDevice.get(...)` aka `navigator.credentials.get(...)`
 
-## Installation
+To support authentication tests without prior registration/attestation, the
+class exports additional functions:
 
-`pip install django-csv-export-view`
+* `SoftWebauthnDevice.cred_init(rp_id, user_handle)`
+* `SoftWebauthnDevice.cred_as_attested()`
 
-## Quick Start
+There is no standard/specification for *Client* (browser) to *Relying party*
+(web application) communication. Therefore the class should be be used in a web
+application test suite along with other code handling webapp specific tasks
+such as conveying *CredentialCreationOptions* from webapp and
+*PublicKeyCredential* back to the webapp.
 
-Examples:
-```python
-from csv_export.views import CSVExportView
+The example usage can be found in `tests/test_interop.py` (Token/Client vs RP
+API) and `tests/test_example.py` (Token/Client vs RP HTTP). Despite internal
+usage of `yubico/python-fido2` package, the project should be usable againts
+other RP implementations as well.
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = ("field", "related", "property")
+## References
 
-    # When using related fields you will likely want to override get_queryset() use select_related() or prefetch_related().
-    def get_queryset(self):
-        return super().get_queryset().select_related("related")
-        OR
-        return super().get_queryset().prefetch_related("related")
+* https://w3c.github.io/webauthn
+* https://webauthn.guide/
+* https://github.com/Yubico/python-fido2
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = ("field", "related__field", "property")
+## Development
 
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
-
-class DataExportView(CSVExportView):
-    model = Data
-    exclude = ("id",)
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.exclude(deleted=True)
-
-class DataExportView(CSVExportView):
-    model = Data
-
-    def get_fields(self, queryset):
-        fields = ["username", "email"]
-        if self.request.user.is_superuser:
-            fields.append("birth_date")
-        return fields
 ```
+git clone https://github.com/bodik/soft-webauthn
+cd soft-webauthn
+ln -s ../../git_hookprecommit.sh .git/hooks/pre-commit
 
-`fields` / `exclude`: An iterable of field names and properties. You cannot set both `fields` and `exclude`.
-`fields` can also be `"__all__"` to export all fields. Model properties are not included when `"__all__"` is used.
-Related field can be used with `__`. Override `get_fields(self, queryset)` for custom behaviour not supported by the
-default logic.
+# OPTIONAL, create and activate virtualenv
+make venv
+. venv/bin/activate
 
-`model`: The model to use for the CSV export queryset. Override `get_queryset()` if you need a custom queryset.
+# install dependencies
+make install-deps
 
-## Further Customization
-
-Examples:
-```python
-from csv_export.views import CSVExportView
-
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
-    header = False
-    specify_separator = False
-    filename = "data-export.csv"
-
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
-    verbose_names = False
-
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
-
-    def get_filename(self, queryset):
-        return "data-export-{!s}.csv".format(timezone.now())
+# profit
+make lint
+make test
+make coverage
 ```
-
-`header` - *boolean* - Default: `True`  
-Whether to include the header in the CSV.
-
-`filename` - *string* - Default: Dasherized version of `verbose_name_plural` from `queryset.model`.  
-Override `get_filename(self, queryset)` if a dynamic filename is required.
-
-`specify_separator` - *boolean* - Default: `True`  
-Whether to include `sep=<sepaator>` as the first line of the CSV file. This is useful for generating Microsoft
-Excel friendly CSV.
-
-`verbose_names` - *boolean* - Default: `True`  
-Whether to use capitalized verbose column names in the header of the CSV file. If `False`, field names are used
-instead.
-
-## CSV Writer Options
-
-Example:
-```python
-from csv_export.views import CSVExportView
-
-class DataExportView(CSVExportView):
-    model = Data
-    fields = "__all__"
-
-    def get_csv_writer_fmtparams(self):
-        fmtparams = super().get_csv_writer_fmtparams()
-        fmtparams["delimiter"] = "|"
-        return fmtparams
-```
-
-Override `get_csv_writer_fmtparams(self)` and return a dictionary of csv write format parameters. Default format
-parameters are: dialect="excel" and quoting=csv.QUOTE_ALL. See all available options in the Python docs:
-
-https://docs.python.org/3.9/library/csv.html#csv.writer
-
-## Django Admin Integration
-
-Example:
-```python
-from django.contrib import admin
-from csv_export.views import CSVExportView
-
-@admin.register(Data)
-class DataAdmin(admin.ModelAdmin):
-    actions = ("export_data_csv",)
-
-    def export_data_csv(self, request, queryset):
-        view = CSVExportView(queryset=queryset, fields="__all__")
-        return view.get(request)
-
-    export_data_csv.short_description = "Export CSV for selected Data records"
-```
-
-## Contributions
-
-Pull requests are happily accepted.
-
-## Alternatives
-
-https://github.com/django-import-export/django-import-export/
-
-https://github.com/mjumbewu/django-rest-framework-csv
