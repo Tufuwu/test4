@@ -1,55 +1,21 @@
-*.py[cod]
+*.pyc
+*.pyo
+.DS*
+.pylint_rc
+/.idea
+/.project
+/.pydevproject
+/.settings
+Thumbs.db
+*~
+.cache
 
-# C extensions
-*.so
-
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
 .coverage
-.tox
-nosetests.xml
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# Complexity
-output/*.html
-output/*/index.html
-
-# Sphinx
-docs/_build
-
-/todo.txt
-/test.db
-/_
-/.cache
-.venv
-/env
-/.ropeproject
-
-# JetBrains
-.idea
-/.pytest_cache
-/example*
+.tox/
+test/userdata/credentials.json
+test/userdata/temp
+test/userdata/token.json
+test/userdata/cache
+test/userdata/addon_data
+test/userdata/tokens
+test/cdm

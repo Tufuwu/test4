@@ -1,73 +1,65 @@
-VIRTUAL_ENV	?= env
+export PYTHONPATH := $(CURDIR):$(CURDIR)/test
+PYTHON := python
 
-all: $(VIRTUAL_ENV)
+# Collect information to build as sensible package name
+name = $(shell xmllint --xpath 'string(/addon/@id)' addon.xml)
+version = $(shell xmllint --xpath 'string(/addon/@version)' addon.xml)
+git_branch = $(shell git rev-parse --abbrev-ref HEAD)
+git_hash = $(shell git rev-parse --short HEAD)
+zip_name = $(name)-$(version)-$(git_branch)-$(git_hash).zip
+include_files = addon_entry.py addon.xml CHANGELOG.md LICENSE README.md resources/ service_entry.py
+include_paths = $(patsubst %,$(name)/%,$(include_files))
+exclude_files = \*.new \*.orig \*.pyc \*.pyo
 
-.PHONY: help
-# target: help - Display callable targets
-help:
-	@egrep "^# target:" [Mm]akefile
+languages = $(filter-out en_gb, $(patsubst resources/language/resource.language.%, %, $(wildcard resources/language/*)))
 
-.PHONY: clean
-# target: clean - Clean the repository
+.PHONY: check test
+
+all: check test build
+zip: build
+
+check: check-pylint check-tox check-translations
+
+check-pylint:
+	@echo ">>> Running pylint checks"
+	@$(PYTHON) -m pylint *.py resources/lib/ test/
+
+check-tox:
+	@echo ">>> Running tox checks"
+	@$(PYTHON) -m tox -q
+
+check-translations:
+	@echo ">>> Running translation checks"
+	@$(foreach lang,$(languages), \
+		msgcmp resources/language/resource.language.$(lang)/strings.po resources/language/resource.language.en_gb/strings.po; \
+	)
+
+check-addon: clean build
+	@echo ">>> Running addon checks"
+	$(eval TMPDIR := $(shell mktemp -d))
+	@unzip ../${zip_name} -d ${TMPDIR}
+	cd ${TMPDIR} && kodi-addon-checker --branch=leia
+	@rm -rf ${TMPDIR}
+
+test: test-unit
+
+test-unit:
+	@echo ">>> Running unit tests"
+	@$(PYTHON) -m unittest discover -v -b -f
+
 clean:
-	rm -rf build/ dist/ docs/_build *.egg-info
-	find $(CURDIR) -name "*.py[co]" -delete
-	find $(CURDIR) -name "*.orig" -delete
-	find $(CURDIR)/$(MODULE) -name "__pycache__" -delete
+	@find . -name '*.pyc' -type f -delete
+	@find . -name '*.pyo' -type f -delete
+	@find . -name '__pycache__' -type d -delete
+	@rm -rf .pytest_cache/ .tox/ test/cdm test/userdata/temp
+	@rm -f *.log .coverage
 
-# ==============
-#  Bump version
-# ==============
+build: clean
+	@echo ">>> Building package"
+	@rm -f ../$(zip_name)
+	cd ..; zip -r $(zip_name) $(include_paths) -x $(exclude_files)
+	@echo "Successfully wrote package as: ../$(zip_name)"
 
-.PHONY: release
-VERSION?=minor
-# target: release - Bump version
-release: $(VIRTUAL_ENV)
-	@bump2version $(VERSION)
-	@git checkout master
-	@git merge develop
-	@git checkout develop
-	@git push --all
-	@git push --tags
-
-.PHONY: minor
-minor: release
-
-.PHONY: patch
-patch:
-	make release VERSION=patch
-
-.PHONY: major
-major:
-	make release VERSION=major
-
-# ===============
-#  Build package
-# ===============
-
-.PHONY: register
-# target: register - Register module on PyPi
-register:
-	@python setup.py register
-
-.PHONY: upload
-# target: upload - Upload module on PyPi
-upload: clean $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/python setup.py sdist bdist_wheel
-	@$(VIRTUAL_ENV)/bin/twine upload dist/*.tar.gz || true
-	@$(VIRTUAL_ENV)/bin/twine upload dist/*.whl || true
-	@$(VIRTUAL_ENV)/bin/pip install -e $(CURDIR)
-
-# =============
-#  Development
-# =============
-
-$(VIRTUAL_ENV): setup.cfg
-	@[ -d $(VIRTUAL_ENV) ] || python -m venv $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pip install -e .[tests,build]
-	@touch $(VIRTUAL_ENV)
-
-.PHONY: t test
-# target: test - Runs tests
-t test: $(VIRTUAL_ENV)
-	@$(VIRTUAL_ENV)/bin/pytest tests
+release: build
+	rm -rf ../repo-plugins/$(name)/*
+	unzip ../$(zip_name) -d ../repo-plugins/
