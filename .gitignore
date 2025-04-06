@@ -1,46 +1,20 @@
+*.egg-info/
+*.o
 *.py[co]
-
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-var
-sdist
-develop-eggs
-.installed.cfg
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
+*.so
+_trial_temp*/
+build/
+dropin.cache
+doc/
+docs/_build/
+dist/
+venv/
+htmlcov/
 .coverage
-.tox
-
-#Translations
-*.mo
-
-#Mr Developer
-.mr.developer.cfg
-
-# rope
-.ropeproject
-
-# data files
-*.json.gz
-*.flent
-/*.flent.gz
-*.flent.bz2
-*.csv
-*.pdf
-/*.png
-*.svg
-data/
-
-# distutils gerated
-MANIFEST
-
-.dir-locals.el
-*.log
+.coverage.*
+*~
+*.lock
+apidocs/
+.tox/
+.DS_Store
+coverage.xml

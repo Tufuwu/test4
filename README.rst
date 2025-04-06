@@ -1,89 +1,108 @@
-Flent: The FLExible Network Tester
-==================================
+Incremental
+===========
 
-Flent is a Python wrapper to run multiple simultaneous netperf/iperf/ping
-instances and aggregate the results. It was previously known as
-'netperf-wrapper'. See the web site for the main documentation:
-https://flent.org.
+|travis|
+|pypi|
+|coverage|
 
-Installing Flent
-----------------
-Installing Flent can be done in several ways, depending on your operating system:
+Incremental is a small library that versions your Python projects.
 
+API documentation can be found `here <https://twisted.github.io/incremental/docs/>`_.
 
-- **Debian and Ubuntu:**
-
-    .. code-block:: bash
-
-      apt install flent
-
-- **Fedora:**
-
-    .. code-block:: bash
-
-      dnf install flent
-
-- **Ubuntu pre-18.04:**
-
-  Add the `tohojo/flent PPA <https://launchpad.net/~tohojo/+archive/ubuntu/flent>`_.
-
-- **Arch Linux:**
-
-  Install Flent from `the AUR <https://aur.archlinux.org/packages/flent>`_.
-
-- **Other Linux:**
-
-  Install from the `Python Package Index <https://pypi.python.org/pypi/flent>`_:
-  
-    .. code-block:: bash
-
-      pip install flent
-
-- **FreeBSD:**
-
-  Install the package
-
-    .. code-block:: bash
-
-      pkg install flent
-
-  Or install the port
-  
-    .. code-block:: bash
-
-        cd /usr/ports/net/flent && make install
-
-- **macOS:**
-
-  `Homebrew <https://brew.sh/>`_ and Python 3 must be installed (Python 3 can be installed using Homebrew)
-
-  Install the `patched netperf package <https://github.com/kris-anderson/homebrew-netperf>`_
-
-    .. code-block:: bash
-
-      brew tap kris-anderson/netperf
-      brew install netperf-enable-demo
-
-  Install other dependencies
-
-    .. code-block:: bash
-
-      brew install fping
-      pip3 install matplotlib --user
-
-  Install Flent using pip
-
-    .. code-block:: bash
-
-      pip3 install flent --user
-
-  Optional (install this if you want to use `flent-gui`)
-
-    .. code-block:: bash
-
-      pip3 install pyqt5 qtpy --user
 
 Quick Start
 -----------
 
-See https://flent.org/intro.html#quick-start or doc/quickstart.rst.
+Add this to your ``setup.py``\ 's ``setup()`` call, removing any other versioning arguments:
+
+.. code::
+
+   setup(
+       use_incremental=True,
+       setup_requires=['incremental'],
+       install_requires=['incremental'], # along with any other install dependencies
+       ...
+   }
+
+
+Install Incremental to your local environment with ``pip install incremental[scripts]``.
+Then run ``python -m incremental.update <projectname> --create``.
+It will create a file in your package named ``_version.py`` and look like this:
+
+.. code::
+
+   from incremental import Version
+
+   __version__ = Version("widgetbox", 17, 1, 0)
+   __all__ = ["__version__"]
+
+
+Then, so users of your project can find your version, in your root package's ``__init__.py`` add:
+
+.. code::
+
+   from ._version import __version__
+
+
+Subsequent installations of your project will then use Incremental for versioning.
+
+
+Incremental Versions
+--------------------
+
+``incremental.Version`` is a class that represents a version of a given project.
+It is made up of the following elements (which are given during instantiation):
+
+- ``package`` (required), the name of the package this ``Version`` represents.
+- ``major``, ``minor``, ``micro`` (all required), the X.Y.Z of your project's ``Version``.
+- ``release_candidate`` (optional), set to 0 or higher to mark this ``Version`` being of a release candidate (also sometimes called a "prerelease").
+- ``post`` (optional), set to 0 or higher to mark this ``Version`` as a postrelease.
+- ``dev`` (optional), set to 0 or higher to mark this ``Version`` as a development release.
+
+You can extract a PEP-440 compatible version string by using the ``.public()`` method, which returns a ``str`` containing the full version. This is the version you should provide to users, or publicly use. An example output would be ``"13.2.0"``, ``"17.1.2dev1"``, or ``"18.8.0rc2"``.
+
+Calling ``repr()`` with a ``Version`` will give a Python-source-code representation of it, and calling ``str()`` with a ``Version`` will provide a string similar to ``'[Incremental, version 16.10.1]'``.
+
+
+Updating
+--------
+
+Incremental includes a tool to automate updating your Incremental-using project's version called ``incremental.update``.
+It updates the ``_version.py`` file and automatically updates some uses of Incremental versions from an indeterminate version to the current one.
+It requires ``click`` from PyPI.
+
+``python -m incremental.update <projectname>`` will perform updates on that package.
+The commands that can be given after that will determine what the next version is.
+
+- ``--newversion=<version>``, to set the project version to a fully-specified version (like 1.2.3, or 17.1.0dev1).
+- ``--rc``, to set the project version to ``<year-2000>.<month>.0rc1`` if the current version is not a release candidate, or bump the release candidate number by 1 if it is.
+- ``--dev``, to set the project development release number to 0 if it is not a development release, or bump the development release number by 1 if it is.
+- ``--patch``, to increment the patch number of the release. This will also reset the release candidate number, pass ``--rc`` at the same time to increment the patch number and make it a release candidate.
+- ``--post``, to set the project postrelease number to 0 if it is not a postrelease, or bump the postrelease number by 1 if it is. This will also reset the release candidate and development release numbers.
+
+If you give no arguments, it will strip the release candidate number, making it a "full release".
+
+Incremental supports "indeterminate" versions, as a stand-in for the next "full" version. This can be used when the version which will be displayed to the end-user is unknown (for example "introduced in" or "deprecated in"). Incremental supports the following indeterminate versions:
+
+- ``Version("<projectname>", "NEXT", 0, 0)``
+- ``<projectname> NEXT``
+
+When you run ``python -m incremental.update <projectname> --rc``, these will be updated to real versions (assuming the target final version is 17.1.0):
+
+- ``Version("<projectname>", 17, 1, 0, release_candidate=1)``
+- ``<projectname> 17.1.0rc1``
+
+Once the final version is made, it will become:
+
+- ``Version("<projectname>", 17, 1, 0)``
+- ``<projectname> 17.1.0``
+
+
+.. |coverage| image:: https://codecov.io/github/twisted/incremental/coverage.svg?branch=master
+.. _coverage: https://codecov.io/github/twisted/incremental
+
+.. |travis| image:: https://travis-ci.org/twisted/incremental.svg?branch=master
+.. _travis: https://travis-ci.org/twisted/incremental
+
+.. |pypi| image:: http://img.shields.io/pypi/v/incremental.svg
+.. _pypi: https://pypi.python.org/pypi/incremental
