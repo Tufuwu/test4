@@ -1,204 +1,225 @@
 # Changelog
 
-## 3.2.0 (2021-03-08)
+## v2.0.0
 
-- Fix CopyIncrementally with no data (#54)
-- Add ability to specify modification value type in CopyIncrementally (#53)	66e7dc1	Jan Katins <jan.katins@zenjob.com>	4. Mar 2021 at 22:06
-- Fix read stderr during command execution (#47)
-- Use echo_queries from mara_db.config.default_echo_queries (#58)
-- Include all versioned package files in wheel
+*Released: May 19th 2020*
 
+- **Backwards incompatible change:** `python-docker` was renamed to `python3-docker`
+- Fix symlink related issues with virtualenv when using virtualenv 20+
+- Configure daemon before installing Docker to allow customizing certain things
+- Support multiple CPU architecture types (amd64, arm64, armhf, armv7l)
+- Officially support Ubuntu 20.04
+- Remove all support for Python 2.x
+- Officially remove support for Ubuntu 16.04
 
-## 3.1.1 (2020-07-31)
+## v1.9.2
 
-- Fix for visible passwords in the logs despite `mara_pipelines.config.password_masks()`
-  set. Bug was introduced in 3.0.0.
+*Released: February 13th 2020*
 
-## 3.1.0 (2020-07-21)
+- Add `gcc` as dependency since Docker Compose 1.25+ needs it
+- Add `python(3)-dev` as dependency since Docker Compose 1.25+ needs it
+- Fix Docker module import error so that you can use the `docker_*` Ansible modules
 
-- Modify shell command to support the Google BigQuery integration
-- Add file_dependencies argument to Python commands
+## v1.9.1
 
-## 3.0.0 (2020-06-11)
+*Released: September 9th 2019*
 
-Rename package from `data_integration` to `mara_pipelines`.
+- Fix quote mismatch when writing environment variable based systemd configuration
 
-**required changes**
+## v1.9.0
 
-- In requirements.txt, change `-e git+https://github.com/mara/data-integration.git@2.8.3#egg=data-integration` to `-e git+https://github.com/mara/mara-pipelines.git@3.0.0#egg=mara-pipelines`
-- If you use the `mara-etl-tools` package, update to version `4.0.0`
-- In your project code, replace all imports from `data_integration` to `mara_pipelines`
-- Adapt navigation and ACL entries, if you have any (their names changed from "Data integration" to "Pipelines")
+*Released: August 7th 2019*
 
-Here's an example of how that looks at the mara example project 2: https://github.com/mara/mara-example-project-2/commit/fa2fba148e65533f821a70c18bb0c05c37706a83
+- Officially support Debian Buster
+- Fix version pinning to work for both the `docker-ce` and `docker-ce-cli` package
+- Add `docker__cron_jobs_prune_schedule` to configure the docker system prune schedule
+- Fix most Ansible 2.8.x warnings (purposely ignoring the apititude warning)
 
+## v1.8.0
 
-## 2.8.3 (2020-06-10)
+*Released: December 19th 2018*
 
-- Fix duplicated system stats if you run multiple ETLs in parallel (#38)
-- Add config default_task_max_retries (#39)
-- Cleaner shutdown (#41)
+- Change `docker__apt_key_server` to `docker__apt_key_url`
+- `docker__version` and `docker__compose_version` are back to being empty strings by default
 
+## v1.7.0
 
-## 2.8.2 (2020-05-04)
+*Released: December 18th 2018*
 
-- Ignore not succeeded executions in cost calculation (#36)
-- Ensure we log errors via events in case of error/shutdown (#33)
-- Fix a bug where we reported the wrong error to chat channels when running in
-  the browser and did not restart between failed runs (#33)
+- `docker__version` and `docker__compose_version` are now both undefined by default
+- Change `docker__users` to default to `docker__users: ["{{ ansible_env.SUDO_USER | d('root') }}"]`
+- Check for an existing Docker Compose file before trying to symlink it
 
-## 2.8.1 (2020-04-27)
+## v1.6.0
 
-- Fix Problems when frontend and database are in a different timezone (#34)
+*Released: December 15th 2018*
 
-## 2.8.0 (2020-03-25)
+### Features
 
-- Implement pipeline notifications via Microsoft Teams #28
-- Make it possible to disable output coloring in command line etl runs (#31)
+- Docker and Docker Compose can now be installed to their latest versions by default
+- A Virtualenv will be created for any PIP packages that get installed
+- The `docker-compose` package is installed through PIP (complete with latest / version pinning)
+- The `docker` package is installed through PIP (all of Ansible's `docker_*` modules now work)
+- Symlinks are created to put `docker-compose` and `python-docker` on the system's path
+- Better documentation to demonstrate how to downgrade / upgrade Docker versions
+- Docker login's config path can now be configured
+- Overall improved documentation and tests
 
-## 2.7.0 (2020-03-05)
+### Variables
 
-- Make event handlers configurable: this allows for e.g. adding your own notifier for specific events
-- Switch slack to use events for notifications of interactive pipeline runs
-- Fix an edge case bug where reverting a commit after an error in the table creation for an incremental load
-  job would not recreate the original tables leading to a failed load
-- Fix an edge case bug where crashing during a triggered (code change, TRUNCATE) full load of an
-  incremental load job after the table was already loaded would not rerun the full load
-  leading to missing data
-- Optimize how we set the spawning method in multiprocessing
+- Remove `python-pip` from `docker__package_dependencies`
+- Remove `docker__install_docker_compose`
+- Remove `docker__compose_download_url`
+- Remove `docker__default_daemon_json_log_max_size`
+- Remove `docker__default_daemon_json_log_max_file`
+- Add `docker__state` to control the Docker APT package's state
+- Add `docker__pip_dependencies` to install various APT dependencies to run PIP
+- Add `docker__pip_virtualenv` to create a Virtualenv for PIP
+- Add `docker__default_pip_packages` to install default PIP packages
+- Add `docker__pip_packages` to install additional PIP packages
+- Add `docker__pip_docker_compose_state` to control the Docker Compose PIP package's state
+- Add `docker__pip_docker_state` to control the Docker PIP package's state
+- Add `config_path` property to the `docker__registries` list
+- Add `docker__cron_jobs_prune_flags` to configure which prune flags get set
+- Change `docker__default_daemon_json` to log to journald by default
+- Change `docker__channel` from being a string to a list
 
+## v1.5.0
 
-## 2.6.1 (2020-02-20)
+*Released: November 11th 2018*
 
-- Fix for Python 3.7 ("RuntimeError: context has already been set")
+- Rename `docker__install_docker__compose` to `docker__install_docker_compose`
+- Bump Docker Compose version to 1.23
+- Change systemd options to use `-H unix://` to be compatible with 18.09 by default
+- Install `python-pip` apt package as a dependency for pip installing `docker`
+- Pip install `docker` so Ansible's `docker_login` and `docker_service` modules work
+- Remove unnecessary "Remove Upstart config file" task
+- Remove unnecessary "Install Python for managing Docker login credentials" task
+- Remove unnecessary `enabled: true` in the systemd restart handler (it starts on boot by default)
 
+## v1.4.0
 
-## 2.6.0 (2020-02-12)
+*Released: October 31st 2018*
 
-- Python 3.8 compatibility (explicitly set process spawning method to 'fork')
-- Fix open runs after browser reload
-- Add workaround for system statistics on wsl1
-- Speedup incremental insert into partitioned tables
-- Show warning when graphviz is not installed
+- Rename `docker__daemon_options` to `docker__daemon_json`
+- Rename `docker__daemon_options_log_max_size` to `docker__default_daemon_json_log_max_size`
+- Rename `docker__daemon_options_log_max_file` to `docker__default_daemon_json_log_max_file`
+- Add `docker__daemon_flags` for setting systemd unit file Docker daemon options
+- Add `docker__systemd_override` for setting custom systemd directives for the Docker service
+- Rename `docker__cron_tasks` to `docker__cron_jobs`
+- `cron_file` can now be configured with cron jobs to write out cron jobs in `/etc/cron.d`
+- Add `user` to cron jobs since we're now using `cron_file`
+- Drastically improve documentation
 
-## 2.5.1 (2019-08-01)
+## v1.3.0
 
-- Include file_dependencies as variable for Copy Commands: This could handle cases in ETL pipeline, where the copy command shall be skipped if the sql_files stay the same.
+*Released: October 21st 2018*
 
+- Variables are now using the `docker__*` style instead of `docker_*`
+- Add configuration value for Docker Compose download URL
+- Make style changes based on yamllint and ansible-lint
 
-## 2.5.0 (2019-07-07)
+## v1.2.0
 
-- Bug fix: make last modification timestamp of parallel file reading time zone aware (fixes `TypeError: can't compare offset-naive and offset-aware datetimes` error)
+*Released: October 11th 2018*
 
+- Remove ability to remove the `docker-*` package
+- Add documentation on how to remove Docker if you need to downgrade versions
+- Let Docker manage its own systemd unit file
+- Allow environment configuration using the systemd `docker.service.d/*` pattern
 
-## 2.4.0 - 2.4.2 (2019-07-04)
+## v1.1.0
 
-- Add travis integration and PyPi upload
+*Released: October 9th 2018*
 
+- Add `-H fd://` to the daemon options at the systemd unit file level
+- Update systemd unit file as per Docker's latest settings
+- Convert to using `/etc/docker/daemon.json` for setting daemon options
+- Add variables to configure log size and max number of files
+- Default to rotating logs after 10 gigs of space is used (was previously unlimited)
+- System prune cron job now sets the `-a` flag to remove unused images
 
-## 2.3.0 (2019-07-04)
+## v1.0.0
 
-- Add parameter `csv_format` and `delimiter_char` to `Copy` and `CopyIncrementally` commands.
+*Released: September 19th 2018*
 
+- Update role to be compliant and depend on Ansible 2.5+
+- Add official support for Ubuntu 16.04 / 18.04 and Debian Jessie / Stretch
+- Default to Docker v18.06
+- Default to Docker Compose v1.22
+- Default to the stable channel instead of edge
+- Add support for configuring 1 or more registries (thanks to @Mykhailo Chalyi for starting this)
+- Add ability to remove Docker by setting `docker__remove_package: True`
+- Fix APT GPG key issues (thanks to @bidossessi for starting this)
+- Add proper version pinning support
+- Remove `docker__apt_package_name` because the package name has been simplified thanks to pinning
+- Redirect system prune's cron output to `/dev/null`
+- Extract Docker's package dependencies into `docker__package_dependencies`
+- Add more tests
 
-## 2.2.0 (2019-07-02)
+## v0.2.3
 
-- Changed all `TIMSTAMP` to `TIMSTAMPTZ` in the mara tables. You have to manually run the
-  below migration commands as `make migrate-mara-db` won't pick up this change.
+*Released: April 13th 2018*
 
-**required changes**
-You need to manually convert the mara tables to `TIMESTAMPTZ`:
+- Default to Docker v18.04
+- Default to Docker Compose v1.21
+- Expose `docker__apt_package_name` to customize the APT package name
 
-```SQL
--- Change the timezone to whatever your ETL process is running in
-ALTER TABLE data_integration_run ALTER start_time TYPE timestamptz
-  USING start_time AT TIME ZONE 'Europe/Berlin';
-ALTER TABLE data_integration_run ALTER end_time TYPE timestamptz
-  USING end_time AT TIME ZONE 'Europe/Berlin';
-ALTER TABLE data_integration_processed_file ALTER last_modified_timestamp TYPE timestamptz
-  USING last_modified_timestamp AT TIME ZONE 'Europe/Berlin';
-ALTER TABLE data_integration_node_run ALTER start_time TYPE timestamptz
-  USING start_time AT TIME ZONE 'Europe/Berlin';
-ALTER TABLE data_integration_node_run ALTER end_time TYPE timestamptz
-  USING end_time AT TIME ZONE 'Europe/Berlin';
-ALTER TABLE data_integration_node_output ALTER timestamp TYPE timestamptz
-  USING timestamp AT TIME ZONE 'Europe/Berlin';
-ALTER TABLE data_integration_file_dependency ALTER timestamp TYPE timestamptz
-  USING timestamp AT TIME ZONE 'Europe/Berlin';
-ALTER TABLE data_integration_system_statistics ALTER timestamp TYPE timestamptz
-  USING timestamp AT TIME ZONE 'Europe/Berlin';
-```
+## v0.2.2
 
-## 2.1.0 (2019-05-15)
+*Released: March 28th 2018*
 
-- Track and visualize also unfinished pipeline runs
-- Speed up computation of node durations and node cost
-- Improve error handling in launching of parallel tasks
-- Improve run times visualization (better axis labels, independent tooltips)
-- Smaller ui improvements
+- Default to Docker v18.03
+- Default to Docker Compose v1.20
 
+## v0.2.1
 
-## 2.0.0 - 2.0.1 (2019-04-12)
+*Released: February 14th 2018*
 
-- Remove dependency_links from setup.py to regain compatibility with recent pip versions
-- Change MARA_XXX variables to functions to delay importing of imports
-- move some imports into the functions that use them in order to improve loading speed
-- Add ability to mask passwords in `Command`s, so they cannot show up in the UI anymore
-  or are not written to the database in saved Events (config
-  `data_integration.config.password_masks()`). See the example in the original function
-  how to not let passwords show up in the settings UI.
-  ([gh #14](https://github.com/mara/data-integration/pull/14))
+- Default to Docker v18.02
+- Default to Docker Compose v1.19
 
-**required changes**
+## v0.2.0
 
-- Update `mara-app` to `>=2.0.0`
+*Released: January 25th 2018*
 
+- Change version strategy to be separate from Docker releases (it was a bad idea!)
+- Change `docker__options` to `docker__daemon_options`
+- Default to Docker v18.01 on the CE edge channel
+- Fix systemd service so Docker loads after `network-online.target` instead of `network.target`
+- Add cron job to clean up after Docker
+- Add proper tests and support for Ubuntu 16, Debian Stretch and Debian Jessie
+- Update format and style consistencies
 
-## 1.4.0 - 1.4.7 (2018-09-15)
+## v17.12
 
-- Use postgresql 10 native partitioning for creating day_id partitions in ParallelReadFile
-- Catch and display exceptions when creating html command documentation
-- Add python ParallelRunFunction
-- Add option to use explicit upsert on incremental load (explicit UPDATE + INSERT)
-- Emit a proper NodeFinished event when the launching of a parallel task failed
-- Add option truncate_partition to parallel tasks
-- Fix bug in run_interactively cli command
-- Make it possible to run the ExecuteSQL command outside of a pipeline via .run()
-- Add args parameter to RunFunction command
-- Show redundant node upstreams as dashed line in pipeline graphs
-- Fix problems with too long bash commands by using multiple commands for partition generation in ParallelReadXXX tasks
+*Released: January 11th 2018*
 
-**required changes**
+- Default to Docker v17.12 on the CE edge channel
+- Default to Docker Compose v1.18
 
-- When using `ParallelReadFile` with parameter `partition_target_table_by_day_id=True`, then make sure the target table is natively partitioned by adding `PARTITION BY LIST (day_id)`.
+## v17.06
 
+*Released: June 28th 2017*
 
+- Default to Docker v17.06 on the CE edge channel
+- Default to Docker Compose v1.14
+- Update code base to support Docker's new version format
 
-## 1.3.0 (2018-07-17)
+## v0.1.2
 
-- Add possibility to continue running child nodes on error (new `Pipeline` parameters `continue_on_error` and `force_run_all_children`)
-- Make dependency on requests explicit
+*Released: October 9th 2016*
 
+- Fix apt.cache https could not be found error
 
-## 1.2.0 (2018-06-01)
+## v0.1.1
 
-- Implement ReadMode ONLY_CHANGED that reads all new or modified files
-- Show node links in run output only relative to current node (to save space)
+*Released: October 9th 2016*
 
+- Fix issue where `docker-engine` package was not found
 
-## 1.1.0 (2018-05-23)
+## v0.1.0
 
-- Add slack notifications to "run_interactively" cli command
-- Add parameter max_retries to class Task
-- Fix typos in Readme
-- Optimize imports
+*Released: October 8th 2016*
 
-
-## 1.0.0 - 1.0.4 (2018-05-02)
-
-- Move to Github
-- Improve documentation
-- Add ReadMode 'ONLY_LATEST'
-- Add new command `ReadScriptOutput`
-- Add slack bot configuration
-- Fix url in slack event handler
+- Initial release
