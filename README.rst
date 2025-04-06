@@ -1,169 +1,208 @@
-Python Wrapper for NVD3 - It's time for beautiful charts
-========================================================
+Matching
+========
 
-:Description: Python-nvd3 is a wrapper for NVD3 graph library
-:NVD3: NVD3 http://nvd3.org/
-:D3: Data-Driven Documents http://d3js.org/
-:Maintainers: Areski_ & Oz_
-:Contributors: `list of contributors <https://github.com/areski/python-nvd3/graphs/contributors>`_
+.. image:: https://img.shields.io/pypi/v/matching.svg
+    :target: https://pypi.org/project/matching/
 
-.. _Areski: https://github.com/areski/
-.. _Oz: https://github.com/oz123/
+.. image:: https://github.com/daffidwilde/matching/workflows/CI/CD/badge.svg
+    :target: https://github.com/daffidwilde/matching/actions?query=workflow%3ACI%2FCD+branch%3Amaster
 
-.. image:: https://api.travis-ci.org/areski/python-nvd3.png?branch=develop
-  :target: https://travis-ci.org/areski/python-nvd3
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/ambv/black
 
-.. image:: https://coveralls.io/repos/areski/python-nvd3/badge.png?branch=develop
-  :target: https://coveralls.io/r/areski/python-nvd3?branch=develop
+.. image:: https://zenodo.org/badge/119597240.svg
+    :target: https://zenodo.org/badge/latestdoi/119597240
 
-.. image:: https://img.shields.io/pypi/v/python-nvd3.svg
-  :target: https://pypi.python.org/pypi/python-nvd3/
-  :alt: Latest Version
-
-.. image:: https://img.shields.io/pypi/dm/python-nvd3.svg
-  :target: https://pypi.python.org/pypi/python-nvd3/
-  :alt: Downloads
-
-.. image:: https://img.shields.io/pypi/pyversions/python-nvd3.svg
-  :target: https://pypi.python.org/pypi/python-nvd3/
-  :alt: Supported Python versions
-
-.. image:: https://img.shields.io/pypi/l/python-nvd3.svg
-  :target: https://pypi.python.org/pypi/python-nvd3/
-  :alt: License
-
-.. image:: https://requires.io/github/areski/python-nvd3/requirements.svg?branch=develop
-  :target: https://requires.io/github/areski/python-nvd3/requirements/?branch=develop
-  :alt: Requirements Status
-
-NVD3 is an attempt to build re-usable charts and chart components
-for d3.js without taking away the power that d3.js offers you.
-
-Python-NVD3 makes your life easy! You write Python and the library
-renders JavaScript for you!
-These graphs can be part of your web application:
-
- .. image:: https://raw.githubusercontent.com/areski/python-nvd3/develop/docs/showcase/multiple-charts.png
+.. image:: https://joss.theoj.org/papers/10.21105/joss.02169/status.svg
+    :target: https://doi.org/10.21105/joss.02169
 
 
+A package for solving matching games.
+-------------------------------------
+
+A matching game is defined by two sets of players. Each player in one set has a
+ranked preference list of those in the other, and the objective is to find some
+mapping between the two sets such that no pair of players are unhappy. The
+context of the terms "mapping" and "unhappy" are dependent on the framework of
+the particular game being played but are largely to do with the stability of the
+pairings.
+
+In ``matching``, we deal with four types of matching game:
+
+- the stable marriage problem (SM);
+- the hospital-resident assignment problem (HR);
+- the student-allocation problem (SA);
+- the stable roommates problem (SR).
 
 
-Want to try it yourself? Install python-nvd3, enter your python shell and try this quick demo::
+Installation
+------------
 
-    >>> from nvd3 import pieChart
-    >>> type = 'pieChart'
-    >>> chart = pieChart(name=type, color_category='category20c', height=450, width=450)
-    >>> xdata = ["Orange", "Banana", "Pear", "Kiwi", "Apple", "Strawberry", "Pineapple"]
-    >>> ydata = [3, 4, 0, 1, 5, 7, 3]
-    >>> extra_serie = {"tooltip": {"y_start": "", "y_end": " cal"}}
-    >>> chart.add_serie(y=ydata, x=xdata, extra=extra_serie)
-    >>> chart.buildcontent()
-    >>> print chart.htmlcontent
+Matching is written in Python 3, and relies only on `NumPy
+<http://www.numpy.org/>`_ for general use.
+
+The library is most easily installed using :code:`pip`::
+
+    $ python -m pip install matching
+
+However, if you would like to install it from source then go ahead and clone the
+GitHub repo::
+
+    $ git clone https://github.com/daffidwilde/matching.git
+    $ cd matching
+    $ python setup.py install
 
 
-This will output the following HTML to render a live chart. The HTML could be
-stored into a HTML file, used in a Web application, or even used via Ipython Notebook::
+Using the ``Player`` class
+--------------------------
 
-    <div id="pieChart"><svg style="width:450px;height:450px;"></svg></div>
-    <script>
-    data_pieChart=[{"values": [{"value": 3, "label": "Orange"},
-                   {"value": 4, "label": "Banana"},
-                   {"value": 0, "label": "Pear"},
-                   {"value": 1, "label": "Kiwi"},
-                   {"value": 5, "label": "Apple"},
-                   {"value": 7, "label": "Strawberry"},
-                   {"value": 3, "label": "Pineapple"}], "key": "Serie 1"}];
+With all of these games, ``matching`` uses a ``Player`` class to represent the
+members of the "applying" party, i.e. residents and students. For HR and SA,
+there are specific classes to represent the roles of ``Hospital``, ``Project``
+and ``Supervisor``.
 
-    nv.addGraph(function() {
-        var chart = nv.models.pieChart();
-        chart.margin({top: 30, right: 60, bottom: 20, left: 60});
-        var datum = data_pieChart[0].values;
-                chart.tooltipContent(function(key, y, e, graph) {
-                    var x = String(key);
-                    var y =  String(y)  + ' cal';
-                    tooltip_str = '<center><b>'+x+'</b></center>' + y;
-                    return tooltip_str;
-                });
-            chart.showLegend(true);
-            chart.showLabels(true);
-            chart.donut(false);
-        chart
-            .x(function(d) { return d.label })
-            .y(function(d) { return d.value });
-        chart.width(450);
-        chart.height(450);
-        d3.select('#pieChart svg')
-            .datum(datum)
-            .transition().duration(500)
-            .attr('width', 450)
-            .attr('height', 450)
-            .call(chart);
-    });
-    </script>
+For instances of SM, we require two lists of ``Player`` instances -- one for
+each party detailing their preferences.
+
+Consider the following problem which is represented on a bipartite graph.
+
+.. image:: ./img/stable_marriage.png
+   :align: center
+   :width: 10cm
+
+We construct the players in this game in the following way:
+
+>>> from matching import Player
+
+>>> suitors = [Player(name="A"), Player(name="B"), Player(name="C")]
+>>> reviewers = [Player(name="D"), Player(name="E"), Player(name="F")]
+>>> (A, B, C), (D, E, F) = suitors, reviewers
+
+>>> A.set_prefs([D, E, F])
+>>> B.set_prefs([D, F, E])
+>>> C.set_prefs([F, D, E])
+
+>>> D.set_prefs([B, C, A])
+>>> E.set_prefs([A, C, B])
+>>> F.set_prefs([C, B, A])
+
+Then to solve this matching game, we make use of the ``StableMarriage`` class,
+like so:
+
+>>> from matching.games import StableMarriage
+>>> game = StableMarriage(suitors, reviewers)
+>>> game.solve()
+{A: E, B: D, C: F}
+
+
+Note
+++++
+
+This matching is not a standard Python dictionary, though it does largely look
+and behave like one. It is in fact an instance of the ``Matching`` class:
+
+>>> matching = game.matching
+>>> type(matching)
+<class 'matching.matching.Matching'>
+
+This dictionary-like object is primarily useful as a teaching device that eases
+the process of manipulating a matching after a solution has been found. 
+
+
+Using dictionaries
+------------------
+
+For larger game instances, creating players directly (as above) could be
+unreasonably tedious. An alternative approach is to create an instance of a game
+from Python dictionaries. For example, consider the following instance of HR:
+
+There are five residents -- Ada, Sam, Jo, Luc, Dani -- applying to work at three
+hospitals: Mercy, City, General. Each hospital has two available positions, and
+the players' preferences of one another are as follows:
+
+.. image:: ./img/hospital_resident.png
+   :align: center
+   :width: 10cm
+
+This information can be conveyed as a few dictionaries like so:
+
+>>> resident_prefs = {
+...     "A": ["C"],
+...     "S": ["C", "M"],
+...     "D": ["C", "M", "G"],
+...     "J": ["C", "G", "M"],
+...     "L": ["M", "C", "G"],
+... }
+>>> hospital_prefs = {
+...     "M": ["D", "L", "S", "J"],
+...     "C": ["D", "A", "S", "L", "J"],
+...     "G": ["D", "J", "L"],
+... }
+>>> capacities = {hosp: 2 for hosp in hospital_prefs}
+
+Then, similarly, this game is solved using the ``HospitalResident`` class but an
+instance is created using the ``create_from_dictionaries`` class method:
+
+>>> from matching.games import HospitalResident
+>>> game = HospitalResident.create_from_dictionaries(
+...     resident_prefs, hospital_prefs, capacities
+... )
+>>> game.solve()
+{M: [L, S], C: [D, A], G: [J]}
+
+Note
+++++
+
+Despite passing dictionaries of strings here, the matching displays instances of
+``matching`` players:
+
+>>> matching = game.matching
+>>> for hospital in matching:
+...     print(type(hospital))
+<class 'matching.players.hospital.Hospital'>
+<class 'matching.players.hospital.Hospital'>
+<class 'matching.players.hospital.Hospital'>
+
+This is because ``create_from_dictionaries`` creates instances of the
+appropriate player classes first and passes them to the game class. Using
+dictionaries like this can be an efficient way of creating large games but it
+does require the names of the players in each party to be unique.
 
 
 Documentation
 -------------
 
-Check out the documentation on `Read the Docs`_ for some live Chart examples!
-
-.. _Read the Docs: http://python-nvd3.readthedocs.org
-
-Installation
-------------
-
-Install, upgrade and uninstall python-nvd3 with these commands::
-
-    $ pip install python-nvd3
-    $ pip install --upgrade python-nvd3
-    $ pip uninstall python-nvd3
+Full documentation is available here: `<https://matching.readthedocs.io>`_
 
 
-Dependencies
-------------
+A note on performance
+---------------------
 
-D3 and NvD3 can be installed through bower (which itself can be installed through npm).
-See http://bower.io/ and https://npmjs.org for further information.
-To install bower globally execute::
+One of the limitations of this library is the time complexities of the algorithm
+implementations. In practical terms, the running time of any of the algorithms
+in Matching is negligible but the theoretic complexity of each has not yet been
+attained. For example, an instance of HR with 400 applicants and 20 hospitals is
+solved in less than one tenth of a second:
 
-    $ npm install -g bower
-
-Note : you might prefer to save your npm dependencies locally in a ``package.json`` file.
-
-Then in the directory where you will use python-nvd3, just execute the following commands::
-
-    $ bower install d3#3.5.17
-    $ bower install nvd3#1.8.6
-
-This will create a directory "bower_components" where d3 & nvd3 will be saved.
-
-Note : you might prefer to save your bower dependencies locally in a ``bower.json`` file.
-You can also configure the directory where your bower dependencies will be
-saved adding a ``.bowerrc`` file in your project root directory.
-
-
-Django Wrapper
---------------
-
-There is also a django wrapper for nvd3 available:
-https://github.com/areski/django-nvd3
+>>> from matching.games import HospitalResident
+>>> import numpy as np
+>>> np.random.seed(0)
+>>> resident_prefs = {
+...     r: np.argsort(np.random.random(size=20)) for r in range(400)
+... }
+>>> hospital_prefs = {
+...     h: np.argsort(np.random.random(size=400)) for h in range(20)
+... }
+>>> capacities = {h: 20 for h in hospital_prefs}
+>>> game = HospitalResident.create_from_dictionaries(
+...     resident_prefs, hospital_prefs, capacities
+... )
+>>> _ = game.solve() # 48.6 ms ± 963 µs per loop
 
 
-IPython Notebooks
------------------
+Get in contact!
+---------------
 
-Python-NVD3 works nicely within IPython Notebooks (thanks to @jdavidheiser)
-
-See the examples directory for an Ipython notebook with python-nvd3.
-
-
-License
--------
-
-Python-nvd3 is licensed under MIT, see `MIT-LICENSE.txt`.
-
-
-Maintainers
------------
-
-If you want to help maintain this project, please get in touch.
+I hope this package is useful, and feel free to contact me here (or on Twitter:
+`@daffidwilde <https://twitter.com/daffidwilde>`_) with any issues or
+recommendations. Pull requests are always welcome!
