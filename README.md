@@ -1,19 +1,28 @@
-radare2-r2papi
-==============
+# fingerprints
 
-Formerly known as r2pipe-api, but `papi` sounds better.
+[![Build Status](https://travis-ci.org/alephdata/fingerprints.png?branch=master)](https://travis-ci.org/alephdata/fingerprints)
 
-[![Rust](https://github.com/radareorg/radare2-r2papi/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/radareorg/radare2-r2papi/actions/workflows/rust.yml)
-[![Python](https://github.com/radareorg/radare2-r2papi/actions/workflows/python.yml/badge.svg?branch=master)](https://github.com/radareorg/radare2-r2papi/actions/workflows/python.yml)
-[![Typescript](https://github.com/radareorg/radare2-r2papi/actions/workflows/typescript.yml/badge.svg?branch=master)](https://github.com/radareorg/radare2-r2papi/actions/workflows/typescript.yml)
+This library helps with the generation of fingerprints for entity data. A fingerprint
+in this context is understood as a simplified entity identifier, derived from it's
+name or address and used for cross-referencing of entity across different datasets.
 
-This repository contains a high-level API on top of r2pipe, abstracting
-the r2 commands with a human-friendly taste.
+## Usage
 
-As long as this API will require some discussion because it will serve
-as a way to redesign the R2 C Apis at some point, we must focus on
-practical use cases, flexibility, ortogonality and other ities.
+```python
+import fingerprints
 
-Feel free to open issues, send PRs with proposals.
+fp = fingerprints.generate('Mr. Sherlock Holmes')
+assert fp == 'holmes sherlock'
 
---pancake
+fp = fingerprints.generate('Siemens Aktiengesellschaft')
+assert fp == 'ag siemens'
+
+fp = fingerprints.generate('New York, New York')
+assert fp == 'new york'
+```
+
+## See also
+
+* [Clustering in Depth](https://github.com/OpenRefine/OpenRefine/wiki/Clustering-In-Depth), part of the OpenRefine documentation discussing how to create collisions in data clustering.
+* [probablepeople](https://github.com/datamade/probablepeople), parser for western names made by the brilliant folks at datamade.us.
+

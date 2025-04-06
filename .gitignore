@@ -1,9 +1,8 @@
-.*.swp
-*.pyc
-venv/
-
-.coverage
+.DS_Store
 *.egg-info
-.pytest_cache
-dist/
-htmlcov/
+*.pyc
+*.eggs
+dist/*
+build/*
+.vscode
+.coverage

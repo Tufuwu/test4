@@ -1,28 +1,31 @@
-name: Python
+name: package
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Install radare2 5.8.0
+    - uses: actions/checkout@v1
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+    - name: Install dependencies
       run: |
-        wget https://github.com/radareorg/radare2/releases/download/5.8.0/radare2_5.8.0_amd64.deb
-        sudo dpkg -i radare2_5.8.0_amd64.deb
-        r2 -v
-    - name: Install python dependencies
-      run: pip3 install -r python/requirements_ci.txt
-    - name: Build python module
-      run: make -C python build
-    - name: Install r2papi.py
-      run: sudo make -C python install || true
-    - name: Test the r2api
-      run: rarun2 timeout=10 system="make -C python test"
+        sudo apt-get install -y libicu-dev
+        python -m pip install --upgrade pip wheel
+        pip install pyicu coverage nose
+        pip install -e .
+    - name: Test with pytest
+      run: |
+        nosetests --with-coverage --cover-package=fingerprints --cover-erase
+    - name: Build a distribution
+      run: |
+        python setup.py sdist bdist_wheel
+    - name: Publish a Python distribution to PyPI
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@main
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
