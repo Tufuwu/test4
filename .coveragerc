@@ -1,6 +1,7 @@
 [run]
-source = localflavor
-branch = 1
+branch = True
+source = duecredit
+include = 
+  duecredit/*
+  examples/*
 
-[report]
-omit = localflavor/*tests*

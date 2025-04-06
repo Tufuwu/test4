@@ -1,55 +1,72 @@
-
-name: Test
+name: Tests
 
 on:
   push:
     branches:
       - main
   pull_request:
+  schedule:
+    - cron: '0 6 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - name: Install tox
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade tox
-      - name: Run docs test build
-        run: tox -e docs
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - name: Install tox
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade tox
-      - name: Run prospector linting
-        run: tox -e prospector
-
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    env:
+      NO_ET: 1
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9"]
+        os:
+          - windows-2019
+          - ubuntu-latest
+          - macos-latest
+        python: ["3.9"]
+        mode:
+          - normal
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install tox
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade tox tox-py
-      - name: Run tests
-        run: tox --py current
+    - name: Set up environment
+      uses: actions/checkout@v4
+      with:
+        # Fetch all commits so that versioneer will return something compatible
+        # with semantic-version
+        fetch-depth: 0
+
+
+    - name: Set up Python ${{ matrix.python }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip wheel
+        pip install -q codecov
+        python setup.py --help # just to trigger generation of .version
+        pip install --upgrade flake8 pytest
+        pip install ".[tests]"
+
+    - name: Run all tests
+      run: |
+        python setup.py install  # test installation
+        # for now flaking only the stub.py
+        flake8 duecredit/stub.py
+        python -m pytest -s -v --cov=duecredit --cov-report=xml duecredit
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        # TODO
+        # token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        flags: unittests
+        # name: codecov-umbrella
+        # yml: ./codecov.yml
+        fail_ci_if_error: false

@@ -1,13 +1,12 @@
-*.egg-info
-dist
-build
+__pycache__
+*.py[co]
+/build
+/dist
+/MANIFEST
+/duecredit/version.py
+/venv*
+/.tox
+.duecredit.p
 .coverage
-.tox
-repos
-docs/_build/
-*.py[cod]
-.idea/
-env/
-
-# vscode
-.vscode/
+*.egg-info
+.idea

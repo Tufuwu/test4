@@ -1,147 +1,135 @@
-import os
+#!/usr/bin/env python
+"""
+duecredit -- publications (donations, etc) tracer
+"""
+
+import os.path
 import re
 import sys
-import codecs
-from fnmatch import fnmatchcase
-from distutils.util import convert_path
-from setuptools import setup, find_packages
+
+from datetime import datetime
+from subprocess import Popen, PIPE
+
+from setuptools import find_packages, setup
+
+# Adopted from citeproc-py
+#  License: BSD-2
+#  Copyright 2011-2013 Brecht Machiels
+
+PACKAGE = 'duecredit'
+VERSION_FILE = PACKAGE + '/version.py'
 
 
-def read(*parts):
-    filename = os.path.join(os.path.dirname(__file__), *parts)
-    with codecs.open(filename, encoding='utf-8') as fp:
-        return fp.read()
+def make_pep440_compliant(version: str, local_prefix: str) -> str:
+    """Convert the version into a PEP440 compliant version."""
+    public_version_re = re.compile(
+        r"^([0-9][0-9.]*(?:(?:a|b|rc|.post|.dev)[0-9]+)*)\+?"
+    )
+    _, public, local = public_version_re.split(version, maxsplit=1)
+    if not local:
+        return version
+    sanitized_local = re.sub("[+~-]+", ".", local).strip(".")
+    pep440_version = f"{public}+{local_prefix}{sanitized_local}"
+    assert re.match(
+        "^[a-zA-Z0-9.]+$", sanitized_local
+    ), f"'{pep440_version}' not PEP440 compliant"
+    return pep440_version
 
 
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+# retrieve the version number from git or VERSION_FILE
+# inspired by http://dcreager.net/2010/02/10/setuptools-git-version-numbers/
 
+try:
+    if os.path.exists('debian/copyright'):
+        print('Generating version.py out of debian/copyright information')
+        # building debian package. Deduce version from debian/copyright
+        with open('debian/changelog', 'r') as f:
+            lines = f.readlines()
+        __version__ = make_pep440_compliant(lines[0].split()[1].strip('()'), 'debian.')
+        # TODO: unify format whenever really bored ;)
+        __release_date__ = re.sub('^ -- .*>\s*(.*)', r'\1',
+                                  list(filter(lambda x: x.startswith(' -- '), lines))[0].rstrip())
+    else:
+        print('Attempting to get version number from git...')
+        git = Popen(['git', 'describe', '--abbrev=4', '--dirty'],
+                    stdout=PIPE, stderr=sys.stderr)
+        if git.wait() != 0:
+            raise OSError
+        line = git.stdout.readlines()[0].strip().decode('ascii')
+        if line.count('-') >= 2:
+            # we should parse it to make version compatible with PEP440
+            # unfortunately we wouldn't be able to include git treeish
+            # into the version, and thus can have collisions. So let's
+            # release from master only
+            line = '.dev'.join(line.split('-')[:2])
+        __version__ = line
+        __release_date__ = datetime.now().strftime('%b %d %Y, %H:%M:%S')
+    with open(VERSION_FILE, 'w') as version_file:
+        version_file.write("__version__ = '{0}'\n".format(__version__))
+        version_file.write("__release_date__ = '{0}'\n".format(__release_date__))
+except OSError as e:
+    print('Assume we are running from a source distribution.')
+    # read version from VERSION_FILE
+    if os.path.exists(VERSION_FILE):
+        with open(VERSION_FILE) as version_file:
+            code = compile(version_file.read(), VERSION_FILE, 'exec')
+            exec(code, locals(), globals())
+    else:
+        __version__ = '0.0.0.dev'
+print("Version: %s" % __version__)
 
-# Provided as an attribute, so you can append to these instead
-# of replicating them:
-standard_exclude = ('*.py', '*.pyc', '*$py.class', '*~', '.*', '*.bak')
-standard_exclude_directories = ('.*', 'CVS', '_darcs', './build',
-                                './dist', 'EGG-INFO', '*.egg-info')
-
-
-# (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
-# Note: you may want to copy this into your setup.py file verbatim, as
-# you can't import this from another package, when you don't know if
-# that package is installed yet.
-def find_package_data(where='.', package='',
-                      exclude=standard_exclude,
-                      exclude_directories=standard_exclude_directories,
-                      only_in_packages=True,
-                      show_ignored=False):
-    """
-    Return a dictionary suitable for use in ``package_data``
-    in a distutils ``setup.py`` file.
-
-    The dictionary looks like::
-
-        {'package': [files]}
-
-    Where ``files`` is a list of all the files in that package that
-    don't match anything in ``exclude``.
-
-    If ``only_in_packages`` is true, then top-level directories that
-    are not packages won't be included (but directories under packages
-    will).
-
-    Directories matching any pattern in ``exclude_directories`` will
-    be ignored; by default directories with leading ``.``, ``CVS``,
-    and ``_darcs`` will be ignored.
-
-    If ``show_ignored`` is true, then all the files that aren't
-    included in package data are shown on stderr (for debugging
-    purposes).
-
-    Note patterns use wildcards, or can be exact paths (including
-    leading ``./``), and all searching is case-insensitive.
-    """
-
-    out = {}
-    stack = [(convert_path(where), '', package, only_in_packages)]
-    while stack:
-        where, prefix, package, only_in_packages = stack.pop(0)
-        for name in os.listdir(where):
-            fn = os.path.join(where, name)
-            if os.path.isdir(fn):
-                bad_name = False
-                for pattern in exclude_directories:
-                    if (fnmatchcase(name, pattern) or fn.lower() == pattern.lower()):
-                        bad_name = True
-                        if show_ignored:
-                            print >> sys.stderr, (
-                                "Directory %s ignored by pattern %s"
-                                % (fn, pattern))
-                        break
-                if bad_name:
-                    continue
-                if (os.path.isfile(os.path.join(fn, '__init__.py')) and not prefix):
-                    if not package:
-                        new_package = name
-                    else:
-                        new_package = package + '.' + name
-                    stack.append((fn, '', new_package, False))
-                else:
-                    stack.append((fn, prefix + name + '/', package, only_in_packages))
-            elif package or not only_in_packages:
-                # is a file
-                bad_name = False
-                for pattern in exclude:
-                    if (fnmatchcase(name, pattern) or fn.lower() == pattern.lower()):
-                        bad_name = True
-                        if show_ignored:
-                            print >> sys.stderr, (
-                                "File %s ignored by pattern %s"
-                                % (fn, pattern))
-                        break
-                if bad_name:
-                    continue
-                out.setdefault(package, []).append(prefix + name)
-    return out
+with open('README.md', 'r', encoding='utf-8') as f:
+    README = f.read()
 
 setup(
-    name="django-localflavor",
-    version=find_version("localflavor", "__init__.py"),
-    url='https://django-localflavor.readthedocs.io/en/latest/',
-    license='BSD',
-    description="Country-specific Django helpers",
-    long_description=read('README.rst'),
-    author='Django Software Foundation',
-    author_email='foundation@djangoproject.com',
-    packages=find_packages(exclude=['tests', 'tests.*']),
-    package_data=find_package_data(),
+    name=PACKAGE,
+    version=__version__,
+    packages=find_packages(),
+    python_requires=">=3.6",
     install_requires=[
-        'django>=2.2',
-        'python-stdnum>=1.6',
+        'requests',
+        'citeproc-py>=0.4',
+        'six',
+        'importlib-metadata; python_version<"3.8"',
     ],
+    extras_require={
+        'tests': [
+            'pytest',
+            'pytest-cov',
+            'vcrpy', 'contextlib2'
+        ]
+    },
+    include_package_data=True,
+    entry_points={
+        'console_scripts': [
+             'duecredit=duecredit.cmdline.main:main',
+        ],
+    },
+    author='Yaroslav Halchenko, Matteo Visconti di Oleggio Castello',
+    author_email='yoh@onerussian.com',
+    description='Publications (and donations) tracer',
+    long_description=README,
+    long_description_content_type='text/markdown',
+    url='https://github.com/duecredit/duecredit',
+    keywords=['citation tracing'],
+    license='2-clause BSD License',
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Environment :: Other Environment',
         'Environment :: Web Environment',
-        'Framework :: Django',
-        'Framework :: Django :: 2.2',
-        'Framework :: Django :: 3.0',
-        'Framework :: Django :: 3.1',
-        'Framework :: Django :: 3.2',
         'Intended Audience :: Developers',
+        'Intended Audience :: Education',
+        'Intended Audience :: End Users/Desktop',
+        'Intended Audience :: Legal Industry',
+        'Intended Audience :: Other Audience',
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Internet :: WWW/HTTP',
-    ],
-    zip_safe=False,
+        'Topic :: Documentation',
+        'Topic :: Software Development :: Documentation',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ]
 )
