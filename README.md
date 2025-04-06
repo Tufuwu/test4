@@ -1,157 +1,199 @@
-# Welcome to GrimoireELK [![Build Status](https://github.com/chaoss/grimoirelab-elk/workflows/build/badge.svg)](https://github.com/chaoss/grimoirelab-elk/actions?query=workflow:build+branch:master+event:push) [![Coverage Status](https://coveralls.io/repos/github/chaoss/grimoirelab-elk/badge.svg?branch=master)](https://coveralls.io/github/chaoss/grimoirelab-elk?branch=master)
+# py-solc-x
 
-GrimoireELK is the component that interacts with the ElasticSearch database. Its goal is two-fold, first it aims at offering a convenient
-way to store the data coming from Perceval, second it processes and enriches the data in a format that can be consumed by Kibiter.
+[![Pypi Status](https://img.shields.io/pypi/v/py-solc-x.svg)](https://pypi.org/project/py-solc-x/) [![Build Status](https://img.shields.io/travis/com/iamdefinitelyahuman/py-solc-x.svg)](https://travis-ci.com/iamdefinitelyahuman/py-solc-x) [![Coverage Status](https://coveralls.io/repos/github/iamdefinitelyahuman/py-solc-x/badge.svg?branch=master)](https://coveralls.io/github/iamdefinitelyahuman/py-solc-x?branch=master)
 
-The Perceval data is stored in ElasticSearch indexes as raw documents (one per item extracted by Perceval). Those raw documents, which will be referred to as "raw data" in
-this documentation, include all information coming from the original data source which grants the platform to perform multiple analysis without the need of downloading the
-same data over and over again. Once raw data is retrieved, a new phase starts where data is enriched according to the data source from where it was collected and stored
-in ElasticSearch indexes. The enrichment removes information not needed by Kibiter and includes additional information which is not directly available within the raw data.
-For instance, pair programming information for Git data, time to solve (i.e., close or merge) issues and pull requests for GitHub data, and identities and organization
-information coming from [SortingHat](https://github.com/chaoss/grimoirelab-sortinghat) . The enriched data is stored as JSON documents, which embed information linked to
-the corresponding raw documents to ease debugging and guarantee traceability.
+Python wrapper around the `solc` Solidity compiler with `0.5.x` and `0.6.x` support.
 
-## Raw data
+Forked from [py-solc](https://github.com/ethereum/py-solc).
 
-Each raw document stored in an ElasticSearch index contains a set of common first level fields, regardless of the data source:
-- **backend** (string): Name of the Perceval backend used to retrieve the information.
-- **backend_version** (string): Version of the abovementioned backend.
-- **perceval_version** (string): Perceval version.
-- **timestamp** (long): When the item was retrieved by Perceval (in epoch format).
-- **origin** (string): Where the item was retrieved from.
-- **uuid** (string): Item unique identifier.
-- **updated_on** (long): When the item was updated in the original source (in epoch format).
-- **classified_fields_filtered** (list): List of data field names (strings) which  contained classified information and that were removed from the original item. Depends on activating ‘--filter-classified’ flag in Perceval.
-- **category** (string): Type of the items to fetch (commit, pull request, etc.) depending on the data source.
-- **tag** (string): Custom label that can be set in Perceval for each retrieval.
-- **data** (object): This field contains a copy in JSON format of the original data as it is retrieved from the data source. Next sections will describe where GrimoireLab get this information from.
+## Dependencies
 
-## Enriched data
+Py-solc-x allows the use of multiple versions of solc and installs them as needed. You must have all required [solc dependencies](https://solidity.readthedocs.io/en/latest/installing-solidity.html#building-from-source) installed for it to work properly.
 
-Each enriched index includes one or more types of documents, which are summarized below.
+## Supported Versions
 
-- **Askbot**: each document can be either a question, an answer or answer's comments.
-- **Bugzilla**: each document corresponds to a single issue.
-- **Bugzillarest**: each document corresponds to a single issue.
-- **Cocom**: each document corresponds to single file in a commit, with code complexity information.
-- **Colic**: each document corresponds to single file in a commit, with license information.
-- **Confluence**: each document can be either a new page, a page edit, a comment or an attachment.
-- **Crates**: each document corresponds to an event.
-- **Discourse**: each document can be either a question or an answer.
-- **Dockerhub**: each document corresponds to an image.
-- **Finosmeetings**: each document corresponds to details about a meeting.
-- **Functest**: each document corresponds to details about a test.
-- **Gerrit**: each document can be either a changeset, a comment, a patchset or a patchset approval.
-- **Git**: each document corresponds to a single commit.
-- **Git Areas of Code**: each document corresponds to one single file.
-- **GitHub issues**: each document corresponds to an issue.
-- **GitHub pull requests**: each document corresponds to a pull request.
-- **GitHub repo statistics**: each document includes repo statistics (e.g., forks, watchers).
-- **GitLab issues**: each document corresponds to an issue.
-- **GitLab merge requests**: each document corresponds to a merge request.
-- **Gitter**: each document corresponds to a message.
-- **Googlehits**: each document contains hits information derived from Google.
-- **Groupsio**: each document corresponds to a message.
-- **Hyperkitty**: each document corresponds to a message.
-- **Jenkins**: each document corresponds to a single built.
-- **Jira**: each document corresponds to an issue or a comment. To simplify counting user activities, issues are duplicated and they can include assignee, reporter and creator data respectively.
-- **Kitsune**: each document can be either a question or an answer.
-- **Launchpad**: each document corresponds to a bug.
-- **Mattermost**: each document corresponds to a message.
-- **Mbox**: each document corresponds to a message.
-- **Mediawiki**: each document corresponds to a review.
-- **Meetup**: each document can be either an event, a rsvp or a comment.
-- **Mozillaclub**: each document includes event information.
-- **Nttp**: each document corresponds to a message.
-- **Onion Study/Community Structure**: each document corresponds to an author in a specific quarter, split by organization and project. That means we have an entry for the author’s overall contributions in a given quarter, one entry for the author in each one of the projects he contributed to in that quarter and the same for the author in each of the organizations he is affiliated to in that quarter. This way we store results of onion analysis computed overall, by project and by organization
-- **Pagure**: each document corresponds to an issue.
-- **Phabricator**: each document corresponds to a task.
-- **Pipermail**: each document corresponds to a message.
-- **Puppetforge**: each document corresponds to a module.
-- **Rocketchat**: each document corresponds to a message.
-- **Redmine**: each document corresponds to an issue.
-- **Remo activities**: each document corresponds to an activity.
-- **Remo events**: each document corresponds to an event.
-- **Remo users**: each document corresponds to a user.
-- **Rss**: each document corresponds to an entry.
-- **Slack**: each document corresponds to a message.
-- **Stackexchange**: each document can be either a question or answer.
-- **Supybot**: each document corresponds to a message.
-- **Telegram**: each document corresponds to a message.
-- **Twitter**: each document corresponds to a tweet.
+Py-solc-x can install the following solc versions:
 
-### Fields
-Each enriched document contains a set of fields, they can be (i) common to all data sources (e.g., metadata fields, time field), (ii) specific to the data source, (iii) related to contributor’s
-profile information (i.e., identity fields) or (iv) to the project listed in the Mordred projects.json (i.e., project fields).
+* Linux and Windows: `>=0.4.11`
+* OSX: `>=0.5.0`
 
-#### Metadata fields
-- **metadata__timestamp** (date): Date when the item was retrieved from the original data source and stored in the index with raw documents.
-- **metadata__updated_on** (date): Date when the item was updated in its original data source.
-- **metadata__enriched_on** (date): Date when the item was enriched and stored in the index with enriched documents.
-- **metadata__gelk_backend_name** (string): Name of the backend used to enrich information.
-- **metadata__gelk_version** (string): Version of the backend used to enrich information.
-- **origin** (string): Original URL where the repository was retrieved from.
+`0.4.x` versions are available on OSX if they have been [installed via brew](https://github.com/ethereum/homebrew-ethereum), but cannot be installed directly by py-solc-x.
 
-#### Identity fields
-- **author_uuid** (string): Author profile unique identifier. Used for counting authors and cross-referencing data among data sources in ElasticSearch and between ElasticSearch, SortingHat and Hatstall.
-- **author_org_name** (string): Organization name to which the author is affiliated to. Same author could have different affiliations based on non-overlapping time periods. Used for aggregating contributors and contributions by organization.
-- **author_name** (string): Similar to author_uuid, but less useful for unique counts as different profiles could share the same name. Nevertheless is more appropriate to show this field when aggregating data by author as it is usually nicer to see a name than a hash value.
-- **author_bot** (boolean): True if the given author is identified as a bot.
-- **author_domain** (string): Domain associated to the author in SortingHat profile.
-- **author_id** (string): Author identifier. This id comes from SortingHat and identifies each different identity provided by SortingHat. These identifiers are grouped in a single author_uuid, so this fields is not commonly used unless data needs to be debugged.
+## Quickstart
 
-#### Project fields
-- **project** (string): Project name as defined in the JSON file where repositories are grouped by project.
-- **project_1** (string): Project (if more than one level is allowed in project hierarchy).
+Installation
 
-#### Time field:
-- **grimoire_creation_date** (date): Date when the item was created upstream. Used by default to represent data in time series on the dashboards.
-
-#### Demography fields:
-- **author_max_date** (date): Date of most recent commit made by this author.
-- **author_min_date** (date): Date of the first commit made by this author.
-
-#### Extra fields:
-- **extra_** (anything): Extra fields added using the `enrich_extra_data` study.
-
-#### Data source specific fields
-Details of the fields of each data source is available in the [Schema](https://github.com/chaoss/grimoirelab-elk/tree/master/schema) folder.
-
-## Running tests
-
-Tests are located in the folder [tests](https://github.com/chaoss/grimoirelab-elk/tree/master/tests). In order to run them, you need to have in your machine:
-- instances (or Docker containers) of ElasticSearch and MySQL
-- the [dependencies](https://github.com/chaoss/grimoirelab-elk/blob/master/requirements.txt) installed or available (the latter applies to the dependencies with the other GrimoireLab repositories).
-
-Then you need to:
-- update the file [tests.conf](https://github.com/chaoss/grimoirelab-elk/blob/master/tests/tests.conf) in case your ElasticSearch instance isn't available at http://localhost:9200. For example, if you are using the secure edition of elasticsearch, it will be located at https://admin:admin@localhost:9200
-- create the databases `test_sh` and `test_projects` in your MySQL instance (e.g., `mysql -u root -e "create database test_sh"`, if you are running mysql in a container use `docker exec -i <container id> mysql -u root -e "create database test_sh"`)
-- populate the database `test_projects` with the SQL file [test_projects.sql](https://github.com/chaoss/grimoirelab-elk/blob/master/tests/test_projects.sql) (e.g., `mysql -u root test_projects < tests/test_projects.sql`)
-
-The full battery of tests can be executed with [run_tests.py](https://github.com/chaoss/grimoirelab-elk/blob/master/tests/run_tests.py). However, it is also possible to execute
-a sub-set of tests by running the single test files (`test_*` files in the [tests folder](https://github.com/chaoss/grimoirelab-elk/tree/master/tests))
-
-The tests can be run in combination with the Python package `coverage`. The steps below show how to do it:
-```buildoutcfg
-$ pip3 install coveralls
-$ cd <path-to-ELK>/tests
-$ python3 -m coverage run run_tests.py --source=grimoire_elk 
+```sh
+pip install py-solc-x
 ```
 
-![pycharm-config-run_tests](https://user-images.githubusercontent.com/25265451/75114992-d9e9c400-5680-11ea-8b8e-9c50569367a4.png "pycharm-config-run_tests")
+## Installing the `solc` Executable
 
-Coverage will generate a file `.coverage` in the tests folder, which can be inspected with the following command:
-```buildoutcfg
-cd <path-to-ELK>/tests
-python3 -m coverage report -m
+The first time py-solc-x is imported it will automatically check for an installed version of solc on your system. If none is found, you must manually install via `solcx.install_solc`:
+
+```python
+>>> from solcx import install_solc
+>>> install_solc('v0.4.25')
 ```
 
-![pycharm-config_report](https://user-images.githubusercontent.com/25265451/75115046-554b7580-5681-11ea-92b4-b20c2ece1283.png "pycharm-config_report")
+Or via the command line:
 
-The output will be similar to the following one:
-```buildoutcfg
-Name                                                                                                                Stmts   Miss  Cover   Missing
---------------------------------------------------------------------------------------------------------------------------------------------------
-.../ELK/grimoire_elk/__init__.py                                                                                       4      0   100%
-.../ELK/grimoire_elk/_version.py                                                                                       1      0   100%
+```bash
+python -m solcx.install v0.4.25
 ```
+
+By default, `solc` versions are installed at `~/.solcx/`. If you wish to use a different directory you can specify it with the `SOLCX_BINARY_PATH` environment variable.
+
+## Setting the `solc` Version
+
+Py-solc-x defaults to the most recent installed version set as the active one. To check or modify the active version:
+
+```python
+>>> from solcx import get_solc_version, set_solc_version
+>>> get_solc_version()
+Version('0.5.7+commit.6da8b019.Linux.gpp')
+>>> set_solc_version('v0.4.25')
+>>>
+```
+
+You can also set the version based on the pragma version string. The highest compatible version will be used:
+
+```python
+>>> from solcx import set_solc_version_pragma
+>>> set_solc_version_pragma('^0.4.20 || >0.5.5 <0.7.0')
+Using solc version 0.5.8
+>>> set_solc_version_pragma('^0.4.20 || >0.5.5 <0.7.0', check_new=True)
+Using solc version 0.5.8
+Newer compatible solc version exists: 0.6.0
+```
+
+To view available and installed versions:
+
+```python
+>>> from solcx import get_installed_solc_versions, get_available_solc_versions
+>>> get_installed_solc_versions()
+['v0.4.25', 'v0.5.3', 'v0.6.0']
+>>> get_available_solc_versions()
+['v0.6.0', 'v0.5.15', 'v0.5.14', 'v0.5.13', 'v0.5.12', 'v0.5.11', 'v0.5.10', 'v0.5.9', 'v0.5.8', 'v0.5.7', 'v0.5.6', 'v0.5.5', 'v0.5.4', 'v0.5.3', 'v0.5.2', 'v0.5.1', 'v0.5.0', 'v0.4.25', 'v0.4.24', 'v0.4.23', 'v0.4.22', 'v0.4.21', 'v0.4.20', 'v0.4.19', 'v0.4.18', 'v0.4.17', 'v0.4.16', 'v0.4.15', 'v0.4.14', 'v0.4.13', 'v0.4.12', 'v0.4.11']
+```
+
+To install the highest compatible version based on the pragma version string:
+
+```python
+>>> from solcx import install_solc_pragma
+>>> install_solc_pragma('^0.4.20 || >0.5.5 <0.7.0')
+```
+
+## Standard JSON Compilation
+
+Use the `solcx.compile_standard` function to make use of the [standard-json](http://solidity.readthedocs.io/en/latest/using-the-compiler.html#compiler-input-and-output-json-description) compilation feature.
+
+```python
+>>> from solcx import compile_standard
+>>> compile_standard({
+...     'language': 'Solidity',
+...     'sources': {'Foo.sol': 'content': "...."},
+... })
+{
+    'contracts': {...},
+    'sources': {...},
+    'errors': {...},
+}
+>>> compile_standard({
+...     'language': 'Solidity',
+...     'sources': {'Foo.sol': {'urls': ["/path/to/my/sources/Foo.sol"]}},
+... }, allow_paths="/path/to/my/sources")
+{
+    'contracts': {...},
+    'sources': {...},
+    'errors': {...},
+}
+```
+
+## Legacy Combined JSON compilation
+
+```python
+>>> from solcx import compile_source, compile_files
+>>> compile_source("contract Foo { function Foo() {} }")
+{
+    'Foo': {
+        'abi': [{'inputs': [], 'type': 'constructor'}],
+        'code': '0x60606040525b5b600a8060126000396000f360606040526008565b00',
+        'code_runtime': '0x60606040526008565b00',
+        'source': None,
+        'meta': {
+            'compilerVersion': '0.3.5-9da08ac3',
+            'language': 'Solidity',
+            'languageVersion': '0',
+        },
+    },
+}
+>>> compile_files(["/path/to/Foo.sol", "/path/to/Bar.sol"])
+{
+    'Foo': {
+        'abi': [{'inputs': [], 'type': 'constructor'}],
+        'code': '0x60606040525b5b600a8060126000396000f360606040526008565b00',
+        'code_runtime': '0x60606040526008565b00',
+        'source': None,
+        'meta': {
+            'compilerVersion': '0.3.5-9da08ac3',
+            'language': 'Solidity',
+            'languageVersion': '0',
+        },
+    },
+    'Bar': {
+        'abi': [{'inputs': [], 'type': 'constructor'}],
+        'code': '0x60606040525b5b600a8060126000396000f360606040526008565b00',
+        'code_runtime': '0x60606040526008565b00',
+        'source': None,
+        'meta': {
+            'compilerVersion': '0.3.5-9da08ac3',
+            'language': 'Solidity',
+            'languageVersion': '0',
+        },
+    },
+}
+```
+
+## Unlinked Libraries
+
+```python
+>>> from solcx import link_code
+>>> unlinked_bytecode = "606060405260768060106000396000f3606060405260e060020a6000350463e7f09e058114601a575b005b60187f0c55699c00000000000000000000000000000000000000000000000000000000606090815273__TestA_________________________________90630c55699c906064906000906004818660325a03f41560025750505056"
+>>> link_code(unlinked_bytecode, {'TestA': '0xd3cda913deb6f67967b99d67acdfa1712c293601'})
+... "606060405260768060106000396000f3606060405260e060020a6000350463e7f09e058114601a575b005b60187f0c55699c00000000000000000000000000000000000000000000000000000000606090815273d3cda913deb6f67967b99d67acdfa1712c29360190630c55699c906064906000906004818660325a03f41560025750505056"
+```
+
+## Import Path Remappings
+
+`solc` provides path aliasing allow you to have more reusable project configurations.
+
+You can use this like:
+
+```python
+>>> from solcx import compile_files
+
+>>> compile_files([source_file_path], import_remappings=["zeppeling=/my-zeppelin-checkout-folder"])
+```
+
+[More information about solc import aliasing](http://solidity.readthedocs.io/en/latest/layout-of-source-files.html#paths)
+
+## Development
+
+This project was forked from [py-solc](https://github.com/ethereum/py-solc) and should be considered a beta. Comments, questions, criticisms and pull requests are welcomed.
+
+### Tests
+
+Py-solc-x is tested on Linux and Windows with solc versions ``>=0.4.11``.
+
+To run the test suite:
+
+```bash
+pytest tests/
+```
+
+By default, the test suite installs all available solc versions for your OS. If you only wish to test against already installed versions, include the `--no-install` flag.
+
+## License
+
+This project is licensed under the [MIT license](LICENSE).
