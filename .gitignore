@@ -1,27 +1,7 @@
-*.py[cdo]
-
-# Editor detritus
-*.vim
-*.swp
-tags
-.idea
-
-# Packaging detritus
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-
-# Unit test / coverage reports
-coverage
-.coverage*
-.tox
-.cache
-.pytest_cache
+*.egg-info/
+*.py[cod]
+.tox/
+__pycache__/
+build/
+dist/
+.coverage
