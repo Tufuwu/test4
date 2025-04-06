@@ -1,76 +1,60 @@
-from setuptools import setup, find_packages
-from os import path
+#!/usr/bin/env python3
+
+import sys
+from os import R_OK, access, makedirs, path
+from urllib.error import URLError
+from urllib.request import urlretrieve
+
+from setuptools import setup
+
+if not sys.version_info[0] == 3:
+    sys.exit("Python 2.x is not supported; Python 3.x is required.")
+
+########################################
+
+version_py = path.join(path.dirname(__file__), 'zxing', 'version.py')
+
+d = {}
+with open(version_py, 'r') as fh:
+    exec(fh.read(), d)
+    version_pep = d['__version__']
+
+########################################
 
 
-here = path.abspath(path.dirname(__file__))
-about = {}
-with open(path.join(here, 'vakt', 'version.py'), mode='r', encoding='utf-8') as f:
-    exec(f.read(), about)
+def download_java_files(force=False):
+    files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.4.1/javase-3.4.1.jar',
+             'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.4.1/core-3.4.1.jar',
+             'java/jcommander.jar': 'https://repo1.maven.org/maven2/com/beust/jcommander/1.78/jcommander-1.78.jar'}
 
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+    for fn, url in files.items():
+        p = path.join(path.dirname(__file__), 'zxing', fn)
+        d = path.dirname(p)
+        if not force and access(p, R_OK):
+            print("Already have %s." % p)
+        else:
+            print("Downloading %s from %s ..." % (p, url))
+            try:
+                makedirs(d, exist_ok=True)
+                urlretrieve(url, p)
+            except (OSError, URLError) as e:
+                raise
+    return list(files.keys())
 
 
-if __name__ == '__main__':
-    setup(
-        name='vakt',
-        description='Attribute-based access control (ABAC) SDK for Python',
-        keywords='ACL ABAC access-control policy security authorization permission',
-        version=about['__version__'],
-        author='Egor Kolotaev',
-        author_email='ekolotaev@gmail.com',
-        license="Apache 2.0 license",
-        url='http://github.com/kolotaev/vakt',
-        long_description=long_description,
-        long_description_content_type='text/markdown',
-        py_modules=['vakt'],
-        python_requires='>=3.4',
-        install_requires=[
-            'jsonpickle>=1.0',
-        ],
-        extras_require={
-            # Dev dependencies are not using pinned compatibility versions
-            # in order to support a wide array of Python versions
-            'dev': [
-                'pytest',
-                'pytest-cov',
-                'pylint',
-                'PyMySQL',
-                'psycopg2cffi~=2.8',
-            ],
-            'mongo': [
-                'pymongo~=3.5',
-            ],
-            'sql': [
-                'SQLAlchemy~=1.3',
-                # 'typing', # sqlalchemy imports typing since v1.3.24
-            ],
-            'redis': [
-                'redis~=3.3'
-            ],
-        },
-        packages=find_packages(exclude='tests'),
-        classifiers=[
-            'Intended Audience :: Developers',
-            'License :: OSI Approved :: Apache Software License',
-            'Operating System :: OS Independent',
-            'Topic :: System :: Systems Administration',
-            'Topic :: System :: Networking',
-            'Topic :: System :: Networking :: Firewalls',
-            'Topic :: Security',
-            'Topic :: Software Development',
-            'Topic :: Utilities',
-            'Natural Language :: English',
-            'Programming Language :: Python',
-            'Programming Language :: Python :: 3.4',
-            'Programming Language :: Python :: 3.5',
-            'Programming Language :: Python :: 3.6',
-            'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8',
-            'Programming Language :: Python :: 3.9',
-            'Programming Language :: Python :: 3.10',
-            'Programming Language :: Python :: 3.11',
-            'Programming Language :: Python :: Implementation :: PyPy',
-            'Programming Language :: Python :: Implementation :: CPython',
-        ],
-    )
+setup(
+    name='zxing',
+    version=version_pep,
+    description="wrapper for zebra crossing (zxing) barcode library",
+    long_description="More information: https://github.com/dlenski/python-zxing",
+    url="https://github.com/dlenski/python-zxing",
+    author='Daniel Lenski',
+    author_email='dlenski@gmail.com',
+    packages=['zxing'],
+    package_data={'zxing': download_java_files()},
+    entry_points={'console_scripts': ['zxing=zxing.__main__:main']},
+    install_requires=open('requirements.txt').readlines(),
+    tests_require=open('requirements-test.txt').readlines(),
+    test_suite='nose.collector',
+    license='LGPL v3 or later',
+)
