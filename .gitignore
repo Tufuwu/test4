@@ -1,15 +1,22 @@
-.DS_Store
-._*
-*.pyc
-*.egg
-*.egg-info
-.eggs/
-.tox/
-build/
-dist/
-docs/_build/
-local.py
+# Ontologies and Annotations
+*.gpad
+*.owl
+*.obo
+gene_association.*
+/*.gpa
+/*.gaf
+/*.json
+gene2go
+*.gz
+.cache
 
-# Because pipenv is only used to manage a local development
-# environment, it's not helpful to track its lock file
-Pipfile.lock
+# Temporary working files
+*.png
+*.pyc
+/*.xlsx
+/*.txt
+*.bac
+
+# Sphinx working directories
+_static
+_templates
