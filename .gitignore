@@ -1,12 +1,11 @@
-# Byte-compiled / optimized / DLL files
 *.pyc
-__pycache__/
+*.swp
+.coverage
+.vagrant
+bashlex/parser.out
+bashlex/parsetab.py
 
-# Sphinx documentation
-docs/_build/
-
-# Jupyter notebook
-.ipynb_checkpoints
-
-# VSCode
-.vscode/
+build/
+dist/
+bashlex.egg-info/
+*env*/

@@ -1,67 +1,35 @@
-import io
-import os
 from setuptools import setup
-from setuptools import find_packages
 
-
-def read(rel_path: str) -> str:
-    here = os.path.abspath(os.path.dirname(__file__))
-    # intentionally *not* adding an encoding option to open, See:
-    #   https://github.com/pypa/virtualenv/issues/201#issuecomment-3145690
-    with open(os.path.join(here, rel_path)) as fp:
-        return fp.read()
-
-
-def get_version(rel_path: str) -> str:
-    for line in read(rel_path).splitlines():
-        if line.startswith("__version__"):
-            # __version__ = "0.11.2"
-            delim = '"' if '"' in line else "'"
-            return line.split(delim)[1]
-    raise RuntimeError("Unable to find version string.")
-
-
-version = get_version("deepxde/__about__.py")
-
-with io.open("README.md", "r", encoding="utf-8") as f:
-    long_description = f.read()
-
-with open("requirements.txt", "r") as f:
-    install_requires = [x.strip() for x in f.readlines()]
 
 setup(
-    name="DeepXDE",
-    version=version,
-    description="A library for scientific machine learning",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    author="Lu Lu",
-    author_email="lululxvi@gmail.com",
-    url="https://github.com/lululxvi/deepxde",
-    download_url="https://github.com/lululxvi/deepxde/tarball/v" + version,
-    license="LGPL-2.1",
-    install_requires=install_requires,
+    name='bashlex',
+    version='0.16',
+    url='https://github.com/idank/bashlex.git',
+    license='GPLv3+',
+    author='Idan Kamara',
+    author_email='idankk86@gmail.com',
+    description='Python parser for bash',
+    long_description='''bashlex is a Python port of the parser used internally by GNU bash.
+
+For the most part it's transliterated from C, the major differences are:
+
+1. it does not execute anything
+2. it is reentrant
+3. it generates a complete AST
+
+See https://github.com/idank/bashlex/blob/master/README.md for more info.''',
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)",
-        "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "Topic :: Scientific/Engineering :: Mathematics",
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: System :: System Shells',
+        'Topic :: Text Processing',
     ],
-    keywords=[
-        "Scientific machine learning",
-        "Machine learning",
-        "Deep learning",
-        "Neural networks",
-        "Scientific computing",
-        "Differential equations",
-        "Physics-informed neural networks",
-    ],
-    packages=find_packages(),
-    include_package_data=True,
+    python_requires=">=2.7, !=3.0, !=3.1, !=3.2, !=3.3, !=3.4",
+    install_requires=['enum34; python_version < "3.4"'],
+    packages=['bashlex'],
 )
