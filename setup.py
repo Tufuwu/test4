@@ -1,24 +1,22 @@
-""" Setup file. """
+import os
+from os.path import join, dirname
 
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
 
-with open("README.rst", "r") as readme_file:
-    README = readme_file.read()
+from version import get_version
 
-exec(open("src/matching/version.py", "r").read())
+os.umask(0o022)
 
 setup(
-    name="matching",
-    version=__version__,
-    description="A package for solving matching games.",
-    long_description=README,
-    url="https://github.com/daffidwilde/matching",
-    author="Henry Wilde",
-    author_email="henrydavidwilde@gmail.com",
-    license="MIT",
-    keywords=["game-theory gale-shapley matching-games"],
-    packages=find_packages("src"),
-    package_dir={"": "src"},
-    python_requires=">=3.5",
-    tests_require=["pytest", "hypothesis", "numpy"],
+    name='libarchive-c',
+    version=get_version(),
+    description='Python interface to libarchive',
+    author='Changaco',
+    author_email='changaco@changaco.oy.lc',
+    url='https://github.com/Changaco/python-libarchive-c',
+    license='CC0',
+    packages=find_packages(exclude=['tests']),
+    long_description=open(join(dirname(__file__), 'README.rst')).read(),
+    long_description_content_type='text/x-rst',
+    keywords='archive libarchive 7z tar bz2 zip gz',
 )

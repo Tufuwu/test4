@@ -1,208 +1,120 @@
-Matching
-========
+A Python interface to libarchive. It uses the standard ctypes_ module to
+dynamically load and access the C library.
 
-.. image:: https://img.shields.io/pypi/v/matching.svg
-    :target: https://pypi.org/project/matching/
-
-.. image:: https://github.com/daffidwilde/matching/workflows/CI/CD/badge.svg
-    :target: https://github.com/daffidwilde/matching/actions?query=workflow%3ACI%2FCD+branch%3Amaster
-
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/ambv/black
-
-.. image:: https://zenodo.org/badge/119597240.svg
-    :target: https://zenodo.org/badge/latestdoi/119597240
-
-.. image:: https://joss.theoj.org/papers/10.21105/joss.02169/status.svg
-    :target: https://doi.org/10.21105/joss.02169
-
-
-A package for solving matching games.
--------------------------------------
-
-A matching game is defined by two sets of players. Each player in one set has a
-ranked preference list of those in the other, and the objective is to find some
-mapping between the two sets such that no pair of players are unhappy. The
-context of the terms "mapping" and "unhappy" are dependent on the framework of
-the particular game being played but are largely to do with the stability of the
-pairings.
-
-In ``matching``, we deal with four types of matching game:
-
-- the stable marriage problem (SM);
-- the hospital-resident assignment problem (HR);
-- the student-allocation problem (SA);
-- the stable roommates problem (SR).
-
+.. _ctypes: https://docs.python.org/3/library/ctypes.html
 
 Installation
-------------
+============
 
-Matching is written in Python 3, and relies only on `NumPy
-<http://www.numpy.org/>`_ for general use.
+    pip install libarchive-c
 
-The library is most easily installed using :code:`pip`::
+Compatibility
+=============
 
-    $ python -m pip install matching
+python
+------
 
-However, if you would like to install it from source then go ahead and clone the
-GitHub repo::
+python-libarchive-c is currently tested with python 3.7, 3.8, and 3.9.
 
-    $ git clone https://github.com/daffidwilde/matching.git
-    $ cd matching
-    $ python setup.py install
+If you find an incompatibility with older versions you can send us a small patch,
+but we won't accept big changes.
 
+libarchive
+----------
 
-Using the ``Player`` class
---------------------------
+python-libarchive-c may not work properly with obsolete versions of libarchive such as the ones included in MacOS. In that case you can install a recent version of libarchive (e.g. with ``brew install libarchive`` on MacOS) and use the ``LIBARCHIVE`` environment variable to point python-libarchive-c to it::
 
-With all of these games, ``matching`` uses a ``Player`` class to represent the
-members of the "applying" party, i.e. residents and students. For HR and SA,
-there are specific classes to represent the roles of ``Hospital``, ``Project``
-and ``Supervisor``.
+    export LIBARCHIVE=/usr/local/Cellar/libarchive/3.3.3/lib/libarchive.13.dylib
 
-For instances of SM, we require two lists of ``Player`` instances -- one for
-each party detailing their preferences.
+Usage
+=====
 
-Consider the following problem which is represented on a bipartite graph.
+Import::
 
-.. image:: ./img/stable_marriage.png
-   :align: center
-   :width: 10cm
+    import libarchive
 
-We construct the players in this game in the following way:
+Extracting archives
+-------------------
 
->>> from matching import Player
+To extract an archive, use the ``extract_file`` function::
 
->>> suitors = [Player(name="A"), Player(name="B"), Player(name="C")]
->>> reviewers = [Player(name="D"), Player(name="E"), Player(name="F")]
->>> (A, B, C), (D, E, F) = suitors, reviewers
+    os.chdir('/path/to/target/directory')
+    libarchive.extract_file('test.zip')
 
->>> A.set_prefs([D, E, F])
->>> B.set_prefs([D, F, E])
->>> C.set_prefs([F, D, E])
+Alternatively, the ``extract_memory`` function can be used to extract from a buffer,
+and ``extract_fd`` from a file descriptor.
 
->>> D.set_prefs([B, C, A])
->>> E.set_prefs([A, C, B])
->>> F.set_prefs([C, B, A])
+The ``extract_*`` functions all have an integer ``flags`` argument which is passed
+directly to the C function ``archive_write_disk_set_options()``. You can import
+the ``EXTRACT_*`` constants from the ``libarchive.extract`` module and see the
+official description of each flag in the ``archive_write_disk(3)`` man page.
 
-Then to solve this matching game, we make use of the ``StableMarriage`` class,
-like so:
+By default, when the ``flags`` argument is ``None``, the ``SECURE_NODOTDOT``,
+``SECURE_NOABSOLUTEPATHS`` and ``SECURE_SYMLINKS`` flags are passed to
+libarchive, unless the current directory is the root (``/``).
 
->>> from matching.games import StableMarriage
->>> game = StableMarriage(suitors, reviewers)
->>> game.solve()
-{A: E, B: D, C: F}
+Reading archives
+----------------
 
+To read an archive, use the ``file_reader`` function::
 
-Note
-++++
+    with libarchive.file_reader('test.7z') as archive:
+        for entry in archive:
+            for block in entry.get_blocks():
+                ...
 
-This matching is not a standard Python dictionary, though it does largely look
-and behave like one. It is in fact an instance of the ``Matching`` class:
+Alternatively, the ``memory_reader`` function can be used to read from a buffer,
+``fd_reader`` from a file descriptor, ``stream_reader`` from a stream object
+(which must support the standard ``readinto`` method), and ``custom_reader``
+from anywhere using callbacks.
 
->>> matching = game.matching
->>> type(matching)
-<class 'matching.matching.Matching'>
+To learn about the attributes of the ``entry`` object, see the ``libarchive/entry.py``
+source code or run ``help(libarchive.entry.ArchiveEntry)`` in a Python shell.
 
-This dictionary-like object is primarily useful as a teaching device that eases
-the process of manipulating a matching after a solution has been found. 
+Displaying progress
+~~~~~~~~~~~~~~~~~~~
 
+If your program processes large archives, you can keep track of its progress
+with the ``bytes_read`` attribute. Here's an example of a progress bar using
+`tqdm <https://pypi.org/project/tqdm/>`_::
 
-Using dictionaries
-------------------
+    with tqdm(total=os.stat(archive_path).st_size, unit='bytes') as pbar, \
+         libarchive.file_reader(archive_path) as archive:
+        for entry in archive:
+            ...
+            pbar.update(archive.bytes_read - pbar.n)
 
-For larger game instances, creating players directly (as above) could be
-unreasonably tedious. An alternative approach is to create an instance of a game
-from Python dictionaries. For example, consider the following instance of HR:
+Creating archives
+-----------------
 
-There are five residents -- Ada, Sam, Jo, Luc, Dani -- applying to work at three
-hospitals: Mercy, City, General. Each hospital has two available positions, and
-the players' preferences of one another are as follows:
+To create an archive, use the ``file_writer`` function::
 
-.. image:: ./img/hospital_resident.png
-   :align: center
-   :width: 10cm
+    from libarchive.entry import FileType
 
-This information can be conveyed as a few dictionaries like so:
+    with libarchive.file_writer('test.tar.gz', 'ustar', 'gzip') as archive:
+        # Add the `libarchive/` directory and everything in it (recursively),
+        # then the `README.rst` file.
+        archive.add_files('libarchive/', 'README.rst')
+        # Add a regular file defined from scratch.
+        data = b'foobar'
+        archive.add_file_from_memory('../escape-test', len(data), data)
+        # Add a directory defined from scratch.
+        early_epoch = (42, 42)  # 1970-01-01 00:00:42.000000042
+        archive.add_file_from_memory(
+            'metadata-test', 0, b'',
+            filetype=FileType.DIRECTORY, permission=0o755, uid=4242, gid=4242,
+            atime=early_epoch, mtime=early_epoch, ctime=early_epoch, birthtime=early_epoch,
+        )
 
->>> resident_prefs = {
-...     "A": ["C"],
-...     "S": ["C", "M"],
-...     "D": ["C", "M", "G"],
-...     "J": ["C", "G", "M"],
-...     "L": ["M", "C", "G"],
-... }
->>> hospital_prefs = {
-...     "M": ["D", "L", "S", "J"],
-...     "C": ["D", "A", "S", "L", "J"],
-...     "G": ["D", "J", "L"],
-... }
->>> capacities = {hosp: 2 for hosp in hospital_prefs}
+Alternatively, the ``memory_writer`` function can be used to write to a memory buffer,
+``fd_writer`` to a file descriptor, and ``custom_writer`` to a callback function.
 
-Then, similarly, this game is solved using the ``HospitalResident`` class but an
-instance is created using the ``create_from_dictionaries`` class method:
+For each of those functions, the mandatory second argument is the archive format,
+and the optional third argument is the compression format (called “filter” in
+libarchive). The acceptable values are listed in ``libarchive.ffi.WRITE_FORMATS``
+and ``libarchive.ffi.WRITE_FILTERS``.
 
->>> from matching.games import HospitalResident
->>> game = HospitalResident.create_from_dictionaries(
-...     resident_prefs, hospital_prefs, capacities
-... )
->>> game.solve()
-{M: [L, S], C: [D, A], G: [J]}
+License
+=======
 
-Note
-++++
-
-Despite passing dictionaries of strings here, the matching displays instances of
-``matching`` players:
-
->>> matching = game.matching
->>> for hospital in matching:
-...     print(type(hospital))
-<class 'matching.players.hospital.Hospital'>
-<class 'matching.players.hospital.Hospital'>
-<class 'matching.players.hospital.Hospital'>
-
-This is because ``create_from_dictionaries`` creates instances of the
-appropriate player classes first and passes them to the game class. Using
-dictionaries like this can be an efficient way of creating large games but it
-does require the names of the players in each party to be unique.
-
-
-Documentation
--------------
-
-Full documentation is available here: `<https://matching.readthedocs.io>`_
-
-
-A note on performance
----------------------
-
-One of the limitations of this library is the time complexities of the algorithm
-implementations. In practical terms, the running time of any of the algorithms
-in Matching is negligible but the theoretic complexity of each has not yet been
-attained. For example, an instance of HR with 400 applicants and 20 hospitals is
-solved in less than one tenth of a second:
-
->>> from matching.games import HospitalResident
->>> import numpy as np
->>> np.random.seed(0)
->>> resident_prefs = {
-...     r: np.argsort(np.random.random(size=20)) for r in range(400)
-... }
->>> hospital_prefs = {
-...     h: np.argsort(np.random.random(size=400)) for h in range(20)
-... }
->>> capacities = {h: 20 for h in hospital_prefs}
->>> game = HospitalResident.create_from_dictionaries(
-...     resident_prefs, hospital_prefs, capacities
-... )
->>> _ = game.solve() # 48.6 ms ± 963 µs per loop
-
-
-Get in contact!
----------------
-
-I hope this package is useful, and feel free to contact me here (or on Twitter:
-`@daffidwilde <https://twitter.com/daffidwilde>`_) with any issues or
-recommendations. Pull requests are always welcome!
+`CC0 Public Domain Dedication <http://creativecommons.org/publicdomain/zero/1.0/>`_
