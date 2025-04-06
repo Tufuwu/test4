@@ -1,12 +1,6 @@
-modoboa-amavis
-==============
-
-|gha| |codecov|
-
-The `amavis <http://www.amavis.org/>`_ frontend of Modoboa.
-
-Installation
-------------
+#######
+Install
+#######
 
 Install this extension system-wide or inside a virtual environment by
 running the following command::
@@ -31,8 +25,7 @@ Edit the settings.py file of your modoboa instance and add
 
 Then, add the following at the end of the file::
 
-  from modoboa_amavis import settings as modoboa_amavis_settings
-  modoboa_amavis_settings.apply(globals())
+  from modoboa_amavis.settings import *      
 
 Run the following commands to setup the database tables::
 
@@ -40,17 +33,6 @@ Run the following commands to setup the database tables::
   $ python manage.py migrate
   $ python manage.py collectstatic
   $ python manage.py load_initial_data
-
+  $ python manage.py check --deploy
 Finally, restart the python process running modoboa (uwsgi, gunicorn,
 apache, whatever).
-
-Note
-----
-Notice that if you dont configure amavis and its database, Modoboa
-won't work. Check `docs/setup` for more information.
-
-.. |gha| image:: https://github.com/modoboa/modoboa-amavis/actions/workflows/plugin.yml/badge.svg
-   :target: https://github.com/modoboa/modoboa-amavis/actions/workflows/plugin.yml
-
-.. |codecov| image:: https://codecov.io/gh/modoboa/modoboa-amavis/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/modoboa/modoboa-amavis
