@@ -1,111 +1,159 @@
-# Django Rest Multi Token Auth
+# <img height="24" src="https://raw.githubusercontent.com/yezyilomo/django-restql/master/docs/img/icon.svg" /> [  Django RESTQL](https://yezyilomo.github.io/django-restql)
 
-[![PyPI](https://img.shields.io/pypi/v/django-rest-multitokenauth)](https://pypi.org/project/django-rest-multitokenauth/)
-[![Build Status](https://travis-ci.org/anexia-it/django-rest-multitokenauth.svg?branch=master)](https://travis-ci.org/anexia-it/django-rest-multitokenauth)
-[![Codecov](https://img.shields.io/codecov/c/gh/anexia-it/django-rest-multitokenauth)](https://codecov.io/gh/anexia-it/django-rest-multitokenauth)
-
-This django app is an extension for the Django Rest Framework.
-It tries to overcome the limitation of Token Authentication, which only uses a single token per user. 
-
-## How to use
-
-Install:
-```bash
-pip install django-rest-multitokenauth
-```
-
-Add ``'django_rest_multitokenauth'`` to your ``INSTALLED_APPS`` in your Django settings file:
-```python
-INSTALLED_APPS = (
-    ...
-    'django.contrib.auth',
-    ...
-    'rest_framework',
-    ...
-    'django_rest_multitokenauth',
-    ...
-)
-
-```
-
-Configure Django REST Framework to use ``'django_rest_multitokenauth.coreauthentication.MultiTokenAuthentication'``:
-```python
-REST_FRAMEWORK = {
-    ...
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        ...
-        'django_rest_multitokenauth.coreauthentication.MultiTokenAuthentication',
-        ...
-    ],
-    ...
-}
-```
+[![Build Status](https://api.travis-ci.com/yezyilomo/django-restql.svg?branch=master)](https://api.travis-ci.com/yezyilomo/django-restql) 
+[![Latest Version](https://img.shields.io/pypi/v/django-restql.svg)](https://pypi.org/project/django-restql/) 
+[![Python Versions](https://img.shields.io/pypi/pyversions/django-restql.svg)](https://pypi.org/project/django-restql/) 
+[![License](https://img.shields.io/pypi/l/django-restql.svg)](https://pypi.org/project/django-restql/)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+[![Downloads](https://pepy.tech/badge/django-restql)](https://pepy.tech/project/django-restql) 
+[![Downloads](https://pepy.tech/badge/django-restql/month)](https://pepy.tech/project/django-restql) 
+[![Downloads](https://pepy.tech/badge/django-restql/week)](https://pepy.tech/project/django-restql)
 
 
-And add the auth urls to your Django url settings:
-```python
-from django.conf.urls import url, include
+**Django RESTQL** is a python library which allows you to turn your API made with **Django REST Framework(DRF)** into a GraphQL like API. With **Django RESTQL** you will be able to
+
+* Send a query to your API and get exactly what you need, nothing more and nothing less.
+
+* Control the data you get, not the server.
+
+* Get predictable results, since you control what you get from the server.
+
+* Get nested resources in a single request.
+
+* Avoid Over-fetching and Under-fetching of data.
+
+* Write(create & update) nested data of any level in a single request.
+
+Isn't it cool?.
+
+Want to see how this library is making all that possible? 
+
+Check out the full documentation at [https://yezyilomo.github.io/django-restql](https://yezyilomo.github.io/django-restql)
+
+Or try a live demo on [Django RESTQL Playground](https://django-restql-playground.yezyilomo.me)
 
 
-urlpatterns = [
-    ...
-    url(r'^api/auth/', include('django_rest_multitokenauth.urls', namespace='multi_token_auth')),
-    ...
-]    
+## Requirements
+* Python >= 3.5
+* Django >= 1.11
+* Django REST Framework >= 3.5
+
+
+## Installing
+```py
+pip install django-restql
 ```
 
 
-The following endpoints are provided:
+## Getting Started
+Using **Django RESTQL** to query data is very simple, you just have to inherit the `DynamicFieldsMixin` class when defining a serializer that's all.
+```py
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from django_restql.mixins import DynamicFieldsMixin
 
- * `login` - takes username and password; on success an auth token is returned
- * `logout`
 
-## Signals
-
-* ``pre_auth(username, password)`` - Fired when an authentication (login) is starting
-* ``post_auth(user)`` - Fired on successful auth
-
-## Tests
-
-See folder [tests/](tests/). Basically, all endpoints are covered with multiple
-unit tests.
-
-Use this code snippet to run tests:
-```bash
-pip install tox
-tox
+class UserSerializer(DynamicFieldsMixin, serializer.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
 ```
 
-## Cache Backend
+**Django RESTQL** handle all requests with a `query` parameter, this parameter is the one used to pass all fields to be included/excluded in a response. For example to select `id` and `username` fields from User model, send a request with a ` query` parameter as shown below.
 
-If you want to use a cache for the session store, you can install [django-memoize](https://pythonhosted.org/django-memoize/) and add `'memoize'` to `INSTALLED_APPS`.
-
-Then you need to use ``CachedMultiTokenAuthentication`` instead of ``MultiTokenAuthentication``.
-
-```bash
-pip install django-memoize
+`GET /users/?query={id, username}`
+```js
+[
+    {
+        "id": 1,
+        "username": "yezyilomo"
+    },
+    ...
+]
 ```
 
-## Django Compatibility Matrix
+**Django RESTQL** support querying both flat and nested resources, so you can expand or query nested fields at any level as defined on a serializer. In an example below we have `location` as a nested field on User model.
 
-If your project uses an older verison of Django or Django Rest Framework, you can choose an older version of this project.
+```py
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from django_restql.mixins import DynamicFieldsMixin
 
-| This Project | Python Version | Django Version | Django Rest Framework |
-|--------------|----------------|----------------|-----------------------|
-| 1.4.*        | 3.5+           | 2.2+, 3.0+     | 3.9, 3.10, 3.11, 3.12 |
-| 1.3.*        | 2.7, 3.4+      | 1.11, 2.0+     | 3.6, 3.7, 3.8         |
-| 1.2.*        | 2.7, 3.4+      | 1.8, 1.11, 2.0+| 3.6, 3.7, 3.8         |
-
-Make sure to use at least `DRF 3.10` when using `Django 3.0` or newer.
+from app.models import GroupSerializer, LocationSerializer
 
 
-## Changelog / Releases
+class LocationSerializer(DynamicFieldsMixin, serializer.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ['id', 'country',  'city', 'street']
 
-All releases should be listed in the [releases tab on github](https://github.com/anexia-it/django-rest-multitokenauth/releases).
 
-See [CHANGELOG.md](CHANGELOG.md) for a more detailed listing.
+class UserSerializer(DynamicFieldsMixin, serializer.ModelSerializer):
+    location = LocationSerializer(many=False, read_only=True) 
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'location']
+```
+
+If you want only `country` and `city` fields on a `location` field when retrieving users here is how you can do it
+
+`GET /users/?query={id, username, location{country, city}}`
+```js
+[
+    {
+        "id": 1,
+        "username": "yezyilomo",
+        "location": {
+            "contry": "Tanzania",
+            "city": "Dar es salaam"
+        }
+    },
+    ...
+]
+```
+
+You can even rename your fields when querying data, In an example below the field `location` is renamed to `address`
+
+`GET /users/?query={id, username, address: location{country, city}}`
+```js
+[
+    {
+        "id": 1,
+        "username": "yezyilomo",
+        "address": {
+            "contry": "Tanzania",
+            "city": "Dar es salaam"
+        }
+    },
+    ...
+]
+```
 
 
-## License
+## [Documentation :pencil:](https://yezyilomo.github.io/django-restql)
+You can do a lot with **Django RESTQL** apart from querying data, like
+- Rename fields
+- Restrict some fields on nested fields
+- Optimize data fetching on nested fields
+- Data filtering and pagination by using query arguments
+- Data mutation(Create and update nested data of any level in a single request)
 
-This project is published with the [BSD 3 Clause License](LICENSE). See [https://choosealicense.com/licenses/bsd-3-clause-clear/](https://choosealicense.com/licenses/bsd-3-clause-clear/) for more information about what this means.
+Full documentation for this project is available at [https://yezyilomo.github.io/django-restql](https://yezyilomo.github.io/django-restql), you are encouraged to read it inorder to utilize this library to the fullest.
+
+
+## [Django RESTQL Play Ground](https://django-restql-playground.yezyilomo.me)
+[**Django RESTQL Play Ground**](https://django-restql-playground.yezyilomo.me) is a graphical, interactive, in-browser tool which you can use to test **Django RESTQL** features like data querying, mutations etc to get the idea of how the library works before installing it. It's more like a [**live demo**](https://django-restql-playground.yezyilomo.me) for **Django RESTQL**, it's available at [https://django-restql-playground.yezyilomo.me](https://django-restql-playground.yezyilomo.me)
+
+
+## Running Tests
+`python runtests.py`
+
+
+## Credits
+* Implementation of this library is based on the idea behind [GraphQL](https://graphql.org/).
+* My intention is to extend the capability of [drf-dynamic-fields](https://github.com/dbrgn/drf-dynamic-fields) library to support more functionalities like allowing to query nested fields both flat and iterable at any level and allow writing on nested fields while maintaining simplicity.
+
+
+## Contributing [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+
+We welcome all contributions. Please read our [CONTRIBUTING.md](https://github.com/yezyilomo/django-restql/blob/master/CONTRIBUTING.md) first. You can submit any ideas as [pull requests](https://github.com/yezyilomo/django-restql/pulls) or as [GitHub issues](https://github.com/yezyilomo/django-restql/issues). If you'd like to improve code, check out the [Code Style Guide](https://github.com/yezyilomo/django-restql/blob/master/CONTRIBUTING.md#styleguides) and have a good time!.
