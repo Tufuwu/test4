@@ -1,53 +1,53 @@
-import codecs
-from os import path
-
-from setuptools import setup, find_packages
-
+import os
+import re
 
 try:
-    from collections import OrderedDict
+    from setuptools import setup
 except ImportError:
-    dependencies = ['ordereddict']
-else:
-    dependencies = []
+    from distutils.core import setup
 
-here = path.abspath(path.dirname(__file__))
+with open("win32_setctime.py", "r") as file:
+    regex_version = r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]'
+    version = re.search(regex_version, file.read(), re.MULTILINE).group(1)
 
-with codecs.open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
+with open("README.md", "rb") as file:
+    readme = file.read().decode("utf-8")
 
 setup(
-    name='cvss',
-    version='2.2',
-    description='CVSS2/3 library with interactive calculator for Python 2 and Python 3',
-    long_description=long_description,
-    url='https://github.com/skontar/cvss',
-    author='Stanislav Kontar, Red Hat Product Security',
-    author_email='skontar@redhat.com',
-    license='LGPLv3+',
+    name="win32_setctime",
+    version=version,
+    py_modules=["win32_setctime"],
+    description="A small Python utility to set file creation time on Windows",
+    long_description=readme,
+    long_description_content_type='text/markdown',
+    author="Delgan",
+    author_email="delgan.py@gmail.com",
+    url="https://github.com/Delgan/win32-setctime",
+    download_url="https://github.com/Delgan/win32-setctime/archive/{}.tar.gz".format(version),
+    keywords=["win32", "windows", "filesystem", "filetime"],
+    license="MIT license",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'Topic :: Security',
-        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
+        "Development Status :: 5 - Production/Stable",
+        "Topic :: System :: Filesystems",
+        "Intended Audience :: Developers",
+        "Environment :: Win32 (MS Windows)",
+        "Natural Language :: English",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: Microsoft",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "Programming Language :: Python :: Implementation :: CPython",
     ],
-    keywords='security cvss score calculator',
-    packages=find_packages(),
-    install_requires=dependencies,
-    entry_points={
-        'console_scripts': [
-            'cvss_calculator = cvss.cvss_calculator:main',
-        ],
+    extras_require={
+        "dev": [
+            "black>=19.3b0 ; python_version>='3.6'",
+            "pytest>=4.6.2",
+        ]
     },
+    python_requires=">=3.5",
 )
