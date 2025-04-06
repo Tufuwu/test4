@@ -1,53 +1,122 @@
-name: Test Suite
-on:
-  pull_request:
-    branches:
-      - main
+---
+name: "CI"
+concurrency:  # Cancel any existing runs of this workflow for this same PR
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+on: # yamllint disable-line rule:truthy rule:comments
   push:
     branches:
-      - main
+      - "main"
+    tags:
+      - "v*"
+  pull_request: ~
 
 jobs:
-  linter:
-    runs-on: ubuntu-latest
+  black:
+    runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Setup environment"
+        uses: "networktocode/gh-action-setup-poetry-environment@v2"
+      - name: "Linting: black"
+        run: "poetry run black ./ --diff --check"
+  flake8:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Setup environment"
+        uses: "networktocode/gh-action-setup-poetry-environment@v2"
+      - name: "Linting: flake8"
+        run: "poetry run flake8 ./"
+    needs:
+      - "black"
+  yamllint:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Setup environment"
+        uses: "networktocode/gh-action-setup-poetry-environment@v2"
+      - name: "Linting: yamllint"
+        run: "poetry run yamllint ./"
+    needs:
+      - "black"
+  tests:
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.9"]
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: "Install Poetry"
+        run: "pip install poetry==1.1.15"
+      - name: "Install Python Packages"
+        run: "poetry install"
+      - name: "Running tests"
+        run: "poetry run pytest -v"
+    needs:
+      - "flake8"
+      - "yamllint"
+  publish_gh:
+    name: "Publish to GitHub"
+    runs-on: "ubuntu-latest"
+    if: "startsWith(github.ref, 'refs/tags/v')"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v2"
         with:
           python-version: "3.9"
-      - uses: pre-commit/action@v2.0.0
+      - name: "Install Python Packages"
+        run: "pip install poetry"
+      - name: "Set env"
+        run: "echo RELEASE_VERSION=${GITHUB_REF:10} >> $GITHUB_ENV"
+      - name: "Run Poetry Version"
+        run: "poetry version $RELEASE_VERSION"
+      - name: "Run Poetry Build"
+        run: "poetry build"
+      - name: "Upload binaries to release"
+        uses: "svenstaro/upload-release-action@v2"
         with:
-          extra_args: --all-files --show-diff-on-failure
-
-  unit-and-integration-tests:
-    runs-on: ubuntu-latest
+          repo_token: "${{ '{{ secrets.NTC_GITHUB_TOKEN }}' }}"
+          file: "dist/*"
+          tag: "${{ '{{ github.ref }}' }}"
+          overwrite: true
+          file_glob: true
+    needs:
+      - "tests"
+  publish_pypi:
+    name: "Push Package to PyPI"
+    runs-on: "ubuntu-latest"
+    if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
-      - uses: actions/checkout@v2
-      # See https://debian.neo4j.com/
-      - name: Neo4j setup
-        run: |
-          wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo apt-key add -
-          echo 'deb https://debian.neo4j.com stable 3.5' | sudo tee /etc/apt/sources.list.d/neo4j.list
-          sudo apt-get update
-      - name: Install Neo4j
-        run: sudo apt-get install neo4j
-      - name: Disable auth for neo4j
-        run: |
-          sudo sed -i 's/#dbms.security.auth_enabled=false/dbms.security.auth_enabled=false/g' /etc/neo4j/neo4j.conf
-          sudo service neo4j restart
-      - uses: actions/setup-python@v2
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v2"
         with:
           python-version: "3.9"
-      # Cache our pip dir for efficiency; see https://medium.com/ai2-blog/python-caching-in-github-actions-e9452698e98d.
-      - uses: actions/cache@v4
+      - name: "Install Python Packages"
+        run: "pip install poetry"
+      - name: "Set env"
+        run: "echo RELEASE_VERSION=${GITHUB_REF:10} >> $GITHUB_ENV"
+      - name: "Run Poetry Version"
+        run: "poetry version $RELEASE_VERSION"
+      - name: "Run Poetry Build"
+        run: "poetry build"
+      - name: "Push to PyPI"
+        uses: "pypa/gh-action-pypi-publish@release/v1"
         with:
-          path: ~/.cache/pip
-          key: ${{ hashFiles('setup.py') }}-${{ hashFiles('test-requirements.txt') }}
-      - name: Install cartography
-        run: |
-          pip install -e .
-          pip install -r test-requirements.txt
-      - name: make test_unit
-        run: make test_unit
-      - name: make test_integration
-        run: make test_integration
+          user: "__token__"
+          password: "${{ '{{ secrets.PYPI_API_TOKEN }}' }}"
+    needs:
+      - "tests"
