@@ -1,22 +1,8 @@
-FROM debian:stretch
+FROM pypy:2
 
-# The default mirrors are too flaky to run reliably in CI.
-RUN sed -E \
-    '/security\.debian/! s@http://[^/]+/@http://mirrors.kernel.org/@' \
-    -i /etc/apt/sources.list
+RUN pip install six bitstring
+COPY pybufrkit /opt/app/pybufrkit
+ENV PYTHONPATH=/opt/app
 
-RUN apt-get update  \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        build-essential \
-        devscripts \
-        dumb-init \
-        equivs \
-        lintian \
-    && apt-get clean
+ENTRYPOINT ["pypy", "-m", "pybufrkit"]
 
-WORKDIR /mnt
-CMD [ \
-    "dumb-init", \
-    "sh", "-euxc", \
-    "mk-build-deps -ir --tool 'apt-get --no-install-recommends -y' debian/control && make builddeb" \
-]

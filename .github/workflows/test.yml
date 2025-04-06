@@ -1,23 +1,21 @@
----
-name: build
-on: push
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+name: ci
+on:
+  push:
+#    branches:
+#      - main
+  pull_request:
+    branches:
+      - main
 jobs:
-  make:
+  ci:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        make_target:
-          - test
-          - itest_xenial
-          - itest_bionic
-          - itest_stretch
-          - itest_buster
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - run: pip install tox
-      - run: sudo apt-get install -y --no-install-recommends zsh
-      - run: make ${{ matrix.make_target }}
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.x
+    - run: pip install --upgrade pip
+    - run: pip install pytest ruff .
+    - run: ruff --format=github --ignore=E501 --target-version=py37 .
+    - run: pytest
