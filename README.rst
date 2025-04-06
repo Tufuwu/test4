@@ -1,108 +1,143 @@
-PhotoCollage
-============
+***********************************
+PySlurm: Slurm Interface for Python
+***********************************
 
-.. image::
-   https://travis-ci.org/adrienverge/PhotoCollage.svg?branch=master
-   :target: https://travis-ci.org/adrienverge/PhotoCollage
-   :alt: CI tests status
+.. image:: https://github.com/PySlurm/pyslurm/actions/workflows/pyslurm.yml/badge.svg
+    :target: https://github.com/PySlurm/pyslurm/actions/workflows/pyslurm.yml
 
-*Graphical tool to make photo collage posters*
+Overview
+========
 
-PhotoCollage allows you to create photo collage posters. It assembles the input
-photographs it is given to generate a big poster. Photos are automatically
-arranged to fill the whole poster, then you can change the final layout,
-dimensions, border or swap photos in the generated grid. Eventually the final
-poster image can be saved in any size.
+Currently PySlurm is under development to move from it's thin layer on top of
+the Slurm C API to an object orientated interface.
 
-The algorithm generates random layouts that place photos while taking advantage
-of all free space. It tries to fill all space while keeping each photo as
-large as possible.
+This release is based on Slurm 20.11.
 
-PhotoCollage does more or less the same as many commercial websites do, but
-for free and with open-source code.
+Prerequisites
+*************
 
-.. image::
-   screenshots/photocollage-1.4-preview.png
-   :alt: screenshot
+* `Slurm <https://www.schedmd.com>`_
+* `Python <https://www.python.org>`_
+* `Cython <https://cython.org>`_
 
-It provides a library to create photo layouts and posters, and a GTK graphical
-user interface. PhotoCollage is written in Python (compatible with versions 2
-and 3) and requires the Python Imaging Library (PIL).
+This PySlurm branch has been tested with:
 
-Features:
+* Cython 0.19.2, and the latest stable
+* Python 2.7, 3.4, 3.5 and 3.6
+* Slurm 20.11
 
-* generate random new layouts until one suits the user
-* choose border color and width
-* possible to swap photos in the generated grid
-* save high-resolution image
-* works even with a large number of photos (> 100)
-* integrates into the GNOME environment
-* available in English, French, German, Czech, Italian, Bulgarian, Dutch, Russian, Spanish and Ukrainian
 
 Installation
-------------
+************
 
-* Fedora 19+:
+You will need to instruct the setup.py script where either the Slurm install
+root directory or where the Slurm libraries and Slurm include files are:
 
-  .. code:: bash
+#. Slurm default directory (/usr):
 
-   sudo dnf install photocollage
+    * python setup.py build
 
-* Debian 9+ / Ubuntu 16.10+:
+    * python setup.py install
 
-  .. code:: bash
+#. Indicate Blue Gene type Q on build line:
 
-   sudo apt-get install photocollage
+    * --bgq
 
-* Using pip, the Python package manager:
+#. Slurm root directory (Alternate installation directory):
 
-  .. code:: bash
+    * python setup.py build --slurm=PATH_TO_SLURM_DIR
 
-   sudo pip3 install photocollage
+    * python setup.py install
 
-Usage
------
+#. Separate Slurm library and include directory paths:
 
-After install a launcher for PhotoCollage will appear in your desktop menu.
+    * python setup.py build --slurm-lib=PATH_TO_SLURM_LIB --slurm-inc=PATH_TO_SLURM_INC
 
-If it doesn't, just run the command:
+    * python setup.py install
 
-.. code:: bash
+#. The build will automatically call a cleanup procedure to remove temporary build files but this can be called directly if needed as well with :
 
- photocollage
+    * python setup.py clean
 
-Hacking
--------
+Documentation
+*************
 
-* If you changed the source and want to test your modifications, run:
+The API documentation is hosted at https://pyslurm.github.io.
 
-  .. code:: bash
+To build the docs locally, use `Sphinx <http://www.sphinx-doc.org>`_ to
+generate the documentation from the reStructuredText based docstrings found in
+the pyslurm module once it is built:
 
-   PYTHONPATH=. bin/photocollage
+.. code-block:: console
 
-  or:
-
-  .. code:: bash
-
-   python3 -c 'from photocollage import gtkgui; gtkgui.main()'
+    cd doc
+    make clean
+    make html
 
 
-* If you need to build a package from source and install it:
+Testing
+*******
 
-  .. code:: bash
+PySlurm requires an installation of Slurm.
 
-   # Install dependencies
-   sudo dnf install python3-pillow python3-gobject
-   sudo apt-get install python3-pil python3-gi
-   sudo pacman -S python-pillow python-gobject
+Using a Test Container
+----------------------
 
-   # Install PhotoCollage
-   python3 setup.py sdist
-   pip3 install --user --upgrade dist/photocollage-*.tar.gz
+To run tests locally without an existing Slurm cluster, `docker` and
+`docker-compose` is required.
 
-* If you wish to contribute, please lint your code and pass tests:
+Clone the project::
 
-  .. code:: bash
+    git clone https://github.com/PySlurm/pyslurm.git
+    cd pyslurm
 
-   flake8 .
-   python3 -m unittest tests/test_*.py
+Start the Slurm container in the background::
+
+    docker-compose up -d
+
+The cluster takes a few seconds to start all the required Slurm services. Tail the logs::
+
+    docker logs -f slurmctl
+
+When the cluster is ready, you will see the following log message::
+
+    Cluster is now available
+
+Press CTRL+C to stop tailing the logs. Slurm is now running in a container in detached mode. `docker-compose` also bind mounds the git directory
+inside the container at `/pyslurm` so that the container has access to the test cases.
+
+Install test dependencies::
+
+    pipenv sync --dev
+
+Execute the tests inside the container::
+
+    pipenv run pytest -sv scripts/run_tests_in_container.py
+
+When testing is complete, stop the running Slurm container::
+
+    docker-compose down
+
+Testing on an Existing Slurm Cluster
+------------------------------------
+
+You may also choose to clone the project and run tests on a node where Slurm is already compiled and installed::
+
+    git clone https://github.com/PySlurm/pyslurm.git
+    cd pyslurm
+    python3.9 setup.py build
+    python3.9 setup.py install
+    ./scripts/configure.sh
+    pipenv sync --dev
+    pipenv run pytest -sv
+
+Authors
+*******
+
+* `Mark Roberts <https://github.com/gingergeeks>`_
+* `Giovanni Torres <https://github.com/giovtorres>`_
+
+Help
+****
+
+Ask questions on the `pyslurm group <https://groups.google.com/forum/#!forum/pyslurm>`_.
