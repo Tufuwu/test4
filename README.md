@@ -1,70 +1,111 @@
-# Tibia.py
-An API to parse Tibia.com content into object oriented data.
+# Django Rest Multi Token Auth
 
-No fetching is done by this module, you must provide the html content.
+[![PyPI](https://img.shields.io/pypi/v/django-rest-multitokenauth)](https://pypi.org/project/django-rest-multitokenauth/)
+[![Build Status](https://travis-ci.org/anexia-it/django-rest-multitokenauth.svg?branch=master)](https://travis-ci.org/anexia-it/django-rest-multitokenauth)
+[![Codecov](https://img.shields.io/codecov/c/gh/anexia-it/django-rest-multitokenauth)](https://codecov.io/gh/anexia-it/django-rest-multitokenauth)
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Galarzaa90/tibia.py/Build%20Package)
-[![codecov](https://codecov.io/gh/Galarzaa90/tibia.py/branch/master/graph/badge.svg?token=mS9Wxv6O2F)](https://codecov.io/gh/Galarzaa90/tibia.py)
-[![PyPI](https://img.shields.io/pypi/v/tibia.py.svg)](https://pypi.python.org/pypi/tibia.py/)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/tibia.py.svg)
-![PyPI - License](https://img.shields.io/pypi/l/tibia.py.svg)
+This django app is an extension for the Django Rest Framework.
+It tries to overcome the limitation of Token Authentication, which only uses a single token per user. 
 
+## How to use
 
-**Features:**
-
-- Converts data into well-structured Python objects.
-- Type consistent attributes.
-- All objects can be converted to JSON strings.
-- Can be used with any networking library.
-- Support for characters, guilds, houses and worlds, tournaments, forums, etc.
-
-## Installing
-Install and update using pip
-
-```commandline
-pip install tibia.py
+Install:
+```bash
+pip install django-rest-multitokenauth
 ```
 
-Installing the latest version form GitHub
-
-```commandline
-pip install git+https://github.com/Galarzaa90/tibia.py.git -U
-```
-
-## Usage
-This library is composed of two parts, parsers and an asynchronous request client.
-
-The asynchronous client (`tibiapy.Client`) contains methods to obtain information from Tibia.com.
-
-The parsing methods allow you to get Python objects given the html content of a page.
-
+Add ``'django_rest_multitokenauth'`` to your ``INSTALLED_APPS`` in your Django settings file:
 ```python
-import tibiapy
-
-# Asynchronously
-import aiohttp
-
-async def get_character(name):
-    url = tibiapy.Character.get_url(name)
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            content = await resp.text()
-    character = tibiapy.Character.from_content(content)
-    return character
-
-# Synchronously
-import requests
-
-def get_character_sync(name):
-    url = tibiapy.Character.get_url(name)
-    
-    r = requests.get(url)
-    content = r.text
-    character = tibiapy.Character.from_content(content)
-    return character
+INSTALLED_APPS = (
+    ...
+    'django.contrib.auth',
+    ...
+    'rest_framework',
+    ...
+    'django_rest_multitokenauth',
+    ...
+)
 
 ```
 
-## Documentation
-https://tibiapy.readthedocs.io/
+Configure Django REST Framework to use ``'django_rest_multitokenauth.coreauthentication.MultiTokenAuthentication'``:
+```python
+REST_FRAMEWORK = {
+    ...
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        ...
+        'django_rest_multitokenauth.coreauthentication.MultiTokenAuthentication',
+        ...
+    ],
+    ...
+}
+```
+
+
+And add the auth urls to your Django url settings:
+```python
+from django.conf.urls import url, include
+
+
+urlpatterns = [
+    ...
+    url(r'^api/auth/', include('django_rest_multitokenauth.urls', namespace='multi_token_auth')),
+    ...
+]    
+```
+
+
+The following endpoints are provided:
+
+ * `login` - takes username and password; on success an auth token is returned
+ * `logout`
+
+## Signals
+
+* ``pre_auth(username, password)`` - Fired when an authentication (login) is starting
+* ``post_auth(user)`` - Fired on successful auth
+
+## Tests
+
+See folder [tests/](tests/). Basically, all endpoints are covered with multiple
+unit tests.
+
+Use this code snippet to run tests:
+```bash
+pip install tox
+tox
+```
+
+## Cache Backend
+
+If you want to use a cache for the session store, you can install [django-memoize](https://pythonhosted.org/django-memoize/) and add `'memoize'` to `INSTALLED_APPS`.
+
+Then you need to use ``CachedMultiTokenAuthentication`` instead of ``MultiTokenAuthentication``.
+
+```bash
+pip install django-memoize
+```
+
+## Django Compatibility Matrix
+
+If your project uses an older verison of Django or Django Rest Framework, you can choose an older version of this project.
+
+| This Project | Python Version | Django Version | Django Rest Framework |
+|--------------|----------------|----------------|-----------------------|
+| 1.4.*        | 3.5+           | 2.2+, 3.0+     | 3.9, 3.10, 3.11, 3.12 |
+| 1.3.*        | 2.7, 3.4+      | 1.11, 2.0+     | 3.6, 3.7, 3.8         |
+| 1.2.*        | 2.7, 3.4+      | 1.8, 1.11, 2.0+| 3.6, 3.7, 3.8         |
+
+Make sure to use at least `DRF 3.10` when using `Django 3.0` or newer.
+
+
+## Changelog / Releases
+
+All releases should be listed in the [releases tab on github](https://github.com/anexia-it/django-rest-multitokenauth/releases).
+
+See [CHANGELOG.md](CHANGELOG.md) for a more detailed listing.
+
+
+## License
+
+This project is published with the [BSD 3 Clause License](LICENSE). See [https://choosealicense.com/licenses/bsd-3-clause-clear/](https://choosealicense.com/licenses/bsd-3-clause-clear/) for more information about what this means.
