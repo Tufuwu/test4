@@ -1,55 +1,61 @@
-import logging
-from setuptools import setup, find_packages, Extension
+import io
+import setuptools
+from distutils.command.sdist import sdist as _sdist
+import subprocess
+import time
 
+VERSION='1.13.0'
+RELEASE='0'
 
-logger = logging.getLogger()
-if not logger.handlers:
-    logger.addHandler(logging.StreamHandler())
-logger.setLevel(logging.INFO)
+class sdist(_sdist):
+    """Custom sdist command, to prep pycdlib.spec file for inclusion."""
 
-setup_kwargs = {}
+    def run(self):
+        global VERSION
+        global RELEASE
 
-try:
-    from Cython.Distutils import build_ext
-    setup_kwargs.update(dict(
-        ext_modules=[
-            Extension(
-                'olo.utils',
-                sources=['olo/utils.py'],
-                extra_compile_args=['-O3'],
-                language='c++'
-            ),
-            Extension(
-                'olo._speedups',
-                sources=['olo/_speedups.py'],
-                extra_compile_args=['-O3'],
-                language='c++'
-            ),
-        ],
-        cmdclass={'build_ext': build_ext},
-    ))
-except ImportError:
-    logger.warn('No cython for optimize!!!')
+        # If development release, include date+githash in %{release}
+        if RELEASE.startswith('0'):
+            # Create a development release string for later use
+            git_head = subprocess.Popen("git log -1 --pretty=format:%h",
+                                        shell=True,
+                                        stdout=subprocess.PIPE).communicate()[0].strip()
+            date = time.strftime("%Y%m%d%H%M%S", time.gmtime())
+            git_release = "%sgit%s" % (date, git_head.decode('utf-8'))
+            RELEASE += '.' + git_release
 
-install_requires = []
-for line in open('requirements.txt', 'r'):
-    install_requires.append(line.strip())
+        # Expand macros in pycdlib.spec.in and create pycdlib.spec
+        with open('python-pycdlib.spec.in', 'r') as spec_in:
+            with open('python-pycdlib.spec', 'w') as spec_out:
+                for line in spec_in:
+                    if "@VERSION@" in line:
+                        line = line.replace("@VERSION@", VERSION)
+                    elif "@RELEASE@" in line:
+                        line = line.replace("@RELEASE@", RELEASE)
+                    spec_out.write(line)
 
-setup(
-    name='olo',
-    version='0.4.0',
-    keywords=('ORM', 'olo', 'cache', 'sqlstore'),
-    description='ORM with intelligent and elegant cache manager',
-    url='https://github.com/yetone/olo',
-    license='MIT License',
-    author='yetone',
-    author_email='guanxipeng@douban.com',
-    packages=find_packages(exclude=['test.*', 'test', 'benchmarks']),
-    setup_requires=['Cython >= 0.20'],
-    install_requires=install_requires,
-    platforms='any',
-    tests_require=(
-        'pytest',
-    ),
-    **setup_kwargs
+        # Run parent constructor
+        _sdist.run(self)
+
+setuptools.setup(name='pycdlib',
+                 version=VERSION,
+                 description='Pure python ISO manipulation library',
+                 long_description=io.open('README.md', encoding='UTF-8').read(),
+                 url='http://github.com/clalancette/pycdlib',
+                 author='Chris Lalancette',
+                 author_email='clalancette@gmail.com',
+                 license='LGPLv2',
+                 classifiers=['Development Status :: 5 - Production/Stable',
+                              'Intended Audience :: Developers',
+                              'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
+                              'Natural Language :: English',
+                              'Programming Language :: Python :: 2.7',
+                              'Programming Language :: Python :: 3.4',
+                 ],
+                 keywords='iso9660 iso ecma119 rockridge joliet eltorito udf',
+                 packages=['pycdlib'],
+                 package_data={'': ['examples/*.py']},
+                 cmdclass={'sdist': sdist},
+                 data_files=[('share/man/man1', ['man/pycdlib-explorer.1', 'man/pycdlib-extract-files.1', 'man/pycdlib-genisoimage.1'])],
+                 scripts=['tools/pycdlib-explorer', 'tools/pycdlib-extract-files', 'tools/pycdlib-genisoimage'],
 )

@@ -1,1 +1,4 @@
-include requirements.txt
+include COPYING README.md pytest.ini
+include examples/*
+include tests/*.py
+include tests/**/*.py
