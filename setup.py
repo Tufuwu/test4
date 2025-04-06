@@ -1,77 +1,95 @@
-# coding: utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os
-import re
+import sys
+from codecs import open
+from os import path
 
-import setuptools
+from setuptools import setup
+from versioningit import get_cmdclasses
 
+if sys.argv[-1] == "publish":
+    # FIXME: S605 Starting a process with a shell: seems safe, but may be changed in the future; consider rewriting without `shell`
+    # FIXME: S607 Starting a process with a partial executable path
+    os.system("python setup.py sdist upload")  # noqa: S605, S607
+    sys.exit()
 
-def ascii_bytes_from(path, *paths):
-    """
-    Return the ASCII characters in the file specified by *path* and *paths*.
-    The file path is determined by concatenating *path* and any members of
-    *paths* with a directory separator in between.
-    """
-    file_path = os.path.join(path, *paths)
-    with open(file_path) as f:
-        ascii_bytes = f.read()
-    return ascii_bytes
+packages = ["epo_ops"]
 
-
-# read required text from files
-thisdir = os.path.dirname(__file__)
-init_py = ascii_bytes_from(thisdir, "src", "histolab", "__init__.py")
-readme = ascii_bytes_from(thisdir, "README.md")
-# This allows users to check installed version with:
-# `python -c 'from histolab import __version__; print(__version__)'`
-version = re.search('__version__ = "([^"]+)"', init_py).group(1)
-
-install_requires = [
-    "numpy",
-    "Pillow",
-    "scikit-image",
-    "scipy",
-    "openslide-python",
-    "typing_extensions",
+requires = [
+    "dogpile.cache<1.2",
+    "importlib-metadata; python_version<'3.8'",
+    "python-dateutil<2.9",
+    "requests>=2.27,<3",
+    "six<2",
 ]
+extras = {
+    "develop": [
+        "black<24",
+        "ruff==0.0.285; python_version >= '3.7'",
+        "twine<5",
+        "wheel<1",
+    ],
+    "test": [
+        "pytest<8",
+        "pytest-cache<2",
+        "pytest-cov<4.2",
+        "python-dotenv<0.20",
+        "responses<0.24",
+    ],
+}
 
-test_requires = [
-    "pytest",
-    "pytest-xdist",
-    "coverage",
-    "pytest-cov",
-    "coveralls",
-    "pytest-benchmark",
-]
+here = path.abspath(path.dirname(__file__))
 
-setuptools.setup(
-    name="histolab",
-    version=version,
-    maintainer="Histolab Developers",
-    maintainer_email="ernesto.arbitrio@gmail.com",
-    author="E. Arbitrio, N. Bussola, A. Marcolini",
-    description="Python library for Digital Pathology Image Processing",
-    long_description=readme,
+with open(path.join(here, "README.md"), encoding="utf-8") as f:
+    readme = f.read()
+
+setup(
+    name="python-epo-ops-client",
+    cmdclass=get_cmdclasses(),
+    description=(
+        "Python client for EPO OPS, "
+        "the European Patent Office's Open Patent Services API."
+    ),
     long_description_content_type="text/markdown",
-    url="https://github.com/histolab/histolab",
-    download_url="https://pypi.python.org/pypi/histolab",
-    install_requires=install_requires,
-    tests_require=test_requires,
-    extras_require={"testing": test_requires},
-    packages=setuptools.find_packages("src", exclude=["tests", "examples"]),
+    long_description=readme,
+    author="George Song",
+    author_email="george@monozuku.com",
+    maintainer="Andreas Motl",
+    maintainer_email="andreas.motl@ip-tools.org",
+    url="https://github.com/ip-tools/python-epo-ops-client",
+    download_url="https://pypi.org/project/python-epo-ops-client/#files",
+    packages=packages,
+    package_dir={"epo_ops": "epo_ops"},
+    include_package_data=True,
+    install_requires=requires,
+    extras_require=extras,
+    tests_require=extras["test"],
+    zip_safe=False,
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Natural Language :: English",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
-        "License :: OSI Approved :: Apache Software License",
-        "Operating System :: OS Independent",
-        "Intended Audience :: Science/Research",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    package_dir={"": "src"},
-    include_package_data=True,
-    entry_points={},
-    test_suite="pytest",
-    zip_safe=True,
-    python_requires=">=3.6",
+    keywords=[
+        "ops",
+        "epo",
+        "epo-ops",
+        "patent-data",
+        "patent-office",
+        "patent-data-api",
+        "european patent office",
+        "open patent services",
+    ],
 )
