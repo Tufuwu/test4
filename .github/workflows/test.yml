@@ -1,41 +1,25 @@
 name: CI
-on: [push, pull_request]
-env:
-    CI: 'true'
-    LC_ALL: en_US.UTF-8
-    LANG: en_US.UTF-8
+on: [push]
 
 jobs:
-    test:
-        name: Test on ${{ matrix.os }} Python ${{ matrix.pyver }})
-        runs-on: ${{ matrix.os }}
-        strategy:
-            matrix:
-                include:
-                    - { pyver: 2.7, os: ubuntu-latest }
-                    - { pyver: 3.6, os: ubuntu-latest }
-                    - { pyver: 3.8, os: ubuntu-latest }
-                    - { pyver: 3.9, os: ubuntu-latest }
+  build:
 
-                    - { pyver: 3.8, os: macos-latest }
-                    - { pyver: 3.8, os: windows-latest }
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
 
-        steps:
-            - name: Checkout source code
-              uses: actions/checkout@main
-              with:
-                fetch-depth: 10
-
-            - name: Set up Python ${{ matrix.pyver }}
-              uses: actions/setup-python@main
-              with:
-                python-version: ${{ matrix.pyver }}
-
-            - name: Install dependencies
-              run: python -m pip install chardet flake8
-
-            - name: Check code quality
-              run: flake8 src
-
-            - name: Run tests
-              run: python run_tests.py
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install poetry
+        poetry install --no-root
+    - name: Run pre-commit
+      run: |
+        poetry run pre-commit run --hook-stage push
