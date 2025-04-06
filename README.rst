@@ -1,55 +1,161 @@
-.. image:: http://media.charlesleifer.com/blog/photos/micawber-logo-0.png
+====================================
+Django REST Framework JSON CamelCase
+====================================
 
-A small library for extracting rich content from urls.
+.. image:: https://travis-ci.org/vbabiy/djangorestframework-camel-case.svg?branch=master
+        :target: https://travis-ci.org/vbabiy/djangorestframework-camel-case
 
+.. image:: https://badge.fury.io/py/djangorestframework-camel-case.svg
+    :target: https://badge.fury.io/py/djangorestframework-camel-case
 
-what does it do?
-----------------
+Camel case JSON support for Django REST framework.
 
-micawber supplies a few methods for retrieving rich metadata about a variety of
-links, such as links to youtube videos.  micawber also provides functions for
-parsing blocks of text and html and replacing links to videos with rich embedded
-content.
+============
+Installation
+============
 
-examples
---------
+At the command line::
 
-here is a quick example:
+    $ pip install djangorestframework-camel-case
+
+Add the render and parser to your django settings file.
 
 .. code-block:: python
 
-    import micawber
+    # ...
+    REST_FRAMEWORK = {
 
-    # load up rules for some default providers, such as youtube and flickr
-    providers = micawber.bootstrap_basic()
+        'DEFAULT_RENDERER_CLASSES': (
+            'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
+            'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
+            # Any other renders
+        ),
 
-    providers.request('http://www.youtube.com/watch?v=54XHDUOHuzU')
+        'DEFAULT_PARSER_CLASSES': (
+            # If you use MultiPartFormParser or FormParser, we also have a camel case version
+            'djangorestframework_camel_case.parser.CamelCaseFormParser',
+            'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
+            'djangorestframework_camel_case.parser.CamelCaseJSONParser',
+            # Any other parsers
+        ),
+    }
+    # ...
 
-    # returns the following dictionary:
-    {
-        'author_name': 'pascalbrax',
-        'author_url': u'http://www.youtube.com/user/pascalbrax'
-        'height': 344,
-        'html': u'<iframe width="459" height="344" src="http://www.youtube.com/embed/54XHDUOHuzU?fs=1&feature=oembed" frameborder="0" allowfullscreen></iframe>',
-        'provider_name': 'YouTube',
-        'provider_url': 'http://www.youtube.com/',
-        'title': 'Future Crew - Second Reality demo - HD',
-        'type': u'video',
-        'thumbnail_height': 360,
-        'thumbnail_url': u'http://i2.ytimg.com/vi/54XHDUOHuzU/hqdefault.jpg',
-        'thumbnail_width': 480,
-        'url': 'http://www.youtube.com/watch?v=54XHDUOHuzU',
-        'width': 459,
-        'version': '1.0',
+=================
+Swapping Renderer
+=================
+
+By default the package uses `rest_framework.renderers.JSONRenderer`. If you want
+to use another renderer (the only possible alternative is
+`rest_framework.renderers.UnicodeJSONRenderer`, only available in DRF < 3.0), you must specify it in your django
+settings file.
+
+.. code-block:: python
+
+    # ...
+    JSON_CAMEL_CASE = {
+        'RENDERER_CLASS': 'rest_framework.renderers.UnicodeJSONRenderer'
+    }
+    # ...
+
+=====================
+Underscoreize Options
+=====================
+
+
+**No Underscore Before Number**
+
+
+As raised in `this comment <https://github.com/krasa/StringManipulation/issues/8#issuecomment-121203018>`_
+there are two conventions of snake case.
+
+.. code-block:: text
+
+    # Case 1 (Package default)
+    v2Counter -> v_2_counter
+    fooBar2 -> foo_bar_2
+
+    # Case 2
+    v2Counter -> v2_counter
+    fooBar2 -> foo_bar2
+
+
+By default, the package uses the first case. To use the second case, specify it in your django settings file.
+
+.. code-block:: python
+
+    REST_FRAMEWORK = {
+        # ...
+        'JSON_UNDERSCOREIZE': {
+            'no_underscore_before_number': True,
+        },
+        # ...
     }
 
-    providers.parse_text('this is a test:\nhttp://www.youtube.com/watch?v=54XHDUOHuzU')
+Alternatively, you can change this behavior on a class level by setting `json_underscoreize`:
 
-    # returns the following string:
-    this is a test:
-    <iframe width="459" height="344" src="http://www.youtube.com/embed/54XHDUOHuzU?fs=1&feature=oembed" frameborder="0" allowfullscreen></iframe>
+.. code-block:: python
 
-    providers.parse_html('<p>http://www.youtube.com/watch?v=54XHDUOHuzU</p>')
+    from djangorestframework_camel_case.parser import CamelCaseJSONParser
+    from rest_framework.generics import CreateAPIView
 
-    # returns the following html:
-    <p><iframe width="459" height="344" src="http://www.youtube.com/embed/54XHDUOHuzU?fs=1&amp;feature=oembed" frameborder="0" allowfullscreen="allowfullscreen"></iframe></p>
+    class NoUnderscoreBeforeNumberCamelCaseJSONParser(CamelCaseJSONParser):
+        json_underscoreize = {'no_underscore_before_number': True}
+
+    class MyView(CreateAPIView):
+        queryset = MyModel.objects.all()
+        serializer_class = MySerializer
+        parser_classes = (NoUnderscoreBeforeNumberCamelCaseJSONParser,)
+
+=============
+Ignore Fields
+=============
+
+You can also specify fields which should not have their data changed.
+The specified field(s) would still have their name change, but there would be no recursion.
+For example:
+
+.. code-block:: python
+
+    data = {"my_key": {"do_not_change": 1}}
+
+Would become:
+
+.. code-block:: python
+
+    {"myKey": {"doNotChange": 1}}
+
+However, if you set in your settings:
+
+.. code-block:: python
+
+    REST_FRAMEWORK = {
+        # ...
+        "JSON_UNDERSCOREIZE": {
+            # ...
+            "ignore_fields": ("my_key",),
+            # ...
+        },
+        # ...
+    }
+
+The `my_key` field would not have its data changed:
+
+.. code-block:: python
+
+    {"myKey": {"do_not_change": 1}}
+
+=============
+Running Tests
+=============
+
+To run the current test suite, execute the following from the root of he project::
+
+    $ python -m unittest discover
+
+
+=======
+License
+=======
+
+* Free software: BSD license

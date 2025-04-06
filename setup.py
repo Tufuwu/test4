@@ -1,36 +1,51 @@
-import os
-from setuptools import setup, find_packages
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-f = open(os.path.join(os.path.dirname(__file__), 'README.rst'))
-readme = f.read()
-f.close()
+import os
+import sys
+
+
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
+
+if sys.argv[-1] == "publish":
+    os.system("python setup.py sdist upload")
+    sys.exit()
+
+readme = open("README.rst").read()
+history = open("HISTORY.rst").read().replace(".. :changelog:", "")
+import djangorestframework_camel_case
 
 setup(
-    name='micawber',
-    version='0.5.1',
-    description='a small library for extracting rich content from urls',
-    long_description=readme,
-    author='Charles Leifer',
-    author_email='coleifer@gmail.com',
-    url='http://github.com/coleifer/micawber/',
-    packages=[p for p in find_packages() if not p.startswith('examples')],
-    package_data = {
-        'micawber': [
-            'contrib/mcdjango/templates/micawber/*.html',
-        ],
-    },
+    name="djangorestframework-camel-case",
+    version=djangorestframework_camel_case.__version__,
+    description="Camel case JSON support for Django REST framework.",
+    long_description=readme + "\n\n" + history,
+    long_description_content_type="text/x-rst",
+    author="Vitaly Babiy",
+    author_email="vbabiy86@gmail.com",
+    url="https://github.com/vbabiy/djangorestframework-camel-case",
+    packages=["djangorestframework_camel_case"],
+    package_dir={"djangorestframework_camel_case": "djangorestframework_camel_case"},
+    include_package_data=True,
+    python_requires=">=3.5",
+    install_requires=[],
+    license="BSD",
+    zip_safe=False,
+    keywords="djangorestframework_camel_case",
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Framework :: Django',
+        "Development Status :: 2 - Pre-Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
-    test_suite='runtests.runtests',
+    test_suite="tests",
 )
