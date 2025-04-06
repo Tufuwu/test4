@@ -1,83 +1,32 @@
-name: Django CI
-
-on:
-  push:
-    branches: [ '**' ]
-  pull_request:
-    branches: [ '**' ]
+on: [push, pull_request]
 
 jobs:
-  build-ubuntu:
-
+  gate:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 4
+      fail-fast: false
       matrix:
         python-version: ["3.9"]
-        node-version: [12.x]
-
-    services:
-      postgres:
-        image: postgres:11
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports: ['5432:5432']
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Cache node modules
-      uses: actions/cache@v4
-      env:
-        cache-name: cache-node-modules
-      with:
-        # npm cache files are stored in `~/.npm` on Linux/macOS
-        path: ~/.npm
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
-    - name: Cache pip modules
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r ./config/requirements_development.txt
-        npm ci
-    - name: Run Linting
-      run: npm run lint
-    - name: Run Build and Collect
-      run: |
-        npm run build
-        python ./tabbycat/manage.py collectstatic --noinput -v 0
-    - name: Run Migrations
-      run: python ./tabbycat/manage.py migrate
-    - name: Run Tests
-      run: python tabbycat/manage.py test -v 2 --exclude-tag=selenium
-
-  build-docker:
-
-    runs-on: ubuntu-latest
-
+    name: Python ${{ matrix.python-version }} gate
     steps:
       - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
         with:
-          fetch-depth: 1
-      - name: Build Docker image
-        run: docker-compose build
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - uses: actions/setup-java@v1
+        with:
+            java-version: 8
+      - run: pip install pylint==2.4
+      - run: pylint --version
+      - name: Download and set up dependencies
+        run: |
+          export ECLIPSE_TAR=${{ github.workspace }}/../eclipse.tar.gz
+          wget https://archive.eclipse.org/eclipse/downloads/drops4/R-4.5.2-201602121500/eclipse-SDK-4.5.2-linux-gtk-x86_64.tar.gz -O $ECLIPSE_TAR
+          tar -C ${{ github.workspace }}/.. -xf $ECLIPSE_TAR
+          export ECLIPSE_EXE=${{ github.workspace }}/../eclipse/eclipse
+          export JDT=${{ github.workspace }}/ecj.jar
+          wget https://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4/R-4.5.2-201602121500/ecj-4.5.2.jar -O $JDT
+      - name: mx gate
+        run: ./mx --strict-compliance gate --strict-mode
