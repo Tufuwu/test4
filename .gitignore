@@ -1,3 +1,15 @@
+.test-bin/
+dist/
+build/
 *.pyc
+*.swp
+*~
+*.log
+*.pid
+*.lock
+*.egg-info
 .coverage
-htmlcov/
+_build/
+mirrormanager2_tests.cfg
+mirrormanager2_tests_mdtr.cfg
+/.pytest_cache/
