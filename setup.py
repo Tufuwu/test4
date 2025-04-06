@@ -1,52 +1,66 @@
-from ez_setup import use_setuptools
-use_setuptools()
-from setuptools import setup
+#!/usr/bin/env python
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013-2020, NeXpy Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING, distributed with this software.
+#-----------------------------------------------------------------------------
+
+from setuptools import setup, find_packages, Extension
+
+import os, sys
 import versioneer
-import os
 
+# pull in some definitions from the package's __init__.py file
+sys.path.insert(0, os.path.join('src', ))
+import nexpy
+import nexpy.requires
 
-def main():
-    this_directory = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(this_directory, 'README.rst'), 'r') as f:
-        long_description = f.read()
+verbose=1
 
-    cmdclass = versioneer.get_cmdclass()
-
-    setup(name='pysb',
-          version=versioneer.get_version(),
-          description='Python Systems Biology modeling framework',
-          long_description=long_description,
-          long_description_content_type='text/x-rst',
-          author='Jeremy Muhlich',
-          author_email='jmuhlich@bitflood.org',
-          url='http://pysb.org/',
-          packages=['pysb', 'pysb.generator', 'pysb.importers', 'pysb.tools',
-                    'pysb.examples', 'pysb.export', 'pysb.simulator',
-                    'pysb.testing', 'pysb.tests'],
-          scripts=['scripts/pysb_export'],
-          # We should really specify some minimum versions here.
-          python_requires='>=3.6',
-          install_requires=['numpy', 'scipy>=1.1', 'sympy>=1.6', 'networkx',
-                            'futures; python_version == "2.7"'],
-          setup_requires=['nose'],
-          tests_require=['coverage', 'pygraphviz', 'matplotlib', 'pexpect',
-                         'pandas', 'h5py', 'mock', 'cython',
-                         'python-libsbml', 'libroadrunner'],
-          cmdclass=cmdclass,
-          keywords=['systems', 'biology', 'model', 'rules'],
-          classifiers=[
-            'Development Status :: 5 - Production/Stable',
-            'Environment :: Console',
-            'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: BSD License',
-            'Operating System :: OS Independent',
-            'Programming Language :: Python :: 3',
-            'Topic :: Scientific/Engineering :: Bio-Informatics',
-            'Topic :: Scientific/Engineering :: Chemistry',
-            'Topic :: Scientific/Engineering :: Mathematics',
-            ],
-          )
-
-
-if __name__ == '__main__':
-    main()
+setup (name =  nexpy.__package_name__,        # NeXpy
+       version=versioneer.get_version(),
+       cmdclass=versioneer.get_cmdclass(),
+       license = nexpy.__license__,
+       description = nexpy.__description__,
+       long_description = nexpy.__long_description__,
+       author=nexpy.__author_name__,
+       author_email=nexpy.__author_email__,
+       url=nexpy.__url__,
+       download_url=nexpy.__download_url__,
+       platforms='any',
+       python_requires='>=3.7',
+       install_requires = nexpy.requires.pkg_requirements,
+       extras_require = nexpy.requires.extra_requirements,
+       package_dir = {'': 'src'},
+       packages = find_packages('src'),
+       include_package_data = True,
+       package_data = {
+                       'nexpy.gui': ['resources/icon/*.svg',
+                                     'resources/icon/*.png',
+                                     'resources/*.png',
+                                    ],
+                       'nexpy.definitions': ['base_classes/*.xml'],
+                       'nexpy': [
+                           'examples/*.*',
+                           'examples/*/*.*',
+                           'examples/*/*/*.*',
+                       ],
+                   },
+       entry_points={
+            # create & install scripts in <python>/bin
+            'gui_scripts': ['nexpy = nexpy.nexpygui:main',],
+       },
+       classifiers= ['Development Status :: 4 - Beta',
+                     'Intended Audience :: Developers',
+                     'Intended Audience :: Science/Research',
+                     'License :: OSI Approved :: BSD License',
+                     'Programming Language :: Python',
+                     'Programming Language :: Python :: 3',
+                     'Programming Language :: Python :: 3.7',
+                     'Programming Language :: Python :: 3.8',
+                     'Programming Language :: Python :: 3.9',
+                     'Topic :: Scientific/Engineering',
+                     'Topic :: Scientific/Engineering :: Visualization'],
+      )

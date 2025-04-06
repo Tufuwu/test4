@@ -1,7 +1,6 @@
-include LICENSE.txt
-include README.rst
-include ez_setup.py
-graft doc
-prune doc/_build
+include src/nexpy/definitions/base_classes/*.xml
+recursive-include src/nexpy/gui/resources *
+recursive-include src/nexpy/examples *
 include versioneer.py
-include pysb/_version.py
+include src/nexpy/_version.py
+include COPYING
