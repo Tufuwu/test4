@@ -1,19 +1,55 @@
-*~
-tmp
-.git
-.tox
-.env
-dist
-.eggs
-*.pyc
-*.pyo
-*.bak
-*.xml
-*.sw?
-build
-.cache
-coverage
-.coverage*
-docs/build
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
 *.egg-info
-*/version.py
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Complexity
+output/*.html
+output/*/index.html
+
+# Sphinx
+docs/_build
+
+/todo.txt
+/test.db
+/_
+/.cache
+.venv
+/env
+/.ropeproject
+
+# JetBrains
+.idea
+/.pytest_cache
+/example*

@@ -1,93 +1,57 @@
 #!/usr/bin/env python
-from glob import glob
+import re
+from os import path as op
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 
-def read_file(filename):
+def _read(fname):
     try:
-        return open(filename, "r").read()
+        return open(op.join(op.dirname(__file__), fname)).read()
     except IOError:
-        return ""
+        return ''
 
+_meta = _read('peewee_migrate/__init__.py')
+_license = re.search(r'^__license__\s*=\s*"(.*)"', _meta, re.M).group(1)
+_project = re.search(r'^__project__\s*=\s*"(.*)"', _meta, re.M).group(1)
+_version = re.search(r'^__version__\s*=\s*"(.*)"', _meta, re.M).group(1)
+
+install_requires = [
+    l for l in _read('requirements.txt').split('\n')
+    if l and not l.startswith('#')]
 
 setup(
-    name="circuits",
-    description="Asynchronous Component based Event Application Framework",
-    long_description=open("README.rst").read().replace(
-        ".. include:: examples/index.rst",
-        read_file("examples/index.rst")
-    ),
-    author="James Mills",
-    author_email="prologic@shortcircuit.net.au",
-    url="http://circuitsframework.com/",
-    download_url="http://bitbucket.org/circuits/circuits/downloads/",
+    name=_project,
+    version=_version,
+    license=_license,
+    description=_read('DESCRIPTION'),
+    long_description=_read('README.rst'),
+    platforms=('Any'),
+    keywords = "django flask sqlalchemy testing mock stub mongoengine data".split(), # noqa
+
+    author='Kirill Klenov',
+    author_email='horneds@gmail.com',
+    url='https://github.com/klen/peewee_migrate',
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Environment :: Console",
-        "Environment :: No Input/Output (Daemon)",
-        "Environment :: Other Environment",
-        "Environment :: Plugins",
-        "Environment :: Web Environment",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Information Technology",
-        "Intended Audience :: Science/Research",
-        "Intended Audience :: System Administrators",
-        "Intended Audience :: Telecommunications Industry",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
-        "Operating System :: POSIX :: BSD",
-        "Operating System :: POSIX :: Linux",
-        "Operating System :: MacOS :: MacOS X",
-        "Operating System :: Microsoft :: Windows",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Topic :: Adaptive Technologies",
-        "Topic :: Communications :: Chat :: Internet Relay Chat",
-        "Topic :: Communications :: Email :: Mail Transport Agents",
-        "Topic :: Database",
-        "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
-        "Topic :: Software Development :: Libraries :: Application Frameworks",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: System :: Clustering",
-        "Topic :: System :: Distributed Computing"],
-    license="MIT",
-    keywords="event framework distributed concurrent component asynchronous",
-    platforms="POSIX",
-    packages=find_packages(
-        exclude=[
-            "*.tests",
-            "*.tests.*",
-            "tests.*",
-            "tests",
-            "*.fabfile",
-            "*.fabfile.*",
-            "fabfile.*",
-            "fabfile",
-        ]
-    ),
-    scripts=glob("bin/*"),
-    entry_points={
-        "console_scripts": [
-            "circuits.web=circuits.web.main:main",
-        ]
-    },
-    zip_safe=True,
-    use_scm_version={
-        "write_to": "circuits/version.py",
-    },
-    setup_requires=[
-        "setuptools_scm"
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Natural Language :: English',
+        'Natural Language :: Russian',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Software Development :: Testing',
+        'Topic :: Utilities',
     ],
-    extras_require={"stomp": ["stompest>=2.3.0", "pysocks>=1.6.7"]},
+
+    packages=['peewee_migrate'],
+    include_package_data=True,
+    install_requires=install_requires,
+    entry_points="""
+    [console_scripts]
+    pw_migrate=peewee_migrate.cli:cli
+    """,
 )

@@ -1,12 +1,10 @@
-recursive-include man *
-recursive-include tests *
+include LICENSE
+include MANIFEST.in
+include README.rst
+include requirements.txt
 
-include LICENSE README.rst CHANGES.rst
+recursive-include peewee_migrate *
 
-prune docs
-prune fabfile
-prune examples
-prune setup.cfg
-
-global-exclude __pycache__
-global-exclude *.py[co]
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * *.orig
