@@ -1,211 +1,103 @@
-# Generate a new release (alpha or beta)
-name: Release
-
+name: OpenSVC agent CI
 on:
-  # Check for updates every day
-  schedule:
-    - cron: "10 0 * * *"
-
-  workflow_dispatch:
-    inputs:
-      releaseType:
-        description: 'Set to "release" for a beta release.'
-        required: false
-        default: "alpha"
-
+  push:
+    branches:    
+      - b2.0
+      - b2.1
+  pull_request:
+    branches:    
+      - b2.0
+      - b2.1
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
+  ci-pytest:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        # ubuntu-latest: OK!
-        # windows-latest: ONGOING
-        # macos-latest: BAD (keystore seems locked, waiting for user input ... )
-        os: [macos-latest, windows-latest]
-
+        include:
+          - python-version: 3.9
+            PYTEST_EXTRA_ARGS: ""
+          - python-version: 3.9
+            PYTEST_EXTRA_ARGS: "--cov"
+        
     steps:
-      - name: Checkout
+      - name: Checkout opensvc
         uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          ref: ${{ github.event.inputs.branch }}
+          python-version: ${{ matrix.python-version }}
 
-      #
-      # Global
-      #
-
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIV_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOST_DEPLOY }}
-
-      - name: Setup git
-        if: github.event.inputs.releaseType == 'alpha'
+      - name: Install system dependencies
         run: |
-          git config user.email "maintainers-python+github@nuxeo.com"
-          git config user.name "GitHub-CI action (Release)"
+          sudo apt-get update
+          sudo apt-get -y install procps
 
-      - name: Bump the version number
-        if: github.event.inputs.releaseType == 'alpha'
+      - name: Install python dependencies
         run: |
-          git fetch --unshallow --tags
-          bash tools/bump-alpha-version.sh || exit 1
+          python -m pip install --upgrade pip
+          pip install -r test-requirements.txt
 
-      #
-      # GNU/Linux
-      #
-
-      - name: "[GNU/Linux] Install AppImage checkers"
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt install --yes appstream desktop-file-utils
-
-      - name: "[GNU/Linux] Login to the docker registry"
-        if: matrix.os == 'ubuntu-latest'
-        uses: docker/login-action@v1.9.0
-        with:
-          registry: "docker-private.packages.nuxeo.com"
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: "[GNU/Linux] Set appropriate volume rights"
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          mkdir build && chmod -R 777 build
-          mkdir dist && chmod -R 777 dist
-
-      - name: "[GNU/Linux] Generate the .AppImage"
-        if: matrix.os == 'ubuntu-latest'
+      - name: Run pytest
         env:
-          REGISTRY: "docker-private.packages.nuxeo.com"
-          REPOSITORY: "nuxeo-drive-build"
-        run: docker run -v "$(pwd)":/opt/sources "${REGISTRY}/${REPOSITORY}:py-3.9.5" # XXX_PYTHON
+          OPENSVC_CI_EXTRA_TIME_OSVCD_STARTUP: 25
+        run: sudo $(which pytest) ${{ matrix.PYTEST_EXTRA_ARGS }} -m "ci"
 
-      - name: "[GNU/Linux] Ensure the AppImage is correct"
-        if: matrix.os == 'ubuntu-latest'
-        run: bash tools/linux/deploy_ci_agent.sh --check
-
-      - name: "[GNU/Linux] Upload artifacts"
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-distributions
-          path: ./dist/*.AppImage
-          if-no-files-found: error
-
-      #
-      # macOS
-      #
-
-      - name: "[macOS] Setup certificates"
-        if: matrix.os == 'macos-latest'
+      - name: Run codecov
+        if: ${{ success() }}
         run: |
-          wget https://www.apple.com/appleca/AppleIncRootCertificate.cer
-          echo "${{ secrets.CERT_APP_MACOS }}" | base64 --decode > developerID_application.cer
-          echo "${{ secrets.PRIV_APP_MACOS }}" | base64 --decode > nuxeo-drive.priv
+          pip install codecov
+          codecov
 
-      - name: "[macOS] Setup the environment"
-        if: matrix.os == 'macos-latest'
-        env:
-          MACOSX_DEPLOYMENT_TARGET: "10.13"
-        run: bash tools/osx/deploy_ci_agent.sh --install-release
-
-      - name: "[macOS] Generate the .dmg"
-        if: matrix.os == 'macos-latest'
-        timeout-minutes: 20
-        env:
-          NXDRIVE_TEST_NUXEO_URL: "https://nuxeo-drive-preview.platform.dev.nuxeo.com/nuxeo"
-          MACOSX_DEPLOYMENT_TARGET: "10.13"
-          KEYCHAIN_PATH: "~/Library/Keychains/drive.keychain-db"
-          SIGNING_ID: "NUXEO CORP"
-        run: bash tools/osx/deploy_ci_agent.sh --check-upgrade
-
-      - name: "[macOS] Upload artifacts"
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-distributions
-          path: ./dist/*.dmg
-          if-no-files-found: error
-
-      #
-      # Windows
-      #
-
-      - name: "[Windows] Setup certificate"
-        if: matrix.os == 'windows-latest'
-        run: |
-          echo "${{ secrets.CERT_APP_WINDOWS }}" > certificate.b64
-          certutil -decode certificate.b64 certificate.pfx
-
-      - name: "[Windows] Unlock PowerShell"
-        if: matrix.os == 'windows-latest'
-        run: powershell Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
-
-      - name: "[Windows] Setup the environment"
-        if: matrix.os == 'windows-latest'
-        run: powershell ".\\tools\\windows\\deploy_ci_agent.ps1" -install_release
-
-      - name: "[Windows] Generate the .exe"
-        timeout-minutes: 20
-        if: matrix.os == 'windows-latest'
-        env:
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          NXDRIVE_TEST_NUXEO_URL: "https://nuxeo-drive-preview.platform.dev.nuxeo.com/nuxeo"
-          SIGNING_ID: "Nuxeo"
-          SIGNTOOL_PATH: 'C:\Program Files (x86)\Windows Kits\10\bin\x86'
-        run: powershell ".\\tools\\windows\\deploy_ci_agent.ps1" -check_upgrade
-
-      - name: "[Windows] Upload artifacts"
-        if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-distributions
-          path: ./dist/*.exe
-          if-no-files-found: error
-
-  deploy:
+  ci-pylint:
     runs-on: ubuntu-latest
-    needs: [release]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: 3.9
+            PYTEST_EXTRA_ARGS: ""
+          - python-version: 3.9
+            PYTEST_EXTRA_ARGS: "--cov"
 
     steps:
-      - name: Checkout
+      - name: Checkout opensvc
         uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          ref: ${{ github.event.inputs.branch }}
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install procps
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r test-requirements.txt
+
+      - name: Run pylint
+        env:
+          PYTHONPATH: opensvc
+        run: pylint -E opensvc/*py opensvc/commands opensvc/core opensvc/daemon opensvc/drivers opensvc/utilities
+
+  slack-workflow-status:
+    if: always()
+    name: Post Workflow Status To Slack
+    needs:
+      - ci-pytest
+      - ci-pylint
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Slack Workflow Notification
+        uses: Gamesight/slack-workflow-status@main
         with:
-          key: ${{ secrets.SSH_PRIV_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOST_DEPLOY }}
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          slack_webhook_url: ${{secrets.SLACK_WEBHOOK_URL}}
+          icon_emoji: ':poop:'
 
-      - name: Setup git
-        run: |
-          git config user.email "maintainers-python+github@nuxeo.com"
-          git config user.name "GitHub-CI action (Release)"
-          git fetch --unshallow --tags
-          git remote set-url origin git@github.com:nuxeo/nuxeo-drive.git
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: package-distributions
-          path: dist/
-
-      - name: Upload artifacts to the staging server
-        run: |
-          for f in dist/*; do
-            bash tools/upload.sh staging "${f}"
-          done
-
-      - name: Do the release
-        if: github.event.inputs.branch == 'main'
-        run: |
-          bash tools/release.sh --publish "${{ github.event.inputs.releaseType }}" || exit 1
-          bash tools/release.sh --create "${{ github.event.inputs.releaseType }}" || exit 1
-
-      - name: Cancel the release
-        if: failure() || cancelled()
-        run: bash tools/release.sh --cancel

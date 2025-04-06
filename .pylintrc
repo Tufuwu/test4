@@ -1,12 +1,2 @@
-[MASTER]
-jobs = 4
-persistent = no
-
-[MESSAGES CONTROL]
-disable = all
-enable = no-name-in-module
-
-[REPORTS]
-msg-template = {path}:{line}: [{msg_id}({symbol}), {obj}] {msg}
-reports = no
-score = no
+[TYPECHECK]
+ignored-modules=foreign.six.moves,_MovedItems
