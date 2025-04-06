@@ -1,2 +1,0 @@
-# sphinx version requirement for readthedocs.
-sphinx>=3.2.1
