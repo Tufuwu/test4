@@ -1,238 +1,125 @@
-============
-docformatter
-============
+OpenFermion-PySCF
+=================
 
-Formats docstrings to follow `PEP 257`_.
+.. image:: https://badge.fury.io/py/openfermionpyscf.svg
+    :target: https://badge.fury.io/py/openfermionpyscf
 
-.. _`PEP 257`: http://www.python.org/dev/peps/pep-0257/
+.. image:: https://travis-ci.org/quantumlib/OpenFermion-PySCF.svg?branch=master
+    :target: https://travis-ci.org/quantumlib/OpenFermion-PySCF
 
-.. image:: https://travis-ci.org/myint/docformatter.svg?branch=master
-   :target: https://travis-ci.org/myint/docformatter
-   :alt: Build status
-
-
-Features
-========
-
-*docformatter* currently automatically formats docstrings to follow a
-subset of the PEP 257 conventions. Below are the relevant items quoted
-from PEP 257.
-
-- For consistency, always use triple double quotes around docstrings.
-- Triple quotes are used even though the string fits on one line.
-- Multi-line docstrings consist of a summary line just like a one-line
-  docstring, followed by a blank line, followed by a more elaborate
-  description.
-- Unless the entire docstring fits on a line, place the closing quotes
-  on a line by themselves.
-
-docformatter also handles some of the PEP 8 conventions.
-
-- Don't write string literals that rely on significant trailing
-  whitespace. Such trailing whitespace is visually indistinguishable
-  and some editors (or more recently, reindent.py) will trim them.
-
+`OpenFermion <http://openfermion.org>`__ is an open source library (licensed under Apache 2) for compiling and analyzing quantum algorithms which simulate fermionic systems.
+This plugin library allows the electronic structure package `PySCF <http://github.com/sunqm/pyscf>`__ (licensed under BSD-2-Clause) to interface with OpenFermion.
 
 Installation
-============
+------------
 
-From pip::
+To start using OpenFermion-PySCF, first install `PySCF
+<http://github.com/sunqm/pyscf>`__.
+Then, to install the latest versions of OpenFermion and OpenFermion-PySCF (in development mode):
 
-    $ pip install --upgrade docformatter
+.. code-block:: bash
 
+  git clone https://github.com/quantumlib/OpenFermion-PySCF
+  cd OpenFermion-PySCF
+  python -m pip install -e .
 
-Example
-=======
+Alternatively, to install the latest PyPI releases as libraries (in user mode):
 
-After running::
+.. code-block:: bash
 
-    $ docformatter --in-place example.py
+  python -m pip install --user openfermionpyscf
 
-this code
+Also be sure to take a look at the `ipython notebook demo <https://github.com/quantumlib/OpenFermion-PySCF/blob/master/examples/openfermionpyscf_demo.ipynb>`__.
 
-.. code-block:: python
+How to contribute
+-----------------
 
-    """   Here are some examples.
+We'd love to accept your contributions and patches to OpenFermion-PySCF.
+There are a few guidelines you need to follow.
+Contributions to OpenFermion-PySCF must be accompanied by a Contributor License Agreement.
+You (or your employer) retain the copyright to your contribution,
+this simply gives us permission to use and redistribute your contributions as part of the project.
+Head over to https://cla.developers.google.com/
+to see your current agreements on file or to sign a new one.
 
-        This module docstring should be dedented."""
+All submissions, including submissions by project members, require review.
+We use GitHub pull requests for this purpose. Consult
+`GitHub Help <https://help.github.com/articles/about-pull-requests/>`__ for
+more information on using pull requests.
+Furthermore, please make sure your new code comes with extensive tests!
+We use automatic testing to make sure all pull requests pass tests and do not
+decrease overall test coverage by too much. Make sure you adhere to our style
+guide. Just have a look at our code for clues. We mostly follow
+`PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_ and use
+the corresponding `linter <https://pypi.python.org/pypi/pep8>`_ to check for it.
+Code should always come with documentation.
 
-
-    def launch_rocket():
-        """Launch
-    the
-    rocket. Go colonize space."""
-
-
-    def factorial(x):
-        '''
-
-        Return x factorial.
-
-        This uses math.factorial.
-
-        '''
-        import math
-        return math.factorial(x)
-
-
-    def print_factorial(x):
-        """Print x factorial"""
-        print(factorial(x))
-
-
-    def main():
-        """Main
-        function"""
-        print_factorial(5)
-        if factorial(10):
-            launch_rocket()
-
-
-gets formatted into this
-
-.. code-block:: python
-
-    """Here are some examples.
-
-    This module docstring should be dedented.
-    """
-
-
-    def launch_rocket():
-        """Launch the rocket.
-
-        Go colonize space.
-        """
-
-
-    def factorial(x):
-        """Return x factorial.
-
-        This uses math.factorial.
-        """
-        import math
-        return math.factorial(x)
-
-
-    def print_factorial(x):
-        """Print x factorial."""
-        print(factorial(x))
-
-
-    def main():
-        """Main function."""
-        print_factorial(5)
-        if factorial(10):
-            launch_rocket()
-
-
-Options
-=======
-
-Below is the help output::
-
-    usage: docformatter [-h] [-i | -c] [-r] [--wrap-summaries length]
-                        [--wrap-descriptions length] [--blank]
-                        [--pre-summary-newline] [--make-summary-multi-line]
-                        [--force-wrap] [--range line line] [--version]
-                        files [files ...]
-
-    Formats docstrings to follow PEP 257.
-
-    positional arguments:
-      files                 files to format or '-' for standard in
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -i, --in-place        make changes to files instead of printing diffs
-      -c, --check           only check and report incorrectly formatted files
-      -r, --recursive       drill down directories recursively
-      -e, --exclude         exclude directories and files by names
-
-      --wrap-summaries length
-                            wrap long summary lines at this length; set to 0 to
-                            disable wrapping (default: 79)
-      --wrap-descriptions length
-                            wrap descriptions at this length; set to 0 to disable
-                            wrapping (default: 72)
-      --blank               add blank line after description
-      --pre-summary-newline
-                            add a newline before the summary of a multi-line
-                            docstring
-      --make-summary-multi-line
-                            add a newline before and after the summary of a one-
-                            line docstring
-      --force-wrap          force descriptions to be wrapped even if it may result
-                            in a mess
-      --range line line     apply docformatter to docstrings between these lines;
-                            line numbers are indexed at 1
-      --version             show program's version number and exit
-
-
-Possible exit codes:
-
-- **1** - if any error encountered
-- **3** - if any file needs to be formatted (in ``--check`` mode)
-
-Wrapping descriptions
-=====================
-
-docformatter will wrap descriptions, but only in simple cases. If there is text
-that seems like a bulleted/numbered list, docformatter will leave the
-description as is::
-
-    - Item one.
-    - Item two.
-    - Item three.
-
-This prevents the risk of the wrapping turning things into a mess. To force
-even these instances to get wrapped use ``--force-wrap``.
-
-
-Integration
-===========
-
-Git Hook
---------
-
-*docformatter* is configured for `pre-commit`_ and can be set up as a hook with the following ``.pre-commit-config.yaml`` configuration:
-
-.. _`pre-commit`: https://pre-commit.com/
-
-.. code-block:: yaml
-
-  - repo: https://github.com/myint/docformatter
-    rev: v1.3.1
-    hooks:
-      - id: docformatter
-        args: [--in-place]
-
-You will need to install ``pre-commit`` and run ``pre-commit install``.
-
-You may alternatively use  ``args: [--check]`` if you prefer the commit to fail instead of letting *docformatter* format  docstrings automatically.
-
-PyCharm
+Authors
 -------
 
-*docformatter* can be configured as a PyCharm file watcher to automatically format docstrings on saving python files.
+`Ryan Babbush <http://ryanbabbush.com>`__ (Google),
+`Jarrod McClean <http://jarrodmcclean.com>`__ (Google),
+`Ian Kivlichan <http://aspuru.chem.harvard.edu/ian-kivlichan/>`__ (Harvard),
+`Kevin J. Sung <https://github.com/kevinsung>`__ (University of Michigan),
+`Damian Steiger <https://github.com/damiansteiger>`__ (ETH Zurich),
+`Dave Bacon <https://github.com/dabacon>`__ (Google),
+`Yudong Cao <https://github.com/yudongcao>`__ (Harvard),
+`Chengyu Dai <https://github.com/jdaaph>`__ (University of Michigan),
+`E. Schuyler Fried <https://github.com/schuylerfried>`__ (Harvard),
+`Craig Gidney <https://github.com/Strilanc>`__ (Google),
+`Brendan Gimby <https://github.com/bgimby>`__ (University of Michigan),
+`Pranav Gokhale <https://github.com/singular-value>`__ (University of Chicago),
+`Thomas Häner <https://github.com/thomashaener>`__ (ETH Zurich),
+`Tarini Hardikar <https://github.com/TariniHardikar>`__ (Dartmouth),
+`Vojtĕch Havlíček <https://github.com/VojtaHavlicek>`__ (Oxford),
+`Cupjin Huang <https://github.com/pertoX4726>`__ (University of Michigan),
+`Josh Izaac <https://github.com/josh146>`__ (Xanadu),
+`Zhang Jiang <https://ti.arc.nasa.gov/profile/zjiang3>`__ (NASA),
+`Xinle Liu <https://github.com/sheilaliuxl>`__ (Google),
+`Sam McArdle <https://github.com/sammcardle30>`__ (Oxford),
+`Matthew Neeley <https://github.com/maffoo>`__ (Google),
+`Thomas O'Brien <https://github.com/obriente>`__ (Leiden University),
+`Isil Ozfidan <https://github.com/conta877>`__ (D-Wave Systems),
+`Max Radin <https://github.com/max-radin>`__ (UC Santa Barbara),
+`Jhonathan Romero <https://github.com/jromerofontalvo>`__ (Harvard),
+`Nicholas Rubin <https://github.com/ncrubin>`__ (Rigetti),
+`Daniel Sank <https://github.com/DanielSank>`__ (Google),
+`Nicolas Sawaya <https://github.com/nicolassawaya>`__ (Harvard),
+`Kanav Setia <https://github.com/kanavsetia>`__ (Dartmouth),
+`Hannah Sim <https://github.com/hsim13372>`__ (Harvard),
+`Mark Steudtner <https://github.com/msteudtner>`__  (Leiden University),
+`Qiming Sun <https://github.com/sunqm>`__ (Caltech),
+`Wei Sun <https://github.com/Spaceenter>`__ (Google),
+`Daochen Wang <https://github.com/daochenw>`__ (River Lane Research),
+`Chris Winkler <https://github.com/quid256>`__ (University of Chicago) and
+`Fang Zhang <https://github.com/fangzh-umich>`__ (University of Michigan).
 
-Head over to ``Preferences > Tools > File Watchers``, click the ``+`` icon and configure *docformatter* as shown below:
+How to cite
+-----------
+When using OpenFermion-PySCF for research projects, please cite:
 
-.. image:: /images/pycharm-file-watcher-configurations.png
-   :alt: PyCharm file watcher configurations
+    Jarrod R. McClean, Ian D. Kivlichan, Kevin J. Sung, Damian S. Steiger,
+    Yudong Cao, Chengyu Dai, E. Schuyler Fried, Craig Gidney, Brendan Gimby,
+    Pranav Gokhale, Thomas Häner, Tarini Hardikar, Vojtĕch Havlíček,
+    Cupjin Huang, Josh Izaac, Zhang Jiang, Xinle Liu, Matthew Neeley,
+    Thomas O'Brien, Isil Ozfidan, Maxwell D. Radin, Jhonathan Romero,
+    Nicholas Rubin, Nicolas P. D. Sawaya, Kanav Setia, Sukin Sim,
+    Mark Steudtner, Qiming Sun, Wei Sun, Fang Zhang and Ryan Babbush.
+    *OpenFermion: The Electronic Structure Package for Quantum Computers*.
+    `arXiv:1710.07629 <https://arxiv.org/abs/1710.07629>`__. 2017.
 
+as well as
 
-Issues
-======
+    Qiming Sun, Timothy C. Berkelbach, Nick S. Blunt, George H. Booth, Sheng Guo,
+    Zhendong Li, Junzi Liu, James McClain, Elvira. R. Sayfutyarova, Sandeep Sharma,
+    Sebastian Wouters and Garnet Kin-Lic Chan.
+    *The Python-based Simulations of Chemistry Framework (PySCF)*.
+    `WIREs Compututational Molecular Science <http://onlinelibrary.wiley.com/doi/10.1002/wcms.1340/full>`__.
+    2017.
 
-Bugs and patches can be reported on the `GitHub page`_.
+We are happy to include future contributors as authors on later OpenFermion releases.
 
-.. _`GitHub page`: https://github.com/myint/docformatter/issues
-
-
-Links
-=====
-
-* Coveralls_
-
-.. _`Coveralls`: https://coveralls.io/r/myint/docformatter
+Disclaimer
+----------
+Copyright 2017 The OpenFermion Developers.
+This is not an official Google product.

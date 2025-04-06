@@ -1,10 +1,8 @@
-include AUTHORS.rst
 include LICENSE
+include NOTICE
 include MANIFEST.in
 include README.rst
-include test_docformatter.py
-recursive-include images *.png
+include requirements.txt
+include setup.py
 
-exclude .pre-commit-hooks.yaml
-exclude .travis.yml
-exclude Makefile
+recursive-include openfermionpyscf *.py
