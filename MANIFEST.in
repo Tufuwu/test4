@@ -1,2 +1,2 @@
-recursive-exclude niworkflows/ conftest.py
-include versioneer.py
+include *.svg LICENSE*
+recursive-include test *.svg

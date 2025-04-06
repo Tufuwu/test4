@@ -1,32 +1,52 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""niworkflows setup script."""
-import sys
 from setuptools import setup
-import versioneer
+import codecs
+import os
 
-# Use setup_requires to let setuptools complain if it's too old for a feature we need
-# 30.3.0 allows us to put most metadata in setup.cfg
-# 30.4.0 gives us options.packages.find
-# 40.8.0 includes license_file, reducing MANIFEST.in requirements
-#
-# To install, 30.4.0 is enough, but if we're building an sdist, require 40.8.0
-# This imposes a stricter rule on the maintainer than the user
-# Keep the installation version synchronized with pyproject.toml
-#
-# 12/05/2020 - Bumped to setuptools 38.4.1
-SETUP_REQUIRES = [f"setuptools >= {'40.8.0' if 'sdist' in sys.argv else '38.4.1'}"]
 
-# This enables setuptools to install wheel on-the-fly
-if "bdist_wheel" in sys.argv:
-    SETUP_REQUIRES += ["wheel"]
+VERSION = '1.4.1'
+AUTHOR_NAME = 'Andy Port'
+AUTHOR_EMAIL = 'AndyAPort@gmail.com'
 
-if __name__ == "__main__":
-    # Note that "name" is used by GitHub to determine what repository provides a package
-    # in building its dependency graph.
-    setup(
-        name="niworkflows",
-        version=versioneer.get_version(),
-        cmdclass=versioneer.get_cmdclass(),
-        setup_requires=SETUP_REQUIRES,
-    )
+
+def read(*parts):
+    """
+    Build an absolute path from *parts* and and return the contents of the
+    resulting file.  Assume UTF-8 encoding.
+    """
+    HERE = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(HERE, *parts), "rb", "utf-8") as f:
+        return f.read()
+
+
+setup(name='svgpathtools',
+      packages=['svgpathtools'],
+      version=VERSION,
+      description=('A collection of tools for manipulating and analyzing SVG '
+                   'Path objects and Bezier curves.'),
+      long_description=read("README.md"),
+      long_description_content_type='text/markdown',
+      author=AUTHOR_NAME,
+      author_email=AUTHOR_EMAIL,
+      url='https://github.com/mathandy/svgpathtools',
+      # download_url = 'http://github.com/mathandy/svgpathtools/tarball/'+VERSION,
+      license='MIT',
+      install_requires=['numpy', 'svgwrite'],
+      platforms="OS Independent",
+      requires=['numpy', 'svgwrite'],
+      keywords=['svg', 'svg path', 'svg.path', 'bezier', 'parse svg path', 'display svg'],
+      classifiers=[
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 3",
+            "Topic :: Multimedia :: Graphics :: Editors :: Vector-Based",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Scientific/Engineering :: Image Recognition",
+            "Topic :: Scientific/Engineering :: Information Analysis",
+            "Topic :: Scientific/Engineering :: Mathematics",
+            "Topic :: Scientific/Engineering :: Visualization",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            ],
+      )
