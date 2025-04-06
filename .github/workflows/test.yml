@@ -1,52 +1,37 @@
-name: Linux FoxPuppet Tests
+name: Python package
+
 on:
-    pull_request:
-      # Sequence of patterns matched against refs/heads
-      branches:
-        - main
-env:
-  MOZ_HEADLESS: 1
+  - push
+  - pull_request
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
-    name: FoxPuppet Linting
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
-      - name: Run Tests
-        shell: bash
-        run: make install_poetry lint
-  test:
-    needs: lint
-    runs-on: ubuntu-latest
+    timeout-minutes: 9
     strategy:
-      fail-fast: false
       matrix:
-        firefox: ['latest-beta', 'latest-devedition', 'latest-nightly', 'latest-esr', 'latest']
-    name: FoxPuppet Firefox Tests
+        python-version: ["3.9"]
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Setup firefox
-        id: setup-firefox
-        uses: browser-actions/setup-firefox@v1
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          firefox-version: ${{ matrix.firefox }}
-      - run: |
-          echo Installed firefox versions: ${{ steps.setup-firefox.outputs.firefox-version }}
-      - name: Setup Python
-        uses: actions/setup-python@v5
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/cache@v4
         with:
-          python-version: '3.9'
-      - name: Run Tests
-        shell: bash
-        run: make install_poetry test
-      - uses: actions/upload-artifact@v4
-        if: ${{ always() }}
-        with:
-          name:  HTML Test Report on firefox v${{ matrix.firefox }}
-          path: /home/runner/work/FoxPuppet/FoxPuppet/results/report.html
+          path: ~/.cache/pip
+          key: ${{ hashFiles('setup.py') }}-${{ hashFiles('requirements/testing.txt') }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+          python -m pip install -r requirements/testing.txt
+      - name: Run flake8
+        run: flake8
+      - name: Test with tox
+        run: tox
