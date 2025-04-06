@@ -1,41 +1,43 @@
-Python Classes for Data Manipulation
-====================================
+# futaba
+![picture of futaba](images/futaba-portrait.png)
 
-[![Test](https://github.com/otsaloma/dataiter/workflows/Test/badge.svg)](https://github.com/otsaloma/dataiter/actions)
-[![Documentation Status](https://readthedocs.org/projects/dataiter/badge/?version=latest)](https://dataiter.readthedocs.io/en/latest/?badge=latest)
-[![PyPI](https://img.shields.io/pypi/v/dataiter.svg)](https://pypi.org/project/dataiter/)
+A Discord bot for the [Programming server](https://discord.gg/010z0Kw1A9ql5c1Qe).
 
-dataiter currently includes the following classes.
+Requires Python 3.6 or later. There is a sample configuration file at `misc/config.toml`.
 
-**`DataFrame`** is a class for tabular data similar to R's `data.frame`
-or `pandas.DataFrame`. It is under the hood a dictionary of NumPy arrays
-and thus capable of fast vectorized operations. You can consider this to
-be a very experimental, very light-weight alternative to Pandas with a
-simple and consistent API. Performance-wise dataiter relies on NumPy and
-is likely to be at best comparable to Pandas.
-
-**`ListOfDicts`** is a class useful for manipulating data from JSON
-APIs. It provides functionality similar to libraries such as
-Underscore.js, with manipulation functions that iterate over the data
-and return a shallow modified copy of the original. `attd.AttributeDict`
-is used to provide convenient access to dictionary keys.
-
-**`GeoJSON`** is a simple wrapper class that allows reading a GeoJSON
-file into a `DataFrame` and writing a data frame to a GeoJSON file. Any
-operations on the data are thus done with methods provided by the data
-frame class. Geometry is read as-is into the "geometry" column, but no
-special geometric operations are currently supported.
-
-## Installation
-
-```bash
-# Latest stable version
-pip install -U dataiter
-
-# Latest development version
-pip install -U git+https://github.com/otsaloma/dataiter#egg=dataiter
+## Running locally
+Setup:
+```
+$ pip3 install --user -r requirements.txt
+$ docker run -e POSTGRES_PASSWORD=password -p 5432:5432 postgres
+$ cp misc/config.toml config.toml
+# set database.url to "postgresql://postgres:password@localhost"
 ```
 
-## Documentation
+To run:
+```
+$ python3 -m futaba <config.toml>
+```
 
-https://dataiter.readthedocs.io/
+## Development
+More setup:
+```
+$ pip3 install --user -r requirements-dev.txt
+```
+
+Formatting and linting code:
+```
+$ black futaba
+$ pylint futaba
+```
+
+## Deployment
+You can have a production system, complete with a systemd service file, you can use the provided
+`deploy.sh` script. If there is a `futaba.service` file in the repository root, that service is installed, otherwise the one in `misc/` is used.
+
+Usage:
+```
+$ ./deploy.sh <config.toml>
+```
+
+Installs dependencies, installs the service and configuration files, then restarts the unit.
