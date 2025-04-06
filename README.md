@@ -1,294 +1,383 @@
-![logo](https://github.com/Dobiasd/undictify/raw/master/logo/undictify.png)
+# Phockup
 
-[![CI](https://github.com/Dobiasd/undictify/workflows/ci/badge.svg)](https://github.com/Dobiasd/undictify/actions)
-[![(License MIT 1.0)](https://img.shields.io/badge/license-MIT%201.0-blue.svg)][license]
+[![Tests](https://github.com/ivandokov/phockup/actions/workflows/tests.yml/badge.svg)](https://github.com/ivandokov/phockup/actions/workflows/tests.yml)
+[![Deploy](https://github.com/ivandokov/phockup/actions/workflows/deploy.yml/badge.svg)](https://github.com/ivandokov/phockup/actions/workflows/deploy.yml)
+[![Lint](https://github.com/ivandokov/phockup/actions/workflows/lint.yml/badge.svg)](https://github.com/ivandokov/phockup/actions/workflows/lint.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](license)
 
-[license]: LICENSE
+Media sorting tool to organize photos and videos from your camera in folders by year, month and day.
 
+## How it works
+The software will collect all files from the input directory and copy them to the output directory without changing the files content. It will only rename the files and place them in the proper directory for year, month and day.
 
-undictify
-=========
-**Python library providing type-checked function calls at runtime**
+All files which are not images or videos or those which do not have creation date information will be placed in a directory called `unknown` without file name change. By doing this you can be sure that the input directory can be safely deleted after the successful process completion because **all** files from the input directory have a copy in the output directory.
 
+If the target file already exists, its checksum is compared with the source to determine if it is a duplicate. If the checksums are different, we do not have a duplicate and the target filename will be suffixed with a number, for example "-1". If the checksums match, the copy operation will be skipped.
 
-Table of contents
------------------
-  * [Introduction](#introduction)
-  * [Use case: JSON deserialization](#use-case-json-deserialization)
-  * [Details](#details)
-  * [Requirements and Installation](#requirements-and-installation)
+## Installation
 
+### Docker
 
-Introduction
-------------
-Let's start with a toy example:
-```python3
-def times_two(value):
-    return 2 * value
+The docker container supports two operation modes. The first allows for a single execution of phockup. In this mode, the container will be stopped after the execution is complete. The second mode allows for execution in intervals. In this mode, the container will continue running until the user decides to stop it.
 
-value = 3
-result = times_two(value)
-print(f'{value} * 2 == {result}')
+#### Single execution mode
+In this mode, all phockup parameters need to be passed as direct parameters within the docker run command. As you define a complete set of phockup parameters for this execution mode, this includes the paths to the input and output folders within the container.
+To execute phockup only once, use the following command:
+
+```
+docker run -v ~/Pictures:/mnt ivandokov/phockup:latest /mnt/input /mnt/output [PHOCKUP ARGUMENTS]
 ```
 
-This is fine, it outputs `output: 3 * 2 = 6`.
-But what if `value` accidentally is `'3'` instead of `3`?
-The output will become `output: 3 * 2 = 33`, which *might* not be desired.
+#### Continuous execution mode
+In this mode, all relevant settings are defined through environment variables and volume mappings. The folders where phockup moves files are always /mnt/input and /mnt/output within the container and can not be changed. You can of course map any folder on your host system to those folders within the container.
 
-So you add something like
-```python3
-if not isinstance(value, int):
-    raise TypeError(...)
+The `-v ~/Pictures/input:/mnt/input` part of the command mounts your `~/Pictures/input` directory to `/mnt/input` inside the container. The same is done for the output folder. You can pass any **absolute** path to be mounted to the container and later on be used as paths for the `phockup` command. The example above provides your `~/Pictures/input` as `INPUTDIR` and `~/Pictures/output` as `OUTPUDIR`. You can pass additional arguments through the `OPTIONS` environment variable.
+
+To keep the container running and execute phockup in intervals, use the following command:
+
 ```
-to `times_two`. This will raise an `TypeError` instead, which is better.
-But you still only recognize the mistake when actually running the code.
-Catching it earlier in the development process might be better.
-Luckily Python allows to opt-in for static typing by offering [type annotations](https://docs.python.org/3/library/typing.html).
-So you add them and [`mypy`](http://mypy-lang.org/) (or your IDE) will tell you about the problem early.
-```python3
-def times_two(value: int) -> int:
-    return 2 * value
-
-value = '3'
-result = times_two(value) # error: Argument 1 to "times_two"
-                          # has incompatible type "str"; expected "int"
-print(f'{value} * 2 == {result}')
+docker run -v ~/Pictures/input:/mnt/input -v ~/Pictures/output:/mnt/output -e "CRON=* * * * *" -e "OPTIONS=[PHOCKUP ARGUMENTS]" ivandokov/phockup:latest
 ```
 
-But you may get into a situation in which there is no useful static type information,
-because of values:
-- coming from external non-typed functions (so actually they are of type `Any`)
-- were produced by a (rogue) function that returns different types depending on some internal decision (`Union[T, V]`)
-- being provided as a `Dict[str, Any]`
-- etc.
+This will execute phockup once every minute (as defined by the [value of the CRON environment variable](https://crontab.guru/#*_*_*_*_*)). However, the container will not spawn a new phockup process if another phockup process is still running. You can define other intervals for execution using the usual cron syntax. If you want to pass further arguments to phockup, use the OPTIONS environment variable. In this execution mode, phockup will always use the directories mounted to `/mnt/input` and `/mnt/output` and ignore arguments passed in the style of the single execution mode.
 
-```python3
-def times_two(value: int) -> int:
-    return 2 * value
-        
-def get_value() -> Any:
-    return '3'
-
-value = get_value()
-result = times_two(value)
-print(f'{value} * 2 == {result}')
+### Mac
+Requires [Homebrew](http://brew.sh/)
+```
+brew tap ivandokov/homebrew-contrib
+brew install phockup
 ```
 
-At least with the [appropriate settings](https://stackoverflow.com/questions/51696060/how-to-make-mypy-complain-about-assigning-an-any-to-an-int-part-2/51696314#51696314), `mypy` should dutifully complain, and now you're left with two options:
-- Drop type-checking (for example by adding ` # type: ignore` to the end of the `result = times_two(value)` line): This however catapults you back into the insane world where `2 * 3 == 33`.
-- You manually add type checks before the call (or inside of `times_two`) like `if not isinstance(value, int):`: This of course does not provide static type checking (because of the dynamic nature of `value`), but at least guarantees sane runtime behavior. 
-
-But the process of writing that boilerplate validation code can become quite cumbersome if you have multiple parameters/functions to check.
-Also it is not very [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) since you already have the needed type information in our function signature and you just duplicated it in the check condition.
-
-This is where undictify comes into play. Simply decorate your `times_two` function with `@type_checked_call()`:
-```python3
-from undictify import type_checked_call
-
-@type_checked_call()
-def times_two(value: int) -> int:
-    return 2 * value
+### Linux (snap)
+Requires [snapd](https://snapcraft.io/docs/core/install)
+```
+sudo snap install phockup
+```
+*Note: snap applications can access files only in your **home and `/media` directories** for security reasons. If your media files are not located in these directories you should use the installation method below.
+If your files are in `/media` you should run the following command to allow access:*
+```
+sudo snap connect phockup:removable-media
 ```
 
-And the arguments of `times_two` will be type-checked with every call at runtime automatically. A `TypeError` will be raised if needed. 
-
-This concept of **runtime type-checks of function calls derived from static type annotations** is quite simple,
-however it is very powerful and brings some highly convenient consequences with it.
-
-
-Use case: JSON deserialization
-------------------------------
-
-Imagine your application receives a JSON string representing an entity you need to handle:
-
-```python3
-tobias_json = '''
-    {
-        "id": 1,
-        "name": "Tobias",
-        "heart": {
-            "weight_in_kg": 0.31,
-            "pulse_at_rest": 52
-        },
-        "friend_ids": [2, 3, 4, 5]
-    }'''
-
-tobias = json.loads(tobias_json)
+### Linux (without snap)
+If you are using distro which doesn't support [snapd](https://snapcraft.io/docs/core/install) or you don't want to download the snap you can use the following commands to download the source and set it up
+```
+sudo apt-get install python3 libimage-exiftool-perl -y
+curl -L https://github.com/ivandokov/phockup/archive/latest.tar.gz -o phockup.tar.gz
+tar -zxf phockup.tar.gz
+sudo mv phockup-* /opt/phockup
+cd /opt/phockup
+pip3 install -r requirements.txt
+sudo ln -s /opt/phockup/phockup.py /usr/local/bin/phockup
 ```
 
-Now you start to work with it. Somewhere deep in your business logic you have:
-```python3
-name_length = len(tobias['name'])
-```
-But that's only fine if the original JSON string was well-behaved.
-If it had `"name": 4,` in it, you would get:
-```
-    name_length = len(tobias['name'])
-TypeError: object of type 'int' has no len()
-```
-at runtime, which is not nice. So you start to manually add type checking:
-```python3
-if isinstance(tobias['name'], str):
-    name_length = len(tobias['name'])
-else:
-    # todo: handle the situation somehow
-```
+### Linux (AUR)
 
-You quickly realize that you need to separate concerns better,
-in that case the business logic and the input data validation.
+If you are an arch user you can install from the [aur](https://aur.archlinux.org/packages/phockup).
 
-So you start to do all checks directly after receiving the data:
-```python3
-tobias = json.loads(...
-if isinstance(tobias['id'], int):
-    ...
-if isinstance(tobias['name'], str):
-    ...
-if isinstance(... # *yawn*
-```
-
-and then transfer it into a type-safe class instance:
-```python3
-@dataclass
-class Heart:
-    weight_in_kg: float
-    pulse_at_rest: int
-
-@dataclass
-class Human:
-    id: int
-    name: str
-    nick: Optional[str]
-    heart: Heart
-    friend_ids: List[int]
-```
-
-Having the safety provided by the static type annotations (and probably checking your code with `mypy`) is a great because of all the:
-- bugs that don't make it into PROD
-- manual type checks (and matching unit tests) that you don't have to write
-- help your IDE can now offer
-- better understanding people get when reading your code
-- easier and more confident refactorings
-
-But again, writing all that boilerplate code for data validation is tedious (and not DRY).
-
-So you decide to use a library that does JSON schema validation for you.
-But now you have to manually adjust the schema every time your entity structure changes, which still is not DRY, and thus also brings with it all the typical possibilities to make mistakes.
-
-Undictify can help here too!
-Annotate the classes `@type_checked_constructor` and their constructors will be wrapped in type-checked calls.
-```python3
-@type_checked_constructor()
-@dataclass
-class Heart:
-    ...
-@type_checked_constructor()
-@dataclass
-class Human:
-    ...
-```
-
-(They do not need to be `dataclass`es. Deriving from `NamedTuple` works too.)
-
-Undictify will type-check the construction of objects of type `Heart` and `Human` automatically.
-(This works for normal classes with a manually written `__init__` function too.
-You just need to provide the type annotations to its parameters.) So you can use the usual dictionary unpacking syntax, to safely convert your untyped dictionary (i.e., `Dict[str, Any]`) resulting from the JSON string into your statically typed class:
-
-```python3
-tobias = Human(**json.loads(tobias_json))
-```
-
-(Btw this application is the origin of the name of this library.)
-
-It throws exceptions with meaningful details in their associated values in case of errors like:
-- missing a field
-- a field having the wrong type
-- etc.
-
-It also supports optional values being omitted instead of being `None` explicitly (as shown in the example with the `nick` field).
-
-
-Details
--------
-
-Sometimes, e.g., in case of unpacking a dictionary resulting from a JSON string,
-you might want to just skip the fields in the dictionary that your function / constructor does not take as a parameter.
-For these cases undictify provides `@type_checked_call(skip=True)`.
-
-It also supports valid type conversions via `@type_checked_call(convert=True)`,
-which might for example come in handy when processing the arguments of an HTTP request you receive for example in a `get` handler of a `flask_restful.Resource` class:
-```python3
-@type_checked_call(convert=True)
-def target_function(some_int: int, some_str: str)
-
-class WebController(Resource):
-    def get(self) -> Any:
-        # request.args is something like {"some_int": "4", "some_str": "hi"}
-        result = target_function(**flask.request.args)
-```
-
-The values in the `MultiDict` `request.args` are all strings, but the logic behind `@type_checked_call(convert=True)` tries to convert them into the desired target types with reasonable exceptions in case the conversion is not possible.
-
-This way a request to `http://.../foo?some_int=4&some_str=hi` would be handled normally,
-but `http://.../foo?some_int=four&some_str=hi` would raise an appropriate `TypeError`.
-
-Additional flexibility is offered for cases in which you would like to not type-check all calls of a specific function / class constructor, but only some. You can use `type_checked_call()` at call site instead of adding the annotation for those:
-
-```python3
-from undictify import type_checked_call
-
-def times_two(value: int) -> int:
-    return 2 * value
-
-value: Any = '3'
-resutl = type_checked_call()(times_two)(value)
-```
-
-And last but not least, custom converters for specified parameters are also supported:
-
-```python3
-import json
-from dataclasses import dataclass
-from datetime import datetime
-
-from undictify import type_checked_constructor
-
-def parse_timestamp(datetime_repr: str) -> datetime:
-    return datetime.strptime(datetime_repr, '%Y-%m-%dT%H:%M:%SZ')
-
-@type_checked_constructor(converters={'some_timestamp': optional_converter(parse_timestamp)})
-@dataclass
-class Foo:
-    some_timestamp: datetime
-
-json_repr = '{"some_timestamp": "2019-06-28T07:20:34Z"}'
-my_foo = Foo(**json.loads(json_repr))
-```
-
-In case the converter should be applied even if the source type
-already matches the destination type, use `mandatory_converter`
-instead of `optional_converter`.
-
-
-Requirements and Installation
------------------------------
-
-You need Python 3.7 or higher.
+For example using [yay](https://github.com/Jguer/yay):
 
 ```bash
-python3 -m pip install undictify
+yay -S phockup
 ```
 
-Or, if you like to use latest version from this repository:
+### Windows
+* Download and install latest stable [Python 3](https://www.python.org/downloads/windows/)
+* Download Phockup's [latest release](https://github.com/ivandokov/phockup/archive/latest.tar.gz) and extract the archive
+* Download exiftool from the official [website](https://exiftool.org/) and extract the archive
+* Rename `exiftool(-k).exe` to `exiftool.exe`
+* Move `exiftool.exe` to phockup folder
+* Open Command Prompt and `cd` to phockup folder
+* Use the command below (use `phockup.py` instead of `phockup`)
+
+## Usage
+Organize photos from one directory into another
+```
+phockup INPUTDIR OUTPUTDIR
+```
+
+`INPUTDIR` is the directory where your photos are located.
+`OUTPUTDIR` is the directory where your **sorted** photos will be stored. It could be a new not existing directory.
+
+Example:
+```
+phockup ~/Pictures/camera ~/Pictures/sorted
+```
+
+### Version
+If you want to view the version of phockup use the flag `-v | --version`.
+
+### Date format
+If you want to change the output directories date format you can do it by passing the format as `-d | --date` argument.
+You can choose different year format (e.g. 17 instead of 2017) or decide
+        to skip the day directories and have all photos sorted in year/month.
+
+```
+Supported formats:
+    YYYY - 2016, 2017 ...
+    YY   - 16, 17 ...
+    MM   - 07, 08, 09 ...
+    M    - July, August, September ...
+    m    - Jul, Aug, Sept ...
+    DD   - 27, 28, 29 ... (day of month)
+    DDD  - 123, 158, 365 ... (day of year)
+    U    - 00, 01, 53 ... (week of the year, Sunday first day of week)
+    W    - 00, 01, 53 ... (week of the year, Monday first day of week)
+
+Example:
+    YYYY/MM/DD -> 2011/07/17
+    YYYY/M/DD  -> 2011/July/17
+    YYYY/m/DD  -> 2011/Jul/17
+    YY/m-DD    -> 11/Jul-17
+    YYYY/U     -> 2011/30
+    YYYY/W     -> 2011/28
+```
+
+### Prefix/Suffix
+In order to support both aggregation and finer granularity of files
+sorted, you can specify a prefix or suffix (or both) to aid in storing
+files in directories beyond strictly date.
+
+*NOTE:* Prefixes and suffixes will also apply to the **'unknown'** folder to
+isolate files that cannot be processed into their respective folders.
+This creates a bit more chaos for 'unknown' files, but should allow
+them to be managed by whomever they "belong" to.
+
+#### Prefix
+`--output-prefix` flag can be used to specify a directory to be
+appended to the `OUTPUTDIR`, and thus prepended to the date.
+
+For example:
+```
+phockup ~/Pictures/camera /mnt/sorted --output_prefix=nikon
+```
+would place files in folders similar to:
+```
+/mnt/sorted/nikon/2011/07/17
+/mnt/sorted/nikon/unknown
+```
+
+While it may seem to be redundant with `OUTPUTDIR`, this flag is
+intended to add support for more cleanly determining the output
+directory at run-time via environment variable expansion (i.e. use
+$USER, %USERNAME%, $HOSTNAME, etc. to aggregate files)
+
+For example:
+```
+phockup ~/Pictures/camera /mnt/sorted --output_prefix=$USER
+```
+
+would yield an output directory of
+```
+/mnt/sorted/ivandokov/2011/07/17
+/mnt/sorted/ivandokov/unknown
+```
+
+This allows the same script to be deployed to multiple users/machines
+and allows sorting into their respective top level directories.
+
+#### Suffix
+`--output-suffix` flag can be used to specify a directory within the
+target date directory for a file.  This allows files to be sorted in
+their respective date/time folders while additionally adding a
+directory based on the suffix value for additional metadata.
+
+For example:
+```
+phockup ~/Pictures/DCIM/NIKOND40 /mnt/sorted --output_suffix=nikon
+phockup ~/Pictures/DCIM/100APPLE /mnt/sorted --output_suffix=iphone
+```
+
+This would allow files to be stored in the following structure:
+
+```
+/mnt/sorted/2011/07/17/nikon/DCS_0001.NEF
+...
+/mnt/sorted/2011/07/17/nikon/DCS_0099.NEF
+/mnt/sorted/unknown/nikon/
+
+/mnt/sorted/2011/07/17/iphone/ABIL6163.HEIC
+...
+/mnt/sorted/2011/07/17/iphone/YZYE9497.HEIC
+/mnt/sorted/unknown/iphone/
+```
+
+The output suffix also allows for environment variable expansion (e.g.
+$USER, $HOSTNAME, %USERNAME%, etc.) allowing dynamic folders to
+represent additional metadata about the images.
+
+For example:
+
+```
+phockup ~/Pictures/ /mnt/sorted --output_suffix=$HOSTNAME
+
+or
+
+phockup ~/Pictures/ /mnt/sorted --output_suffix=$USER
+```
+could be used to sort images based on the source computer or user,
+perventing hetrogenous collections of images from disparate sources
+saving to the same central respository.
+
+The two options above can be used to help sort/store images
+
+#### Limit files processed by date
+`--from-date` flag can be used to limit the operations to the files that are newer than the provided date (inclusive).
+The date must be specified in format YYYY-MM-DD. Files with unknown date won't be skipped.
+
+For example:
+```
+phockup ~/Pictures/DCIM/NIKOND40 ~/Pictures/sorted --from-date="2017-01-02"
+```
+`--to-date` flag can be used to limit the operations to the files that are older than the provided date (inclusive).
+The date must be specified in format YYYY-MM-DD. Files with unknown date won't be skipped.
+
+For example:
+```
+phockup ~/Pictures/DCIM/NIKOND40 ~/Pictures/sorted --to-date="2017-01-02"
+```
+
+`--from-date` and `--to-date` can be combined for better control over the files that are processed.
+
+For example:
+```
+phockup ~/Pictures/DCIM/NIKOND40 ~/Pictures/sorted --from-date="2017-01-02" --to-date="2017-01-03"
+```
+
+### Missing date information in EXIF
+If any of the photos does not have date information you can use the `-r | --regex` option to specify date format for date extraction from filenames:
+```
+--regex="(?P<day>\d{2})\.(?P<month>\d{2})\.(?P<year>\d{4})[_-]?(?P<hour>\d{2})\.(?P<minute>\d{2})\.(?P<second>\d{2})"
+```
+
+As a last resort, specify the `-t | --timestamp` option to use the file modification timestamp. This may not be accurate in all cases but can provide some kind of date if you'd rather it not go into the `unknown` folder.
+
+### Move files
+Instead of copying the process will move all files from the INPUTDIR to the OUTPUTDIR by using the flag `-m | --move`. This is useful when working with a big collection of files and the remaining free space is not enough to make a copy of the INPUTDIR.
+
+### Link files
+Instead of copying the process will create hard link all files from the INPUTDIR into new structure in OUTPUTDIR by using the flag `-l | --link`. This is useful when working with good structure of photos in INPUTDIR (like folders per device).
+
+### Original filenames
+Organize the files in selected format or using the default year/month/day format but keep original filenames by using the flag `-o | --original-names`.
+
+### File Type
+By default, Phockup addresses both image and video files. If you want to restrict your command to either images or videos only, use `--file-type=[image|video]`.
+
+### Fix incorrect dates
+If date extracted from photos is incorrect, you can use the `-f | --date-field` option to set the correct exif field to get date information from. Use this command to list which fields are available for a file:
+```
+exiftool -time:all -mimetype -j file.jpg
+```
+The output may look like this, but with more fields:
+```
+[{
+  "DateTimeOriginal": "2017:10:06 01:01:01",
+  "CreateDate": "2017:01:01 01:01:01",
+]}
+```
+If the correct date is in `DateTimeOriginal`, you can include the option `--date-field=DateTimeOriginal` to get date information from it.
+To set multiple fields to be tried in order until a valid date is found, just join them with spaces in a quoted string like `"CreateDate FileModifyDate"`.
+
+### Dry run
+If you want phockup to run without any changes (don't copy/move any files) but just show which changes would be done, enable this feature by using the flag `-y | --dry-run`.
+
+### Log
+If you want phockup to run and store the output in a log file use the flag `--log`. This flag can be used in conjunction with the flags `--quiet` or `--progress`.
+```
+--log=<PATH>/log.txt
+```
+
+### Quiet run
+If you want phockup to run without any output (displaying only error messages, and muting all progress messages) use the flag `--quiet`.
+
+### Progress run
+If you want phockup to run with a progressbar (displaying only the progress and muting all progress messages (including errors)) use the flag `--progress`.
+
+
+### Limit directory traversal depth
+If you would like to limit how deep the directories are traversed, you can use the `--maxdepth` option to specify the maximum number of levels below the input directory to process.  In order to process only the input directory, you can disable sub-directory processing with:
+`--maxdepth=0`  The current implementation is limited to a maximum depth of 255.
+
+### Improving throughput with concurrency
+If you want to allocate additional CPUs/cores to the image processing
+operations, you can specify additional resources via the
+`--max-concurrency` flag. Specifying `--max-concurrency=n`, where `n`
+represents the maximum number of operations to attempt
+concurrently, will leverage the additional CPU resources to start
+additional file operations while waiting for file I/O.  This can lead
+to significant increases in file processing throughput.
+
+Due to how concurrency is implemented in Phockup (specifically
+`ThreadPoolExecutor`), this option has the greatest impact on
+directories with a large numbers of files in them,
+versus many directories with small numbers of files in each.  As a
+general rule, the concurrency _should not_ be set higher than the
+core-count of the system processing the images.
+
+`--max-concurrency=1` has the default behavior of no concurrency while
+processing the files in the directories.  Beginning with 50% of the
+cores available is a good start.  Larger numbers can have
+diminishing returns as the number of concurrent operations saturate
+the file I/O of the system.
+
+Concurrently processing files does have an impact on the order that
+messages are written to the console/log and the ability to quickly
+terminate the program, as the execution waits for all in-flight
+operations to complete before shutting down.
+
+## Development
+
+### Running tests
+To run the tests, first install the dev dependencies using
+
 ```bash
-git clone https://github.com/Dobiasd/undictify
-cd undictify
-python3 -m pip install .
+pip3 install -r requirements-dev.txt
 ```
 
+Then run the tests using
 
-License
--------
-Distributed under the MIT License.
-(See accompanying file [`LICENSE`](https://github.com/Dobiasd/undictify/blob/master/LICENSE) or at
-[https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT))
+```bash
+pytest
+```
+
+To run the tests with coverage reports run
+```bash
+pytest --cov-report term-missing:skip-covered --cov=src tests/
+```
+
+Please add the necessary tests when committing a feature or improvement.
+
+
+### Pre-commit checks
+We leverage the [pre-commit](https://pre-commit.com/) framework to automate some general linting/quality checks.
+
+To install the hooks, from within the activated virtualenv run:
+
+```bash
+pre-commit install
+```
+
+To manually execute the hooks, run:
+
+```bash
+pre-commit run -a
+```
+
+### Style Guide Ruleset
+Please make sure that the code is compliant as described below when committing a feature or improvement.
+
+#### Flake8
+We use [flake8](https://flake8.pycqa.org/en/latest/) to check the PEP 8 ruleset.
+
+Code style for the line length are following the description of the tool [black](https://black.readthedocs.io/en/stable/the_black_code_style.html#line-length)
+In a nutshell, this comes down to 88 characters per line. This number was found to produce significantly shorter files.
+
+#### isort
+We also use [isort](https://github.com/PyCQA/isort) to check if import are sorted alphabetically, separated into sections and by type.
+
+##### single-quotes and double-quotes
+We try to adhere to the following as much as possible:
+Use single-quotes for string literals, e.g. 'my-identifier', but use double-quotes for strings that are likely to contain single-quote characters as part of the string itself (such as error messages, or any strings containing natural language), e.g. "You've got an error!".
+
+Single-quotes are easier to read and to type, but if a string contains single-quote characters then double-quotes are better than escaping the single-quote characters or wrapping the string in double single-quotes.

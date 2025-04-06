@@ -1,26 +1,47 @@
-name: ci
+name: Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  unit-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ["3.9"]
-    name: python-${{ matrix.python }}
+        python-version: ["3.9"]
     steps:
-      - name: Checkout
-        uses: actions/checkout@main
-      - name: Setup python-${{ matrix.python }}
-        uses: actions/setup-python@main
+      - name: Checkout the repository
+        uses: actions/checkout@v4.1.1
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
-      - name: Install Tools
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
         run: |
-          python3 -m pip install pylint
-          python3 -m pip install mypy
-          python3 -m pip install .
-      - name: Test
-        run: |
-          ./test/install_from_local_and_run_code_checks.sh
+          sudo apt-get install -y libimage-exiftool-perl
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest
+
+  docker-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4.1.1
+      - name: Build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ivandokov/phockup:test
