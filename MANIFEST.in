@@ -1,4 +1,1 @@
-include LICENSE
-include tests/*.py
-include examples/*.py
-include readme.md
+include demultiplex/setup.cfg
