@@ -1,19 +1,15 @@
-include AUTHORS.md
-include CHANGES.md
-include LICENSE.md
-include README.md
-include CITATION.cff
-include requirements*
-include noxfile.py
-
-recursive-include gflex
-recursive-include tests *py
-
-exclude .pre-commit-config.yaml
-exclude gflex_bmi.py
-exclude topypi-test.sh
-exclude topypi.sh
-
-recursive-exclude conda *
-recursive-exclude input *
-recursive-exclude utilities *
+include pigar/.db.sqlite3
+include CHANGELOGS.rst
+include README.rst
+include README-PYPI.rst
+include LICENSE
+include makefile
+include pigar/tests/fake_simple_html.txt
+include pigar/tests/fake_top_level.txt
+include pigar/tests/fake_reqs.txt
+include pigar/tests/imports_example/example1.py
+include pigar/tests/imports_example/example2.py
+include pigar/tests/imports_example/example3.py
+include pigar/tests/imports_example/mainfoobar.py
+include pigar/tests/imports_example/subbar/bar.py
+include pigar/tests/imports_example/subfoo/foo.py

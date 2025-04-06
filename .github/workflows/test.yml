@@ -1,44 +1,24 @@
-name: Test
-
+name: PyCI
 on: [push, pull_request]
-
 jobs:
-  build-and-test:
-    name: Run the tests
-    # We want to run on external PRs, but not on our own internal PRs as they'll be run
-    # by the push to the branch. Without this if check, checks are duplicated since
-    # internal PRs match both the push and pull_request events.
-    if:
-      github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
-      github.repository
-
-    runs-on: ${{ matrix.os }}
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
+  build:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.9"]
-
+    name: Python ${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v1
+      - name: Setup python
+        uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
-
-      - name: Show conda installation info
-        run: |
-          conda info
-          conda list
-
-      - name: Test
-        run: |
-          pip install nox
-          nox -s test --force-pythons="${{ matrix.python-version }}"
+          architecture: x64
+      - name: Install Py2.x dependencies
+        if: "startsWith(matrix.python-version, '2')"
+        run: pip install -r py2_requirements.txt
+      - name: Install Py3.x dependencies
+        if: "startsWith(matrix.python-version, '3')"
+        run: pip install -r py3_requirements.txt
+      - name: Run tests
+        run: python -m unittest discover pigar/tests/ -t . -v
