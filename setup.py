@@ -1,46 +1,25 @@
-#!/usr/bin/env python
-from setuptools import setup, find_packages
-from entangled import __version__
+from setuptools import setup
 
-
-with open('README.md') as fh:
-    long_description = fh.read()
-
-
-CLASSIFIERS = [
-    'Development Status :: 5 - Production/Stable',
-    'Environment :: Web Environment',
-    'Framework :: Django',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Framework :: Django :: 3.2',
-    'Framework :: Django :: 4.0',
-]
+with open('README.md') as f:
+    long_description = f.read()
 
 setup(
-    name='django-entangled',
-    version=__version__,
-    description='Edit JSON field using Django Model Form',
-    author='Jacob Rief',
-    author_email='jacob.rief@gmail.com',
-    url='https://github.com/jrief/django-entangled',
-    packages=find_packages(),
+    name='Flask-pyoidc',
+    version='3.9.0',
+    packages=['flask_pyoidc'],
+    package_dir={'': 'src'},
+    url='https://github.com/zamzterz/flask-pyoidc',
+    license='Apache 2.0',
+    author='Samuel Gulliksson',
+    author_email='samuel.gulliksson@gmail.com',
+    description='Flask extension for OpenID Connect authentication.',
     install_requires=[
-        'django>=2.1',
+        'oic>=1.2.1',
+        'Flask',
+        'requests',
+        'importlib_resources'
     ],
-    license='MIT',
-    platforms=['OS Independent'],
-    keywords=['Django Forms', 'JSON'],
-    classifiers=CLASSIFIERS,
+    package_data={'flask_pyoidc': ['parse_fragment.html']},
     long_description=long_description,
     long_description_content_type='text/markdown',
-    include_package_data=True,
-    zip_safe=False
 )
