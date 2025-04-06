@@ -1,140 +1,58 @@
-#!/usr/bin/env python
+# Always prefer setuptools over distutils
+from setuptools import setup, find_packages
+# To use a consistent encoding
+from codecs import open
+from os import path
 
-import re
-import sys
-from os import environ
-from pathlib import Path
+here = path.abspath(path.dirname(__file__))
 
-import setuptools
-import setuptools.command.test
+# Get the long description from the README file
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
-NAME = 'amqp'
+# Arguments marked as "Required" below must be included for upload to PyPI.
+# Fields marked as "Optional" may be commented out.
 
-# -*- Classifiers -*-
-
-classes = """
-    Development Status :: 5 - Production/Stable
-    Programming Language :: Python
-    Programming Language :: Python :: 3 :: Only
-    Programming Language :: Python :: 3
-    Programming Language :: Python :: 3.6
-    Programming Language :: Python :: 3.7
-    Programming Language :: Python :: 3.8
-    Programming Language :: Python :: Implementation :: CPython
-    Programming Language :: Python :: Implementation :: PyPy
-    License :: OSI Approved :: BSD License
-    Intended Audience :: Developers
-    Operating System :: OS Independent
-"""
-classifiers = [s.strip() for s in classes.split('\n') if s]
-
-# -*- Distribution Meta -*-
-
-re_meta = re.compile(r'__(\w+?)__\s*=\s*(.*)')
-re_doc = re.compile(r'^"""(.+?)"""')
-
-
-def add_default(m):
-    attr_name, attr_value = m.groups()
-    return (attr_name, attr_value.strip("\"'")),
-
-
-def add_doc(m):
-    return ('doc', m.groups()[0]),
-
-
-pats = {re_meta: add_default,
-        re_doc: add_doc}
-here = Path(__file__).parent
-meta = {}
-for line in (here / 'amqp/__init__.py').read_text().splitlines():
-    if line.strip() == '# -eof meta-':
-        break
-    for pattern, handler in pats.items():
-        m = pattern.match(line.strip())
-        if m:
-            meta.update(handler(m))
-
-# -*- Installation Requires -*-
-
-py_version = sys.version_info
-is_jython = sys.platform.startswith('java')
-is_pypy = hasattr(sys, 'pypy_version_info')
-
-
-def strip_comments(l):
-    return l.split('#', 1)[0].strip()
-
-
-def reqs(f):
-    lines = (here / 'requirements' / f).read_text().splitlines()
-    reqs = [strip_comments(l) for l in lines]
-    return list(filter(None, reqs))
-
-
-# -*- %%% -*-
-
-
-class pytest(setuptools.command.test.test):
-    user_options = [('pytest-args=', 'a', 'Arguments to pass to py.test')]
-
-    def initialize_options(self):
-        setuptools.command.test.test.initialize_options(self)
-        self.pytest_args = ''
-
-    def run_tests(self):
-        import pytest
-        pytest_args = self.pytest_args.split(' ')
-        sys.exit(pytest.main(pytest_args))
-
-
-if environ.get("CELERY_ENABLE_SPEEDUPS"):
-    setup_requires = ['Cython']
-    ext_modules = [
-        setuptools.Extension(
-            'amqp.serialization',
-            ["amqp/serialization.py"],
-        ),
-        setuptools.Extension(
-            'amqp.basic_message',
-            ["amqp/basic_message.py"],
-        ),
-        setuptools.Extension(
-            'amqp.method_framing',
-            ["amqp/method_framing.py"],
-        ),
-        setuptools.Extension(
-            'amqp.abstract_channel',
-            ["amqp/abstract_channel.py"],
-        ),
-        setuptools.Extension(
-            'amqp.utils',
-            ["amqp/utils.py"],
-        ),
-    ]
-else:
-    setup_requires = []
-    ext_modules = []
-
-setuptools.setup(
-    name=NAME,
-    packages=setuptools.find_packages(exclude=['ez_setup', 't', 't.*']),
-    version=meta['version'],
-    description=meta['doc'],
-    long_description=(here / 'README.rst').read_text(),
-    keywords='amqp rabbitmq cloudamqp messaging',
-    author=meta['author'],
-    author_email=meta['contact'],
-    maintainer=meta['maintainer'],
-    url=meta['homepage'],
-    platforms=['any'],
-    license='BSD',
-    classifiers=classifiers,
-    python_requires=">=3.6",
-    install_requires=reqs('default.txt'),
-    setup_requires=setup_requires,
-    tests_require=reqs('test.txt'),
-    cmdclass={'test': pytest},
-    zip_safe=False,
-    ext_modules=ext_modules,
+setup(
+    name='stempeg',
+    version='0.2.3',
+    description='Read and write stem/multistream audio files',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    url='http://github.com/faroit/stempeg',
+    author='Fabian-Robert Stoeter',
+    author_email='mail@faroit.com',
+    classifiers=[
+            'Development Status :: 4 - Beta',
+            'Environment :: Console',
+            'Intended Audience :: Telecommunications Industry',
+            'Intended Audience :: Science/Research',
+            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Topic :: Multimedia :: Sound/Audio :: Analysis',
+            'Topic :: Multimedia :: Sound/Audio :: Sound Synthesis'
+    ],
+    zip_safe=True,
+    keywords='stems audio reader',
+    packages=find_packages(exclude=['tests']),
+    # Dependencies, this installs the entire Python scientific
+    # computations stack
+    install_requires=[
+        'numpy>=1.6',
+        'ffmpeg-python>=0.2.0'
+    ],
+    extras_require={
+        'tests': [
+            'pytest',
+        ],
+    },
+    entry_points={'console_scripts': [
+        'stem2files=stempeg.cli:cli',
+    ]},
+    project_urls={  # Optional
+        'Bug Reports': 'https://github.com/faroit/stempeg/issues',
+    },
+    include_package_data=True
 )
