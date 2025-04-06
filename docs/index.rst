@@ -1,71 +1,40 @@
-Pulp Documentation
-==================
+Open Zaak Documentation
+=======================
 
-This documentation is for `pulpcore`, which is used with plugins to fetch, upload, and organize
-arbitrary content types.
+**Open Zaak** is a modern, open-source data- and services-layer to enable
+`zaakgericht werken`_, a Dutch alternative to case management. Open Zaak offers
+structured data storage and services that implement the `VNG standards for
+"API's voor Zaakgericht werken"`_ in line with the `Common Ground`_ model.
 
-Anyone interested in writing a plugin should reference the :ref:`Plugin API`.
+.. _`Common Ground`: https://commonground.nl/
+.. _`zaakgericht werken`: https://www.vngrealisatie.nl/ondersteuningsmiddelen/zaakgericht-werken
+.. _`VNG standards for "API's voor Zaakgericht werken"`: https://zaakgerichtwerken.vng.cloud/
 
-.. _community:
+Getting Started
+---------------
 
-Support
--------
+To get you started, you might find some of these links relevant:
 
-If you need help with Pulp and cannot find the answer to your question in our docs, we encourage you
-to check out our `help page at pulpproject.org <https://pulpproject.org/help/>`_ which includes
-information about our mailing lists, IRC, etc.
+* New to Open Zaak? Have a look at the :ref:`introduction_index`
+* New to the VNG standards for "API's voor Zaakgericht werken"? Read up on the
+  :ref:`api_index`.
+* Want to get started with Open Zaak yourself? See :ref:`installation_index`.
+* Want to configure or manage data in Open Zaak? Read the :ref:`manual_index`.
+* Need help with Open Zaak? Contact :ref:`support_index`.
+* Are you a developer? Head over to :ref:`development_index`!
 
+Open Zaak `is`_ and only uses :ref:`introduction_open-source`.
 
-Contributing
-------------
-
-Pulp is a free and open source software (FOSS) project and if you'd like to contribute, please check
-out our :doc:`contributing docs<contributing/index>`.
-
-Source code
-^^^^^^^^^^^
-
-  * `pulp Github organization <https://github.com/pulp/>`_
-  * `pulpcore <https://github.com/pulp/pulpcore/>`_
-  * `plugin repositories <https://pulpproject.org/content-plugins/>`_
-
-
-How to Navigate the pulpcore and plugin docs
---------------------------------------------
-
-Plugin Documentation
-^^^^^^^^^^^^^^^^^^^^
-
-If you are a new user who is evaluating Pulp it is recommended that you skim the documentation for
-the plugins that add the content types you are interested in. Links to these docs can be found in
-our `list of plugins <https://pulpproject.org/content-plugins/>`_
-
-Pulpcore Documentation
-^^^^^^^^^^^^^^^^^^^^^^
-
-`pulpcore` handles some parts of common content management workflows, including high performance
-downloading, task queuing with scalable workers, and management of content within versioned
-repositories. Information about :ref:`installation`, :ref:`deployment`, and :doc:`general concepts
-and terminology<concepts>` are all covered by the ``pulpcore`` documentation.
-
-
-Table of Contents
------------------
+.. _`is`: https://github.com/open-zaak/open-zaak/blob/master/LICENSE.md
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
+   :hidden:
 
-   concepts
-   from-pulp-2
-   components
+   introduction/index
+   api/index
    installation/index
-   settings
-   workflows/index
-   plugins/index
-   rest_api
-   client_bindings
-   contributing/index
-   bugs-features
-   glossary
-   changes
-   versioning
+   manual/index
+   client-development/index
+   support/index
+   development/index

@@ -1,9 +1,0 @@
-[run]
-source = pulpcore
-concurrency = multiprocessing
-parallel = true
-
-omit =
-  /*/tests/*
-  /*/docs/*
-  /*/migrations/*

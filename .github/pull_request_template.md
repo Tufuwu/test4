@@ -1,2 +1,6 @@
-Please be sure you have read our documentation on creating PRs:
-https://docs.pulpproject.org/contributing/pull-request-walkthrough.html
+Fixes #
+
+**Changes**
+
+[Describe the changes here]
+

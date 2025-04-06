@@ -1,3 +1,0 @@
-# Unit test requirements
-asynctest
-mock
