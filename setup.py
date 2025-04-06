@@ -1,38 +1,39 @@
-import os
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 from setuptools import setup, find_packages
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+with open('README.rst', 'rb') as f:
+    readme = f.read().decode('utf-8')
 
+with open('requirements.txt') as f:
+    requires = f.readlines()
 
 setup(
-    name='click-man',
-    version='0.4.2',
-    url='https://github.com/click-contrib/click-man',
-    license='MIT',
-    description='Generate man pages for click based CLI applications',
-    long_description=read('README.md'),
-    long_description_content_type='text/markdown',
-    author='Timo Furrer',
-    author_email='tuxtimo@gmail.com',
-    install_requires=[
-        'click',
-        'setuptools',
-    ],
-    packages=find_packages(exclude=('tests', )),
-    entry_points={
-        'console_scripts': [
-            'click-man = click_man.__main__:cli',
-        ]
-    },
+    name='greenswitch',
+    version='0.0.12',
+    description=u'Battle proven FreeSWITCH Event Socket Protocol client implementation with Gevent.',
+    long_description=readme,
+    author=u'Ítalo Rossi',
+    author_email=u'italorossib@gmail.com',
+    url=u'https://github.com/evoluxbr/greenswitch',
+    license=u'MIT',
+    packages=find_packages(exclude=('tests', 'docs')),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
+        'Programming Language :: Python',
         'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Topic :: Documentation',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
+    install_requires=requires
 )

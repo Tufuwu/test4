@@ -1,17 +1,28 @@
-# vim swap files
-*.swp
-
-# python bytecode files
 *.pyc
-__pycache__/
 
-# setuptools files
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
 *.egg-info/
+.installed.cfg
+*.egg
+.idea/*
+.pytest_cache/*
+.tags*
+.vscode/
 
-# testing files
-.tox/
+# pytest coverage plugin
 .coverage
 
-# files generated for release
-dist/
-README.rst
+.tool-versions
