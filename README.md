@@ -1,62 +1,47 @@
-# TU/e Robotics image_recognition
+## Walrus
 
-![CI](https://github.com/tue-robotics/image_recognition/workflows/CI/badge.svg)
+![](http://media.charlesleifer.com/blog/photos/walrus-logo-0.png)
 
-Packages for image recognition - Robocup TU/e Robotics
+Lightweight Python utilities for working with [Redis](http://redis.io).
 
-## Package status & Description
+The purpose of [walrus](https://github.com/coleifer/walrus) is to make working
+with Redis in Python a little easier. Rather than ask you to learn a new
+library, walrus subclasses and extends the popular `redis-py` client, allowing
+it to be used as a drop-in replacement. In addition to all the features in
+`redis-py`, walrus adds support for some newer commands, including full support
+for streams and consumer groups.
 
-Package | Build status Xenial Kinetic x64 | Description
-------- | ------------------------------- | -----------
-[image_recognition](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition__ubuntu_xenial__source/1/) | Meta package for all image_recognition packages.
-[image_recognition_analysis](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_analysis) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_analysis__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_analysis__ubuntu_xenial__source/1/) | analysis for image recognition
-[image_recognition_color_extractor](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_color_extractor) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_color_extractor__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_color_extractor__ubuntu_xenial__source/1/) | Extract dominant colors from images
-[image_recognition_jetson](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_jetson) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_jetson__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_jetson_ubuntu_xenial__source/1/) | ROS wrapper for Jetson Inference (https://github.com/dusty-nv/jetson-inference) for running inference using TensorRT.
-[image_recognition_keras](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_keras) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_keras__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_keras_ubuntu_xenial__source/1/) | ROS wrappers for Keras neural nets.
-[image_recognition_msgs](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_msgs) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_msgs__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_msgs__ubuntu_xenial__source/1/) | Interface definition for image recognition
-[image_recognition_openface](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_openface) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_openface__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_openface__ubuntu_xenial__source/1/) | ROS wrapper for Openface (https://github.com/cmusatyalab/openface) to detect and recognize faces in images.
-[image_recognition_openpose](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_openpose) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_openpose__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_openpose_ubuntu_xenial__source/1/) | ROS wrapper for Openpose (https://github.com/CMU-Perceptual-Computing-Lab/) for getting poses of 2D images.
-[image_recognition_rqt](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_rqt) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_rqt__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_rqt__ubuntu_xenial__source/1/) | RQT tools with helpers testing this interface and training/labeling data.
-[image_recognition_skybiometry](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_skybiometry) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_skybiometry__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_skybiometry_ubuntu_xenial__source/1/) | ROS wrapper for Skybiometry (https://skybiometry.com/) for getting face properties of a detected face, e.g. age estimation, gender estimation etc.
-[image_recognition_tensorflow](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_tensorflow) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_tensorflow__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_tensorflow__ubuntu_xenial__source/1/) | Object recognition with use of Tensorflow. The user can retrain the top layers of a neural network to perform classification with its own dataset as described in [this tutorial](https://www.tensorflow.org/versions/r0.11/how_tos/image_retraining/index.html).
-[image_recognition_tensorflow_rqt](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_tensorflow_rqt) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_tensorflow_rqt__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_tensorflow_rqt__ubuntu_xenial__source/1/) | RQT tools for retraining a Tensorflow neural network.
-[image_recognition_util](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_util) | [![Build Status](http://build.ros.org/job/Ksrc_uX__image_recognition_util__ubuntu_xenial__source/1//badge/icon)](http://build.ros.org/job/Ksrc_uX__image_recognition_util__ubuntu_xenial__source/1/) | Utils shared among image recognition packages
+walrus consists of:
 
-## Travis CI Build Status
+* Pythonic container classes for the Redis data-types:
+    * [Hash](https://walrus.readthedocs.io/en/latest/containers.html#hashes)
+    * [List](https://walrus.readthedocs.io/en/latest/containers.html#lists)
+    * [Set](https://walrus.readthedocs.io/en/latest/containers.html#sets)
+    * [Sorted Set](https://walrus.readthedocs.io/en/latest/containers.html#sorted-sets-zset)
+    * [HyperLogLog](https://walrus.readthedocs.io/en/latest/containers.html#hyperloglog)
+    * [Array](https://walrus.readthedocs.io/en/latest/containers.html#arrays) (custom type)
+    * [BitField](https://walrus.readthedocs.io/en/latest/containers.html#bitfield)
+    * [BloomFilter](https://walrus.readthedocs.io/en/latest/containers.html#bloomfilter)
+    * [**Streams**](https://walrus.readthedocs.io/en/latest/streams.html)
+* [Autocomplete](https://walrus.readthedocs.io/en/latest/autocomplete.html)
+* [Cache](https://walrus.readthedocs.io/en/latest/cache.html) implementation that exposes several decorators for caching function and method calls.
+* [Full-text search](https://walrus.readthedocs.io/en/latest/full-text-search.html) supporting set operations.
+* [Graph store](https://walrus.readthedocs.io/en/latest/graph.html)
+* [Rate-limiting](https://walrus.readthedocs.io/en/latest/rate-limit.html)
+* [Locking](https://walrus.readthedocs.io/en/latest/api.html#walrus.Lock)
+* **Experimental** active-record style [Models](https://walrus.readthedocs.io/en/latest/models.html) that support persisting structured information and performing complex queries using secondary indexes.
+* More? [More!](https://walrus.readthedocs.io)
 
-[![Build Status](https://travis-ci.com/tue-robotics/image_recognition.svg)](https://travis-ci.com/tue-robotics/image_recognition)
+### Models
 
-# How to
+Persistent structures implemented on top of Hashes. Supports secondary indexes to allow filtering on equality, inequality, ranges, less/greater-than, and a basic full-text search index. The full-text search features a boolean search query parser, porter stemmer, stop-word filtering, and optional double-metaphone implementation.
 
-## Object recognition
-Step 1: label images with the [image_recognition_rqt#annotation-plugin](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_rqt#annotation-plugin)
+### Found a bug?
 
-[![Annotate](http://img.youtube.com/vi/uAQvn7SInlg/0.jpg)](http://www.youtube.com/watch?v=uAQvn7SInlg)
-<-- Youtube video
+![](http://media.charlesleifer.com/blog/photos/p1420743625.21.png)
 
-Step 2: train a neural network with the [image_recognition_tensorflow_rqt](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_tensorflow_rqt)
+Please open a [github issue](https://github.com/coleifer/walrus/issues/new) and I will try my best to fix it!
 
-[![Train](http://img.youtube.com/vi/6JdtWa8FD04/0.jpg)](http://www.youtube.com/watch?v=6JdtWa8FD04)
-<-- Youtube video
+### Alternative Backends
 
-Step 3: predict labels for new data with the [image_recognition_rqt#test-plugin](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_rqt#test-plugin)
-
-[![Recognize](http://img.youtube.com/vi/OJKYLB3myWw/0.jpg)](http://www.youtube.com/watch?v=OJKYLB3myWw)
-<-- Youtube video
-
-## Face recognition
-See the tutorial at [image_recognition_openface](https://github.com/tue-robotics/image_recognition/tree/master/image_recognition_openface)
-
-[![Face recognition](http://img.youtube.com/vi/yGqDdfYxHZw/0.jpg)](http://www.youtube.com/watch?v=yGqDdfYxHZw)
-<-- Youtube video
-
-# Installation
-
-Clone the repo in your catkin_ws:
-
-        cd ~/catkin_ws/src
-        git clone https://github.com/tue-robotics/image_recognition.git
-
-Build your catkin workspace
-        cd ~/catkin_ws
-        catkin_make
+Walrus also can integrate with the Redis-like databases [rlite](https://github.com/seppo0010/rlite), [ledis](http://ledisdb.com/), and [vedis](http://vedis.symisc.net). Check the [documentation](https://walrus.readthedocs.io/en/latest/alt-backends.html) for more details.
