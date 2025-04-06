@@ -1,12 +1,20 @@
-.. mdinclude:: ../README.md
+.. include:: ../readme.rst
+
+Contents
+========
 
 .. toctree::
-  :maxdepth: 2
-  :hidden:
+   :maxdepth: 2
 
-  pages/cli.rst
-  pages/violations/index.rst
-  pages/integrations/index.rst
+   readme
+   design
+   install
+   usage
+   mail_deduplicate
+   development
+   changelog
+   history
+   license
 
 
 Indices and tables
