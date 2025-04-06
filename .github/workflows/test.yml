@@ -1,38 +1,67 @@
-name: Run tests
-on: [push, pull_request]
+# -----------------------------------------------------------------------------
+#   Continuous Intergration for Vivarium Public Health
+#   - invoked on push and pull_request
+#   - test under 3 versions of python
+#   - look for an upstream (vivarium) branch and use it if it exists
+# -----------------------------------------------------------------------------
+name: build
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - v*
+  pull_request:
+    branches:
+      - '*'
+    tags-ignore:
+      - v*
 
+  # Run this workflow manually from the Actions tab.
+  workflow_dispatch:
+  
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.9"]
-        django-version: ['>=1.11,<1.12', '>=2.1,<2.2', '>=2.2,<2.3', '>=3.0,<3.1']
-        exclude:
-          - python-version: 3.9
-            django-version: '>=3.0,<3.1'
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
         with:
+          activate-environment: test_env_python${{ matrix.python-version }}
           python-version: ${{ matrix.python-version }}
+          auto-activate-base: false
+      - name: Conda info
+        run: |
+          conda info
+          conda list
+          echo GITHUB_HEAD_REF = ${GITHUB_HEAD_REF}
+      - name: check for upstream branch
+        run: |
+          if git ls-remote --exit-code --heads https://github.com/ihmeuw/vivarium.git ${GITHUB_HEAD_REF} == "0"; then
+            echo "upstream_exist=true" >> $GITHUB_ENV
+          else
+            echo "upstream_exist=false" >> $GITHUB_ENV
+          fi
+      - name: print environment values
+        run: |
+          cat $GITHUB_ENV
+      - name: Retrieve upstream branch if exists
+        if: env.upstream_exist == 'true'
+        run: |
+          echo "Cloning upstream branch: ${GITHUB_HEAD_REF}"
+          git clone --branch=${GITHUB_HEAD_REF} https://github.com/ihmeuw/vivarium.git
+          pushd vivarium
+          pip install .
+          popd
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install poetry
-          ./build-drafter.sh
-          poetry install
-          pip install 'Django ${{ matrix.django-version }}'
-      - name: Run lint checks
+          pip install .[dev]
+      - name: Test
         run: |
-          poetry run isort **/*.py -c --diff
-          poetry run flake8 .
-          if [[ ${{ matrix.python-version }} != 3.5 ]]; then poetry run black --check .; fi
-      - name: Run tests
-        run: |
-          poetry run coverage run --source=apiblueprint_view --omit=apiblueprint_view/tests/*.py ./run_tests.py
-          if [[ ${{ matrix.python-version }} != 3.5 ]]; then poetry build; fi
-      - name: Upload coverage
-        run: COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_REPO_TOKEN }} poetry run coveralls
+          pytest ./tests
