@@ -1,46 +1,52 @@
-[![Build Status](https://travis-ci.org/aiidateam/aiida-cp2k.svg?branch=develop)](https://travis-ci.org/aiidateam/aiida-cp2k)
-[![Coverage Status](https://coveralls.io/repos/github/aiidateam/aiida-cp2k/badge.svg?branch=develop)](https://coveralls.io/github/aiidateam/aiida-cp2k?branch=develop)
-[![PyPI version](https://badge.fury.io/py/aiida-cp2k.svg)](https://badge.fury.io/py/aiida-cp2k)
-[![Documentation Status](https://readthedocs.org/projects/aiida-cp2k/badge/?version=latest)](https://aiida-cp2k.readthedocs.io/en/latest/?badge=latest)
+# IDR studies
 
-# AiiDA CP2K
-[AiiDA](http://www.aiida.net/) plugin for [CP2K](https://www.cp2k.org/).
+[![Published screens](https://img.shields.io/badge/dynamic/json.svg?label=Published%20&url=http%3A%2F%2Fidr.openmicroscopy.org%2Fapi%2Fv0%2Fm%2Fscreens%2F%3Flimit%3D0&query=meta.totalCount&colorB=blue&suffix=%20high%20content%20screens)](https://idr.openmicroscopy.org) [![Published experiments](https://img.shields.io/badge/dynamic/json.svg?label=Published%20&url=http%3A%2F%2Fidr.openmicroscopy.org%2Fapi%2Fv0%2Fm%2Fprojects%2F%3Flimit%3D0&query=meta.totalCount&colorB=blue&suffix=%20experiments)](https://idr.openmicroscopy.org)
 
-## Installation
+All metadata associated with published studies in IDR is managed in this
+repository.
 
-If you use `pip`, you can install it as: 
-```
-pip install aiida-cp2k
-```
+## Study name 
 
-To install the plugin in an editable mode, run:
-```
-git clone https://github.com/aiidateam/aiida-cp2k
-cd aiida-cp2k
-pip install -e .  # Also installs aiida, if missing (but not postgres/rabbitmq).
-```
+After acceptance, IDR studies must be named as `idr<NNNN>-<name>-<description>`
+where `idr<NNNN>` is the accession number of the study using an incremental
+four digits integer, `<name>` is the name of one of the authors associated
+with the publication, usually the first author, and `<description>` is a short
+description of the study or the name of the project/consortium. The study name
+should be lowercase.
 
-## Links
-* [Documentation](https://aiida-cp2k.readthedocs.io/en/latest/) for the calculation examples and features of the plugin.
-* [Make an issue](https://github.com/aiidateam/aiida-cp2k/issues/new) for bug reports, questions and suggestions.
-* [AiiDA](http://www.aiida.net/) to learn about AiiDA.
-* [Cp2k](https://www.cp2k.org/) to learn about CP2K.
+## Study repository 
 
+For each new study, a repository must be created on GitHub under the
+[IDR](http://github.com/IDR/) organization using the study name as defined
+above. When ready for publication in the IDR, the study repository must be
+registered in the top-level idr-metadata repository as a submodule.
 
-## License
-MIT
+A study repository contains all original and curated metadata files associated
+with a study. The
+[idr0000-lastname-example](https://github.com/IDR/idr0000-lastname-example)
+repository contains the templates that should be used by submitters
+when sending original metadata files for screen or experiment studies. The
+structure of each study repository should use the following layout:
 
-
-## Contact
-yakutovicha@gmail.com
-
-
-## Acknowledgements
-This work is supported by:
-* the [MARVEL National Centre for Competency in Research](http://nccr-marvel.ch) funded by the [Swiss National Science Foundation](http://www.snf.ch/en);
-* the [MaX European Centre of Excellence](http://www.max-centre.eu/) funded by the Horizon 2020 EINFRA-5 program, Grant No. 676598;
-* the [swissuniversities P-5 project "Materials Cloud"](https://www.materialscloud.org/swissuniversities).
-
-<img src="miscellaneous/logos/MARVEL.png" alt="MARVEL" style="padding:10px;" width="150"/>
-<img src="miscellaneous/logos/MaX.png" alt="MaX" style="padding:10px;" width="250"/>
-<img src="miscellaneous/logos/swissuniversities.png" alt="swissuniversities" style="padding:10px;" width="250"/>
+    .travis.yml                                  # Travis CI configuration file, used for validation (mandatory)
+    bulk.yml                                     # Import configuration file for multi-experiment or multi-screen studies (optional)
+    experimentA/                                 # Curated metadata for experimentA (if applicable)
+        idrNNNN-experimentA-annotation.csv       # Curated annotation file (mandatory)
+        idrNNNN-experimentA-assays.txt           # Original annotation file (recommended)
+        idrNNNN-experimentA-bulk.yml             # Configuration file for import (mandatory)
+        idrNNNN-experimentA-bulkmap-config.yml   # Configuration file for annotation (mandatory)
+        idrNNNN-experimentA-filePaths.tsv        # Files/folder to be imported (mandatory)
+    experimentB/                                 # Curated metadata for experimentB (if applicable)
+       ...
+    idrNNNN-study.txt                            # Top-level metadata file describing the study (mandatory)
+    screenA/                                     # Curated metadata for screenA if applicable
+        idrNNNN-screenA-annotation.csv           # Curated annotation file (mandatory)
+        idrNNNN-screenA-bulk.yml                 # Configuration file for import (mandatory)
+        idrNNNN-screenA-bulkmap-config.yml       # Configuration file for annotation (mandatory)
+        idrNNNN-screenA-library.txt              # Original annotation file (recommended)
+        idrNNNN-screenA-plates.tsv               # Plates to be imported (mandatory)
+    screenB/                                     # Curated metadata for screenB if applicable
+       ...
+    scripts/                                     # Folder containing custom scripts associated with the study (optional)
+    README.md                                    # Optional top-level readme (optional)
+    requirements.txt                             # Python dependencies used for Travis or scripts (recommended)
