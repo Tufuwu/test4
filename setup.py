@@ -1,79 +1,62 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
-import sys
-
-import setuptools
-from setuptools import setup
-from setuptools.command.test import test as TestCommand
-import versioneer
+try:
+    from setuptools import setup, Command
+except ImportError:
+    from distutils.core import setup, Command
 
 
-class PyTest(TestCommand):
-    description = "Run test suite with pytest"
-
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        import pytest
-        sys.exit(pytest.main(self.test_args))
+def readme():
+    with open('README.rst') as f:
+        return f.read()
 
 
-with open("README.rst") as readme_file:
-    readme = readme_file.read()
-
-with open("HISTORY.rst") as history_file:
-    history = history_file.read()
-
-requirements = [
-    "dask[array] >=0.16.1",
-    "numpy >=1.11.3",
-    "scipy >=0.19.1",
-    "pims >=0.4.1",
-]
-
-test_requirements = [
-    "flake8 >=3.4.1",
-    "pytest >=3.0.5",
-    "pytest-flake8 >=0.8.1",
-    "pytest-timeout >=1.0.0",
-    "tifffile >=2018.10.18",
-]
-
-cmdclasses = {
-    "test": PyTest,
-}
-cmdclasses.update(versioneer.get_cmdclass())
+def get_version(short=False):
+    with open('README.rst') as f:
+        for line in f:
+            if ':Version:' in line:
+                ver = line.split(':')[2].strip()
+                if short:
+                    subver = ver.split('.')
+                    return '%s.%s' % tuple(subver[:2])
+                else:
+                    return ver
 
 
-setup(
-    name="dask-image",
-    version=versioneer.get_version(),
-    description="Distributed image processing",
-    long_description=readme + "\n\n" + history,
-    author="dask-image contributors",
-    url="https://github.com/dask/dask-image",
-    cmdclass=cmdclasses,
-    packages=setuptools.find_packages(exclude=["tests*"]),
-    include_package_data=True,
-    python_requires='>=3.5',
-    install_requires=requirements,
-    license="BSD 3-Clause",
-    zip_safe=False,
-    keywords="dask-image",
-    classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
-        "Natural Language :: English",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-    ],
-    tests_require=test_requirements
-)
+setup(name='fgivenx',
+      version=get_version(),
+      description='fgivenx: Functional Posterior Plotter',
+      long_description=readme(),
+      author='Will Handley',
+      author_email='wh260@cam.ac.uk',
+      url='https://github.com/williamjameshandley/fgivenx',
+      packages=['fgivenx', 'fgivenx.test'],
+      install_requires=['matplotlib', 'numpy', 'scipy'],
+      setup_requires=['pytest-runner'],
+      extras_require={
+          'docs': ['sphinx', 'sphinx_rtd_theme', 'numpydoc'],
+          'parallel': ['joblib'],
+          'progress_bar': ['tqdm'],
+          'getdist_chains': ['getdist']
+          },
+      tests_require=['pytest', 'pytest-mpl'],
+      include_package_data=True,
+      license='MIT',
+      classifiers=[
+                   'Development Status :: 5 - Production/Stable',
+                   'Intended Audience :: Developers',
+                   'Intended Audience :: Science/Research',
+                   'Natural Language :: English',
+                   'License :: OSI Approved :: MIT License',
+                   'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3.4',
+                   'Programming Language :: Python :: 3.5',
+                   'Programming Language :: Python :: 3.6',
+                   'Topic :: Scientific/Engineering',
+                   'Topic :: Scientific/Engineering :: Astronomy',
+                   'Topic :: Scientific/Engineering :: Physics',
+                   'Topic :: Scientific/Engineering :: Visualization',
+                   'Topic :: Scientific/Engineering :: Information Analysis',
+                   'Topic :: Scientific/Engineering :: Mathematics',
+      ],
+      )
