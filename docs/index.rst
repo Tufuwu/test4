@@ -1,74 +1,84 @@
-================================================
-Welcome to Jupyter Server Proxy's documentation!
-================================================
 
-Jupyter Server Proxy lets you run arbitrary external processes (such
-as RStudio, Shiny Server, syncthing, PostgreSQL, etc) alongside your
-notebook, and provide authenticated web access to them.
+.. raw:: html
 
-.. note::
+    <img id="logo" src="https://raw.githubusercontent.com/TabbycatDebate/tabbycat/develop/tabbycat/static/logo.svg?sanitize=true">
 
-    This project used to be called **nbserverproxy**. if you have an older
-    version of nbserverproxy installed, remember to uninstall it before installing
-    jupyter-server-proxy - otherwise they may conflict
+======================
+Tabbycat User Guide
+======================
 
-The primary use cases are:
+Tabbycat is a draw tabulation system for parliamentary debate tournaments. It
+supports two-team formats such as Australs, World Schools, Asians, Australian
+Easters and all New Zealand formats, as well as British Parliamentary (WUDC). It
+is also highly configurable, supporting many custom variations of the above
+formats too. If you're looking for a general overview of the software, check out our `README on Github <https://github.com/TabbycatDebate/tabbycat>`_.
 
-#. Use with JupyterHub / Binder to allow launching users into web
-   interfaces that have nothing to do with Jupyter - such as RStudio,
-   Shiny, or OpenRefine.
-#. Allow access from frontend javascript (in classic notebook or
-   JupyterLab extensions) to access web APIs of other processes
-   running locally in a safe manner. This is used by the `JupyterLab
-   extension <https://github.com/dask/dask-labextension>`_ for
-   `dask <https://dask.org/>`_.
-
-
-Contents
-========
-
-.. toctree::
-   :maxdepth: 2
-
-   install
-   server-process
-   launchers
-   arbitrary-ports-hosts
-
-
-Convenience packages for popular applications
-=============================================
-
-This repository contains various python packages
-set up with appropriate :ref:`entrypoints <server-process/package>`
-so pip installing them automatically sets up common config
-for popular applications.
+.. _installation-docs:
 
 .. toctree::
    :maxdepth: 1
+   :caption: Installation
 
-   convenience/packages/theia
+   install/heroku
+   install/local
+   install/docker
+   install/linux
+   install/osx
+   install/wsl
+   install/windows
 
-
-Making and contributing a :ref:`new convenience package <convenience/new>`
-is very much appreciated.
-
-Examples
-========
+.. _usage-docs:
 
 .. toctree::
    :maxdepth: 1
+   :caption: Using Tabbycat
 
-   examples
-
-
-Contributing
-============
-
-Contributions of all kinds - documentation, issues, blog posts, code, are most welcome!
+   use/importing-data
+   use/starting-a-tournament
+   use/running-a-tournament
+   use/finishing-a-tournament
+   use/backups
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Tabbing Guide
 
-   contributing/release
-   convenience/new
+   guide/tournament-logistics
+   guide/comparisons
+   guide/scaling
+   guide/upgrading
+
+.. _feature-docs:
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Feature notes
+
+   features/adjudicator-feedback
+   features/adjudicator-allocation
+   features/api
+   features/breaks
+   features/check-ins
+   features/data-entry
+   features/draw-generation
+   features/draw-generation-bp
+   features/preformed-panels
+   features/printing
+   features/notifications
+   features/standings-rules
+   features/team-code-names
+   features/data-importers
+   features/user-accounts
+   features/venue-constraints
+
+.. _about-docs:
+
+.. toctree::
+   :maxdepth: 1
+   :caption: About
+
+   about/support
+   about/authors
+   about/changelog
+   about/contributing
+   about/licence
