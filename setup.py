@@ -1,89 +1,84 @@
-""" pygameweb
-"""
-import io
-import os
-import re
-from itertools import chain
+#!/usr/bin/env python
 
+# setup.py - python-pskc installation script
+#
+# Copyright (C) 2014-2019 Arthur de Jong
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301 USA
+
+"""python-pskc installation script."""
+
+import os
+import sys
 from setuptools import setup, find_packages
 
+import pskc
 
-def read(*parts):
-    """ Reads in file from *parts.
-    """
-    try:
-        return io.open(os.path.join(*parts), 'r', encoding='utf-8').read()
-    except IOError:
-        return ''
+# fix permissions for sdist
+if 'sdist' in sys.argv:
+    os.system('chmod -R a+rX .')
+    os.umask(int('022', 8))
 
+base_dir = os.path.dirname(__file__)
 
-def get_version():
-    """ Returns version from pygameweb/__init__.py
-    """
-    version_file = read('pygameweb', '__init__.py')
-    version_match = re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]',
-                              version_file, re.MULTILINE)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError('Unable to find version string.')
-
-
-def get_requirements():
-    """ returns list of requirements from requirements.txt files.
-    """
-    fnames = ['requirements.txt']
-    requirements = chain.from_iterable((open(fname) for fname in fnames))
-    requirements = list(set([l.strip() for l in requirements]) - {'-r requirements.txt'})
-    return requirements
-
+with open(os.path.join(base_dir, 'README'), 'r') as fp:
+    long_description = fp.read()
 
 setup(
-    name='pygameweb',
+    name='python-pskc',
+    version=pskc.__version__,
+    description='Python module for handling PSKC files',
+    long_description=long_description,
+    author='Arthur de Jong',
+    author_email='arthur@arthurdejong.org',
+    keywords=['PSKC', 'RFC 6030', 'key container'],
+    url='https://arthurdejong.org/python-pskc/',
+    license='LGPL',
     classifiers=[
-        'Development Status :: 1 - Planning',
-        'License :: OSI Approved :: BSD License',
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Topic :: Security :: Cryptography',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: System :: Systems Administration :: Authentication/Directory',
+        'Topic :: Text Processing :: Markup :: XML',
     ],
-    data_files=[('.', ['alembic.ini'])],
-    license='BSD',
-    author='Rene Dudfield',
-    author_email='renesd@gmail.com',
-    description='Pygame.org website.',
-    include_package_data=True,
-    long_description=read('README.rst'),
-    package_dir={'pygameweb': 'pygameweb'},
     packages=find_packages(),
-    package_data={'pygameweb': []},
-    url='https://github.com/pygame/pygameweb',
-    install_requires=get_requirements(),
-    version=get_version(),
+    install_requires=['cryptography', 'python-dateutil'],
+    extras_require={
+        'lxml': ['lxml'],
+        'defuse': ['defusedxml'],
+        'signature': ['signxml'],
+    },
     entry_points={
         'console_scripts': [
-            'pygameweb_front='
-                'pygameweb.run:run_front',
-            'pygameweb_generate_json='
-                'pygameweb.dashboard.generate_json:main',
-            'pygameweb_generate_static='
-                'pygameweb.dashboard.generate_static:main',
-            'pygameweb_launchpad='
-                'pygameweb.builds.launchpad_build_badge:check_pygame_builds',
-            'pygameweb_update_docs='
-                'pygameweb.builds.update_docs:update_docs',
-            'pygameweb_stackoverflow='
-                'pygameweb.builds.stackoverflow:download_stack_json',
-            'pygameweb_loadcomments='
-                'pygameweb.comment.models:load_comments',
-            'pygameweb_trainclassifier='
-                'pygameweb.comment.classifier_train:classify_comments',
-            'pygameweb_worker='
-                'pygameweb.tasks.worker:work',
-            'pygameweb_release_version_correct='
-                'pygameweb.builds.update_version_from_git:release_version_correct',
-            'pygameweb_github_releases='
-                'pygameweb.project.gh_releases:sync_github_releases',
-            'pygameweb_fixtures=' +
-                'pygameweb.fixtures:populate_db',
+            'csv2pskc = pskc.scripts.csv2pskc:main',
+            'pskc2csv = pskc.scripts.pskc2csv:main',
+            'pskc2pskc = pskc.scripts.pskc2pskc:main',
         ],
     },
 )
