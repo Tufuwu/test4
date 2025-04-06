@@ -1,293 +1,119 @@
-cacheout
-********
+=========
+Patchwork
+=========
 
-|version| |travis| |coveralls| |license|
+.. image:: https://pyup.io/repos/github/getpatchwork/patchwork/shield.svg
+   :target: https://pyup.io/repos/github/getpatchwork/patchwork/
+   :alt: Requirements Status
 
+.. image:: https://codecov.io/gh/getpatchwork/patchwork/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/getpatchwork/patchwork
+   :alt: Codecov
 
-A caching library for Python.
+.. image:: https://github.com/getpatchwork/patchwork/actions/workflows/ci.yaml/badge.svg
+   :target: https://github.com/getpatchwork/patchwork/actions/workflows/ci.yaml
+   :alt: Build Status
 
+.. image:: https://readthedocs.org/projects/patchwork/badge/?version=latest
+   :target: http://patchwork.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
-Links
-=====
+.. image:: https://img.shields.io/discord/857116373653127208.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2
+   :target: https://discord.gg/hGWjXVTAbB
+   :alt: Discord
 
-- Project: https://github.com/dgilland/cacheout
-- Documentation: https://cacheout.readthedocs.io
-- PyPI: https://pypi.python.org/pypi/cacheout/
-- TravisCI: https://travis-ci.org/dgilland/cacheout
+**Patchwork** is a patch tracking system for community-based projects. It is
+intended to make the patch management process easier for both the project's
+contributors and maintainers, leaving time for the more important (and more
+interesting) stuff.
 
+Patches that have been sent to a mailing list are "caught" by the system, and
+appear on a web page. Any comments posted that reference the patch are appended
+to the patch page too. The project's maintainer can then scan through the list
+of patches, marking each with a certain state, such as Accepted, Rejected or
+Under Review. Old patches can be sent to the archive or deleted.
 
-Features
-========
-
-- In-memory caching using dictionary backend
-- Cache manager for easily accessing multiple cache objects
-- Reconfigurable cache settings for runtime setup when using module-level cache objects
-- Maximum cache size enforcement
-- Default cache TTL (time-to-live) as well as custom TTLs per cache entry
-- Bulk set, get, and delete operations
-- Bulk get and delete operations filtered by string, regex, or function
-- Memoization decorators
-- Thread safe
-- Multiple cache implementations:
-
-  - FIFO (First In, First Out)
-  - LIFO (Last In, First Out)
-  - LRU (Least Recently Used)
-  - MRU (Most Recently Used)
-  - LFU (Least Frequently Used)
-  - RR (Random Replacement)
-
-
-Roadmap
-=======
-
-- Layered caching (multi-level caching)
-- Cache event listener support (e.g. on-get, on-set, on-delete)
-- Cache statistics (e.g. cache hits/misses, cache frequency, etc)
-
+Currently, Patchwork is being used for a number of open-source projects, mostly
+subsystems of the Linux kernel. Although Patchwork has been developed with the
+kernel workflow in mind, the aim is to be flexible enough to suit the majority
+of community projects.
 
 Requirements
-============
+------------
 
-- Python >= 3.4
+Patchwork requires reasonably recent versions of:
 
+- Python 3
 
-Quickstart
-==========
+- Django
 
-Install using pip:
+- Django REST Framework
 
+- Django Filters
 
-::
+The precise versions supported are listed in the `release notes`_.
 
-    pip install cacheout
+Development Installation
+------------------------
 
+`Docker`_ is the recommended installation method for a Patchwork development
+environment. To install Patchwork:
 
-Let's start with some basic caching by creating a cache object:
+1. Install `Docker`_ and `docker-compose`_.
 
-.. code-block:: python
+2. Clone the Patchwork repo::
 
-    from cacheout import Cache
+       $ git clone https://github.com/getpatchwork/patchwork.git
 
-    cache = Cache()
+3. Create a ``.env`` file in the root directory of the project and store your
+   ``UID`` and ``GID`` attributes there::
 
+       $ cd patchwork && printf "UID=$(id -u)\nGID=$(id -g)\n" > .env
 
-By default the ``cache`` object will have a maximum size of ``256`` and default TTL expiration turned off. These values can be set with:
+4. Build the images. This will download a number of packages from the internet,
+   and compile several versions of Python::
 
-.. code-block:: python
+       $ docker-compose build
 
-    cache = Cache(maxsize=256, ttl=0, timer=time.time, default=None)  # defaults
+5. Run `docker-compose up`::
 
+       $ docker-compose up
 
-Set a cache key using ``cache.set()``:
+The Patchwork instance will now be deployed at `http://localhost:8000/`.
 
-.. code-block:: python
+For more information, including helpful command line options and alternative
+installation methods, refer to the `documentation`_.
 
-    cache.set(1, 'foobar')
+Talks and Presentations
+-----------------------
 
+* **Mailing List, Meet CI** (slides__) - FOSDEM 2017
 
-Get the value of a cache key with ``cache.get()``:
+* **Patches carved into stone tablets** (slides__) - Kernel Recipes Conference
+  2016
 
-.. code-block:: python
+* **A New Patchwork** (slides__) - FOSDEM 2016
 
-    assert cache.get(1) == 'foobar'
+* **Patchwork: reducing your patch workload** (slides__) - Linux Plumbers
+  Conference 2011
 
+__ https://speakerdeck.com/stephenfin/mailing-list-meet-ci
+__ https://github.com/gregkh/presentation-stone-tools/blob/34a3963/stone-tools.pdf
+__ https://speakerdeck.com/stephenfin/a-new-patchwork-bringing-ci-patch-tracking-and-more-to-the-mailing-list
+__ https://www.linuxplumbersconf.org/2011/ocw/system/presentations/255/original/patchwork.pdf
 
-Get a default value when cache key isn't set:
+Additional Information
+----------------------
 
-.. code-block:: python
+For further information, refer to the `documentation`_.
 
-    assert cache.get(2) is None
-    assert cache.get(2, default=False) is False
-    assert 2 not in cache
+Contact
+-------
 
+For bug reports, patch submissions or other questions, use the `mailing list`_.
 
-Provide cache values using a default callable:
-
-.. code-block:: python
-
-    assert 2 not in cache
-    assert cache.get(2, default=lambda key: key) == 2
-    assert cache.get(2) == 2
-    assert 2 in cache
-
-
-Provide a global default:
-
-.. code-block:: python
-
-    cache2 = Cache(default=True)
-    assert cache2.get('missing') is True
-    assert 'missing' not in cache2
-
-    cache3 = Cache(default=lambda key: key)
-    assert cache3.get('missing') == 'missing'
-    assert 'missing' in cache3
-
-
-Set the TTL (time-to-live) expiration per entry:
-
-.. code-block:: python
-
-    cache.set(3, {'data': {}}, ttl=1)
-    assert cache.get(3) == {'data': {}}
-    time.sleep(1)
-    assert cache.get(3) is None
-
-
-Memoize a function where cache keys are generated from the called function parameters:
-
-.. code-block:: python
-
-    @cache.memoize()
-    def func(a, b):
-        pass
-
-
-Provide a TTL for the memoized function and incorporate argument types into generated cache keys:
-
-.. code-block:: python
-
-    @cache.memoize(ttl=5, typed=True)
-    def func(a, b):
-        pass
-
-    # func(1, 2) has different cache key than func(1.0, 2.0), whereas,
-    # with "typed=False" (the default), they would have the same key
-
-
-Access the original memoized function:
-
-.. code-block:: python
-
-    @cache.memoize()
-    def func(a, b):
-        pass
-
-    func.uncached(1, 2)
-
-
-Get a copy of the entire cache with ``cache.copy()``:
-
-.. code-block:: python
-
-    assert cache.copy() == {1: 'foobar', 2: ('foo', 'bar', 'baz')}
-
-
-Delete a cache key with ``cache.delete()``:
-
-.. code-block:: python
-
-    cache.delete(1)
-    assert cache.get(1) is None
-
-
-Clear the entire cache with ``cache.clear()``:
-
-.. code-block:: python
-
-    cache.clear()
-    assert len(cache) == 0
-
-
-Perform bulk operations with ``cache.set_many()``, ``cache.get_many()``, and ``cache.delete_many()``:
-
-.. code-block:: python
-
-    cache.set_many({'a': 1, 'b': 2, 'c': 3})
-    assert cache.get_many(['a', 'b', 'c']) == {'a': 1, 'b': 2, 'c': 3}
-    cache.delete_many(['a', 'b', 'c'])
-    assert cache.count() == 0
-
-
-Use complex filtering in ``cache.get_many()`` and ``cache.delete_many()``:
-
-.. code-block:: python
-
-    import re
-    cache.set_many({'a_1': 1, 'a_2': 2, '123': 3, 'b': 4})
-
-    cache.get_many('a_*') == {'a_1': 1, 'a_2': 2}
-    cache.get_many(re.compile(r'\d')) == {'123': 3}
-    cache.get_many(lambda key: '2' in key) == {'a_2': 2, '123': 3}
-
-    cache.delete_many('a_*')
-    assert dict(cache.items()) == {'123': 3, 'b': 4}
-
-
-Reconfigure the cache object after creation with ``cache.configure()``:
-
-.. code-block:: python
-
-    cache.configure(maxsize=1000, ttl=5 * 60)
-
-
-Get keys, values, and items from the cache with ``cache.keys()``, ``cache.values()``, and ``cache.items()``:
-
-.. code-block:: python
-
-    cache.set_many({'a': 1, 'b': 2, 'c': 3})
-    assert list(cache.keys()) == ['a', 'b', 'c']
-    assert list(cache.values()) == [1, 2, 3]
-    assert list(cache.items()) == [('a', 1), ('b', 2), ('c', 3)]
-
-
-Iterate over cache keys:
-
-.. code-block:: python
-
-    for key in cache:
-        print(key, cache.get(key))
-        # 'a' 1
-        # 'b' 2
-        # 'c' 3
-
-
-Check if key exists with ``cache.has()`` and ``key in cache``:
-
-.. code-block:: python
-
-    assert cache.has('a')
-    assert 'a' in cache
-
-
-Manage multiple caches using ``CacheManager``:
-
-.. code-block:: python
-
-    from cacheout import CacheManager
-
-    cacheman = CacheManager({'a': {'maxsize': 100},
-                             'b': {'maxsize': 200, 'ttl': 900},
-                             'c': {})
-
-    cacheman['a'].set('key1', 'value1')
-    value = cacheman['a'].get('key')
-
-    cacheman['b'].set('key2', 'value2')
-    assert cacheman['b'].maxsize == 200
-    assert cacheman['b'].ttl == 900
-
-    cacheman['c'].set('key3', 'value3')
-
-    cacheman.clear_all()
-    for name, cache in cacheman:
-        assert name in cacheman
-        assert len(cache) == 0
-
-
-For more details, see the full documentation at https://cacheout.readthedocs.io.
-
-
-
-.. |version| image:: https://img.shields.io/pypi/v/cacheout.svg?style=flat-square
-    :target: https://pypi.python.org/pypi/cacheout/
-
-.. |travis| image:: https://img.shields.io/travis/dgilland/cacheout/master.svg?style=flat-square
-    :target: https://travis-ci.org/dgilland/cacheout
-
-.. |coveralls| image:: https://img.shields.io/coveralls/dgilland/cacheout/master.svg?style=flat-square
-    :target: https://coveralls.io/r/dgilland/cacheout
-
-.. |license| image:: https://img.shields.io/pypi/l/cacheout.svg?style=flat-square
-    :target: https://pypi.python.org/pypi/cacheout/
+.. _release notes: https://patchwork.readthedocs.io/en/latest/releases/
+.. _docker-compose: https://docs.docker.com/compose/install/
+.. _Docker: https://docs.docker.com/engine/installation/linux/
+.. _documentation: https://patchwork.readthedocs.io/
+.. _mailing list: https://ozlabs.org/mailman/listinfo/patchwork
