@@ -1,18 +1,31 @@
-# Slot Machine
-[![Build Status](https://travis-ci.org/emfcamp/slotmachine.svg?branch=master)](https://travis-ci.org/emfcamp/slotmachine)
+# skeleton-generic #
 
-A conference schedule optimizer using mixed integer linear programming.
-This is used to generate the schedule for [Electromagnetic Field](https://www.emfcamp.org) events.
+[![GitHub Build Status](https://github.com/cisagov/skeleton-generic/workflows/build/badge.svg)](https://github.com/cisagov/skeleton-generic/actions)
 
-## Requirements
+This is a generic skeleton project that can be used to quickly get a
+new [cisagov](https://github.com/cisagov) GitHub project started.
+This skeleton project contains [licensing information](LICENSE), as
+well as [pre-commit hooks](https://pre-commit.com) and
+[GitHub Actions](https://github.com/features/actions) configurations
+appropriate for the major languages that we use.
 
-You'll need the [COIN-OR](https://www.coin-or.org/) [CBC](https://projects.coin-or.org/Cbc) solver installed to use this library.
-`apt-get install coinor-cbc` or `brew tap coin-or-tools/coinor && brew install cbc`.
+In many cases you will instead want to use one of the more specific
+skeleton projects derived from this one.
 
-## Acknowledgements
+## Contributing ##
 
-The original concept and code for this library is from [David MacIver](http://www.drmaciver.com/).
-For more information on this approach, see David's talk
-[Easy solutions to hard problems](https://www.youtube.com/watch?v=OkusHEBOhmQ) from PyCon UK 2016.
+We welcome contributions!  Please see [here](CONTRIBUTING.md) for
+details.
 
-A similar library with a slightly different approach is [conference-scheduler](http://conference-scheduler.readthedocs.io/en/latest/).
+## License ##
+
+This project is in the worldwide [public domain](LICENSE).
+
+This project is in the public domain within the United States, and
+copyright and related rights in the work worldwide are waived through
+the [CC0 1.0 Universal public domain
+dedication](https://creativecommons.org/publicdomain/zero/1.0/).
+
+All contributions to this project will be released under the CC0
+dedication. By submitting a pull request, you are agreeing to comply
+with this waiver of copyright interest.
