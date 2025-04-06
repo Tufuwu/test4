@@ -1,24 +1,35 @@
-<!--- Provide a general summary of your changes in the Title above -->
+_The title of the pull request should be a short description of what was done._
 
-## Description
-<!--- Describe your changes in detail -->
+_You can remove any parts of this template not applicable to your Pull Request._
 
-## Motivation and Context
-<!--- Why is this change required? What problem does it solve? -->
-<!--- If it fixes an open issue, please link to the issue here. -->
+## Summary
 
-## How Has This Been Tested?
-<!--- Please describe in detail how you tested your changes. -->
-<!--- Include details of your testing environment, and the tests you ran to -->
-<!--- see how your change affects other areas of the code, etc. -->
+_A short summary describing what was done..._
 
-## Checklist:
-<!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
-<!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] My code follows the code style of this project.
-- [ ] My change requires a change to the documentation.
-- [ ] I have updated the documentation accordingly.
-- [ ] I have read the **CONTRIBUTING** document.
-- [ ] I have added tests to cover my changes.
-- [ ] All new and existing tests passed.
+## Why This Is Needed
 
+_Explain why this change is needed. Can be omitted if covered in the summary._
+
+## What Changed
+
+_A detailed list of all the changes made, broken down by category._
+
+### Added
+
+_What was added?_
+
+### Changed
+
+_Did any functionality change?_
+
+### Fixed
+
+_Were any bugs fixed?_
+
+### Removed
+
+_Was anything removed?_
+
+## Screenshots
+
+_Please include screenshots of any new features to show how it works._

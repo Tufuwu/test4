@@ -1,79 +1,70 @@
-checkfiles = tortoise/ examples/ tests/ conftest.py
-black_opts = -l 100 -t py37
-py_warn = PYTHONDEVMODE=1
+sync:
+	PIPENV_VENV_IN_PROJECT=1 pipenv sync -d
 
-help:
-	@echo  "Tortoise ORM development makefile"
-	@echo
-	@echo  "usage: make <target>"
-	@echo  "Targets:"
-	@echo  "    up      Updates dev/test dependencies"
-	@echo  "    deps    Ensure dev/test dependencies are installed"
-	@echo  "    check	Checks that build is sane"
-	@echo  "    lint	Reports all linter violations"
-	@echo  "    test	Runs all tests"
-	@echo  "    docs 	Builds the documentation"
-	@echo  "    style   Auto-formats the code"
+# not actually a sync since we need to skip-lock but maintains naming
+sync_two:
+	PIPENV_VENV_IN_PROJECT=1 pipenv install --dev --two --skip-lock
 
-up:
-	@poetry update
+# sync all virtual environments used by this project with their Pipfile.lock
+sync_all:
+	PIPENV_VENV_IN_PROJECT=1 pipenv sync --dev --three
+	pushd docs && PIPENV_VENV_IN_PROJECT=1 pipenv sync --dev --three && popd
+	pushd integration_tests && PIPENV_VENV_IN_PROJECT=1 pipenv sync --dev --three && popd
+	pushd integration_test_infrastructure && PIPENV_VENV_IN_PROJECT=1 pipenv sync --dev --three && popd
 
-deps:
-	@poetry install -E asyncpg -E aiomysql -E docs
+# update all Pipfile.lock's used by this project
+pipenv_lock:
+	pipenv lock --dev
+	pushd docs && pipenv lock --dev && popd
+	pushd integration_tests && pipenv lock --dev && popd
+	pushd integration_test_infrastructure && pipenv lock --dev && popd
 
-check: deps build
-ifneq ($(shell which black),)
-	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
-endif
-	flake8 $(checkfiles)
-	mypy $(checkfiles)
-	pylint -d C,W,R $(checkfiles)
-	bandit -r $(checkfiles)
-	twine check dist/*
+clean:
+	rm -rf build/
+	rm -rf dist/
+	rm -rf runway.egg-info/
+	rm -rf tmp/
+	rm -rf src/
+	rm -rf package.json postinstall.js preuninstall.js .coverage .npmignore
 
-lint: deps build
-ifneq ($(shell which black),)
-	black --check $(black_opts) $(checkfiles) || (echo "Please run 'make style' to auto-fix style issues" && false)
-endif
-	flake8 $(checkfiles)
-	mypy $(checkfiles)
-	pylint $(checkfiles)
-	bandit -r $(checkfiles)
-	twine check dist/*
+lint:
+	pipenv run flake8 --exclude=runway/embedded,runway/templates runway
+	find runway -name '*.py' -not -path 'runway/embedded*' -not -path 'runway/templates/stacker/*' -not -path 'runway/templates/cdk-py/*' -not -path 'runway/blueprints/*' | xargs pipenv run pylint --rcfile=.pylintrc
+	find runway/blueprints -name '*.py' | xargs pipenv run pylint --disable=duplicate-code
 
-test: deps
-	$(py_warn) TORTOISE_TEST_DB=sqlite://:memory: pytest
+test:
+	pipenv run pytest
 
-test_sqlite:
-	$(py_warn) TORTOISE_TEST_DB=sqlite://:memory: pytest --cov-report=
+test_shim:
+	bash ./.github/scripts/cicd/test_shim.sh
 
-test_postgres:
-	python -V | grep PyPy || $(py_warn) TORTOISE_TEST_DB="postgres://postgres:$(TORTOISE_POSTGRES_PASS)@127.0.0.1:5432/test_\{\}" pytest --cov-append --cov-report=
+create_tfenv_ver_file:
+	curl --silent https://releases.hashicorp.com/index.json | jq -r '.terraform.versions | to_entries | map(select(.key | contains ("-") | not)) | sort_by(.key | split(".") | map(tonumber))[-1].key' | egrep -o '^[0-9]*\.[0-9]*\.[0-9]*' > runway/templates/terraform/.terraform-version
 
-test_mysql_myisam:
-	$(py_warn) TORTOISE_TEST_DB="mysql://root:$(TORTOISE_MYSQL_PASS)@127.0.0.1:3306/test_\{\}?storage_engine=MYISAM" pytest --cov-append --cov-report=
+build: clean create_tfenv_ver_file
+	python setup.py sdist
 
-test_mysql:
-	$(py_warn) TORTOISE_TEST_DB="mysql://root:$(TORTOISE_MYSQL_PASS)@127.0.0.1:3306/test_\{\}" pytest --cov-append --cov-report=
+build_pyinstaller_file: clean create_tfenv_ver_file
+	bash ./.github/scripts/cicd/build_pyinstaller.sh file
 
-_testall: test_sqlite test_postgres test_mysql_myisam test_mysql
+build_pyinstaller_folder: clean create_tfenv_ver_file
+	bash ./.github/scripts/cicd/build_pyinstaller.sh folder
 
-testall: deps _testall
-	coverage report
+build_whl: clean create_tfenv_ver_file
+	python setup.py bdist_wheel --universal
 
-ci: check testall
-
-docs: deps
-	rm -fR ./build
-	sphinx-build -M html docs build
-
-style: deps
-	isort -src $(checkfiles)
-	black $(black_opts) $(checkfiles)
-
-build: deps
-	rm -fR dist/
-	poetry build
-
-publish: deps build
+release: clean create_tfenv_ver_file build
 	twine upload dist/*
+	curl -D - -X PURGE https://pypi.org/simple/runway
+
+# requires setuptools-scm and setuptools global python installs
+# copies artifacts to src & npm package files to the root of the repo
+# updates package.json with the name of the package & semver version from scm (formated for npm)
+npm_prep:
+	mkdir -p tmp
+	mkdir -p src
+	cp -r artifacts/$$(python ./setup.py --version)/* src/
+	cp npm/* . && cp npm/.[^.]* .
+	jq ".version = \"$${NPM_PACKAGE_VERSION:-$$(python ./setup.py --version | sed -E "s/\.dev/-dev/")}\"" package.json > tmp/package.json
+	jq ".name = \"$${NPM_PACKAGE_NAME-undefined}\"" tmp/package.json > package.json
+	rm -rf tmp/package.json
