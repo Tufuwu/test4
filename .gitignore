@@ -1,11 +1,3 @@
-*.eggs
 *.pyc
-*.swp
-*.un~
 *.egg-info
-*.egg/dist/
-build/
-dist/
-.tox/
-
-.idea/
+.DS_Store
