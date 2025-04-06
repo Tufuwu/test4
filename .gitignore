@@ -1,39 +1,10 @@
-# Python bytecode
-*.pyc
-
-# distutils/distribute metadata and outputs
-pyudev.egg-info/*
-build/*
-dist/*
-
-# Sphinx outputs
-doc/_build/*
-
-# Test environments and results
-.tox/*
-*-tests.xml
-
-# Rope configuration
-.ropeproject/*
-
-# Vagrant files
-.vagrant
-
-# coverage files
-htmlcov
-.coverage
-
-# pyreverse files
-_pyreverse
-
-# hypothesis files
-.hypothesis
-
-# vim
-*.swp
-
-# zip
-*.gz
-
-# pytest
+.DS_Store
+*.py[co]
 .cache
+__pycache__
+*.html
+/tmp/
+.idea/
+.scannerwork/
+.env
+.pytest_cache/
