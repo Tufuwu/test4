@@ -1,6 +1,9 @@
-MANIFEST
-src/*.html
-docs/_build
+tests/coverage/
+tests/data/netlib_reference_results/*.txt.gz
+
+optlang.sublime-workspace
+
+*.log
 
 *.py[cod]
 
@@ -13,13 +16,13 @@ docs/_build
 dist
 build
 eggs
-.eggs
 parts
 bin
 var
 sdist
 develop-eggs
 .installed.cfg
+lib
 lib64
 __pycache__
 
@@ -28,10 +31,19 @@ pip-log.txt
 
 # Unit test / coverage reports
 .coverage
-.hypothesis
-.cache
 .tox
 nosetests.xml
 
-# IDE
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+.coveralls.yml
+
 .idea
+
+MANIFEST
