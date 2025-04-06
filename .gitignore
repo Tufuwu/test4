@@ -1,14 +1,15 @@
-# global
+.idea/
+*.egg-info
 *.pyc
-*.pyo
 __pycache__
-
-# /
-/*.egg
-/*.egg-info
-/.coverage
+dist/
+build/
 /.tox
-/build
-/coverage
-/dist
-/output.pskcxml
+.hypothesis
+.cache
+.eggs
+test_layer*
+test_consumer*
+.python-version
+.pytest_cache/
+.vscode
