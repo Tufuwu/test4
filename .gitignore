@@ -1,10 +1,6 @@
-__pycache__/
-build/
-dist/
-*.egg-info
-env
-.idea/
-test*.py
-!tests/*
-tests/messages/private_*
+build
+dist
+MANIFEST
+__pycache__
 *.pyc
+SecretStorage.egg-info
