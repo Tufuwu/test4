@@ -1,114 +1,66 @@
-pyseer
-======
+# buildmaster-config
 
-[SEER](https://github.com/johnlees/seer), reimplemented in python by
-[Marco Galardini](https://github.com/mgalardini) and [John Lees](https://github.com/johnlees)
+[Buildbot](https://buildbot.net/) master configuration for
+[buildbot.python.org](http://buildbot.python.org/all/).
 
-    pyseer --phenotypes phenotypes.tsv --kmers kmers.gz --distances structure.tsv --min-af 0.01 --max-af 0.99 --cpu 15 --filter-pvalue 1E-8
+[![Build Status](https://travis-ci.org/python/buildmaster-config.svg?branch=master)](https://travis-ci.org/python/buildmaster-config)
 
-![Run tests](https://github.com/mgalardini/pyseer/workflows/Run%20tests/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/pyseer/badge/?version=master)](http://pyseer.readthedocs.io/)
-[![Anaconda package](https://anaconda.org/bioconda/pyseer/badges/version.svg)](https://anaconda.org/bioconda/pyseer)
+## Private settings
 
-Motivation
-----------
+The production server uses /etc/buildbot/settings.yaml configuration file which
+contains secrets like the IRC nickname password.
 
-Kmers-based GWAS analysis is particularly well suited for bacterial samples,
-given their high genetic variability. This approach has been
-implemented by [Lees, Vehkala et al.](https://www.nature.com/articles/ncomms12797),
-in the form of the [SEER](https://github.com/johnlees/seer) software.
+## Update requirements
 
-The reimplementation presented here should be consistent with the
-current version of the C++ seer (though we do not guarantee this for all
-possible cases).
+Run locally:
 
-In this version, as well as all the original features, many new features (input types,
-association models and output parsing) have been implemented. See the
-[documentation](http://pyseer.readthedocs.io/) and
-[paper](https://doi.org/10.1093/bioinformatics/bty539) for full details.
+    make regen-requirements
 
-Citations
---------
+Create a PR. Merge the PR. Then recreate the venv on the server:
 
-Unitigs and elastic net preprint: `Lees, John A., Tien Mai, T., et al.` [Improved inference and prediction of bacterial genotype-phenotype associations using pangenome-spanning regressions.](https://www.biorxiv.org/content/10.1101/852426v1) `bioRxiv 852426 (2019) doi: 10.1101/852426`
+    make stop-master
+    mv venv old-venv
+    make venv
+    make start-master
 
-pyseer and LMM implementation paper: `Lees, John A., Galardini, M., et al.` [pyseer: a comprehensive tool for microbial
-pangenome-wide association studies.](https://academic.oup.com/bioinformatics/article/34/24/4310/5047751) `Bioinformatics 34:4310–4312 (2018). doi: 10.1093/bioinformatics/bty539`
+Upgrading buildbot sometimes requires to run the command:
 
-Original SEER implementation paper: `Lees, John A., et al.` [Sequence element enrichment analysis to determine
-the genetic basis of bacterial phenotypes.](https://www.nature.com/articles/ncomms12797) `Nature communications 7:12797 (2016). doi: 10.1038/ncomms12797`
+    ./venv/bin/buildbot upgrade-master /data/buildbot/master
 
-Documentation
---------------------
+Make sure that the server is running, and then remove the old virtual environment:
 
-Full documentation is available at [readthedocs](http://pyseer.readthedocs.io/).
+    rm -rf old-venv
 
-You can also build the docs locally (requires `sphinx`) by typing:
+## Hosting
 
-    cd docs/
-    make html
+The buildbot master is hosted on the PSF Infrastructure and is managed via
+[salt](https://github.com/python/psf-salt/blob/master/salt/buildbot/init.sls).
 
-Prerequisites
--------------
+psycopg2 also requires libpq-dev:
 
-Between parenthesis the versions the script was tested against:
+    sudo apt-get install libpq-dev
 
-* `python` 3+ (3.6.6)
-* `numpy` (1.15.2)
-* `scipy` (1.1.0)
-* `pandas` (0.23.4)
-* `scikit-learn` (0.20.0)
-* `statsmodels` (0.9.0)
-* `pysam` (0.15.1)
-* `glmnet_python` (commit `946b65c`)
-* `DendroPy` (4.4.0)
+- Backend host address is `buildbot.nyc1.psf.io`.
+- The host is behind the PSF HaProxy cluster which is CNAMEd by `buildbot.python.org`.
+- Database is hosted on a managed Postgres cluster, including backups.
+- Remote backups of `/etc/buildbot/settings.yaml` are taken hourly and retained for 90 days.
+- No other state for the buildbot host is backed up!
 
-If you would like to use the `scree_plot_pyseer` script you will also need to have
-`matplotlib` installed.
-If you would like to use the scripts to map and annotate kmers, you will also need
-`bwa`, `bedtools`,
-`bedops` and `pybedtools` installed.
+Configurations from this repository are applied from the `master` branch on
+a `*/15` cron interval using the `update-master` target in `Makefile`.
 
-Installation
-------------
+Python 3.9 is installed manually using ``pyenv`` (which was also installed
+manually). Commands to install Python 3.9:
 
-The easiest way to install pyseer and its dependencies is through `conda`::
+    pyenv update
+    pyenv install 3.9.1
+    pyenv global 3.8.1 3.9.1
 
-    conda install pyseer
 
-If you need `conda`, download [miniconda](https://conda.io/miniconda.html)
-and add the necessary channels::
+## Add a worker
 
-    conda config --add channels defaults
-    conda config --add channels bioconda
-    conda config --add channels conda-forge
+The list of workers is stored in `/etc/buildbot/settings.yaml` on the server.
+A worker password should be made of 14 characters (a-z, A-Z, 0-9 and special
+characters), for example using KeePassX.
 
-`pyseer` can also be installed through `pip`; download this repository
-(or one of the [releases](https://github.com/mgalardini/pyseer/releases)), `cd` into it, followed by:
-
-   `python -m pip install .`
-
-If you want multithreading make sure that you are using a version 3 python interpreter:
-
-   `python3 -m pip install .`
-
-**If you want the next pre-release**, just clone/download this repository and run:
-
-    python pyseer-runner.py
-
-Copyright
----------
-
-Copyright 2017 EMBL-European Bioinformatics Institute
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Documentation: http://docs.buildbot.net/current/manual/configuration/workers.html#defining-workers
