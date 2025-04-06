@@ -1,245 +1,245 @@
-ptpython
-========
+======================================================
+Mayavi: 3D visualization of scientific data in Python
+======================================================
 
-|Build Status|  |PyPI|  |License|
+Mayavi docs: http://docs.enthought.com/mayavi/mayavi/
+TVTK docs: http://docs.enthought.com/mayavi/tvtk
 
-*A better Python REPL*
+.. image:: https://img.shields.io/pypi/v/mayavi.svg
+   :target: https://pypi.org/project/mayavi/
+   :alt: Package on PyPI
 
-::
+.. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
+   :target: https://opensource.org/licenses/BSD-3-Clause
+   :alt: BSD 3 Clause
 
-    pip install ptpython
+Vision
+======
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/example1.png
+Mayavi seeks to provide easy and interactive visualization of 3D data. It does
+this by the following:
 
-Ptpython is an advanced Python REPL. It should work on all
-Python versions from 2.6 up to 3.9 and work cross platform (Linux,
-BSD, OS X and Windows).
+    - an (optional) rich user interface with dialogs to interact with all data
+      and objects in the visualization.
 
-Note: this version of ptpython requires at least Python 3.6. Install ptpython
-2.0.5 for older Python versions.
+    - a simple and clean scripting interface in Python, including one-liners,
+      a-la mlab, or object-oriented programming interface.
 
+    - harnesses the power of the VTK toolkit without forcing you to learn it.
 
-Installation
-************
+Additionally Mayavi strives to be a reusable tool that can be embedded in your
+applications in different ways or combined with the envisage
+application-building framework to assemble domain-specific tools.
 
-Install it using pip:
-
-::
-
-    pip install ptpython
-
-Start it by typing ``ptpython``.
+Mayavi is part of the Enthought Tool Suite (ETS).
 
 
 Features
-********
+===========
 
-- Syntax highlighting.
-- Multiline editing (the up arrow works).
-- Autocompletion.
-- Mouse support. [1]
-- Support for color schemes.
-- Support for `bracketed paste <https://cirw.in/blog/bracketed-paste>`_ [2].
-- Both Vi and Emacs key bindings.
-- Support for double width (Chinese) characters.
-- ... and many other things.
+Mayavi is a general purpose, cross-platform tool for 2-D and 3-D scientific
+data visualization. Its features include:
 
+    * Visualization of scalar, vector and tensor data in 2 and 3 dimensions
 
-[1] Disabled by default. (Enable in the menu.)
+    * Easy scriptability using Python
 
-[2] If the terminal supports it (most terminals do), this allows pasting
-without going into paste mode. It will keep the indentation.
+    * Easy extendability via custom sources, modules, and data filters
 
-__pt_repr__: A nicer repr with colors
-*************************************
+    * Reading several file formats: VTK (legacy and XML), PLOT3D, etc.
 
-When classes implement a ``__pt_repr__`` method, this will be used instead of
-``__repr__`` for printing. Any `prompt_toolkit "formatted text"
-<https://python-prompt-toolkit.readthedocs.io/en/master/pages/printing_text.html>`_
-can be returned from here. In order to avoid writing a ``__repr__`` as well,
-the ``ptpython.utils.ptrepr_to_repr`` decorator can be applied. For instance:
+    * Saving of visualizations
 
-.. code:: python
+    * Saving rendered visualization in a variety of image formats
 
-    from ptpython.utils import ptrepr_to_repr
-    from prompt_toolkit.formatted_text import HTML
+    * Convenient functionality for rapid scientific plotting via mlab (see mlab
+      documentation)
 
-    @ptrepr_to_repr
-    class MyClass:
-        def __pt_repr__(self):
-            return HTML('<yellow>Hello world!</yellow>')
+    * See the Mayavi Users Guide for more information.
 
-More screenshots
-****************
+Unlike its predecessor MayaVi1_, Mayavi has been designed with scriptability
+and extensibility in mind from the ground up.  While the mayavi2 application
+is usable by itself, it may be used as an Envisage plugin which allows it to
+be embedded in user applications natively. Alternatively, it may be used as a
+visualization engine for any application.
 
-The configuration menu:
+.. _MayaVi1: http://mayavi.sf.net
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ptpython-menu.png
 
-The history page and its help:
+Quick start
+===========
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ptpython-history-help.png
+If you are new to Mayavi it is a good idea to read the `online user manual`_
+which should introduce you to how to install and use it.
 
-Autocompletion:
+If you have installed Mayavi as described in the next section, you should be
+able to launch the ``mayavi2`` application and also run any of the examples
+in the examples directory.
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/file-completion.png
 
+.. _online user manual: http://docs.enthought.com/mayavi/mayavi/
 
-Embedding the REPL
-******************
+Installation
+=============
 
-Embedding the REPL in any Python application is easy:
+By itself Mayavi is not a difficult package to install but its dependencies
+are unfortunately rather heavy. However, many of these dependencies are now
+available as wheels on PyPI.  The two critical dependencies are,
 
-.. code:: python
+  1. VTK_
+  2. A GUI toolkit, either PyQt4_, PySide_, PySide2_, PyQt5_ or wxPython_.
 
-    from ptpython.repl import embed
-    embed(globals(), locals())
+The latest VTK wheels are available on all the major platforms (Windows,
+MacOS, and Linux), but only for 64 bit machines. Python 3.x is fully supported
+on all these operating systems and Python 2.7.x on MacOS and Linux. If you are
+out of luck, and your platform is not supported then you will need to install
+VTK yourself using your particular distribution as discussed in the `General
+Build and Installation instructions
+<http://docs.enthought.com/mayavi/mayavi/installation.html#installing-ready-made-distributions>`_
 
-You can make ptpython your default Python REPL by creating a `PYTHONSTARTUP file
-<https://docs.python.org/3/tutorial/appendix.html#the-interactive-startup-file>`_ containing code
-like this:
+On Python 3.x you will need to install PyQt5_ and wheels are available for
+this. On 2.7.x you have more options, and can use PySide_, PyQt4_, and
+wxPython_. These can be installed from pip or from your package manager.
 
-.. code:: python
+Currently, Mayavi itself should work with the new wxPython 4.x. However,
+traitsui_, pyface_, and other ETS packages do not yet support it so the UI
+will not work correctly. Older versions should work. PyQt/PySide/PySide2
+should work largely out of the box.
 
-   import sys
-   try:
-       from ptpython.repl import embed
-   except ImportError:
-       print("ptpython is not available: falling back to standard prompt")
-   else:
-       sys.exit(embed(globals(), locals()))
 
+.. _PyQt5: https://pypi.org/project/PyQt5/
+.. _PySide: https://pypi.org/project/PySide
+.. _PySide2: https://wiki.qt.io/Qt_for_Python
+.. _PyQt4: https://pypi.org/project/PyQt4/
+.. _wxPython: https://pypi.org/project/wxPython/
+.. _VTK: https://www.vtk.org
+.. _traitsui: https://github.com/enthought/traitsui
+.. _pyface: https://github.com/enthought/pyface
 
-Multiline editing
-*****************
+Latest stable release
+-----------------------
 
-Multi-line editing mode will automatically turn on when you press enter after a
-colon.
+As of the latest release, i.e. 4.6.0 and above, if you are using Python 3.x
+and are on a 64 bit machine, installation via pip_ is the easiest and is as
+follows::
 
-To execute the input in multi-line mode, you can either press ``Alt+Enter``, or
-``Esc`` followed by ``Enter``. (If you want the first to work in the OS X
-terminal, you have to check the "Use option as meta key" checkbox in your
-terminal settings. For iTerm2, you have to check "Left option acts as +Esc" in
-the options.)
+  $ pip install mayavi
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/multiline.png
+  $ pip install PyQt5
 
+Thats it!
 
-Syntax validation
-*****************
+If you are unable to do this, read the documentation above and find a way to
+install VTK and a suitable UI toolkit and then repeat the above.
 
-Before execution, ``ptpython`` will see whether the input is syntactically
-correct Python code. If not, it will show a warning, and move the cursor to the
-error.
+If you are interested in the jupyter notebook support as well, do the
+following (after ensuring that you have jupyter installed of course)::
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/validation.png
+  $ jupyter nbextension install --py mayavi --user
+  $ jupyter nbextension enable --py mayavi --user
 
+You will also need to have ipywidgets_ and ipyevents_ installed. These can be
+installed via pip_ or your favorite package manager.
 
-Additional features
-*******************
+.. _pip: https://pip.pypa.io/en/stable/
+.. _ipywidgets: https://ipywidgets.readthedocs.io
+.. _ipyevents: https://github.com/mwcraig/ipyevents
 
-Running system commands: Press ``Meta-!`` in Emacs mode or just ``!`` in Vi
-navigation mode to see the "Shell command" prompt. There you can enter system
-commands without leaving the REPL.
+Bleeding edge
+--------------
 
-Selecting text: Press ``Control+Space`` in Emacs mode or ``V`` (major V) in Vi
-navigation mode.
+If you want to install the latest version of Mayavi from github, you can
+simply do the following::
 
+  $ git clone https://github.com/enthought/mayavi.git
+  $ cd mayavi
+  $ pip install -r requirements.txt
+  $ pip install PyQt5  # replace this with any supported toolkit
+  $ python setup.py install  # or develop
 
-Configuration
-*************
+Add the jupyter nbextensions using the instructions in the section above and
+you should be good to go.
 
-It is possible to create a ``config.py`` file to customize configuration.
-ptpython will look in an appropriate platform-specific directory via `appdirs
-<https://pypi.org/project/appdirs/>`. See the ``appdirs`` documentation for the
-precise location for your platform. A ``PTPYTHON_CONFIG_HOME`` environment
-variable, if set, can also be used to explicitly override where configuration
-is looked for.
+Documentation
+==============
 
-Have a look at this example to see what is possible:
-`config.py <https://github.com/jonathanslenders/ptpython/blob/master/examples/ptpython_config/config.py>`_
+More documentation is available in the `online user manual`_ or in ``docs``
+directory of the sources. This includes a man page for the ``mayavi2``
+application, a users guide in HTML and PDF format and documentation for
+``mlab``.
 
+More documentation in the form of workshop/tutorial material is available
+here:
 
-IPython support
-***************
+- https://github.com/prabhuramachandran/mayavi-tutorial
+- https://github.com/prabhuramachandran/mayavi-workshop
 
-Run ``ptipython`` (prompt_toolkit - IPython), to get a nice interactive shell
-with all the power that IPython has to offer, like magic functions and shell
-integration. Make sure that IPython has been installed. (``pip install
-ipython``)
+Tutorial Videos
+===============
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ipython.png
+Here are some tutorial videos that you can watch to learn Mayavi:
 
-This is also available for embedding:
+- SciPy 2018 Mayavi tutorial (3 hrs):
 
-.. code:: python
+  - Video: https://www.youtube.com/watch?v=r6OD07Qq2mw
+  - Material: https://github.com/prabhuramachandran/mayavi-tutorial
 
-    from ptpython.ipython.repl import embed
-    embed(globals(), locals())
 
+Examples
+========
 
-Django support
-**************
+Examples are all in the ``examples`` directory of the source or the git clone.
+The docs and examples do not ship with the binary eggs. The examples directory
+also contains some sample data.
 
-`django-extensions <https://github.com/django-extensions/django-extensions>`_
-has a ``shell_plus`` management command. When ``ptpython`` has been installed,
-it will by default use ``ptpython`` or ``ptipython``.
 
+Test suite
+==========
 
-PDB
-***
+The basic test suites for tvtk and mayavi can be run using nose::
 
-There is an experimental PDB replacement: `ptpdb
-<https://github.com/jonathanslenders/ptpdb>`_.
+  nosetests -v tvtk/tests
+  nosetests -v mayavi
 
+The integration tests::
 
-Windows support
-***************
+  cd integrationtests/mayavi
+  python run.py
 
-``prompt_toolkit`` and ``ptpython`` works better on Linux and OS X than on
-Windows. Some things might not work, but it is usable:
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/windows.png
+Bug tracker, mailing list etc.
+==============================
 
+The bug tracker is available in `github
+<https://github.com/enthought/mayavi/issues>`_ Please provide info and details
+on platform, python, vtk and gui backends and their versions. If possible, a
+small example replicating the the problem.
 
-FAQ
-***
+If you have questions you could ask on the `Mayavi-users mailing list
+<https://sourceforge.net/p/mayavi/mailman/mayavi-users/>`_. This is used by
+some folks and is not too active. Another mailing list that may be of use is
+the `ETS Users mailing list
+<https://groups.google.com/forum/#!forum/ets-users>`_. This is a more general
+list where a lot of folks experienced with the Enthought Tool Suite are
+available.
 
-**Q**: The ``Ctrl-S`` forward search doesn't work and freezes my terminal.
+Authors and Contributors
+========================
 
-**A**: Try to run ``stty -ixon`` in your terminal to disable flow control.
+* Core contributors:
 
-**Q**: The ``Meta``-key doesn't work.
+  Prabhu Ramachandran: primary author.
 
-**A**: For some terminals you have to enable the Alt-key to act as meta key, but you 
-can also type ``Escape`` before any key instead.
+* Previous contributors:
 
+  Gaël Varoquaux: mlab, icons, many general improvements and maintenance.
 
-Alternatives
-************
+  Deepak Surti: Upgrade to VTK 5.10.1, VTK 6.x with new pipeline.
 
-- `BPython <http://bpython-interpreter.org/downloads.html>`_
-- `IPython <https://ipython.org/>`_
+* Support and code contributions from Enthought Inc.
 
-If you find another alternative, you can create an issue and we'll list it
-here. If you find a nice feature somewhere that is missing in ``ptpython``,
-also create a GitHub issue and maybe we'll implement it.
+* Patches from many people (see the release notes), including K K Rai and
+  R A Ambareesha for tensor support, parametric source and image data.
 
-
-Special thanks to
-*****************
-
-- `Pygments <http://pygments.org/>`_: Syntax highlighter.
-- `Jedi <http://jedi.jedidjah.ch/en/latest/>`_: Autocompletion library.
-- `wcwidth <https://github.com/jquast/wcwidth>`_: Determine columns needed for a wide characters.
-- `prompt_toolkit <http://github.com/jonathanslenders/python-prompt-toolkit>`_ for the interface.
-
-.. |Build Status| image:: https://api.travis-ci.org/prompt-toolkit/ptpython.svg?branch=master
-    :target: https://travis-ci.org/prompt-toolkit/ptpython#
-
-.. |License| image:: https://img.shields.io/github/license/prompt-toolkit/ptpython.svg
-    :target: https://github.com/prompt-toolkit/ptpython/blob/master/LICENSE
-
-.. |PyPI| image:: https://pypip.in/version/ptpython/badge.svg
-    :target: https://pypi.python.org/pypi/ptpython/
-    :alt: Latest Version
+  Many thanks to all those who have submitted bug reports and suggestions for
+  further enhancements.
