@@ -1,66 +1,49 @@
-#!/usr/bin/env python
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013-2020, NeXpy Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING, distributed with this software.
-#-----------------------------------------------------------------------------
+from setuptools import setup
 
-from setuptools import setup, find_packages, Extension
+long_description = """
+Nutils is a Free and Open Source Python programming library for Finite Element
+Method computations, developed by `Evalf Computing <http://evalf.com>`_ and
+distributed under the permissive MIT license. Key features are a readable, math
+centric syntax, an object oriented design, strict separation of topology and
+geometry, and high level function manipulations with support for automatic
+differentiation.
 
-import os, sys
-import versioneer
+Nutils provides the tools required to construct a typical simulation workflow
+in just a few lines of Python code, while at the same time leaving full
+flexibility to build novel workflows or interact with third party tools. With
+native support for Isogeometric Analysis (IGA), the Finite Cell method (FCM),
+multi-physics, mixed methods, and hierarchical refinement, Nutils is at the
+forefront of numerical discretization science. Efficient under-the-hood
+vectorization and built-in parallellisation provide for an effortless
+transition from academic research projects to full scale, real world
+applications.
+"""
 
-# pull in some definitions from the package's __init__.py file
-sys.path.insert(0, os.path.join('src', ))
-import nexpy
-import nexpy.requires
+import os, re
+with open(os.path.join('nutils', '__init__.py')) as f:
+  version = next(filter(None, map(re.compile("^version = '([a-zA-Z0-9.]+)'$").match, f))).group(1)
 
-verbose=1
-
-setup (name =  nexpy.__package_name__,        # NeXpy
-       version=versioneer.get_version(),
-       cmdclass=versioneer.get_cmdclass(),
-       license = nexpy.__license__,
-       description = nexpy.__description__,
-       long_description = nexpy.__long_description__,
-       author=nexpy.__author_name__,
-       author_email=nexpy.__author_email__,
-       url=nexpy.__url__,
-       download_url=nexpy.__download_url__,
-       platforms='any',
-       python_requires='>=3.7',
-       install_requires = nexpy.requires.pkg_requirements,
-       extras_require = nexpy.requires.extra_requirements,
-       package_dir = {'': 'src'},
-       packages = find_packages('src'),
-       include_package_data = True,
-       package_data = {
-                       'nexpy.gui': ['resources/icon/*.svg',
-                                     'resources/icon/*.png',
-                                     'resources/*.png',
-                                    ],
-                       'nexpy.definitions': ['base_classes/*.xml'],
-                       'nexpy': [
-                           'examples/*.*',
-                           'examples/*/*.*',
-                           'examples/*/*/*.*',
-                       ],
-                   },
-       entry_points={
-            # create & install scripts in <python>/bin
-            'gui_scripts': ['nexpy = nexpy.nexpygui:main',],
-       },
-       classifiers= ['Development Status :: 4 - Beta',
-                     'Intended Audience :: Developers',
-                     'Intended Audience :: Science/Research',
-                     'License :: OSI Approved :: BSD License',
-                     'Programming Language :: Python',
-                     'Programming Language :: Python :: 3',
-                     'Programming Language :: Python :: 3.7',
-                     'Programming Language :: Python :: 3.8',
-                     'Programming Language :: Python :: 3.9',
-                     'Topic :: Scientific/Engineering',
-                     'Topic :: Scientific/Engineering :: Visualization'],
-      )
+setup(
+  name = 'nutils',
+  version = version,
+  description = 'Numerical Utilities for Finite Element Analysis',
+  author = 'Evalf',
+  author_email = 'info@nutils.org',
+  url = 'http://nutils.org',
+  download_url = 'https://github.com/nutils/nutils/releases',
+  packages = ['nutils'],
+  long_description = long_description,
+  license = 'MIT',
+  python_requires = '>=3.5',
+  install_requires = ['numpy>=1.12', 'treelog>=1.0b5', 'stringly'],
+  extras_require = dict(
+    docs=['Sphinx>=1.6','scipy>=0.13','matplotlib>=1.3'],
+    matrix_scipy=['scipy>=0.13'],
+    matrix_mkl=['mkl'],
+    export_mpl=['matplotlib>=1.3','pillow>2.6'],
+    import_gmsh=['meshio'],
+  ),
+  command_options = dict(
+    test=dict(test_loader=('setup.py', 'unittest:TestLoader')),
+  ),
+)

@@ -1,163 +1,101 @@
-Introduction
-============
-NeXpy provides a high-level python interface to NeXus data contained within a 
-simple GUI. It is designed to provide an intuitive interactive toolbox allowing 
-users both to access existing NeXus files and to create new NeXus-conforming 
-data structures without expert knowledge of the file format.
+Nutils
+======
 
-See the [NeXpy documentation](http://nexpy.github.io/nexpy) for more details.
+[![Test Status](https://github.com/joostvanzwieten/nutils/workflows/test/badge.svg?branch=master)](https://github.com/evalf/nutils/actions?query=workflow%3Atest+branch%3Amaster)
+[![Coverage Status](https://codecov.io/gh/evalf/nutils/branch/master/graph/badge.svg)](https://codecov.io/gh/evalf/nutils/branch/master)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.822369.svg)](https://doi.org/10.5281/zenodo.822369)
 
-Installing and Running
-======================
-Released versions of NeXpy can be installed using either
+Nutils is a Free and Open Source Python programming library for Finite Element
+Method computations, developed by [Evalf Computing][1] and distributed under
+the permissive MIT license. Key features are a readable, math centric syntax,
+an object oriented design, strict separation of topology and geometry, and high
+level function manipulations with support for automatic differentiation.
 
-```
-    $ pip install nexpy
-```
+Nutils provides the tools required to construct a typical simulation workflow
+in just a few lines of Python code, while at the same time leaving full
+flexibility to build novel workflows or interact with third party tools. With
+native support for Isogeometric Analysis (IGA), the Finite Cell method (FCM),
+multi-physics, mixed methods, and hierarchical refinement, Nutils is at the
+forefront of numerical discretization science. Efficient under-the-hood
+vectorization and built-in parallellisation provide for an effortless
+transition from academic research projects to full scale, real world
+applications.
 
-If you have an Anaconda installation, use::
 
-```
-    $ conda install -c conda-forge nexpy
-```
+Installation
+------------
 
-The source code can be downloaded from the NeXpy Git repository:
+Nutils is platform independent and is known to work on Linux, Windows and OS X.
 
-```
-    $ git clone https://github.com/nexpy/nexpy.git
-```
+A working installation of Python 3.5 or higher is required. Many different
+installers exist and there are no known issues with any of them. When in doubt
+about which to use, a safe option is to go with the [official installer][2].
 
-To install in the standard Python location:
+With Python installed, the recommended way to install Nutils is to clone [the
+repository][3], followed by an editable installation using [pip][4] (included
+in the standard installer):
 
-```
-    $ python setup.py install
-```
+    $ git clone https://github.com/nutils/nutils.git
+    $ python3 -m pip install --user --editable nutils
 
-To install in an alternate location:
+This will install Nutils locally along with all dependencies. Afterward a
+simple `git pull` in the project directory will suffice to update Nutils with
+no reinstallation required.
 
-```
-    $ python setup.py install --prefix=/path/to/installation/dir
-```
+Alternatively it is possible to install Nutils directly:
 
-The Python API for reading and writing NeXus files is in a separate package, 
-[nexusformat](https://github.com/nexpy/nexusformat), which is also available on 
-[PyPI](https://pypi.python.org/pypi/nexusformat/) and will be automatically 
-installed as a NeXpy dependency if you use pip. 
+    $ python3 -m pip install --user nutils
 
-If the NeXpy GUI is not required, the package may be used in a regular Python
-shell. It may be installed using:: 
+This will download the latest stable version from the [Python Package Index][5]
+and install it along with dependencies. However, since this installation leaves
+no access to examples or unit tests, in the following is is assumed that the
+former approach was used.
 
-```
-    $ pip install nexusformat
-```
 
-or::
+First steps
+-----------
 
-```
-    $ conda install -c conda-forge nexusformat
-```
+A good first step after installing Nutils is to confirm that all unit tests are
+passing. With the current working directory at the root of the repository:
 
-The package can also be installed from the source code using the setup commands
-described above. The source code is available either by downloading one of the 
-[Github releases](https://github.com/nexpy/nexusformat/releases>) or by cloning 
-the latest development version in the 
-[NeXpy Git repository](https://github.com/nexpy/nexusformat>)::
+    $ python3 -m unittest -b
 
-```
-    $ git clone https://github.com/nexpy/nexusformat.git
-```
+Note that this might take a long time. After that, try to run any of the
+scripts in the examples directory, such as the Laplace problem:
 
-Prerequisites
-=============
-Python Command-Line API
------------------------
-The current version of NeXpy uses h5py to read and write NeXus files because
-of its ability to handle large data files. There is therefore no dependency 
-on the [NeXus C API](http://download.nexusformat.org/doc/html/napi.html). 
-This also means that the current version cannot read and write HDF4 or XML 
-NeXus files.
+    $ python3 examples/laplace.py
 
-If you only intend to utilize the Python API from the command-line, the only 
-other required libraries are [NumPy](http://numpy.org) and, if you want
-autocompletion within an IPython shell, [SciPy](http://scipy.org).
+Log messages should appear in the terminal during operation. Simulateneously, a
+html file `log.html` and any produced figures are written to
+`public_html/laplace.py/yyyy/mm/dd/hh-mm-ss` in the home directory. In case a
+webserver is running and configured for user directories this automatically
+makes simulations remotely accessible. For convenience, `public_html/log.html`
+always redirects to the most recent simulation.
 
-* [nexusformat](https://github.com/nexpy/nexusformat)
-* [h5py](https://www.h5py.org)
-* [numpy](https://numpy.org/)
-* [scipy](https://scipy.org/)
 
-NeXpy GUI
----------
-The GUI is built using the PyQt. The latest version supports PyQt4, PySide, or, 
-with v0.10.0, PyQt5, and should load whichever library it finds. None are 
-listed as a dependency but one or other must be installed. PyQt5 is included in 
-the 
-[Anaconda default distribution](https://store.continuum.io/cshop/anaconda/) 
-while PySide is included in the 
-[Enthought Python Distribution](http://www.enthought.com) or within Enthought's 
-[Canopy Application](https://www.enthought.com/products/canopy/).
+Next steps and support
+----------------------
 
-The GUI includes an [IPython shell](http://ipython.org/) and a 
-[Matplotlib plotting pane](http://matplotlib.sourceforge.net). The IPython shell 
-is embedded in the Qt GUI using an implementation based on the newly-released
-Jupyter QtConsole, which has replaced the old IPython QtConsole. Least-squares
-fitting of 1D data requires [lmfit](https://lmfit.github.io/lmfit-py/).
-          
-* [jupyter](https://jupyter.org/)
-* [IPython](https://ipython.org/)
-* [matplotlib](https://matplotlib.sourceforge.net/)
-* [lmfit](https://lmfit.github.io/lmfit-py/)
-* [pillow](https://pillow.readthedocs.io/)
-* [ansi2html](https://pypi.org/project/ansi2html/)
+For the numerical background of all examples as well as line by line
+documentation see the [overview of examples][6]. Documentation of individual
+functions can be found in the [API reference][7].
 
-Some people have reported that NeXpy crashes on launch on some Linux systems.
-We believe that this may be due to both PyQt4 and PyQt5 being installed,
-although that doesn't cause a problem on all systems. If NeXpy crashes on
-launch, please try setting the environment variable QT_API to 'pyqt', for the 
-PyQt4 library, 'pyqt5' for the PyQt5 library, or 'pyside', for the PySide 
-library, depending on what you have installed, e.g., in BASH, type::
+Most simulations will have components in common with the example scripts, so a
+mix-and-match approach is a good way to start building your own script. For
+questions that are not answered by the API reference there is the nutils-users
+support channel at [#nutils-users:matrix.org][8]. Note that you will need to
+create an account at any Matrix server in order to join this channel.
 
-```
-    $ export QT_API=pyqt
-```
+If you are using Nutils in academic research, please consider [citing
+Nutils][9].
 
-Additional Packages
--------------------
-Additional functionality is provided by other external Python packages. 
-Least-squares fitting requires Matt Newville's least-squares fitting package, 
-[lmfit-py](http://newville.github.io/lmfit-py). Importers may also require 
-libraries to read the imported files in their native format, e.g., 
-[spec2nexus](http://spec2nexus.readthedocs.org/) for reading SPEC files. 
 
-From v0.9.1, a new 2D smoothing option is available in the list of 
-interpolations in the signal tab if [astropy](<http://www.astropy.org>)
-is installed. It is labelled 'convolve' and provides, by default, a 
-2-pixel Gaussian smoothing of the data. The number of pixels can be 
-changed in the shell by setting `plotview.smooth`.
-
-The following packages are recommended.
-
-* TIFF/CBF file imports: [fabio](https://github.com/silx-kit/fabio)
-* SPEC file imports: [spec2nexus](http://spec2nexus.readthedocs.org/)
-* Gaussian smoothing: [astropy](http://www.astropy.org)
-
-To run with the GUI
-===================
-
-To run from the installed location, add the $prefix/bin directory to your path
-(only if you installed outside the python installation), and then run:
-
-```
-    $ nexpy
-```
-
-User Support
-============
-Consult the [NeXpy documentation](http://nexpy.github.io/nexpy) for details 
-of both the Python command-line API and how to use the NeXpy GUI. If you have 
-any general questions concerning the use of NeXpy, please address 
-them to the 
-[NeXus Mailing List](http://download.nexusformat.org/doc/html/mailinglist.html). 
-If you discover any bugs, please submit a 
-[Github issue](https://github.com/nexpy/nexpy/issues), preferably with relevant 
-tracebacks.
+[1]: http://evalf.com/
+[2]: https://www.python.org/downloads/
+[3]: https://github.com/nutils/nutils
+[4]: https://github.com/pypa/pip
+[5]: https://pypi.org/project/nutils/
+[6]: http://docs.nutils.org/en/examples/
+[7]: http://docs.nutils.org/en/nutils/
+[8]: https://matrix.to/#/#nutils-users:matrix.org
+[9]: https://doi.org/10.5281/zenodo.822369
