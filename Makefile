@@ -1,112 +1,74 @@
-.PHONY: docs test pypi_package install all
+VERSION = $(shell python setup.py --version)
+ALLFILES = $(shell echo bottle.py test/*.py test/views/*.tpl)
+VENV = build/venv
+TESTBUILD = build/python
 
-#################################################################################
-# COMMANDS                                                                      #
-#################################################################################
+.PHONY: venv release coverage install docs test test_all test_27 test_32 test_33 test_34 test_35 2to3 clean
 
-## Create and update the documentation
-docs:
-	cd docsrc/ && make github
+release: clean test_all venv
+	$(VENV)/bin/python3 setup.py --version | egrep -q -v '[a-zA-Z]' # Fail on dev/rc versions
+	git commit -e -m "Release of $(VERSION)"            # Fail on nothing to commit
+	git tag -a -m "Release of $(VERSION)" $(VERSION)    # Fail on existing tags
+	git push origin HEAD                                # Fail on out-of-sync upstream
+	git push origin tag $(VERSION)                      # Fail on dublicate tag
+	$(VENV)/bin/python3 setup.py sdist bdist_wheel      # Build project
+	$(VENV)/bin/twine upload dist/$(VERSION)*           # Release to pypi
 
-## Execute unit tests
-test:
-	pytest tests/
+venv: $(VENV)/.installed
+$(VENV)/.installed: Makefile
+	python3 -mvenv $(VENV)
+	$(VENV)/bin/python3 -mensurepip
+	$(VENV)/bin/pip install -U pip
+	$(VENV)/bin/pip install -U setuptools wheel twine coverage
+	touch $(VENV)/.installed
 
-## Upload package to pypi
-pypi_package:
-	make install
-	check-manifest
-	python setup.py sdist bdist_wheel
-	twine check dist/*
-	twine upload --skip-existing dist/*
+coverage: venv
+	$(VENV)/bin/coverage erase
+	$(VENV)/bin/coverage run -m unittest discover
+	$(VENV)/bin/coverage combine
+	$(VENV)/bin/coverage report
+	$(VENV)/bin/coverage html
 
-## Run black linting
-lint:
-	pre-commit run --all-files
+push: test_all
+	git push origin HEAD
 
-## Install visions locally
 install:
-	pip install -e .
+	python setup.py install
 
-## Install spark (for tests)
-install-spark-ci:
-	sudo apt-get update
-	sudo apt-get -y install openjdk-8-jdk
-	curl https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
-	--output ${SPARK_DIRECTORY}/spark.tgz
-	cd ${SPARK_DIRECTORY} && tar -xvzf spark.tgz && mv spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} spark
+docs:
+	sphinx-build -b html -d build/docs/doctrees docs build/docs/html/;
 
-## Plots
-plots:
-	cd src/visions/visualisation/
-	python plot_circular_packing.py
-	python plot_summary.py
-	python plot_typesets.py
+test: venv
+	$(VENV)/bin/python3 -m unittest discover
 
-## lint, type check, install, rebuild docs, and finally test
-all:
-	make lint
-	make install
-	make plots
-	make docs
-	make test
+test_all: test_27 test_32 test_33 test_34 test_35 test_37
 
-#################################################################################
-# Self Documenting Commands                                                     #
-#################################################################################
+test_27:
+	$(TESTBUILD)/bin/python2.7 -m unittest discover
 
-.DEFAULT_GOAL := help
+test_34:
+	$(TESTBUILD)/bin/python3.4 -m unittest discover
 
-# Inspired by <http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html>
-# sed script explained:
-# /^##/:
-# 	* save line in hold space
-# 	* purge line
-# 	* Loop:
-# 		* append newline + line to hold space
-# 		* go to next line
-# 		* if line starts with doc comment, strip comment character off and loop
-# 	* remove target prerequisites
-# 	* append hold space (+ newline) to line
-# 	* replace newline plus comments by `---`
-# 	* print line
-# Separate expressions are necessary because labels cannot be delimited by
-# semicolon; see <http://stackoverflow.com/a/11799865/1968>
-.PHONY: help
-help:
-	@echo "$$(tput bold)Available rules:$$(tput sgr0)"
-	@echo
-	@sed -n -e "/^## / { \
-		h; \
-		s/.*//; \
-		:doc" \
-		-e "H; \
-		n; \
-		s/^## //; \
-		t doc" \
-		-e "s/:.*//; \
-		G; \
-		s/\\n## /---/; \
-		s/\\n/ /g; \
-		p; \
-	}" ${MAKEFILE_LIST} \
-	| LC_ALL='C' sort --ignore-case \
-	| awk -F '---' \
-		-v ncol=$$(tput cols) \
-		-v indent=19 \
-		-v col_on="$$(tput setaf 6)" \
-		-v col_off="$$(tput sgr0)" \
-	'{ \
-		printf "%s%*s%s ", col_on, -indent, $$1, col_off; \
-		n = split($$2, words, " "); \
-		line_length = ncol - indent; \
-		for (i = 1; i <= n; i++) { \
-			line_length -= length(words[i]) + 1; \
-			if (line_length <= 0) { \
-				line_length = ncol - indent - length(words[i]) - 1; \
-				printf "\n%*s ", -indent, " "; \
-			} \
-			printf "%s ", words[i]; \
-		} \
-		printf "\n"; \
-	}' \
+test_35:
+	$(TESTBUILD)/bin/python3.5 -m unittest discover
+
+test_36:
+	$(TESTBUILD)/bin/python3.6 -m unittest discover
+
+test_37:
+	$(TESTBUILD)/bin/python3.7 -m unittest discover
+
+test_setup:
+	bash test/build_python.sh 2.7.3 $(TESTBUILD)
+	bash test/build_python.sh 3.4.9 $(TESTBUILD)
+	bash test/build_python.sh 3.5.6 $(TESTBUILD)
+	bash test/build_python.sh 3.6.7 $(TESTBUILD)
+	bash test/build_python.sh 3.7.1 $(TESTBUILD)
+
+clean:
+	rm -rf $(VENV) build/ dist/ MANIFEST .coverage .name htmlcov  2>/dev/null || true
+	find . -name '__pycache__' -exec rm -rf {} +
+	find . -name '*.pyc' -exec rm -f {} +
+	find . -name '*.pyo' -exec rm -f {} +
+	find . -name '*~' -exec rm -f {} +
+	find . -name '._*' -exec rm -f {} +

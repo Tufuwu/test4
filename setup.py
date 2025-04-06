@@ -1,70 +1,41 @@
-from pathlib import Path
+#!/usr/bin/env python
 
-from setuptools import find_packages, setup
+import sys
+from setuptools import setup
 
-# Read the contents of README file
-source_root = Path(".")
-with (source_root / "README.rst").open(encoding="utf-8") as f:
-    long_description = f.read()
+if sys.version_info < (2, 7):
+    raise NotImplementedError("Sorry, you need at least Python 2.7 or Python 3.4+ to use bottle.")
 
-# Read the requirements
-with (source_root / "requirements.txt").open(encoding="utf8") as f:
-    requirements = f.readlines()
+import bottle
 
-with (source_root / "requirements_dev.txt").open(encoding="utf8") as f:
-    dev_requirements = f.readlines()
-
-with (source_root / "requirements_test.txt").open(encoding="utf8") as f:
-    test_requirements = f.readlines()
-
-type_geometry_requires = ["shapely"]
-type_image_path_requires = ["imagehash", "Pillow"]
-
-extras_requires = {
-    "type_geometry": type_geometry_requires,
-    "type_image_path": type_image_path_requires,
-    "plotting": ["pydot", "pygraphviz", "matplotlib"],
-    "dev": dev_requirements,
-    "test": test_requirements,
-}
-
-extras_requires["all"] = requirements + [
-    dependency
-    for name, dependencies in extras_requires.items()
-    if name.startswith("type_") or name == "plotting"
-    for dependency in dependencies
-]
-
-__version__ = None
-with (source_root / "src/visions/version.py").open(encoding="utf8") as f:
-    exec(f.read())
-
-
-setup(
-    name="visions",
-    version=__version__,
-    url="https://github.com/dylan-profiler/visions",
-    description="Visions",
-    license="BSD License",
-    author="Dylan Profiler",
-    author_email="visions@ictopzee.nl",
-    package_data={"vision": ["py.typed"]},
-    packages=find_packages("src"),
-    package_dir={"": "src"},
-    install_requires=requirements,
-    include_package_data=True,
-    extras_require=extras_requires,
-    tests_require=test_requirements,
-    python_requires=">=3.6",
-    long_description=long_description,
-    long_description_content_type="text/x-rst",
-    zip_safe=False,
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-    ],
-)
+setup(name='bottle',
+      version=bottle.__version__,
+      description='Fast and simple WSGI-framework for small web-applications.',
+      long_description=bottle.__doc__,
+      long_description_content_type="text/markdown",
+      author=bottle.__author__,
+      author_email='marc@gsites.de',
+      url='http://bottlepy.org/',
+      py_modules=['bottle'],
+      scripts=['bottle.py'],
+      license='MIT',
+      platforms='any',
+      classifiers=['Development Status :: 4 - Beta',
+                   "Operating System :: OS Independent",
+                   'Intended Audience :: Developers',
+                   'License :: OSI Approved :: MIT License',
+                   'Topic :: Internet :: WWW/HTTP :: Dynamic Content :: CGI Tools/Libraries',
+                   'Topic :: Internet :: WWW/HTTP :: HTTP Servers',
+                   'Topic :: Internet :: WWW/HTTP :: WSGI',
+                   'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
+                   'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware',
+                   'Topic :: Internet :: WWW/HTTP :: WSGI :: Server',
+                   'Topic :: Software Development :: Libraries :: Application Frameworks',
+                   'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3',
+                   'Programming Language :: Python :: 3.4',
+                   'Programming Language :: Python :: 3.5',
+                   'Programming Language :: Python :: 3.6',
+                   'Programming Language :: Python :: 3.7',
+                   ],
+      )
