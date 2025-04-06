@@ -1,61 +1,54 @@
-#!/usr/bin/env python
-import ast
-import codecs
 import os
 
-import re
-from setuptools import find_packages, setup
+import setuptools
 
-ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__)))
-init = os.path.join(ROOT, 'src', 'adminactions', '__init__.py')
+DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def read(*parts):
-    with codecs.open(os.path.join(ROOT, 'src', 'requirements', *parts), 'r') as fp:
-        return fp.read()
+def get_requirements():
+    requirements_path = os.path.join(DIR, "requirements.txt")
+    with open(requirements_path, encoding="utf-8") as f:
+        return [line.strip() for line in f]
 
 
-_version_re = re.compile(r'__version__\s+=\s+(.*)')
+def get_long_description():
+    readme_path = os.path.join(DIR, "README.md")
+    return open(readme_path, encoding="utf-8").read()
 
-with open(init, 'rb') as f:
-    version = str(ast.literal_eval(_version_re.search(
-        f.read().decode('utf-8')).group(1)))
 
-requirements = read("install.pip")
-tests_require = read('testing.pip')
-dev_require = read('develop.pip')
-
-setup(
-    name='django-adminactions',
-    version=version,
-    url='https://github.com/saxix/django-adminactions',
-    download_url='https://github.com/saxix/django-adminactions',
-    author='sax',
-    author_email='s.apostolico@gmail.com',
-    description="Collections of useful actions to use with django.contrib.admin.ModelAdmin",
-    license='MIT',
-    package_dir={'': 'src'},
-    packages=find_packages('src'),
-    include_package_data=True,
-    install_requires=requirements,
-    tests_require=tests_require,
-    extras_require={
-        'test': requirements + tests_require,
-        'dev': dev_require + tests_require,
+setuptools.setup(
+    name="laia",
+    use_scm_version={
+        "write_to": "laia/version.py",
+        "write_to_template": '__version__ = "{version}"\n',
+        "local_scheme": lambda v: f"+{v.node}.{v.branch}{'.dirty' if v.dirty else ''}",
     },
-    zip_safe=False,
-    platforms=['any'],
-    classifiers=[
-        'Environment :: Web Environment',
-        'Framework :: Django',
-        'Operating System :: OS Independent',
-        'Framework :: Django :: 2.2',
-        'Framework :: Django :: 3.0',
-        'Framework :: Django :: 3.1',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Intended Audience :: Developers'],
-    long_description=open('README.rst').read()
+    author="Joan Puigcerver",
+    author_email="joapuipe@gmail.com",
+    maintainer="Carlos Mocholí",
+    maintainer_email="carlossmocholi@gmail.com",
+    license="MIT",
+    url="https://github.com/jpuigcerver/PyLaia",
+    download_url="https://github.com/jpuigcerver/PyLaia",
+    # Requirements
+    setup_requires=["setuptools_scm"],
+    install_requires=get_requirements(),
+    extras_require={
+        "dev": ["pre-commit", "isort", "black", "setuptools_scm"],
+        "test": ["pytest", "pytest-cov", "pandas"],
+    },
+    python_requires=">=3.6",
+    # Package contents
+    packages=setuptools.find_packages(exclude=["tests"]),
+    include_package_data=True,
+    entry_points={
+        "console_scripts": [
+            "pylaia-htr-create-model=laia.scripts.htr.create_model:main",
+            "pylaia-htr-train-ctc=laia.scripts.htr.train_ctc:main",
+            "pylaia-htr-decode-ctc=laia.scripts.htr.decode_ctc:main",
+            "pylaia-htr-netout=laia.scripts.htr.netout:main",
+        ],
+    },
+    long_description=get_long_description(),
+    long_description_content_type="text/markdown",
 )
