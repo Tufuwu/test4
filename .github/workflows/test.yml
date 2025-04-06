@@ -1,48 +1,23 @@
-name: Tests
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-
+name: unit-tests
+on: [push, pull_request]
 jobs:
-  core-tests:
+  OS:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - ubuntu:devel
+          - ubuntu:rolling
+          - ubuntu:latest
+          - fedora:latest
+          - fedora:rawhide
 
+    timeout-minutes: 30
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.4.1
-        with:
-          access_token: ${{ github.token }}
+      - name: Clone repository
+        uses: actions/checkout@v2
 
-      - uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-
-      - name: Before install
-        run: |
-          sudo apt-get -qq update;
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test;
-          sudo apt-get install gcc-4.8;
-          sudo apt-get install -y libeigen3-dev;
-
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-randomly wheel codecov
-
-      - name: Install The Walrus
-        run: |
-          pip install -e .
-
-      - name: Run tests
-        run: python3 -m pytest thewalrus --randomly-seed=137 --cov=thewalrus --cov-report term-missing --cov-report=html:coverage_html_report --cov-report=xml:coverage.xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./coverage.xml
+      - name: Run unit tests
+        # run as root; current Ubuntu podman breaks user networking ("could not find slirp4netns")
+        run: sudo tests/run ${{ matrix.scenario }}
