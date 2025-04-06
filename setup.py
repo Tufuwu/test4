@@ -1,14 +1,50 @@
-#!/usr/bin/env python3
-import os
-import re
+from setuptools import find_packages, setup
 
-from setuptools import setup
+from sqllineage import NAME, VERSION
 
-# Leaving this here because using "attr: ..." in the config file requires the package to be
-# importable, which might not be the case due to missing dependencies.
-with open(os.path.join(os.path.dirname(__file__), "pyhdfs", "__init__.py")) as py:
-    version_match = re.search(r'__version__ = "(.+?)"', py.read())
-    assert version_match
-    version = version_match.group(1)
+with open("README.md", "r") as f:
+    long_description = f.read()
 
-setup(version=version)
+setup(
+    name=NAME,
+    version=VERSION,
+    author="Reata",
+    author_email="reddevil.hjw@gmail.com",
+    description="SQL Lineage Analysis Tool powered by Python",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/reata/sqllineage",
+    packages=find_packages(exclude=("tests",)),
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: Implementation :: CPython",
+    ],
+    python_requires=">=3.6",
+    install_requires=["sqlparse>=0.3.0", "networkx>=2.4"],
+    entry_points={"console_scripts": ["sqllineage = sqllineage.runner:main"]},
+    extras_require={
+        "all": ["matplotlib", "pygraphviz"],
+        "ci": [
+            "bandit",
+            "flake8",
+            "flake8-blind-except",
+            "flake8-builtins",
+            "flake8-import-order",
+            "flake8-logging-format",
+            "mypy",
+            "pytest",
+            "pytest-cov",
+            "tox",
+            "twine",
+            "wheel",
+        ],
+        "docs": ["Sphinx>=3.2.0", "sphinx_rtd_theme>=0.5.0"],
+    },
+)
