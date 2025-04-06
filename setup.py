@@ -1,31 +1,35 @@
-#!/usr/bin/env python
-
-from os.path import exists
-
-import versioneer
+# encoding: utf-8
 from setuptools import setup
 
-with open("requirements.txt") as f:
-    install_requires = f.read().strip().split("\n")
-
-if exists("README.rst"):
-    with open("README.rst") as f:
-        long_description = f.read()
-else:
-    long_description = ""
+with open("README.md") as f:
+    long_description = f.read()
 
 setup(
-    name="dask-jobqueue",
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
-    description="Deploy Dask on job queuing systems like PBS, Slurm, SGE or LSF",
-    url="https://jobqueue.dask.org",
-    python_requires=">=3.5",
-    license="BSD 3-Clause",
-    packages=["dask_jobqueue"],
-    include_package_data=True,
-    install_requires=install_requires,
-    tests_require=["pytest >= 2.7.1"],
+    name="django-minio-storage",
+    license="MIT",
+    use_scm_version=True,
+    description="Django file storage using the minio python client",
     long_description=long_description,
-    zip_safe=False,
+    long_description_content_type="text/markdown",
+    author="Tom Houlé",
+    author_email="tom@kafunsho.be",
+    url="https://github.com/py-pa/django-minio-storage",
+    packages=[
+        "minio_storage",
+        "minio_storage/management/",
+        "minio_storage/management/commands/",
+    ],
+    setup_requires=["setuptools_scm"],
+    install_requires=["django>=1.11", "minio>=4.0.21,<7"],
+    extras_require={"test": ["coverage", "requests"]},
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Framework :: Django",
+    ],
 )
