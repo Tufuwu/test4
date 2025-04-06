@@ -1,80 +1,132 @@
-`luma.core <https://github.com/rm-hull/luma.core>`__ **|** 
-`luma.docs <https://github.com/rm-hull/luma.docs>`__ **|** 
-luma.emulator **|** 
-`luma.examples <https://github.com/rm-hull/luma.examples>`__ **|** 
-`luma.lcd <https://github.com/rm-hull/luma.lcd>`__ **|** 
-`luma.led_matrix <https://github.com/rm-hull/luma.led_matrix>`__ **|** 
-`luma.oled <https://github.com/rm-hull/luma.oled>`__ 
+=======
+pixell
+=======
 
-Luma.Emulator
-=============
+.. image:: https://github.com/simonsobs/pixell/workflows/Build/badge.svg
+           :target: https://github.com/simonsobs/pixell/actions?query=workflow%3ABuild
 
-.. image:: https://github.com/rm-hull/luma.emulator/workflows/luma.emulator/badge.svg?branch=master
-   :target: https://github.com/rm-hull/luma.emulator/actions?workflow=luma.emulator
+.. image:: https://readthedocs.org/projects/pixell/badge/?version=latest
+           :target: https://pixell.readthedocs.io/en/latest/?badge=latest
+		   :alt: Documentation Status
 
-.. image:: https://coveralls.io/repos/github/rm-hull/luma.emulator/badge.svg?branch=master
-   :target: https://coveralls.io/github/rm-hull/luma.emulator?branch=master
+.. image:: https://coveralls.io/repos/github/simonsobs/pixell/badge.svg?branch=master
+		   :target: https://coveralls.io/github/simonsobs/pixell?branch=master
 
-.. image:: https://img.shields.io/pypi/pyversions/luma.emulator.svg
-   :target: https://pypi.python.org/pypi/luma.emulator
+.. image:: https://badge.fury.io/py/pixell.svg
+		       :target: https://badge.fury.io/py/pixell
 
-.. image:: https://img.shields.io/pypi/v/luma.emulator.svg
-   :target: https://pypi.python.org/pypi/luma.emulator
+``pixell`` is a library for loading, manipulating and analyzing maps stored in rectangular pixelization. It is mainly targeted for use with maps of the sky (e.g. CMB intensity and polarization maps, stacks of 21 cm intensity maps, binned galaxy positions or shear) in cylindrical projection, but its core functionality is more general. It extends numpy's ``ndarray`` to an ``ndmap`` class that associates a World Coordinate System (WCS) with a numpy array.  It includes tools for Fourier transforms  (through numpy or pyfft) and spherical harmonic transforms (through libsharp) of such maps and tools for visualization (through the Python Image Library). 
 
-.. image:: https://img.shields.io/pypi/dm/luma.emulator
-   :target: https://pypi.python.org/project/luma.emulator
 
-.. image:: https://img.shields.io/maintenance/yes/2020.svg?maxAge=2592000
+* Free software: BSD license
+* Documentation: https://pixell.readthedocs.io.
+* Tutorials_
 
-**luma.emulator** provides a series of pseudo-display devices which allow 
-the `luma.core <https://github.com/rm-hull/luma.core>`_ components to be used
-without running a physical device. These include:
+Dependencies
+------------
 
-* Real-time (pixel) emulator, based on `pygame <http://pygame.org/docs/>`__
-* LED matrix and 7-segment renderers
-* PNG screen capture
-* Animated GIF animator
-* Real-time ASCII-art & block emulators
+* Python>=3.6
+* gcc/gfortran or Intel compilers (clang might not work out of the box), if compiling from source
+* libsharp (downloaded and installed, if compiling from source)
+* automake (for libsharp compilation, if compiling from source)
+* healpy, Cython, astropy, numpy, scipy, matplotlib, pyyaml, h5py, Pillow (Python Image Library)
 
-Documentation
+Installing
+----------
+
+Make sure your ``pip`` tool is up-to-date. To install ``pixell``, run:
+
+.. code-block:: console
+		
+   $ pip install pixell --user
+   $ test-pixell
+
+This will install a pre-compiled binary suitable for your system (only Linux and Mac OS X with Python>=3.6 are supported). If you require more control over your installation, e.g. using your own installation of ``libsharp``, using Intel compilers or enabling tuning of the ``libsharp`` installation to your CPU, please see the section below on compiling from source.  The ``test-pixell`` command will run a suite of unit tests.
+
+Compiling from source (advanced / development workflow)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For compilation instructions specific to NERSC/cori, see NERSC_.
+
+For compilation instructions specific to Mac OS X, see MACOSX_ (h/t Thibaut Louis).
+
+For all other, below are general instructions.
+
+First, download the source distribution or ``git clone`` this repository. You can work from ``master`` or checkout one of the released version tags (see the Releases section on Github). Then change into the cloned/source directory.
+
+Existing ``libsharp`` installation (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``libsharp`` is installed automatically by the setup.py you will execute below. The installation script will
+attempt to automatically git clone the latest version of ``libsharp`` and compile it.  If
+instead you want to use an existing ``libsharp`` installation, you can do so by
+symlinking the ``libsharp`` directory into a directory called ``_deps`` in the
+root directory, such that ``pixell/_deps/libsharp/libsharp/sharp.h`` exists. If
+you are convinced that the libsharp library is successfully
+compiled,  add an empty file named
+``pixell/_deps/libsharp/libsharp/success.txt`` to ensure pixell's setup.py
+knows of your existing installation.
+
+Run ``setup.py``
+~~~~~~~~~~~~~~~~
+
+If not using Intel compilers (see below), build the package using 
+
+.. code-block:: console
+		
+   $ python setup.py build_ext -i
+
+You may now test the installation:
+
+.. code-block:: console
+		
+   $ py.test pixell/tests/
+   
+If the tests pass, either add the cloned directory to your ``$PYTHONPATH``, if you want the ability for changes made to Python source files to immediately reflect in your installation, e.g., in your ``.bashrc`` file,
+
+.. code-block:: bash
+		
+   export PYTHONPATH=$PYTHONPATH:/path/to/cloned/pixell/directory
+
+
+or alternatively, install the package  
+   
+.. code-block:: console
+
+   $ python setup.py install --user
+
+which requires you to reinstall every time changes are made to any files in your repository directory.
+   
+Intel compilers
+~~~~~~~~~~~~~~~
+
+Intel compilers require you to modify the build step above as follows
+
+.. code-block:: console
+		
+   $ python setup.py build_ext -i --fcompiler=intelem --compiler=intelem
+
+On some systems, further specification might be required (make sure to get a fresh copy of the repository before trying out a new install method), e.g.:
+
+.. code-block:: console
+
+   $ LDSHARED="icc -shared" LD=icc LINKCC=icc CC=icc python setup.py build_ext -i --fcompiler=intelem --compiler=intelem
+
+
+
+Contributions
 -------------
-Documentation can be found on https://luma-emulator.readthedocs.io.
 
-.. image:: https://raw.githubusercontent.com/rm-hull/luma.oled/master/doc/images/clock_anim.gif?raw=true
-   :alt: clock
+If you have write access to this repository, please:
 
-.. image:: https://raw.githubusercontent.com/rm-hull/luma.oled/master/doc/images/invaders_anim.gif?raw=true
-   :alt: invaders
+1. create a new branch
+2. push your changes to that branch
+3. merge or rebase to get in sync with master
+4. submit a pull request on github
 
-.. image:: https://raw.githubusercontent.com/rm-hull/luma.oled/master/doc/images/crawl_anim.gif?raw=true
-   :alt: crawl
-
-.. image:: https://raw.githubusercontent.com/rm-hull/luma.emulator/master/doc/images/ascii-art.png?raw=true
-   :alt: asciiart
-
-.. image:: https://raw.githubusercontent.com/rm-hull/luma.led_matrix/master/doc/images/emulator.gif
-   :alt: max7219 emulator
-
-License
--------
-The MIT License (MIT)
-
-Copyright (c) 2017-2020 Richard Hull and contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+If you do not have write access, create a fork of this repository and proceed as described above. For more details, see Contributing_.
+  
+.. _Tutorials: https://github.com/simonsobs/pixell_tutorials/
+.. _Contributing: https://pixell.readthedocs.io/en/latest/contributing.html
+.. _NERSC: https://pixell.readthedocs.io/en/latest/nersc.html
+.. _MACOSX: https://github.com/simonsobs/pspy/blob/master/INSTALL_MACOS.rst
