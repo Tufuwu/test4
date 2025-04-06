@@ -1,59 +1,39 @@
-.PHONY: clean-pyc clean-build docs help
-.DEFAULT_GOAL := help
-define BROWSER_PYSCRIPT
-import os, webbrowser, sys
-try:
-	from urllib import pathname2url
-except:
-	from urllib.request import pathname2url
-
-webbrowser.open("file://" + pathname2url(os.path.abspath(sys.argv[1])))
-endef
-export BROWSER_PYSCRIPT
-BROWSER := python -c "$$BROWSER_PYSCRIPT"
-
 help:
-	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
+	@echo '    init'
+	@echo '        install pipenv and all project dependencies'
+	@echo '    test'
+	@echo '        run all tests'
 
-clean: clean-build clean-pyc
+init:
+	@echo 'Install python dependencies'
+	pip install pipenv
+	pip install autopep8
+	pipenv install
+	pipenv shell
+	python setup.py install
 
-clean-build: ## remove build artifacts
-	rm -fr build/
-	rm -fr dist/
-	rm -fr *.egg-info
+test:
+	@echo 'Run all tests'
+	nosetests
 
-clean-pyc: ## remove Python file artifacts
+build:
+	python setup.py sdist bdist_wheel
+
+test_upload:
+	python -m twine upload -r testpypi dist/*
+
+upload:
+	python -m twine upload dist/*
+
+clean:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
+	find . -type d -name __pycache__ -exec rm -r {} \+
+	rm -rf build/
+	rm -rf dist/
+	rm -rf *.egg-info
+	rm -rf .tox
+	rm -rf .pytest_cache .coverage
 
-lint: ## check style with flake8
-	flake8 rest_framework_tus tests
-
-test: ## run tests quickly with the default Python
-	python runtests.py tests
-
-test-all: ## run tests on every Python version with tox
-	tox
-
-coverage: ## check code coverage quickly with the default Python
-	coverage run --source rest_framework_tus runtests.py tests
-	coverage report -m
-	coverage html
-	open htmlcov/index.html
-
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/drf-tus.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ rest_framework_tus
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
-
-release: clean ## package and upload a release
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
-
-sdist: clean ## package
-	python setup.py sdist
-	ls -l dist
+lint:
+	autopep8 random_word --recursive --in-place --pep8-passes 2000 --verbose
