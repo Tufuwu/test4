@@ -1,10 +1,7 @@
 [run]
+source = codecov
 branch = True
-source =
-    defusedxml/
-    tests.py
+omit =
+    */test/*
+    */tests/*
 
-[paths]
-source =
-   defusedxml/
-   .tox/py*/lib/python*/site-packages/defusedxml/
