@@ -1,27 +1,59 @@
-# ROS build farm based on Docker
+SQLAlchemy Adapter for PyCasbin 
+====
 
-This repository contains the scripts and templates to generate Jenkins jobs or
-alternatively shell scripts to run jobs locally.
-Please look in the [doc](doc/index.rst) folder for more information about how
-to invoke the job generation and an explanation of the different job types.
+[![GitHub Actions](https://github.com/pycasbin/sqlalchemy-adapter/workflows/build/badge.svg?branch=master)](https://github.com/pycasbin/sqlalchemy-adapter/actions)
+[![Coverage Status](https://coveralls.io/repos/github/pycasbin/sqlalchemy-adapter/badge.svg)](https://coveralls.io/github/pycasbin/sqlalchemy-adapter)
+[![Version](https://img.shields.io/pypi/v/casbin_sqlalchemy_adapter.svg)](https://pypi.org/project/casbin_sqlalchemy_adapter/)
+[![PyPI - Wheel](https://img.shields.io/pypi/wheel/casbin_sqlalchemy_adapter.svg)](https://pypi.org/project/casbin_sqlalchemy_adapter/)
+[![Pyversions](https://img.shields.io/pypi/pyversions/casbin_sqlalchemy_adapter.svg)](https://pypi.org/project/casbin_sqlalchemy_adapter/)
+[![Download](https://img.shields.io/pypi/dm/casbin_sqlalchemy_adapter.svg)](https://pypi.org/project/casbin_sqlalchemy_adapter/)
+[![License](https://img.shields.io/pypi/l/casbin_sqlalchemy_adapter.svg)](https://pypi.org/project/casbin_sqlalchemy_adapter/)
 
-The ROS build farm is using [Docker](http://www.docker.com) for each step in
-the process.
-It is based on the ROS distro specification
-[REP 143](http://www.ros.org/reps/rep-0143.html) and uses a separate repository
-to configure the jobs being generated (e.g.
-[ros-infrastructure/ros_buildfarm_config](https://github.com/ros-infrastructure/ros_buildfarm_config)).
+SQLAlchemy Adapter is the [SQLAlchemy](https://www.sqlalchemy.org) adapter for [PyCasbin](https://github.com/casbin/pycasbin). With this library, Casbin can load policy from SQLAlchemy supported database or save policy to it.
 
-If you are going to use any of the provided infrastructure please consider
-watching the [buildfarm Discourse category](https://discourse.ros.org/c/buildfarm)
-in order to receive notifications e.g. about any upcoming changes.
+Based on [Officially Supported Databases](http://www.sqlalchemy.org/), The current supported databases are:
 
-For quick reference to run scripts:
+- PostgreSQL
+- MySQL
+- SQLite
+- Oracle
+- Microsoft SQL Server
+- Firebird
+- Sybase
 
- ## Check Sync Criteria
+## Installation
 
-    ./scripts/release/check_sync_criteria.py https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml melodic default ubuntu bionic amd64
+```
+pip install casbin_sqlalchemy_adapter
+```
 
-## Audit rosdistro
+## Simple Example
 
-    ./scripts/release/audit_rosdistro.py --cache-dir /tmp/rosdistrocache https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml noetic
+```python
+import casbin_sqlalchemy_adapter
+import casbin
+
+adapter = casbin_sqlalchemy_adapter.Adapter('sqlite:///test.db')
+
+e = casbin.Enforcer('path/to/model.conf', adapter, True)
+
+sub = "alice"  # the user that wants to access a resource.
+obj = "data1"  # the resource that is going to be accessed.
+act = "read"  # the operation that the user performs on the resource.
+
+if e.enforce(sub, obj, act):
+    # permit alice to read data1casbin_sqlalchemy_adapter
+    pass
+else:
+    # deny the request, show an error
+    pass
+```
+
+
+### Getting Help
+
+- [PyCasbin](https://github.com/casbin/pycasbin)
+
+### License
+
+This project is licensed under the [Apache 2.0 license](LICENSE).
