@@ -1,34 +1,22 @@
-name: Tests
+name: Code Quality Check
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  - push
+  - pull_request
 
 jobs:
-  build_ubuntu:
-    strategy:
-      matrix:
-        python: ["3.9"]
-    name: ${{ matrix.python }}
+  lint-ci:
     runs-on: ubuntu-latest
+    name: Run pre-commit and install test
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: Check out source repository
+        uses: actions/checkout@v2
+      - name: Set up Python environment
+        uses: actions/setup-python@v1
         with:
-          python-version: ${{ matrix.python }}
-      - name: setup
+          python-version: "3.9"
+      - name: Run pre-commit
+        uses: pre-commit/action@v2.0.3
+      - name: Install Kraken
         run: |
-          python --version
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade flit
-      - name: install
-        run: |
-          cd blurb
-          flit install
-      - name: test
-        run: |
-          blurb test
+          python setup.py develop
