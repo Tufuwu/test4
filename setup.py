@@ -1,42 +1,56 @@
-import sys
-import versioneer
+from setuptools import find_packages, setup
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
-from os import path
-this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open("README.md") as f:
     long_description = f.read()
 
-# Only install pytest and runner when test command is run
-# This makes work easier for offline installs or low bandwidth machines
-needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
-pytest_runner = ['pytest-runner'] if needs_pytest else []
-test_requirements = ['mock', 'pycodestyle', 'pytest', 'requests-mock>=1.0,<2.0']
+
+def local_scheme(version):
+    """Skip the local version (eg. +xyz of 0.6.1.dev4+gdf99fe2)
+    to be able to upload to Test PyPI"""
+    return ""
+
 
 setup(
-    name='tableauserverclient',
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
-    author='Tableau',
-    author_email='github@tableau.com',
-    url='https://github.com/tableau/server-client-python',
-    packages=['tableauserverclient', 'tableauserverclient.models', 'tableauserverclient.server',
-              'tableauserverclient.server.endpoint'],
-    license='MIT',
-    description='A Python module for working with the Tableau Server REST API.',
+    name="pypistats",
+    description="Python interface to PyPI Stats API https://pypistats.org/api",
     long_description=long_description,
-    long_description_content_type='text/markdown',
-    test_suite='test',
-    setup_requires=pytest_runner,
+    long_description_content_type="text/markdown",
+    author="hugovk",
+    url="https://github.com/hugovk/pypistats",
+    project_urls={"Source": "https://github.com/hugovk/pypistats"},
+    license="MIT",
+    keywords=["PyPI", "downloads", "statistics", "stats", "BigQuery"],
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
+    entry_points={"console_scripts": ["pypistats = pypistats.cli:main"]},
+    zip_safe=True,
+    use_scm_version={"local_scheme": local_scheme},
+    setup_requires=["setuptools_scm"],
     install_requires=[
-        'requests>=2.11,<3.0',
+        "appdirs",
+        "pytablewriter[html]>=0.48",
+        "python-dateutil",
+        "python-slugify",
+        "requests",
     ],
-    tests_require=test_requirements,
     extras_require={
-        'test': test_requirements
-    }
+        "numpy": ["numpy"],
+        "pandas": ["pandas"],
+        "tests": ["freezegun", "pytest", "pytest-cov", "requests_mock"],
+    },
+    python_requires=">=3.6",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: End Users/Desktop",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: Implementation :: CPython",
+    ],
 )
