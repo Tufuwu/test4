@@ -1,2 +1,14 @@
-__pycache__
-.python-version
+*.pyc
+build/*
+dist/*
+**/result/*
+*.egg-info/*
+*.so
+*.pyd
+.dropbox
+abce/build/
+docs/_build/
+docs/builddir/
+setup.cfg
+.idea/
+.ropeproject/
