@@ -1,112 +1,42 @@
-# Use setuptools in preference to distutils
-from setuptools import setup, find_packages
-import os
+import sys
+import versioneer
 
-#-Write Versions File-#
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
-VERSION = '0.4.8'
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
-def write_version_py(filename=None):
-    """
-    This constructs a version file for the project
-    """
-    doc = "\"\"\"\nThis is a VERSION file and should NOT be manually altered\n\"\"\""
-    doc += "\nversion = '%s'\n" % VERSION
+# Only install pytest and runner when test command is run
+# This makes work easier for offline installs or low bandwidth machines
+needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+pytest_runner = ['pytest-runner'] if needs_pytest else []
+test_requirements = ['mock', 'pycodestyle', 'pytest', 'requests-mock>=1.0,<2.0']
 
-    if not filename:
-        filename = os.path.join(os.path.dirname(__file__), 'quantecon', 'version.py')
-
-    fl = open(filename, 'w')
-    try:
-        fl.write(doc)
-    finally:
-        fl.close()
-
-write_version_py()  # This is a file used to control the qe.__version__ attribute
-
-#-Meta Information-#
-#~~~~~~~~~~~~~~~~~~#
-
-DESCRIPTION = "QuantEcon is a package to support all forms of quantitative economic modelling."       #'Core package of the QuantEcon library'
-
-LONG_DESCRIPTION = """
-**QuantEcon** is an organization run by economists for economists with the aim of coordinating
-distributed development of high quality open source code for all forms of quantitative economic modelling.
-
-The project website is located at `http://quantecon.org/ <http://quantecon.org/>`_. This website provides
-more information with regards to the **quantecon** library, documentation, in addition to some resources
-in regards to how you can use and/or contribute to the package.
-
-The **quantecon** Package
--------------------------
-
-The `repository <https://github.com/QuantEcon/QuantEcon.py>`_ includes the Python package ``quantecon``
-
-Assuming you have `pip <https://pypi.python.org/pypi/pip>`_ on your computer --- as will be the case if you've `installed Anaconda <http://quant-econ.net/getting_started.html#installing-anaconda>`_ --- you can install the latest stable release of ``quantecon`` by typing
-
-    pip install quantecon
-
-at a terminal prompt
-
-Repository
-----------
-
-The main repository is hosted on Github `QuantEcon.py <https://github.com/QuantEcon/QuantEcon.py>`_
-
-**Note:** There is also a Julia version available for Julia users `QuantEcon.jl <https://github.com/QuantEcon/QuantEcon.jl>`_
-
-Current Build and Coverage Status
----------------------------------
-
-|Build Status| |Coverage Status|
-
-.. |Build Status| image:: https://travis-ci.org/QuantEcon/QuantEcon.py.svg?branch=master
-   :target: https://travis-ci.org/QuantEcon/QuantEcon.py
-.. |Coverage Status| image:: https://coveralls.io/repos/QuantEcon/QuantEcon.py/badge.png
-   :target: https://coveralls.io/r/QuantEcon/QuantEcon.py
-
-Additional Links
-----------------
-
-1. `QuantEcon Course Website <http://quant-econ.net>`_
-
-"""
-
-LICENSE = "BSD"
-
-#-Classifier Strings-#
-#-https://pypi.python.org/pypi?%3Aaction=list_classifiers-#
-CLASSIFIERS = [
-    'Development Status :: 4 - Beta',
-    'Operating System :: OS Independent',
-    'Intended Audience :: Science/Research',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.5',
-    'Topic :: Scientific/Engineering',
-]
-
-#-Setup-#
-#~~~~~~~#
-
-setup(name='quantecon',
-      packages=find_packages(),
-      version=VERSION,
-      description=DESCRIPTION,
-      long_description=LONG_DESCRIPTION,
-      license=LICENSE,
-      classifiers=CLASSIFIERS,
-      author='Thomas J. Sargent and John Stachurski (Project coordinators)',
-      author_email='john.stachurski@gmail.com',
-      url='https://github.com/QuantEcon/QuantEcon.py',  # URL to the repo
-      download_url='https://github.com/QuantEcon/QuantEcon.py/tarball/' + VERSION,
-      keywords=['quantitative', 'economics'],
-      install_requires=[
-          'numba>=0.38',
-          'numpy',
-          'requests',
-          'scipy>=1.0.0',
-          'sympy',
-          ],
-      include_package_data=True
-      )
+setup(
+    name='tableauserverclient',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
+    author='Tableau',
+    author_email='github@tableau.com',
+    url='https://github.com/tableau/server-client-python',
+    packages=['tableauserverclient', 'tableauserverclient.models', 'tableauserverclient.server',
+              'tableauserverclient.server.endpoint'],
+    license='MIT',
+    description='A Python module for working with the Tableau Server REST API.',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    test_suite='test',
+    setup_requires=pytest_runner,
+    install_requires=[
+        'requests>=2.11,<3.0',
+    ],
+    tests_require=test_requirements,
+    extras_require={
+        'test': test_requirements
+    }
+)
