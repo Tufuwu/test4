@@ -1,17 +1,31 @@
-# Run check and build of the lib using the Bitcraze builder docker image
-name: CI
+name: ci
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Check and build
-      run: docker run --rm -v ${PWD}:/module bitcraze/builder ./tools/build/build 
+      # Checkout Repository
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Install Tools
+      - name: Install Tools
+        run: |
+          sudo apt-get install wget build-essential python3
+          pip3 install setuptools
+
+      # Install (n)Migen / LiteX / Cores
+      - name: Install LiteX
+        run: |
+          wget https://raw.githubusercontent.com/enjoy-digital/litex/main/litex_setup.py
+          python3 litex_setup.py init install --user
+
+      # Install Project
+      - name: Install Project
+        run: python3 setup.py develop --user
+
+      # Test
+      - name: Run Tests
+        run: python3 setup.py test

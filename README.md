@@ -1,108 +1,108 @@
-# cflib: Crazyflie python library [![Build Status](https://api.travis-ci.org/bitcraze/crazyflie-lib-python.svg)](https://travis-ci.org/bitcraze/crazyflie-lib-python) [![build](https://github.com/bitcraze/crazyflie-lib-python/workflows/build/badge.svg)](https://github.com/bitcraze/crazyflie-lib-python/actions)
-
-cflib is an API written in Python that is used to communicate with the Crazyflie
-and Crazyflie 2.0 quadcopters. It is intended to be used by client software to
-communicate with and control a Crazyflie quadcopter. For instance the [cfclient][cfclient] Crazyflie PC client uses the cflib.
-
-See [below](#platform-notes) for platform specific instruction.
-For more info see our [documentation](https://www.bitcraze.io/documentation/repository/crazyflie-lib-python/master/).
-
-
-## Development
-### Developing for the cfclient
-* [Fork the cflib](https://help.github.com/articles/fork-a-repo/)
-* [Clone the cflib](https://help.github.com/articles/cloning-a-repository/), `git clone git@github.com:YOUR-USERNAME/crazyflie-lib-python.git`
-* [Install the cflib in editable mode](http://pip-python3.readthedocs.org/en/latest/reference/pip_install.html?highlight=editable#editable-installs), `pip install -e path/to/cflib`
-
-
-* [Uninstall the cflib if you don't want it any more](http://pip-python3.readthedocs.org/en/latest/reference/pip_uninstall.html), `pip uninstall cflib`
-
-Note: If you are developing for the [cfclient][cfclient] you must use python3. On Ubuntu (16.04, 18.08) use `pip3` instead of `pip`.
-
-### Linux, OSX, Windows
-
-The following should be executed in the root of the crazyflie-lib-python file tree.
-
-#### Virtualenv
-This section contains a very short description of how to use [virtualenv (local python environment)](https://virtualenv.pypa.io/en/latest/)
-with package dependencies. If you don't want to use virualenv and don't mind installing cflib dependencies system-wide
-you can skip this section.
-
-* Install virtualenv: `pip install virtualenv`
-* create an environment: `virtualenv venv`
-* Activate the environment: `source venv/bin/activate`
-
-
-* To deactivate the virtualenv when you are done using it `deactivate`
-
-Note: For systems that support [make](https://www.gnu.org/software/make/manual/html_node/Simple-Makefile.html), you can use `make venv` to
-create an environment, activate it and install dependencies.
-
-#### Install cflib dependencies
-Install dependencies required by the lib: `pip install -r requirements.txt`
-
-To verify the installation, connect the crazyflie and run an example: `python examples/basiclog`
-
-## Testing
-### With docker and the toolbelt
-
-For information and installation of the
-[toolbelt.](https://wiki.bitcraze.io/projects:dockerbuilderimage:index)
-
-* Check to see if you pass tests: `tb test`
-* Check to see if you pass style guidelines: `tb verify`
-
-Note: Docker and the toolbelt is an optional way of running tests and reduces the
-work needed to maintain your python environment.
-
-### Native python on Linux, OSX, Windows
- [Tox](http://tox.readthedocs.org/en/latest/) is used for native testing: `pip install tox`
-* If test fails after installing tox with `pip install tox`, installing with  `sudo apt-get install tox`result a successful test run
-
-* Test package in python3.4 `TOXENV=py34 tox`
-* Test package in python3.6 `TOXENV=py36 tox`
-
-Note: You must have the specific python versions on your machine or tests will fail. (ie. without specifying the TOXENV, `tox` runs tests for python 3.3, 3.4 and would require all python versions to be installed on the machine.)
-
-
-## Platform notes
-
-### Linux
-
-#### Setting udev permissions
-
-The following steps make it possible to use the USB Radio without being root.
-
 ```
-sudo groupadd plugdev
-sudo usermod -a -G plugdev $USER
+                                 __   _ __      ____
+                                / /  (_) /____ / __/______  ___  ___
+                               / /__/ / __/ -_)\ \/ __/ _ \/ _ \/ -_)
+                              /____/_/\__/\__/___/\__/\___/ .__/\__/
+                                                         /_/
+                               Copyright 2015-2020 / EnjoyDigital
+
+                           A small footprint and configurable Logic Analyzer
+                                    core powered by Migen & LiteX
 ```
 
-You will need to log out and log in again in order to be a member of the plugdev group.
+[![](https://github.com/enjoy-digital/litescope/workflows/ci/badge.svg)](https://github.com/enjoy-digital/litescope/actions) ![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)
 
-Create a file named ```/etc/udev/rules.d/99-crazyradio.rules``` and add the
-following:
+
+[> Intro
+--------
+LiteScope provides a small footprint and configurable embedded logic analyzer that you
+can use in your FPGA and aims to provide a free, portable and flexible
+alternative to vendor's solutions!
+
+LiteScope is part of LiteX libraries whose aims are to lower entry level of
+complex FPGA cores by providing simple, elegant and efficient implementations
+of components used in today's SoC such as Ethernet, SATA, PCIe, SDRAM Controller...
+
+Using Migen to describe the HDL allows the core to be highly and easily configurable.
+
+LiteScope can be used as LiteX library or can be integrated with your standard
+design flow by generating the verilog rtl that you will use as a standard core.
+
+[> Features
+-----------
+- IO peek and poke with LiteScopeIO.
+- Logic analyser with LiteScopeAnalyzer:
+  - Subsampling.
+  - Data storage in Block RAM.
+  - Configurable triggers.
+- Bridges:
+  - UART <--> Wishbone (provided by LiteX)
+  - Ethernet <--> Wishbone ("Etherbone") (provided by LiteEth)
+  - PCIe <--> Wishbone (provided by LitePCIe)
+- Exports formats: .vcd, .sr(sigrok), .csv, .py, etc...
+
+[> Proven
+---------
+LiteScope has already been used to investigate issues on several commercial or
+open-source designs.
+
+[> Possible improvements
+------------------------
+- add standardized interfaces (AXI, Avalon-ST)
+- add protocols analyzers
+- add signals injection/generation
+- add storage in DRAM
+- add storage in HDD with LiteSATA core
+- ... See below Support and consulting :)
+
+If you want to support these features, please contact us at florent [AT]
+enjoy-digital.fr.
+
+[> Getting started
+------------------
+1. Install Python 3.6+ and FPGA vendor's development tools.
+2. Install LiteX and the cores by following the LiteX's wiki [installation guide](https://github.com/enjoy-digital/litex/wiki/Installation).
+3. You can find examples of integration of the core with LiteX in LiteX-Boards and in the examples directory.
+
+[> Tests
+--------
+Unit tests are available in ./test/.
+To run all the unit tests:
+```sh
+$ ./setup.py test
 ```
-# Crazyradio (normal operation)
-SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="7777", MODE="0664", GROUP="plugdev"
-# Bootloader
-SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="0101", MODE="0664", GROUP="plugdev"
+
+Tests can also be run individually:
+```sh
+$ python3 -m unittest test.test_name
 ```
 
-To connect Crazyflie 2.0 via usb, create a file name ```/etc/udev/rules.d/99-crazyflie.rules``` and add the following:
-```
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", MODE="0664", GROUP="plugdev"
-```
+[> License
+----------
+LiteScope is released under the very permissive two-clause BSD license. Under
+the terms of this license, you are authorized to use LiteScope for closed-source
+proprietary designs.
+Even though we do not require you to do so, those things are awesome, so please
+do them if possible:
+ - tell us that you are using LiteScope
+ - cite LiteScope in publications related to research it has helped
+ - send us feedback and suggestions for improvements
+ - send us bug reports when something goes wrong
+ - send us the modifications and improvements you have done to LiteScope.
 
-You can reload the udev-rules using the following:
-```
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
+[> Support and consulting
+-------------------------
+We love open-source hardware and like sharing our designs with others.
 
-[cfclient]: https://www.github.com/bitcraze/crazyflie-clients-python
+LiteScope is developed and maintained by EnjoyDigital.
 
+If you would like to know more about LiteScope or if you are already a happy
+user and would like to extend it for your needs, EnjoyDigital can provide standard
+commercial support as well as consulting services.
 
-## Contribute
+So feel free to contact us, we'd love to work with you! (and eventually shorten
+the list of the possible improvements :)
 
-Everyone is encouraged to contribute to the CrazyFlie library by forking the Github repository and making a pull request or opening an issue.
+[> Contact
+----------
+E-mail: florent [AT] enjoy-digital.fr

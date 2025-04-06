@@ -1,28 +1,24 @@
 #!/usr/bin/env python3
-from setuptools import find_packages
+
 from setuptools import setup
+from setuptools import find_packages
+
 
 setup(
-    name='cflib',
-    version='0.1.12.1',
-    packages=find_packages(exclude=['examples', 'tests']),
-
-    description='Crazyflie python driver',
-    url='https://github.com/bitcraze/crazyflie-lib-python',
-
-    author='Bitcraze and contributors',
-    author_email='contact@bitcraze.io',
-    license='GPLv3',
-
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Topic :: System :: Hardware :: Hardware Drivers',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 3'
-    ],
-
-    keywords='driver crazyflie quadcopter',
-
-    install_requires='pyusb>=1.0.0b2',
+    name="litescope",
+    description="Small footprint and configurable embedded FPGA logic analyzer core",
+    author="Florent Kermarrec",
+    author_email="florent@enjoy-digital.fr",
+    url="http://enjoy-digital.fr",
+    download_url="https://github.com/enjoy-digital/litescope",
+    test_suite="test",
+    license="BSD",
+    python_requires="~=3.6",
+    packages=find_packages(exclude=("test*", "sim*", "doc*", "examples*")),
+    include_package_data=True,
+    entry_points={
+        "console_scripts": [
+            "litescope_cli=litescope.software.litescope_cli:main",
+        ],
+    },
 )
