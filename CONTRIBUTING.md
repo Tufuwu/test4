@@ -1,21 +1,38 @@
-Contributing
-============
+# Contributing to aioitertools
 
-Installing the development environment
---------------------------------------
+## Preparation
 
-1. Clone the repo `git clone https://github.com/sklarsa/django-sendgrid-v5.git`
+You'll need to have Python 3.6 available for testing
+(I recommend using [pyenv][] for this), and a clean
+development environment (virtualenv is good).
 
-2. Create a virtual environment and install the dev-requirements.txt
+You can do this with pyenv and virtualenv:
 
-   ```
-   cd django-sendgrid-v5
-   virtualenv venv
-   source venv/bin/activate
-   pip install -r dev-requirements.txt
-   pip install -e .
-   ```
+    $ pyenv install 3.6.5
+    $ pyenv shell 3.6.5
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
 
-3. If you want to run tests that post to the sendgrid API directly, you need to set an environment variable, `SENDGRID_API_KEY`.  Otherwise, related tests will fail.
 
-4. Run the unit tests `nosetests -c nose.cfg`
+## Setup
+
+Once in your development environment, install the
+appropriate linting tools and dependencies:
+
+    $ cd <path/to/aioitertools>
+    $ make setup dev
+
+
+## Submitting
+
+Before submitting a pull request, please ensure
+that you have done the following:
+
+* Documented changes or features in README.md
+* Added appropriate license headers to new files
+* Written or modified tests for new functionality
+* Used [black][] to format code appropriately
+* Validated code with `make lint test`
+
+[black]: https://github.com/ambv/black
+[pyenv]: https://github.com/pyenv/pyenv
