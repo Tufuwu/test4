@@ -1,6 +1,7 @@
-include MANIFEST.in
-include *.rst
-include *.txt
-recursive-include docs *.rst
-recursive-include simple_history/locale *
-recursive-include simple_history/templates *
+include *.rst requirements.txt LICENSE
+graft docs
+graft examples
+include versioneer.py
+include ncclient/_version.py
+include test
+include test-requirements.txt
