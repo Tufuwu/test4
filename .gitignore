@@ -1,46 +1,121 @@
-# Developers
-.hg
-.git
-.svn
-.idea/
-.sass-cache/
-.vscode/
-*.db
-*.pyc
-__pycache__
-*~
+# specific ignore for dev
+_notebooks/
+doc/_build/
 
-# Javascript libraries
-/node_modules/
+# vscode IDE project settings
+.vscode/settings.json
 
-# Generated files
-src/openzaak/static/fonts
-src/openzaak/static/css/screen.css
-src/openzaak/static/css/admin/
-src/openzaak/static/js/
-docs/_build
-/volumes/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Coverage reports
-/reports/
-/htmlcov/
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
 .coverage
+.coverage.*
+.cache
+nosetests.xml
 coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
 
-# Environment
-src/openzaak/conf/includes/local.py
-/env/
-/media/
-/static/
-/mail/
-/log/*.log*
-/log/nginx/*.log*
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
 .env
-/private-media/
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Ansible secrets
-deployment/single-server/vars/*
-!deployment/single-server/vars/*example*
+# Spyder project settings
+.spyderproject
+.spyproject
 
-deployment/kubernetes/vars/*
-!deployment/kubernetes/vars/*example*
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+ui/Derivatives.dat
+ui/isotopes2.csv
+ui/Metabolites.dat
+outgui.tsv
