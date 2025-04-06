@@ -1,35 +1,40 @@
-include README.rst
-include CHANGES.rst
-include MANIFEST.in
-include LICENSE
-include .coveragerc
-include .editorconfig
-include .pycheckrc
-include .pylintrc
-include *.cfg
-include *.ini
-include *.py
-include *.rst
-include *.txt
-include *.yml
-include *.yaml
-include bin/behave*
-include bin/invoke*
-recursive-include .ci           *.yml
-recursive-include bin           *.py *.cmd *.sh *.zip *.yml *.json
-recursive-include behave4cmd0   *.py
-recursive-include etc           *.xsd *.txt *.json-schema
-recursive-include examples      *.py *.feature *.txt *.rst *.ini
-recursive-include docs          *.rst *.txt *.css *.py *.html *.rst-* *.png Makefile
-recursive-include docs/_themes  *.html *.conf *.css *.css_t LICENSE*
-recursive-include test          *.py
-recursive-include tests         *.py *.txt
-recursive-include tasks         *.py *.zip *.txt *.rst
-recursive-include tools         *.feature *.py *.yml *.sh
-recursive-include features      *.feature *.py *.txt
-recursive-include issue.features  *.feature *.py *.txt
-recursive-include more.features *.feature *.py *.txt *.rst
-recursive-include py.requirements  *.txt *.rst
+# Additional files to be included in the source distribution package (created
+# by running 'setup.py sdist'). Theoretically we could avoid having to manually
+# maintain this list by using a setuptools plugin that would automatically
+# include all files under Mercurial version control, but the setuptools_hg we
+# tried out did not work correctly with Python 3.
 
-prune .tox
-prune .venv*
+# Top level project files.
+include ez_setup.py
+include ez_setup_1_4_2.py
+include HACKING.rst
+include LICENSE.txt
+include TODO.txt
+
+# Notes.
+include notes/*.rst
+include notes/*.txt
+
+# Tests.
+recursive-include tests *.py
+
+# Project development & setup tools.
+include tools/*.py
+include tools/*.txt
+recursive-include tools/suds_devel *.py
+
+# Python 2 versions prior to some early 2.7.x release and Python 3 versions
+# prior to some 3.2.x release had buggy disutils implementations that can
+# result in our project's source distribution containing some extra unwanted
+# files picked up from some of our local cache folders. This is a 3-layer fix
+# to work around the problem:
+#   1. We prune those folders just in case some of their content got added by
+#      mistake.
+#   2. An extra include is here to silence distutils warnings in case the used
+#      distutils implementation is not buggy and therefore no extra files have
+#      been added and distutils can not find anything to prune.
+#   3. To make the include actually include an existing file, setup.py
+#      constructs at least one such file to be included with a buggy distutils
+#      implementation.
+include tools/__*/*
+prune tools/__*
